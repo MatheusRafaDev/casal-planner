@@ -1,0 +1,137 @@
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem;
+  border-bottom: 1px dashed #ecf0f1;
+  animation: fadeIn 0.3s;
+  transition: all 0.2s;
+  cursor: grab;
+}
+
+.dark-mode .item {
+  border-color: #4a5568;
+}
+
+.item.dragging {
+  opacity: 0.5;
+  background: #f0f0f0;
+}
+
+.item:hover {
+  background: #f9f9f9;
+  border-radius: 12px;
+}
+
+.dark-mode .item:hover {
+  background: #1a202c;
+}
+
+.item-comprado {
+  opacity: 0.6;
+}
+
+.item-comprado .item-nome {
+  text-decoration: line-through;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.item-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #27ae60;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-nome {
+  font-weight: 600;
+  color: #2c3e50;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.dark-mode .item-nome {
+  color: #e2e8f0;
+}
+
+.item-detalhes {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dark-mode .item-detalhes {
+  color: #a0aec0;
+}
+
+.item-marca {
+  background: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.item-preco {
+  background: #27ae60;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 600;
+  color: white;
+}
+
+.item-qtd {
+  background: #7f8c8d;
+  padding: 2px 8px;
+  border-radius: 20px;
+  color: white;
+}
+
+.pagamento-badge {
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.pagamento-badge.vr {
+  background: #2980b9;
+  color: white;
+}
+
+.pagamento-badge.normal {
+  background: #e67e22;
+  color: white;
+}
+
+.item-actions {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.btn-icon-small {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 20px;
+  color: #7f8c8d;
+  transition: 0.2s;
+}
+
+.btn-icon-small:hover {
+  background: #ecf0f1;
+  transform: scale(1.1);
+}
+
+.dark-mode .btn-icon-small:hover {
+  background: #4a5568;
+}

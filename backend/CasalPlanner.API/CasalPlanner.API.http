@@ -1,0 +1,6 @@
+@CasalPlanner.API_HostAddress = http://localhost:5286
+
+GET {{CasalPlanner.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
