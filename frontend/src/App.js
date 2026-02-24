@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import Login from './components/Login';
+
+import Login from './components/Login';  
 import Header from './components/Header';
 import ResumoCards from './components/ResumoCards';
 import CategoriaCard from './components/CategoriaCard';
 import AddCategoriaCard from './components/AddCategoriaCard';
+
 import Modal from './components/Modal';
 import { categoriasService } from './services/categoriasService';
 import { itensService } from './services/itensService';

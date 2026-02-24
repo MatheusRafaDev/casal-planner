@@ -1,3 +1,4 @@
+/* Container principal */
 .login-container {
   min-height: 100vh;
   display: flex;
@@ -7,18 +8,37 @@
   padding: 1rem;
 }
 
+/* Card de login */
 .login-card {
   background: white;
   border-radius: 32px;
   padding: 2.5rem;
   width: 100%;
-  max-width: 400px;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  scrollbar-width: thin;
+  scrollbar-color: #27ae60 #ecf0f1;
+}
+
+.login-card::-webkit-scrollbar {
+  width: 8px;
+}
+
+.login-card::-webkit-scrollbar-track {
+  background: #ecf0f1;
+  border-radius: 10px;
+}
+
+.login-card::-webkit-scrollbar-thumb {
+  background: #27ae60;
+  border-radius: 10px;
 }
 
 .login-card h1 {
   text-align: center;
-  font-size: 2rem;
+  font-size: 2.5rem;
   margin-bottom: 0.3rem;
   background: linear-gradient(135deg, #27ae60, #2980b9);
   -webkit-background-clip: text;
@@ -29,12 +49,14 @@
   text-align: center;
   color: #7f8c8d;
   margin-bottom: 2rem;
+  font-size: 1rem;
 }
 
+/* Abas principais (Login/Registrar) */
 .login-tabs {
   display: flex;
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   border-bottom: 2px solid #ecf0f1;
   padding-bottom: 0.5rem;
 }
@@ -43,28 +65,113 @@
   flex: 1;
   background: none;
   border: none;
-  padding: 0.5rem;
+  padding: 0.8rem;
   font-size: 1rem;
   cursor: pointer;
   color: #7f8c8d;
   transition: 0.2s;
+  border-radius: 16px 16px 0 0;
 }
 
 .tab.active {
   color: #27ae60;
   font-weight: 600;
-  border-bottom: 2px solid #27ae60;
+  border-bottom: 3px solid #27ae60;
 }
 
+/* Abas de tipo de conta (Individual/Casal) */
+.tipo-conta-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.tipo-tab {
+  flex: 1;
+  background: #f0f0f0;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 16px;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #7f8c8d;
+  transition: 0.2s;
+  font-weight: 500;
+}
+
+.tipo-tab.active {
+  background: #27ae60;
+  color: white;
+}
+
+/* Mensagem de erro */
 .error-message {
   background: #fee;
   color: #c33;
   padding: 0.8rem;
   border-radius: 12px;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   text-align: center;
+  font-size: 0.9rem;
+  border: 1px solid #fcc;
 }
 
+/* Grupos de formulário */
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: #7f8c8d;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 2px solid #ecf0f1;
+  border-radius: 16px;
+  font-size: 1rem;
+  transition: 0.2s;
+  background: white;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #27ae60;
+  box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #bdc3c7;
+  font-size: 0.9rem;
+}
+
+/* Linha com dois campos */
+.form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.form-group.half {
+  flex: 1;
+}
+
+/* Títulos de seção do formulário */
+.form-section-title {
+  font-size: 1.1rem;
+  color: #2c3e50;
+  margin: 1.5rem 0 1rem 0;
+  padding-bottom: 0.3rem;
+  border-bottom: 2px solid #ecf0f1;
+  font-weight: 600;
+}
+
+/* Botão principal */
 .btn-login {
   width: 100%;
   padding: 1rem;
@@ -76,12 +183,13 @@
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 }
 
 .btn-login:hover:not(:disabled) {
   background: #219a52;
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
 }
 
 .btn-login:disabled {
@@ -89,6 +197,7 @@
   cursor: not-allowed;
 }
 
+/* Divisor */
 .login-divider {
   text-align: center;
   margin: 1.5rem 0;
@@ -120,6 +229,7 @@
   font-size: 0.9rem;
 }
 
+/* Botão do casal */
 .btn-casal {
   width: 100%;
   padding: 1rem;
@@ -131,13 +241,24 @@
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .btn-casal:hover:not(:disabled) {
   background: #f39c12;
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(241, 196, 15, 0.3);
 }
 
+.btn-casal:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Informações de login */
 .login-info {
   text-align: center;
   margin-top: 1.5rem;
@@ -146,4 +267,255 @@
   background: #f8f9fa;
   padding: 0.8rem;
   border-radius: 12px;
+  line-height: 1.5;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========== MODO ESCURO ========== */
+.dark-mode .login-card {
+  background: #2d3748;
+}
+
+.dark-mode .login-card h1 {
+  background: linear-gradient(135deg, #48bb78, #4299e1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark-mode .subtitle {
+  color: #a0aec0;
+}
+
+.dark-mode .tab {
+  color: #a0aec0;
+}
+
+.dark-mode .tab.active {
+  color: #48bb78;
+  border-bottom-color: #48bb78;
+}
+
+.dark-mode .tipo-tab {
+  background: #4a5568;
+  color: #a0aec0;
+}
+
+.dark-mode .tipo-tab.active {
+  background: #48bb78;
+  color: white;
+}
+
+.dark-mode .form-group label {
+  color: #a0aec0;
+}
+
+.dark-mode .form-group input {
+  background: #1a202c;
+  border-color: #4a5568;
+  color: #e2e8f0;
+}
+
+.dark-mode .form-group input:focus {
+  border-color: #48bb78;
+  box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.2);
+}
+
+.dark-mode .form-group input::placeholder {
+  color: #718096;
+}
+
+.dark-mode .form-section-title {
+  color: #e2e8f0;
+  border-bottom-color: #4a5568;
+}
+
+.dark-mode .login-divider span {
+  background: #2d3748;
+  color: #a0aec0;
+}
+
+.dark-mode .login-divider::before,
+.dark-mode .login-divider::after {
+  background: #4a5568;
+}
+
+.dark-mode .login-info {
+  background: #1a202c;
+  color: #a0aec0;
+}
+
+/* ========== RESPONSIVIDADE ========== */
+@media (max-width: 768px) {
+  .login-card {
+    padding: 2rem;
+    max-width: 450px;
+  }
+  
+  .login-card h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 1.5rem;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .tipo-conta-tabs {
+    flex-direction: column;
+  }
+  
+  .login-tabs {
+    gap: 0.5rem;
+  }
+  
+  .tab {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
+  
+  .btn-login, .btn-casal {
+    padding: 0.8rem;
+  }
+}
+
+/* Animações */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-card {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Estilo para campos obrigatórios */
+.form-group label::after {
+  content: ' *';
+  color: #e74c3c;
+  font-size: 1rem;
+}
+
+.form-group label[for]:not([for*="telefone"]):not([for*="dataNascimento"]):not([for*="dataCasamento"]):not([for*="endereco"]):not([for*="cidade"]):not([for*="estado"]):not([for*="cep"])::after {
+  content: ' *';
+  color: #e74c3c;
+}
+
+/* Ajuste para campos não obrigatórios */
+.form-group label[for*="telefone"]::after,
+.form-group label[for*="dataNascimento"]::after,
+.form-group label[for*="dataCasamento"]::after,
+.form-group label[for*="endereco"]::after,
+.form-group label[for*="cidade"]::after,
+.form-group label[for*="estado"]::after,
+.form-group label[for*="cep"]::after {
+  content: ' (opcional)';
+  color: #95a5a6;
+  font-size: 0.8rem;
+  font-weight: normal;
+}
+
+/* Checkbox para ativar conta casal */
+.checkbox-group {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 16px;
+  border: 1px solid #ecf0f1;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #27ae60;
+}
+
+.checkbox-helper {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  line-height: 1.4;
+}
+
+/* Modo escuro para o checkbox */
+.dark-mode .checkbox-group {
+  background: #1a202c;
+  border-color: #4a5568;
+}
+
+.dark-mode .checkbox-label {
+  color: #e2e8f0;
+}
+
+.dark-mode .checkbox-helper {
+  color: #a0aec0;
+}
+
+.dark-mode .checkbox-label input[type="checkbox"] {
+  accent-color: #48bb78;
+}
+
+/* Estilos para campos de valores monetários */
+input[name="rendaMensal"],
+input[name="pessoa1_rendaMensal"],
+input[name="pessoa2_rendaMensal"] {
+  text-align: right;
+}
+
+/* Estilos para campos de data */
+input[type="date"] {
+  font-family: inherit;
+  color-scheme: light;
+}
+
+.dark-mode input[type="date"] {
+  color-scheme: dark;
+}
+
+/* Melhorias na responsividade */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .form-group.half {
+    width: 100%;
+  }
 }

@@ -13,14 +13,18 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const carregarUsuario = () => {
-      const usuarioSalvo = authService.getUsuario();
+      console.log('🔄 Carregando usuário do localStorage...');
       const token = authService.getToken();
+      const usuarioSalvo = authService.getUsuario();
       
-      console.log('Verificando usuário salvo:', usuarioSalvo);
       console.log('Token existe:', !!token);
+      console.log('Usuário salvo:', usuarioSalvo);
       
-      if (usuarioSalvo && token) {
+      if (token && usuarioSalvo) {
+        console.log('✅ Usuário restaurado da sessão');
         setUsuario(usuarioSalvo);
+      } else {
+        console.log('ℹ️ Nenhuma sessão ativa encontrada');
       }
       setLoading(false);
     };
@@ -28,42 +32,31 @@ export const AuthProvider = ({ children }) => {
     carregarUsuario();
   }, []);
 
-  const login = async (email, senha, isCasal = false) => {
+  // Login INDIVIDUAL
+  const login = async (email, senha) => {
     try {
-      console.log('AuthContext: Iniciando login para', email);
+      console.log('🔐 Tentando login individual com:', email);
       
-      let response;
-      
-      if (isCasal) {
-        response = await authService.loginCasal({ email, senha });
-      } else {
-        response = await authService.login({ email, senha });
-      }
-      
-      console.log('AuthContext: Resposta do login:', response);
+      const response = await authService.login({ email, senha });
+      console.log('📦 Resposta do login individual:', response);
       
       if (response && response.token) {
         authService.salvarToken(response.token);
         authService.salvarUsuario(response);
         setUsuario(response);
         
-        console.log('AuthContext: Login bem-sucedido, redirecionando...');
-        
-        // Redirecionar para a página principal
-        setTimeout(() => {
-          navigate('/');
-        }, 100);
-        
+        console.log('✅ Login individual bem-sucedido!');
+        navigate('/');
         return { success: true };
       } else {
-        console.error('AuthContext: Resposta sem token:', response);
+        console.error('❌ Resposta sem token:', response);
         return { 
           success: false, 
           error: 'Resposta inválida do servidor' 
         };
       }
     } catch (error) {
-      console.error('AuthContext: Erro no login:', error);
+      console.error('❌ Erro no login:', error);
       return { 
         success: false, 
         error: error.response?.data?.message || 'Erro ao fazer login' 
@@ -71,25 +64,52 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const registrar = async (nome, email, senha) => {
+  // NOVO: Login do CASAL
+  const loginCasal = async (email, senha) => {
     try {
-      console.log('AuthContext: Iniciando registro para', email);
+      console.log('🔐 Tentando login do casal com:', email);
       
-      const response = await authService.registrar({ nome, email, senha });
-      
-      console.log('AuthContext: Resposta do registro:', response);
+      const response = await authService.loginCasal({ email, senha });
+      console.log('📦 Resposta do login do casal:', response);
       
       if (response && response.token) {
         authService.salvarToken(response.token);
         authService.salvarUsuario(response);
         setUsuario(response);
         
-        console.log('AuthContext: Registro bem-sucedido, redirecionando...');
+        console.log('✅ Login do casal bem-sucedido!');
+        navigate('/');
+        return { success: true };
+      } else {
+        console.error('❌ Resposta sem token:', response);
+        return { 
+          success: false, 
+          error: 'Resposta inválida do servidor' 
+        };
+      }
+    } catch (error) {
+      console.error('❌ Erro no login do casal:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Erro ao fazer login do casal' 
+      };
+    }
+  };
+
+  const registrar = async (dados) => {
+    try {
+      console.log('📝 Tentando registrar individual:', dados.email);
+      
+      const response = await authService.registrar(dados);
+      console.log('📦 Resposta do registro:', response);
+      
+      if (response && response.token) {
+        authService.salvarToken(response.token);
+        authService.salvarUsuario(response);
+        setUsuario(response);
         
-        setTimeout(() => {
-          navigate('/');
-        }, 100);
-        
+        console.log('✅ Registro individual bem-sucedido!');
+        navigate('/');
         return { success: true };
       } else {
         return { 
@@ -98,10 +118,40 @@ export const AuthProvider = ({ children }) => {
         };
       }
     } catch (error) {
-      console.error('AuthContext: Erro no registro:', error);
+      console.error('❌ Erro no registro:', error);
       return { 
         success: false, 
         error: error.response?.data?.message || 'Erro ao registrar' 
+      };
+    }
+  };
+
+  const registrarCasal = async (dados) => {
+    try {
+      console.log('📝 Tentando registro de casal');
+      
+      const response = await authService.registrarCasal(dados);
+      console.log('📦 Resposta do registro de casal:', response);
+      
+      if (response && response.token) {
+        authService.salvarToken(response.token);
+        authService.salvarUsuario(response);
+        setUsuario(response);
+        
+        console.log('✅ Registro de casal bem-sucedido!');
+        navigate('/');
+        return { success: true };
+      } else {
+        return { 
+          success: false, 
+          error: 'Resposta inválida do servidor' 
+        };
+      }
+    } catch (error) {
+      console.error('❌ Erro no registro de casal:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Erro ao registrar casal' 
       };
     }
   };
@@ -116,8 +166,10 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={{
       usuario,
       loading,
-      login,
+      login,        
+      loginCasal,   
       registrar,
+      registrarCasal,
       logout,
       estaAutenticado: !!usuario
     }}>

@@ -8,44 +8,10 @@ using CasalPlanner.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container - TUDO deve vir ANTES do builder.Build()
+// Add services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
-// Configurar Swagger
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo 
-    { 
-        Title = "CasalPlanner API", 
-        Version = "v1",
-        Description = "API para planejamento doméstico do casal"
-    });
-    
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "JWT Authorization header. Exemplo: \"Bearer {token}\"",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
-    
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] {}
-        }
-    });
-});
+builder.Services.AddSwaggerGen();
 
 // Configurar MongoDB
 builder.Services.Configure<MongoDBSettings>(
@@ -70,12 +36,10 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
         ValidateIssuer = false,
-        ValidateAudience = false,
-        ClockSkew = TimeSpan.Zero
+        ValidateAudience = false
     };
 });
 
-// Configurar CORS - ANTES do builder.Build()
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
@@ -87,12 +51,10 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Registrar serviços
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-var app = builder.Build(); // <--- DEPOIS de TODAS as configurações
+var app = builder.Build();
 
-// Configure the HTTP request pipeline - TUDO DEPOIS do app.Build()
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -100,21 +62,17 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowReact"); // <--- CORS deve vir ANTES de Authorization
+app.UseCors("AllowReact");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
 // Seed data
-// Depois do SeedData
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<MongoDbContext>();
     await dbContext.SeedDataAsync();
-    
-
-    var usuarioExiste = await dbContext.VerificarUsuarioCasal();
-    Console.WriteLine($"Usuário do casal existe: {usuarioExiste}");
+    await dbContext.VerificarUsuarioCasal();
 }
 
 app.Run();
