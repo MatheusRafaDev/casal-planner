@@ -1,7 +1,7 @@
 import api from './api';
 
 export const authService = {
-  // Login individual
+  // Login unificado (funciona para individual e casal)
   async login(dados) {
     try {
       const response = await api.post('/auth/login', dados);
@@ -12,7 +12,7 @@ export const authService = {
     }
   },
 
-  // Login do casal
+  // Login específico para casal (caso precise)
   async loginCasal(dados) {
     try {
       const response = await api.post('/auth/login-casal', dados);
@@ -48,7 +48,9 @@ export const authService = {
   // Utilitários de token
   salvarToken(token) {
     localStorage.setItem('token', token);
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    if (api.defaults?.headers) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
     console.log('✅ Token salvo no localStorage');
   },
 
@@ -69,7 +71,9 @@ export const authService = {
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
-    delete api.defaults.headers.common['Authorization'];
+    if (api.defaults?.headers) {
+      delete api.defaults.headers.common['Authorization'];
+    }
     console.log('✅ Logout realizado');
   },
 

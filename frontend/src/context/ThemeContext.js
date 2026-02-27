@@ -1,28 +1,32 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { lightTheme, darkTheme } from '../styles/theme';
+import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 
 const ThemeContext = createContext();
 
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem('darkMode') === 'true';
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    return saved ? JSON.parse(saved) : false;
   });
 
-  useEffect(() => {
-    localStorage.setItem('darkMode', darkMode);
-    if (darkMode) {
-      document.body.classList.add('dark-mode');
-    } else {
-      document.body.classList.remove('dark-mode');
-    }
-  }, [darkMode]);
+  const theme = isDarkMode ? darkTheme : lightTheme;
 
-  const toggleTheme = () => setDarkMode(!darkMode);
+  useEffect(() => {
+    localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
+  }, [isDarkMode]);
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
 
   return (
-    <ThemeContext.Provider value={{ darkMode, toggleTheme }}>
-      {children}
+    <ThemeContext.Provider value={{ isDarkMode, toggleTheme, theme }}>
+      <StyledThemeProvider theme={theme}>
+        {children}
+      </StyledThemeProvider>
     </ThemeContext.Provider>
   );
 };

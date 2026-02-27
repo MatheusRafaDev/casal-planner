@@ -1,14 +1,23 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s, color 0.3s;
+  background-color: #faf7f2;
+}
+
 .container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem 1rem;
-}
-
-.cards-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1.5rem;
 }
 
 .loading {
@@ -20,6 +29,7 @@
   color: #7f8c8d;
 }
 
+/* Dark mode */
 .dark-mode {
   background-color: #1a202c;
   color: #e2e8f0;
@@ -29,6 +39,90 @@
   color: #a0aec0;
 }
 
+/* Cards container */
+.cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+/* Drag and drop styles */
+.drag-wrapper {
+  transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
+  cursor: grab;
+}
+
+.drag-wrapper.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+  cursor: grabbing;
+}
+
+.drag-wrapper.drag-over {
+  transform: translateY(5px);
+}
+
+.drag-wrapper.drag-over .kanban-card {
+  border: 2px dashed #27ae60;
+  box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.2);
+}
+
+/* Indicador visual de que pode arrastar */
+.cards-container .drag-wrapper .card-header {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.cards-container .drag-wrapper .card-header::before {
+  content: '⋮⋮';
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  color: rgba(0,0,0,0.3);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.cards-container .drag-wrapper:hover .card-header::before {
+  opacity: 1;
+}
+
+.dark-mode .cards-container .drag-wrapper .card-header::before {
+  color: rgba(255,255,255,0.3);
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27ae60;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #219a52;
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+  background: #2d3748;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+  background: #48bb78;
+}
+
+/* Responsividade */
 @media (max-width: 768px) {
   .container {
     padding: 1rem;
@@ -37,4 +131,24 @@
   .cards-container {
     grid-template-columns: 1fr;
   }
+
+
+  /* Estilos para drag and drop */
+.drag-card-wrapper {
+  transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
+  cursor: grab;
+}
+
+.drag-card-wrapper.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+  cursor: grabbing;
+}
+
+.drag-card-wrapper.drag-over {
+  transform: translateY(5px);
+}
+
+.drag-card-wrapper.drag-over .card-header {
+  border: 2px dashed #27ae60;
 }

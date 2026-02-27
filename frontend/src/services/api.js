@@ -1,11 +1,10 @@
 import axios from 'axios';
 
-// Use a PORTA CORRETA (5286) - URL direta, sem proxy
 const api = axios.create({
   baseURL: 'http://localhost:5286/api',
+  timeout: 10000,
 });
 
-// Interceptor para adicionar token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -19,7 +18,6 @@ api.interceptors.request.use(
   }
 );
 
-// Interceptor para tratar erros
 api.interceptors.response.use(
   (response) => response,
   (error) => {

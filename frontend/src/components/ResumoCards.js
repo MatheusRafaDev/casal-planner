@@ -1,5 +1,5 @@
 import React from 'react';
-import './ResumoCards.css';
+import styled from 'styled-components';
 
 const ResumoCards = ({ resumo }) => {
   const formatarPreco = (valor) => {
@@ -12,73 +12,121 @@ const ResumoCards = ({ resumo }) => {
   const maxTotal = Math.max(resumo?.totalGeral || 1, 1);
 
   return (
-    <div className="resumo-grid">
-      <div className="resumo-card">
-        <div className="resumo-header">
+    <ResumoGrid>
+      <ResumoCard>
+        <ResumoHeader>
           <span>💰</span> Total Geral
-        </div>
-        <div className="resumo-valor">
+        </ResumoHeader>
+        <ResumoValor>
           R$ {formatarPreco(resumo?.totalGeral)}
-        </div>
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: '100%' }}></div>
-        </div>
-      </div>
+        </ResumoValor>
+        <ProgressBar>
+          <ProgressFill style={{ width: '100%' }} />
+        </ProgressBar>
+      </ResumoCard>
 
-      <div className="resumo-card">
-        <div className="resumo-header">
+      <ResumoCard>
+        <ResumoHeader>
           <span>🍽️</span> VR/VA
-        </div>
-        <div className="resumo-valor">
+        </ResumoHeader>
+        <ResumoValor>
           R$ {formatarPreco(resumo?.totalVR)}
-        </div>
-        <div className="progress-bar">
-          <div 
-            className="progress-fill" 
+        </ResumoValor>
+        <ProgressBar>
+          <ProgressFill 
             style={{ 
               width: `${((resumo?.totalVR || 0) / maxTotal) * 100}%`,
               background: '#2980b9'
             }}
-          ></div>
-        </div>
-      </div>
+          />
+        </ProgressBar>
+      </ResumoCard>
 
-      <div className="resumo-card">
-        <div className="resumo-header">
+      <ResumoCard>
+        <ResumoHeader>
           <span>💵</span> Normal
-        </div>
-        <div className="resumo-valor">
+        </ResumoHeader>
+        <ResumoValor>
           R$ {formatarPreco(resumo?.totalNormal)}
-        </div>
-        <div className="progress-bar">
-          <div 
-            className="progress-fill" 
+        </ResumoValor>
+        <ProgressBar>
+          <ProgressFill 
             style={{ 
               width: `${((resumo?.totalNormal || 0) / maxTotal) * 100}%`,
               background: '#e67e22'
             }}
-          ></div>
-        </div>
-      </div>
+          />
+        </ProgressBar>
+      </ResumoCard>
 
-      <div className="resumo-card">
-        <div className="resumo-header">
+      <ResumoCard>
+        <ResumoHeader>
           <span>✅</span> Comprados
-        </div>
-        <div className="resumo-valor">
+        </ResumoHeader>
+        <ResumoValor>
           {resumo?.totalComprados || 0}/{resumo?.totalItens || 0}
-        </div>
-        <div className="progress-bar">
-          <div 
-            className="progress-fill" 
+        </ResumoValor>
+        <ProgressBar>
+          <ProgressFill 
             style={{ 
               width: `${((resumo?.totalComprados || 0) / Math.max(resumo?.totalItens || 1, 1)) * 100}%`
             }}
-          ></div>
-        </div>
-      </div>
-    </div>
+          />
+        </ProgressBar>
+      </ResumoCard>
+    </ResumoGrid>
   );
 };
+
+// Styled Components
+const ResumoGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.2rem;
+  margin-bottom: 2rem;
+`;
+
+const ResumoCard = styled.div`
+  background: ${props => props.theme?.darkMode ? '#2d3748' : 'white'};
+  border: 1px solid ${props => props.theme?.darkMode ? '#4a5568' : '#ecf0f1'};
+  border-radius: 24px;
+  padding: 1.2rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-4px);
+  }
+`;
+
+const ResumoHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: ${props => props.theme?.darkMode ? '#a0aec0' : '#7f8c8d'};
+  margin-bottom: 0.8rem;
+  font-size: 0.9rem;
+`;
+
+const ResumoValor = styled.div`
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: ${props => props.theme?.darkMode ? '#e2e8f0' : '#2c3e50'};
+`;
+
+const ProgressBar = styled.div`
+  height: 8px;
+  background: ${props => props.theme?.darkMode ? '#4a5568' : '#ecf0f1'};
+  border-radius: 20px;
+  margin-top: 1rem;
+  overflow: hidden;
+`;
+
+const ProgressFill = styled.div`
+  height: 100%;
+  background: #27ae60;
+  border-radius: 20px;
+  transition: width 0.3s;
+`;
 
 export default ResumoCards;

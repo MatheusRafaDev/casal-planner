@@ -18,16 +18,22 @@ export const formatarMoeda = (valor) => {
 };
 
 // Remove a formatação e retorna o valor numérico
+// Remove a formatação e retorna o valor numérico
 export const desformatarMoeda = (valor) => {
   if (!valor) return 0;
   
+  // Se já for número, retorna
+  if (typeof valor === 'number') return valor;
+  
   // Remove R$, espaços, pontos e troca vírgula por ponto
-  const limpo = valor
+  const valorStr = valor.toString();
+  const limpo = valorStr
     .replace(/[R$\s]/g, '')
     .replace(/\./g, '')
     .replace(',', '.');
     
-  return parseFloat(limpo) || 0;
+  const numerico = parseFloat(limpo);
+  return isNaN(numerico) ? 0 : numerico;
 };
 
 // Aplica a máscara enquanto o usuário digita
