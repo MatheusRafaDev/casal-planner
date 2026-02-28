@@ -13,7 +13,7 @@ const Layout = ({ children }) => {
 
   // ✅ APENAS Início e Perfil
   const menuItems = [
-    { path: '/', icon: '🏠', label: 'Início' },
+    { path: '/inicio', icon: '🏠', label: 'Início' },
     { path: '/perfil', icon: '👤', label: 'Perfil' },
   ];
 

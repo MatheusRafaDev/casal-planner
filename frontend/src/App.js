@@ -6,8 +6,8 @@ import { ThemeProvider } from './context/ThemeContext';
 // Layout
 import Layout from './components/Layout';
 
-// Páginas (✅ APENAS AS QUE EXISTEM)
-import Home from './pages/Home';
+
+import Inicio from './pages/Inicio';
 import Perfil from './pages/Perfil';
 import Login from './components/Login';
 
@@ -27,7 +27,7 @@ function AppRoutes() {
   return (
     <Layout>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/Inicio" element={<Inicio />} />
         <Route path="/perfil" element={<Perfil />} />
       </Routes>
     </Layout>
