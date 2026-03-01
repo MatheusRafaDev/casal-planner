@@ -13,8 +13,8 @@ const GlobalStyle = createGlobalStyle`
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: ${({ theme }) => theme.background};
-    color: ${({ theme }) => theme.text};
+    background-color: ${({ theme }) => theme?.background || '#fafafa'};
+    color: ${({ theme }) => theme?.text || '#333'};
     transition: background-color 0.3s, color 0.3s;
   }
 
@@ -24,27 +24,27 @@ const GlobalStyle = createGlobalStyle`
     justify-content: center;
     min-height: 100vh;
     font-size: 1.2rem;
-    color: ${({ theme }) => theme.textSoft};
+    color: ${({ theme }) => theme?.textSoft || '#666'};
   }
 
-  /* Scrollbar personalizada - MAIS VISÍVEL NO ESCURO */
+  /* Scrollbar personalizada */
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
   }
 
   ::-webkit-scrollbar-track {
-    background: ${({ theme }) => theme.background};
+    background: ${({ theme }) => theme?.borderLight || '#f0f0f0'};
     border-radius: 10px;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: ${({ theme }) => theme.primary}80;
+    background: ${({ theme }) => theme?.primary || '#4ECDC4'};
     border-radius: 10px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: ${({ theme }) => theme.primary};
+    background: ${({ theme }) => theme?.primaryDark || '#3db9b1'};
   }
 
   /* Animações */
@@ -58,22 +58,12 @@ const GlobalStyle = createGlobalStyle`
     to { transform: translateY(0); opacity: 1; }
   }
 
-  @keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.7; }
-    100% { opacity: 1; }
-  }
-
   .fade-in {
     animation: fadeIn 0.3s ease;
   }
 
   .slide-up {
     animation: slideUp 0.3s ease;
-  }
-
-  .pulse {
-    animation: pulse 2s infinite;
   }
 `;
 

@@ -30,7 +30,7 @@ import {
   EstatisticaValor,
   EstatisticaLabel,
   InfoMembro
-} from '../styles/PerfilStyles';
+} from '../styles/pages/PerfilStyles';
 
 const Perfil = () => {
   const { darkMode } = useTheme();
@@ -354,111 +354,7 @@ const Perfil = () => {
         </InfoContainer>
       </PerfilCard>
 
-      <PerfilCard $darkMode={darkMode}>
-        <SectionTitle $darkMode={darkMode}>🔒 Alterar senha</SectionTitle>
 
-        {!editandoSenha ? (
-          <AlterarSenhaButton 
-            onClick={() => setEditandoSenha(true)}
-            disabled={loading}
-          >
-            Alterar senha
-          </AlterarSenhaButton>
-        ) : (
-          <>
-            <FormGroup>
-              <Label $darkMode={darkMode}>Senha atual</Label>
-              <Input
-                type="password"
-                name="atual"
-                value={senha.atual}
-                onChange={handleSenhaChange}
-                placeholder="••••••"
-                $darkMode={darkMode}
-              />
-            </FormGroup>
-
-            <FormRow>
-              <FormGroup $half>
-                <Label $darkMode={darkMode}>Nova senha</Label>
-                <Input
-                  type="password"
-                  name="nova"
-                  value={senha.nova}
-                  onChange={handleSenhaChange}
-                  placeholder="••••••"
-                  minLength="6"
-                  $darkMode={darkMode}
-                />
-              </FormGroup>
-
-              <FormGroup $half>
-                <Label $darkMode={darkMode}>Confirmar nova senha</Label>
-                <Input
-                  type="password"
-                  name="confirmar"
-                  value={senha.confirmar}
-                  onChange={handleSenhaChange}
-                  placeholder="••••••"
-                  minLength="6"
-                  $darkMode={darkMode}
-                />
-              </FormGroup>
-            </FormRow>
-
-            <FormActions>
-              <CancelarButton 
-                onClick={() => {
-                  setEditandoSenha(false);
-                  setSenha({ atual: '', nova: '', confirmar: '' });
-                }}
-                $darkMode={darkMode}
-                disabled={loading}
-              >
-                Cancelar
-              </CancelarButton>
-              <SalvarButton 
-                onClick={handleAlterarSenha}
-                $darkMode={darkMode}
-                disabled={loading}
-              >
-                {loading ? 'Alterando...' : 'Alterar senha'}
-              </SalvarButton>
-            </FormActions>
-          </>
-        )}
-      </PerfilCard>
-
-      <PerfilCard $darkMode={darkMode}>
-        <SectionTitle $darkMode={darkMode}>📊 Estatísticas</SectionTitle>
-        
-        <EstatisticasGrid>
-          <EstatisticaItem $darkMode={darkMode}>
-            <EstatisticaValor>{estatisticas.categorias}</EstatisticaValor>
-            <EstatisticaLabel $darkMode={darkMode}>Categorias</EstatisticaLabel>
-          </EstatisticaItem>
-          
-          <EstatisticaItem $darkMode={darkMode}>
-            <EstatisticaValor>{estatisticas.itens}</EstatisticaValor>
-            <EstatisticaLabel $darkMode={darkMode}>Itens</EstatisticaLabel>
-          </EstatisticaItem>
-          
-          <EstatisticaItem $darkMode={darkMode}>
-            <EstatisticaValor>R$ {formatarMoeda(estatisticas.totalGasto)}</EstatisticaValor>
-            <EstatisticaLabel $darkMode={darkMode}>Total gasto</EstatisticaLabel>
-          </EstatisticaItem>
-          
-          <EstatisticaItem $darkMode={darkMode}>
-            <EstatisticaValor>{estatisticas.comprados}</EstatisticaValor>
-            <EstatisticaLabel $darkMode={darkMode}>Itens comprados</EstatisticaLabel>
-          </EstatisticaItem>
-        </EstatisticasGrid>
-
-        <InfoMembro $darkMode={darkMode}>
-          <p>Membro desde: {formatarData(usuario?.createdAt)}</p>
-          <p>Último login: {formatarData(usuario?.lastLoginAt)}</p>
-        </InfoMembro>
-      </PerfilCard>
     </PerfilContainer>
   );
 };

@@ -18,7 +18,7 @@ import {
 import {
   InicioContainer,
   WelcomeSection,
-} from "../styles/InicioStyles";
+} from "../styles/pages/InicioStyles";
 
 const Inicio = () => {
   const { theme } = useTheme();
@@ -301,7 +301,7 @@ const Inicio = () => {
         />
       </div>
 
-      {/* Modal de Item */}
+
       <ItemFormModal
         isOpen={itemModal.isOpen}
         onClose={() => setItemModal({ isOpen: false, categoriaId: null, itemId: null })}

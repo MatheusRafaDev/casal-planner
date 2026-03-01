@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CasalPlanner.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0e705089da2b11044a8912ecf8156ba93a5dc35c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+173b6c0698a0676980d22ae30e14a83b30908945")]
 [assembly: System.Reflection.AssemblyProductAttribute("CasalPlanner.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CasalPlanner.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
