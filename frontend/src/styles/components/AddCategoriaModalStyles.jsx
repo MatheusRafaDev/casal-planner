@@ -7,8 +7,8 @@ export const Overlay = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(4px);
+  background: ${(props) => props.theme.border};
+  backdrop-filter: blur(8px);
   animation: fadeIn 0.2s ease;
 
   @keyframes fadeIn {
@@ -38,29 +38,31 @@ export const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 
   h3 {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     font-weight: 600;
     color: ${props => props.theme.text};
+    margin: 0;
   }
 `;
 
 export const CloseButton = styled.button`
-  padding: 0.25rem;
+  padding: 0.5rem;
   color: ${props => props.theme.textSoft};
-  background: none;
+  background: ${props => props.theme.border};
   border: none;
   cursor: pointer;
-  border-radius: 0.25rem;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s;
 
   &:hover {
+    background: ${props => props.theme.textLight};
     color: ${props => props.theme.text};
-    background: ${props => props.theme.border};
   }
 `;
 
@@ -71,34 +73,30 @@ export const Form = styled.form`
 `;
 
 export const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  margin-bottom: 1.2rem;
 `;
 
 export const Label = styled.label`
-  font-size: 0.875rem;
+  display: block;
+  margin-bottom: 0.3rem;
+  color: ${(props) => props.theme.textSoft};
   font-weight: 500;
-  color: ${props => props.theme.textSoft};
+  font-size: 0.9rem;
 `;
 
 export const Input = styled.input`
-  padding: 0.5rem 0.75rem;
-  border: 1px solid ${props => props.theme.border};
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  background: ${props => props.theme.background};
-  color: ${props => props.theme.text};
-  transition: all 0.2s;
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 2px solid ${(props) => props.theme.border};
+  border-radius: 12px;
+  font-size: 1rem;
+  background: ${(props) => props.theme.surface};
+  color: ${(props) => props.theme.text};
+  transition: 0.2s;
 
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.primary};
-    box-shadow: 0 0 0 2px ${props => props.theme.primary}40;
-  }
-
-  &::placeholder {
-    color: ${props => props.theme.textLight};
+    border-color: ${(props) => props.theme.primary};
   }
 `;
 
@@ -112,28 +110,24 @@ export const IconsGrid = styled.div`
 export const IconButton = styled.button`
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: 0.5rem;
+  border-radius: 8px;
   font-size: 1.125rem;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  border: none;
+  border: 2px solid ${props => props.$active 
+    ? props.theme.primary 
+    : props.theme.border};
   cursor: pointer;
   background: ${props => props.$active 
-    ? `${props.theme.primary}20` 
-    : props.theme.border};
-  color: ${props => props.$active 
-    ? props.theme.primary 
-    : props.theme.text};
-  border: ${props => props.$active 
-    ? `2px solid ${props.theme.primary}` 
-    : 'none'};
+    ? `${props.theme.primary}10` 
+    : props.theme.surface};
+  color: ${props => props.theme.text};
 
   &:hover {
-    background: ${props => props.$active 
-      ? `${props.theme.primary}30` 
-      : props.theme.borderLight};
+    border-color: ${props => props.theme.primary};
+    transform: scale(1.05);
   }
 `;
 
@@ -147,50 +141,52 @@ export const ColorsGrid = styled.div`
 export const ColorButton = styled.button`
   width: 2rem;
   height: 2rem;
-  border-radius: 9999px;
+  border-radius: 8px;
   transition: all 0.2s;
-  border: none;
+  border: 2px solid ${props => props.$active 
+    ? props.theme.primary 
+    : 'transparent'};
   cursor: pointer;
-  outline: ${props => props.$active 
-    ? `2px solid ${props.theme.primary}` 
-    : 'none'};
-  outline-offset: 2px;
+  background: ${props => props.color};
 
   &:hover {
     transform: scale(1.1);
+    border-color: ${props => props.theme.primary};
   }
 `;
 
-export const ButtonGroup = styled.div`
+export const ModalButtons = styled.div`
   display: flex;
-  gap: 0.5rem;
-  padding-top: 0.5rem;
+  gap: 1rem;
+  margin-top: 2rem;
 `;
 
-export const CancelButton = styled.button`
+export const CancelarButton = styled.button`
   flex: 1;
-  padding: 0.625rem 1rem;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  font-size: 0.875rem;
-  transition: all 0.2s;
-  border: 1px solid ${props => props.theme.border};
-  background: transparent;
-  color: ${props => props.theme.text};
+  padding: 1rem;
+  background: ${(props) => props.theme.border};
+  color: ${(props) => props.theme.text};
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
   cursor: pointer;
+  transition: 0.2s;
 
   &:hover {
-    background: ${props => props.theme.border};
+    background: ${(props) => props.theme.textLight};
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 `;
 
-export const CreateButton = styled(CancelButton)`
-  background: ${props => props.theme.primary};
+export const CriarButton = styled(CancelarButton)`
+  background: ${(props) => props.theme.primary};
   color: white;
-  border: none;
 
   &:hover {
-    background: ${props => props.theme.primaryHover || props.theme.primary};
-    opacity: 0.9;
+    background: ${(props) => props.theme.primary}cc;
   }
 `;

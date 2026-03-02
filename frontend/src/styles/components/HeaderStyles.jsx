@@ -207,3 +207,48 @@ export const DropdownItem = styled.button`
     font-weight: 500;
   }
 `;
+
+// Adicione estas constantes ao seu arquivo de estilos existente
+
+export const NavLinks = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 2rem;
+
+  @media (max-width: 768px) {
+    margin-left: 0.5rem;
+    gap: 0.25rem;
+  }
+`;
+
+export const NavButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: ${props => props.active ? props.theme.primary + '20' : 'transparent'};
+  color: ${props => props.active ? props.theme.primary : props.theme.text};
+  font-size: 0.95rem;
+  font-weight: ${props => props.active ? '600' : '400'};
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: ${props => props.active ? props.theme.primary + '30' : props.theme.backgroundHover};
+  }
+
+  svg {
+    stroke: ${props => props.active ? props.theme.primary : props.theme.text};
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.5rem;
+    
+    span {
+      display: none;
+    }
+  }
+`;

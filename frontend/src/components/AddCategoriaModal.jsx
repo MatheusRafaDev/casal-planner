@@ -1,14 +1,9 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { X } from 'lucide-react';
+// AddCategoriaModal.jsx
+import React, { useState, useEffect } from 'react';
+import Modal from './Modal';
 import { categoriasService } from '../services/categoriasService';
 
 import {
-  Overlay,
-  ModalContainer,
-  Header,
-  CloseButton,
-  Form,
   FormGroup,
   Label,
   Input,
@@ -16,9 +11,9 @@ import {
   IconButton,
   ColorsGrid,
   ColorButton,
-  ButtonGroup,
-  CancelButton,
-  CreateButton
+  ModalButtons,
+  CancelarButton,
+  CriarButton
 } from '../styles/components/AddCategoriaModalStyles';
 
 const COLORS = [
@@ -34,19 +29,22 @@ const COLORS = [
   '280 50% 50%',  // Roxo escuro
 ];
 
-// Ícones (igual ao projeto referência)
 const ICONS = ['🏠', '🍳', '🛋️', '🛏️', '🚿', '👕', '🧹', '🪴', '🏋️', '🎮', '📚', '🧸', '🐾', '🚗', '💊'];
 
-
-
-// Componente principal
-const AddCategoriaModal = ({ isOpen, onClose, onCategoryAdded }) => {
+const AddCategoriaModal = ({ isOpen, onClose, onCategoryAdded, theme }) => {
   const [name, setName] = useState('');
   const [color, setColor] = useState(COLORS[0]);
   const [icon, setIcon] = useState('🏠');
   const [loading, setLoading] = useState(false);
 
-  if (!isOpen) return null;
+  // Reset form when modal opens/closes
+  useEffect(() => {
+    if (!isOpen) {
+      setName('');
+      setColor(COLORS[0]);
+      setIcon('🏠');
+    }
+  }, [isOpen]);
 
   // Função auxiliar para converter HSL para Hex
   const hslToHex = (h, s, l) => {
@@ -77,9 +75,6 @@ const AddCategoriaModal = ({ isOpen, onClose, onCategoryAdded }) => {
         text: '#ffffff' // Texto branco para contraste
       });
 
-      setName('');
-      setColor(COLORS[0]);
-      setIcon('🏠');
       if (onCategoryAdded) onCategoryAdded();
       onClose();
     } catch (error) {
@@ -91,68 +86,78 @@ const AddCategoriaModal = ({ isOpen, onClose, onCategoryAdded }) => {
   };
 
   return (
-    <Overlay onClick={onClose}>
-      <ModalContainer onClick={e => e.stopPropagation()}>
-        <Header>
-          <h3>Nova Categoria</h3>
-          <CloseButton onClick={onClose}>
-            <X size={20} />
-          </CloseButton>
-        </Header>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="➕ Nova Categoria"
+      disableOutsideClick={true}
+      theme={theme}
+    >
+      <form onSubmit={handleSubmit}>
+        <FormGroup>
+          <Label theme={theme}>Nome *</Label>
+          <Input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ex: Escritório"
+            autoFocus
+            theme={theme}
+          />
+        </FormGroup>
 
-        <Form onSubmit={handleSubmit}>
-          <FormGroup>
-            <Label>Nome *</Label>
-            <Input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Ex: Escritório"
-              autoFocus
-            />
-          </FormGroup>
+        <FormGroup>
+          <Label theme={theme}>Ícone</Label>
+          <IconsGrid>
+            {ICONS.map(ic => (
+              <IconButton
+                key={ic}
+                type="button"
+                onClick={() => setIcon(ic)}
+                $active={icon === ic}
+                theme={theme}
+              >
+                {ic}
+              </IconButton>
+            ))}
+          </IconsGrid>
+        </FormGroup>
 
-          <FormGroup>
-            <Label>Ícone</Label>
-            <IconsGrid>
-              {ICONS.map(ic => (
-                <IconButton
-                  key={ic}
-                  type="button"
-                  onClick={() => setIcon(ic)}
-                  $active={icon === ic}
-                >
-                  {ic}
-                </IconButton>
-              ))}
-            </IconsGrid>
-          </FormGroup>
+        <FormGroup>
+          <Label theme={theme}>Cor</Label>
+          <ColorsGrid>
+            {COLORS.map(c => (
+              <ColorButton
+                key={c}
+                type="button"
+                onClick={() => setColor(c)}
+                $active={color === c}
+                style={{ backgroundColor: `hsl(${c})` }}
+                theme={theme}
+              />
+            ))}
+          </ColorsGrid>
+        </FormGroup>
 
-          <FormGroup>
-            <Label>Cor</Label>
-            <ColorsGrid>
-              {COLORS.map(c => (
-                <ColorButton
-                  key={c}
-                  type="button"
-                  onClick={() => setColor(c)}
-                  $active={color === c}
-                  style={{ backgroundColor: `hsl(${c})` }}
-                />
-              ))}
-            </ColorsGrid>
-          </FormGroup>
-
-          <ButtonGroup>
-            <CancelButton type="button" onClick={onClose} disabled={loading}>
-              Cancelar
-            </CancelButton>
-            <CreateButton type="submit" disabled={loading || !name.trim()}>
-              {loading ? 'Criando...' : 'Criar'}
-            </CreateButton>
-          </ButtonGroup>
-        </Form>
-      </ModalContainer>
-    </Overlay>
+        <ModalButtons>
+          <CancelarButton 
+            type="button" 
+            onClick={onClose} 
+            disabled={loading}
+            theme={theme}
+          >
+            Cancelar
+          </CancelarButton>
+          <CriarButton 
+            type="submit" 
+            disabled={loading || !name.trim()}
+            theme={theme}
+          >
+            {loading ? 'Criando...' : 'Criar Categoria'}
+          </CriarButton>
+        </ModalButtons>
+      </form>
+    </Modal>
   );
 };
 

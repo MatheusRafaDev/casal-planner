@@ -18,6 +18,12 @@ import {
 import {
   InicioContainer,
   WelcomeSection,
+  WelcomeTitle,
+  WelcomeSubtitle,
+  LoadingContainer,
+  LoadingSpinner,
+  CategoriesGrid,
+  DragCardWrapper,
 } from "../styles/pages/InicioStyles";
 
 const Inicio = () => {
@@ -67,7 +73,7 @@ const Inicio = () => {
       setCategorias(categoriasData);
       setItens(itensData);
 
-      // Calcular resumo manualmente
+      // Calcular resumo
       const totalGeral = itensData.reduce(
         (acc, item) => acc + item.preco * item.quantidade,
         0,
@@ -106,13 +112,11 @@ const Inicio = () => {
   const handleCardDragStart = (e, index) => {
     setDraggedCardIndex(index);
     e.dataTransfer.effectAllowed = "move";
-    e.target.classList.add("dragging");
   };
 
-  const handleCardDragEnd = (e) => {
+  const handleCardDragEnd = () => {
     setDraggedCardIndex(null);
     setDragOverCardIndex(null);
-    e.target.classList.remove("dragging");
   };
 
   const handleCardDragOver = (e, index) => {
@@ -153,8 +157,12 @@ const Inicio = () => {
   const handleItemDrop = async (categoriaId) => {
     if (!draggedItem) return;
 
-    await itensService.update(draggedItem, { categoriaId });
-    loadData();
+    try {
+      await itensService.update(draggedItem, { categoriaId });
+      loadData();
+    } catch (error) {
+      console.error("Erro ao mover item:", error);
+    }
     setDraggedItem(null);
   };
 
@@ -189,9 +197,7 @@ const Inicio = () => {
   };
 
   const handleDeleteItem = (itemId) => {
-    if (window.confirm("Remover item?")) {
-      itensService.delete(itemId).then(loadData);
-    }
+    itensService.delete(itemId).then(loadData);
   };
 
   const handleSaveItem = async () => {
@@ -213,8 +219,6 @@ const Inicio = () => {
       pagamento: formData.pagamento,
     };
 
-    console.log("📦 Enviando item:", itemData);
-
     try {
       if (itemModal.itemId) {
         await itensService.update(itemModal.itemId, itemData);
@@ -225,25 +229,24 @@ const Inicio = () => {
       setItemModal({ isOpen: false, categoriaId: null, itemId: null });
       loadData();
     } catch (error) {
-      console.error("❌ Erro detalhado:", error.response?.data);
+      console.error("Erro detalhado:", error.response?.data);
       alert(`Erro: ${error.response?.data?.message || "Erro ao salvar item"}`);
     }
   };
 
   // ===== CRUD DE CATEGORIAS =====
   const handleDeleteCategoria = async (categoriaId) => {
-    if (
-      window.confirm("Remover esta categoria? Todos os itens serão perdidos!")
-    ) {
-      await categoriasService.delete(categoriaId);
-      loadData();
-    }
+    await categoriasService.delete(categoriaId);
+    loadData();
   };
 
   if (loading) {
     return (
       <InicioContainer theme={theme}>
-        <div className="loading">Carregando...</div>
+        <LoadingContainer theme={theme}>
+          <LoadingSpinner theme={theme} />
+          <p>Carregando seu planejamento...</p>
+        </LoadingContainer>
       </InicioContainer>
     );
   }
@@ -251,8 +254,12 @@ const Inicio = () => {
   return (
     <InicioContainer theme={theme}>
       <WelcomeSection theme={theme}>
-        <h2>Bem-vindo de volta, {usuario?.nomeCompleto?.split(" ")[0]}! 👋</h2>
-        <p>Continue organizando seu lar com o CasalPlanner</p>
+        <WelcomeTitle theme={theme}>
+          Bem-vindo de volta, {usuario?.nomeCompleto?.split(" ")[0]}! 👋
+        </WelcomeTitle>
+        <WelcomeSubtitle theme={theme}>
+          Continue organizando seu lar com o CasalPlanner
+        </WelcomeSubtitle>
       </WelcomeSection>
 
       <ResumoCards resumo={resumo} />
@@ -264,11 +271,12 @@ const Inicio = () => {
         theme={theme}
       />
 
-      <div className="cards-container">
+      <CategoriesGrid>
         {categorias.map((categoria, index) => (
-          <div
+          <DragCardWrapper
             key={categoria.id}
-            className={`drag-card-wrapper ${dragOverCardIndex === index ? "drag-over" : ""} ${draggedCardIndex === index ? "dragging" : ""}`}
+            $isDragging={draggedCardIndex === index}
+            $isDragOver={dragOverCardIndex === index}
             draggable
             onDragStart={(e) => handleCardDragStart(e, index)}
             onDragEnd={handleCardDragEnd}
@@ -291,16 +299,16 @@ const Inicio = () => {
               draggedItem={draggedItem}
               theme={theme}
             />
-          </div>
+          </DragCardWrapper>
         ))}
+      </CategoriesGrid>
 
-        <AddCategoriaModal
-          isOpen={categoriaModal}
-          onClose={() => setCategoriaModal(false)}
-          onCategoryAdded={loadData}
-        />
-      </div>
-
+      {/* Modais fora do grid */}
+      <AddCategoriaModal
+        isOpen={categoriaModal}
+        onClose={() => setCategoriaModal(false)}
+        onCategoryAdded={loadData}
+      />
 
       <ItemFormModal
         isOpen={itemModal.isOpen}

@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Heart, Sun, Moon, LogOut, User, Settings, ChevronDown } from 'lucide-react';
+import { Heart, Sun, Moon, LogOut, User, Settings, ChevronDown, Home } from 'lucide-react';
 
 import {
   HeaderContainer,
   HeaderContent,
   Logo,
+  NavLinks,
+  NavButton,
   UserSection,
   ThemeButton,
   UserMenu,
@@ -44,6 +46,19 @@ const Header = () => {
           <span>CasalPlanner</span>
         </Logo>
 
+        {/* Navegação principal - visível apenas quando logado */}
+        {isLogado && (
+          <NavLinks>
+            <NavButton 
+              onClick={() => navigate('/inicio')} 
+              active={location.pathname === '/inicio'}
+              theme={theme}
+            >
+              <Home size={18} />
+              <span>Início</span>
+            </NavButton>
+          </NavLinks>
+        )}
 
         <UserSection>
 
@@ -75,16 +90,8 @@ const Header = () => {
                     <User size={16} />
                     <span>Perfil</span>
                   </DropdownItem>
-                  <DropdownItem 
-                    onClick={() => {
-                      navigate('/configuracoes');
-                      setMenuAberto(false);
-                    }}
-                    theme={theme}
-                  >
-                    <Settings size={16} />
-                    <span>Configurações</span>
-                  </DropdownItem>
+
+
                   <DropdownItem 
                     onClick={() => {
                       logout();
