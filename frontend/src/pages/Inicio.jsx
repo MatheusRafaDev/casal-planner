@@ -303,11 +303,11 @@ const Inicio = () => {
         ))}
       </CategoriesGrid>
 
-      {/* Modais fora do grid */}
       <AddCategoriaModal
         isOpen={categoriaModal}
         onClose={() => setCategoriaModal(false)}
         onCategoryAdded={loadData}
+        theme={theme}
       />
 
       <ItemFormModal

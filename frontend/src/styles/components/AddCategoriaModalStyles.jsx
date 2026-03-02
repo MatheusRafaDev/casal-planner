@@ -40,10 +40,10 @@ export const Header = styled.div`
   justify-content: space-between;
   margin-bottom: 1.5rem;
 
-  h3 {
+  h2 {
     font-size: 1.25rem;
     font-weight: 600;
-    color: ${props => props.theme.text};
+    color: ${props => props.theme.textLight};
     margin: 0;
   }
 `;

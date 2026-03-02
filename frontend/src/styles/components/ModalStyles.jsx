@@ -45,7 +45,7 @@ export const ModalHeader = styled.div`
   margin-bottom: 1.5rem;
 
   h2 {
-    color: ${props => props.theme.text};
+    color: white;
     font-size: 1.25rem;
     font-weight: 600;
   }

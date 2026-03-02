@@ -1,3 +1,4 @@
+// src/styles/components/CategoriaCardStyles.js (CORRIGIDO)
 import styled from 'styled-components';
 import { GripVertical, Check } from 'lucide-react';
 
@@ -12,9 +13,11 @@ export const CardContainer = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
+  transition: all 0.2s ease;
 
   &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: ${props => props.theme.primary}40;
   }
 `;
 
@@ -27,6 +30,7 @@ export const CardHeader = styled.div`
   cursor: grab;
   border-left: 4px solid ${props => props.color || props.theme.primary};
   flex-shrink: 0;
+  background: ${props => props.theme.surface};
 `;
 
 export const HeaderLeft = styled.div`
@@ -43,6 +47,12 @@ export const DragHandle = styled(GripVertical)`
   color: ${props => props.theme.textSoft};
   cursor: grab;
   flex-shrink: 0;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
+  }
 `;
 
 export const Icon = styled.span`
@@ -120,8 +130,7 @@ export const ExpandButton = styled(IconButton)``;
 /* ================= PROGRESS BAR ================= */
 
 export const CategoryProgress = styled.div`
-  padding: 0 1rem;
-  margin-bottom: 0.5rem;
+  padding: 0.75rem 1rem 0.5rem;
   flex-shrink: 0;
 `;
 
@@ -147,33 +156,42 @@ export const CardContent = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 150px;
-  max-height: 300px;
+  max-height: 350px;
   overflow-y: auto;
+  padding: 0 0.5rem;
+  
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: ${props => props.theme.background};
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: ${props => props.theme.border};
+    border-radius: 4px;
+  }
 `;
 
 /* ================= ITEMS ================= */
 
 export const ItemsList = styled.div`
-  ${props => props.$hasItems && `
-    border-top: 1px solid ${props.theme.border};
-    border-bottom: 1px solid ${props.theme.border};
-  `}
   width: 100%;
+  padding: 0.5rem 0;
 `;
 
 export const ItemRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.625rem 1rem;
+  padding: 0.625rem 0.5rem;
   transition: all 0.2s;
   background: ${props => props.$purchased ? `${props.theme.primary}08` : 'transparent'};
   opacity: ${props => props.$purchased ? 0.8 : 1};
-  border-bottom: 1px solid ${props => props.theme.border};
-
-  &:last-child {
-    border-bottom: none;
-  }
+  border-radius: 0.375rem;
+  margin-bottom: 0.25rem;
+  cursor: ${props => props.draggable ? 'grab' : 'default'};
 
   &:hover {
     background: ${props => props.theme.border};
@@ -187,7 +205,7 @@ export const ItemRow = styled.div`
 export const ItemLeft = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   flex: 1;
   min-width: 0;
 `;
@@ -202,10 +220,6 @@ export const ItemDragHandle = styled(GripVertical)`
   flex-shrink: 0;
 
   &:hover {
-    opacity: 1;
-  }
-
-  ${ItemRow}:hover & {
     opacity: 1;
   }
 `;
@@ -274,15 +288,6 @@ export const ItemBrand = styled.span`
   white-space: nowrap;
 `;
 
-export const ItemDetails = styled.p`
-  font-size: 0.75rem;
-  color: ${props => props.theme.textSoft};
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin: 0;
-`;
-
 export const ItemMeta = styled.div`
   display: flex;
   align-items: center;
@@ -296,9 +301,6 @@ export const ItemMetaInfo = styled.div`
   gap: 0.25rem;
   font-size: 0.75rem;
   color: ${props => props.theme.textSoft};
-  background: ${props => props.theme.border};
-  padding: 0.125rem 0.25rem;
-  border-radius: 0.25rem;
 `;
 
 export const ItemQuantity = styled.span`
@@ -310,6 +312,7 @@ export const ItemPrice = styled.span`
   &::before {
     content: '•';
     margin-right: 0.25rem;
+    color: ${props => props.theme.textLight};
   }
 `;
 
@@ -318,6 +321,13 @@ export const ItemPrice = styled.span`
 export const PaymentBadge = styled.span`
   color: ${props => props.$type === 'vr' ? props.theme.vrva : props.theme.normal};
   font-weight: 500;
+  background: ${props => props.$type === 'vr' ? props.theme.vrvaLight : props.theme.normalLight};
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  font-size: 0.688rem;
 `;
 
 /* ================= ACTIONS ================= */
@@ -325,35 +335,49 @@ export const PaymentBadge = styled.span`
 export const ItemActions = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  opacity: 0;
-  transition: opacity 0.2s;
+  gap: 0.5rem;
   flex-shrink: 0;
+  margin-left: 0.5rem;
 `;
 
 export const ActionGroup = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  background: ${props => props.theme.border};
+  gap: 0.125rem;
+  background: ${props => props.theme.surface};
   padding: 0.125rem;
   border-radius: 0.375rem;
+  border: 1px solid ${props => props.theme.border};
 `;
 
 export const ItemActionButton = styled.button`
   padding: 0.35rem;
   background: transparent;
   border: none;
-  color: ${props => props.theme.textSoft};
+  color: ${props => props.variant === 'delete' ? props.theme.error : props.theme.textSoft};
   cursor: pointer;
   border-radius: 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s;
 
   &:hover {
-    color: ${props => props.danger ? props.theme.error : props.theme.text};
-    background: ${props => props.theme.border};
+    background: ${props => props.variant === 'delete' ? props.theme.error : props.theme.primary};
+    color: white;
+    transform: scale(1.05);
+  }
+
+  ${props => props.$confirm && `
+    background: ${props.theme.error};
+    color: white;
+    animation: pulse 1s infinite;
+  `}
+
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
   }
 `;
 
@@ -369,7 +393,7 @@ export const ItemTotal = styled.div`
 export const ItemTotalValue = styled.p`
   font-size: 0.875rem;
   font-weight: 600;
-  color: ${props => props.theme.primary};
+  color: white;
   margin: 0;
   white-space: nowrap;
 `;
@@ -377,10 +401,11 @@ export const ItemTotalValue = styled.p`
 /* ================= FOOTER ================= */
 
 export const CategoryFooter = styled.div`
-  padding: 0.5rem 1rem;
-  background: ${props => props.theme.border};
+  padding: 0.75rem 1rem;
+  background: ${props => props.theme.background};
   border-top: 1px solid ${props => props.theme.border};
   flex-shrink: 0;
+  margin-top: auto;
 `;
 
 export const CategoryStats = styled.div`
@@ -405,30 +430,37 @@ export const StatItem = styled.div`
 /* ================= EMPTY ================= */
 
 export const EmptyState = styled.div`
-  padding: 1.5rem 1rem;
+  padding: 2rem 1rem;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 `;
 
 export const EmptyText = styled.p`
   font-size: 0.875rem;
   color: ${props => props.theme.textSoft};
-  margin-bottom: 0.5rem;
+  margin: 0;
 `;
 
 export const AddButton = styled.button`
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.375rem 0.75rem;
-  background: transparent;
-  border: none;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: ${props => props.theme.primary}10;
+  border: 1px dashed ${props => props.theme.primary};
   color: ${props => props.theme.primary};
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   border-radius: 0.375rem;
+  transition: all 0.2s;
 
   &:hover {
-    background: ${props => props.theme.primary}10;
+    background: ${props => props.theme.primary}20;
+    transform: translateY(-1px);
   }
 `;
