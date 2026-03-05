@@ -1,3 +1,4 @@
+// styles/components/ItemFormModalStyles.js
 import styled from 'styled-components';
 
 export const FormGroup = styled.div`
@@ -25,6 +26,14 @@ export const Input = styled.input`
   &:focus {
     outline: none;
     border-color: ${(props) => props.theme.primary};
+  }
+
+  &.error {
+    border-color: #dc3545 !important;
+    
+    &:focus {
+      box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
+    }
   }
 `;
 
@@ -73,4 +82,16 @@ export const SalvarButton = styled(CancelarButton)`
   &:hover {
     background: ${(props) => props.theme.primary}cc;
   }
+`;
+
+// Add this new export for ErrorMessage
+export const ErrorMessage = styled.span`
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  display: block;
+  
+  ${props => props.theme === 'dark' && `
+    color: #ff6b6b;
+  `}
 `;
