@@ -123,7 +123,7 @@ export const IconButton = styled.button`
   background: ${props => props.$active 
     ? `${props.theme.primary}10` 
     : props.theme.surface};
-  color: ${props => props.theme.text};
+    color:  ${({ theme }) => theme.text};
 
   &:hover {
     border-color: ${props => props.theme.primary};
@@ -184,7 +184,7 @@ export const CancelarButton = styled.button`
 
 export const CriarButton = styled(CancelarButton)`
   background: ${(props) => props.theme.primary};
-  color: white;
+  color:  ${({ theme }) => theme.text};
 
   &:hover {
     background: ${(props) => props.theme.primary}cc;

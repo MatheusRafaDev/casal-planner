@@ -68,7 +68,7 @@ export const CancelarButton = styled.button`
 
 export const SalvarButton = styled(CancelarButton)`
   background: ${(props) => props.theme.primary};
-  color: white;
+  color:  ${({ theme }) => theme.text};
 
   &:hover {
     background: ${(props) => props.theme.primary}cc;

@@ -23,8 +23,8 @@ export const ResumoCard = styled.div`
   transition: all 0.35s ease;
   position: relative;
   overflow: hidden;
-  color:  white;
-  /* Barra superior colorida */
+  color:  ${({ theme }) => theme.text};
+
   &::before {
     content: '';
     position: absolute;
@@ -93,7 +93,7 @@ export const CardTitle = styled.h4`
   font-size: 0.95rem;
   font-weight: 600;
   margin-bottom: 0.25rem;
-  color:  white;
+    color:  ${({ theme }) => theme.text};
 `;
 
 
