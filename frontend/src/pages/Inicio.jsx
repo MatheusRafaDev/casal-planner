@@ -66,7 +66,7 @@ const Inicio = () => {
     try {
       setLoading(true);
       const [categoriasData, itensData] = await Promise.all([
-        categoriasService.getAll(),
+        categoriasService.listar(),
         itensService.getAll(),
       ]);
 

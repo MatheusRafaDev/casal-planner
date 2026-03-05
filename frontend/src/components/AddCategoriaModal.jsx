@@ -1,9 +1,15 @@
-// AddCategoriaModal.jsx
+// src/components/AddCategoriaModal.jsx
 import React, { useState, useEffect } from 'react';
-import Modal from './Modal';
+import styled from 'styled-components';
+import toast from 'react-hot-toast';
 import { categoriasService } from '../services/categoriasService';
 
 import {
+  Overlay,
+  ModalContainer,
+  Header,
+  CloseButton,
+  Form,
   FormGroup,
   Label,
   Input,
@@ -15,6 +21,18 @@ import {
   CancelarButton,
   CriarButton
 } from '../styles/components/AddCategoriaModalStyles';
+
+// ErrorMessage local
+const ErrorMessage = styled.span`
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  display: block;
+  
+  ${props => props.theme === 'dark' && `
+    color: #ff6b6b;
+  `}
+`;
 
 const COLORS = [
   '0 72% 51%',    // Vermelho
@@ -36,6 +54,8 @@ const AddCategoriaModal = ({ isOpen, onClose, onCategoryAdded, theme }) => {
   const [color, setColor] = useState(COLORS[0]);
   const [icon, setIcon] = useState('🏠');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
   // Reset form when modal opens/closes
   useEffect(() => {
@@ -43,8 +63,60 @@ const AddCategoriaModal = ({ isOpen, onClose, onCategoryAdded, theme }) => {
       setName('');
       setColor(COLORS[0]);
       setIcon('🏠');
+      setErrors({});
+      setTouched({});
     }
   }, [isOpen]);
+
+  // Prevenir scroll do body quando modal está aberto
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
+  // Função de validação do nome da categoria
+  const validarNome = (valor) => {
+    if (!valor || valor.trim() === '') {
+      return 'Nome da categoria é obrigatório';
+    }
+    if (valor.length < 3) {
+      return 'Nome deve ter pelo menos 3 caracteres';
+    }
+    if (valor.length > 30) {
+      return 'Nome deve ter no máximo 30 caracteres';
+    }
+    if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(valor)) {
+      return 'Nome deve conter apenas letras e espaços';
+    }
+    return '';
+  };
+
+  // Handlers com validação
+  const handleNameChange = (e) => {
+    const valor = e.target.value;
+    setName(valor);
+    
+    if (touched.nome) {
+      setErrors(prev => ({ ...prev, nome: validarNome(valor) }));
+    }
+  };
+
+  const handleNameBlur = () => {
+    setTouched(prev => ({ ...prev, nome: true }));
+    setErrors(prev => ({ ...prev, nome: validarNome(name) }));
+  };
+
+  const handleClose = () => {
+    setErrors({});
+    setTouched({});
+    onClose();
+  };
 
   // Função auxiliar para converter HSL para Hex
   const hslToHex = (h, s, l) => {
@@ -58,13 +130,58 @@ const AddCategoriaModal = ({ isOpen, onClose, onCategoryAdded, theme }) => {
     return `#${f(0)}${f(8)}${f(4)}`;
   };
 
+  // Verificar se nome já existe
+  const verificarNomeExistente = async (nome) => {
+    try {
+      const categorias = await categoriasService.listar();
+      return categorias.some(cat => 
+        cat.nome.toLowerCase() === nome.toLowerCase()
+      );
+    } catch (error) {
+      console.error('Erro ao verificar nome existente:', error);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    
+    setTouched({ nome: true });
+    const erroNome = validarNome(name);
+    
+    if (erroNome) {
+      setErrors({ nome: erroNome });
+      toast.error('Por favor, corrija os erros no formulário', {
+        duration: 4000,
+        icon: '❌',
+        style: {
+          borderRadius: '12px',
+          background: '#dc3545',
+          color: '#fff',
+        },
+      });
+      return;
+    }
 
     setLoading(true);
     try {
-      // Converter cor HSL para hex
+      const nomeExiste = await verificarNomeExistente(name);
+      
+      if (nomeExiste) {
+        setErrors({ nome: 'Já existe uma categoria com este nome' });
+        toast.error('Já existe uma categoria com este nome', {
+          duration: 4000,
+          icon: '❌',
+          style: {
+            borderRadius: '12px',
+            background: '#dc3545',
+            color: '#fff',
+          },
+        });
+        setLoading(false);
+        return;
+      }
+
       const [h, s, l] = color.split(' ');
       const hexColor = hslToHex(parseInt(h), parseInt(s), parseInt(l));
       
@@ -72,92 +189,160 @@ const AddCategoriaModal = ({ isOpen, onClose, onCategoryAdded, theme }) => {
         nome: name.trim(),
         icone: icon,
         bg: hexColor,
-        text: '#ffffff' // Texto branco para contraste
+        text: '#ffffff'
       });
 
-      if (onCategoryAdded) onCategoryAdded();
-      onClose();
+      // Mostrar toast de sucesso
+      toast.success(`Categoria "${name}" criada com sucesso!`, {
+        duration: 3000,
+        icon: '',
+        style: {
+          borderRadius: '12px',
+          background: theme === 'dark' ? '#1e1e1e' : '#4CAF50',
+          color: theme === 'dark' ? '#e0e0e0' : '#fff',
+          border: `1px solid ${theme === 'dark' ? '#333' : 'transparent'}`,
+        },
+      });
+
+      if (onCategoryAdded) {
+        onCategoryAdded();
+      }
+      
+      handleClose();
+      
     } catch (error) {
       console.error('Erro ao criar categoria:', error);
-      alert('Erro ao criar categoria');
+      
+      if (error.response?.status === 400) {
+        toast.error('Dados inválidos. Verifique as informações.', {
+          duration: 4000,
+          icon: '❌',
+          style: {
+            borderRadius: '12px',
+            background: '#dc3545',
+            color: '#fff',
+          },
+        });
+      } else if (error.response?.status === 401) {
+        toast.error('Sessão expirada. Faça login novamente.', {
+          duration: 4000,
+          icon: '❌',
+          style: {
+            borderRadius: '12px',
+            background: '#dc3545',
+            color: '#fff',
+          },
+        });
+      } else {
+        toast.error('Erro ao criar categoria. Tente novamente.', {
+          duration: 4000,
+          icon: '❌',
+          style: {
+            borderRadius: '12px',
+            background: '#dc3545',
+            color: '#fff',
+          },
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="➕ Nova Categoria"
-      disableOutsideClick={true}
-      theme={theme}
-    >
-      <form onSubmit={handleSubmit}>
-        <FormGroup>
-          <Label theme={theme}>Nome *</Label>
-          <Input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Ex: Escritório"
-            autoFocus
-            theme={theme}
-          />
-        </FormGroup>
+    <Overlay onClick={handleClose} theme={theme}>
+      <ModalContainer onClick={(e) => e.stopPropagation()} theme={theme}>
+        <Header theme={theme}>
+          <h2>➕ Nova Categoria</h2>
+          <CloseButton onClick={handleClose} theme={theme}>
+            ✕
+          </CloseButton>
+        </Header>
 
-        <FormGroup>
-          <Label theme={theme}>Ícone</Label>
-          <IconsGrid>
-            {ICONS.map(ic => (
-              <IconButton
-                key={ic}
-                type="button"
-                onClick={() => setIcon(ic)}
-                $active={icon === ic}
-                theme={theme}
-              >
-                {ic}
-              </IconButton>
-            ))}
-          </IconsGrid>
-        </FormGroup>
+        <Form onSubmit={handleSubmit}>
+          <FormGroup>
+            <Label theme={theme}>Nome *</Label>
+            <Input
+              type="text"
+              value={name}
+              onChange={handleNameChange}
+              onBlur={handleNameBlur}
+              placeholder="Ex: Escritório"
+              autoFocus
+              theme={theme}
+              style={{
+                borderColor: errors.nome && touched.nome ? '#dc3545' : undefined
+              }}
+              maxLength={30}
+              disabled={loading}
+            />
+            {errors.nome && touched.nome && (
+              <ErrorMessage theme={theme}>{errors.nome}</ErrorMessage>
+            )}
+          </FormGroup>
 
-        <FormGroup>
-          <Label theme={theme}>Cor</Label>
-          <ColorsGrid>
-            {COLORS.map(c => (
-              <ColorButton
-                key={c}
-                type="button"
-                onClick={() => setColor(c)}
-                $active={color === c}
-                style={{ backgroundColor: `hsl(${c})` }}
-                theme={theme}
-              />
-            ))}
-          </ColorsGrid>
-        </FormGroup>
+          <FormGroup>
+            <Label theme={theme}>Ícone</Label>
+            <IconsGrid>
+              {ICONS.map(ic => (
+                <IconButton
+                  key={ic}
+                  type="button"
+                  onClick={() => setIcon(ic)}
+                  $active={icon === ic}
+                  theme={theme}
+                  disabled={loading}
+                >
+                  {ic}
+                </IconButton>
+              ))}
+            </IconsGrid>
+          </FormGroup>
 
-        <ModalButtons>
-          <CancelarButton 
-            type="button" 
-            onClick={onClose} 
-            disabled={loading}
-            theme={theme}
-          >
-            Cancelar
-          </CancelarButton>
-          <CriarButton 
-            type="submit" 
-            disabled={loading || !name.trim()}
-            theme={theme}
-          >
-            {loading ? 'Criando...' : 'Criar Categoria'}
-          </CriarButton>
-        </ModalButtons>
-      </form>
-    </Modal>
+          <FormGroup>
+            <Label theme={theme}>Cor</Label>
+            <ColorsGrid>
+              {COLORS.map(c => {
+                const [h, s, l] = c.split(' ');
+                const bgColor = `hsl(${h}, ${s}, ${l})`;
+                return (
+                  <ColorButton
+                    key={c}
+                    type="button"
+                    onClick={() => setColor(c)}
+                    $active={color === c}
+                    style={{ backgroundColor: bgColor }}
+                    theme={theme}
+                    title={`Cor ${c}`}
+                    disabled={loading}
+                  />
+                );
+              })}
+            </ColorsGrid>
+          </FormGroup>
+
+          <ModalButtons>
+            <CancelarButton 
+              type="button" 
+              onClick={handleClose} 
+              disabled={loading}
+              theme={theme}
+            >
+              Cancelar
+            </CancelarButton>
+            <CriarButton 
+              type="submit" 
+              disabled={loading || !name.trim() || errors.nome}
+              theme={theme}
+            >
+              {loading ? 'Criando...' : 'Criar Categoria'}
+            </CriarButton>
+          </ModalButtons>
+        </Form>
+      </ModalContainer>
+    </Overlay>
   );
 };
 

@@ -1,5 +1,7 @@
+// src/components/ItemFormModal.jsx
 import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
+import toast from 'react-hot-toast';
 import {
   FormGroup,
   Label,
@@ -189,7 +191,7 @@ const ItemFormModal = ({
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Marca todos os campos como tocados
     setTouched({
       nome: true,
@@ -202,7 +204,51 @@ const ItemFormModal = ({
     const ehValido = validarFormulario();
 
     if (ehValido) {
-      onSave();
+      try {
+        // Chama onSave (que deve ser uma função assíncrona)
+        await onSave();
+        
+        // Só mostra o toast APÓS o save ser concluído com sucesso
+        const nomeItem = formData.nome || 'Item';
+        toast.success(
+          isEditing 
+            ? `"${nomeItem}" editado com sucesso!` 
+            : `"${nomeItem}" adicionado com sucesso!`,
+          {
+            duration: 3000,
+            icon: '',
+            style: {
+              borderRadius: '12px',
+              background: theme === 'dark' ? '#1e1e1e' : '#4CAF50',
+              color: theme === 'dark' ? '#e0e0e0' : '#fff',
+            },
+          }
+        );
+        
+        // Fecha o modal
+        handleClose();
+      } catch (error) {
+        // Se der erro, mostra toast de erro
+        toast.error('Erro ao salvar item. Tente novamente.', {
+          duration: 4000,
+          icon: '❌',
+          style: {
+            borderRadius: '12px',
+            background: '#dc3545',
+            color: '#fff',
+          },
+        });
+      }
+    } else {
+      toast.error('Por favor, corrija os erros no formulário', {
+        duration: 4000,
+        icon: '❌',
+        style: {
+          borderRadius: '12px',
+          background: '#dc3545',
+          color: '#fff',
+        },
+      });
     }
   };
 
@@ -219,6 +265,7 @@ const ItemFormModal = ({
       title={isEditing ? "✏️ Editar Item" : "➕ Adicionar Item"}
       disableOutsideClick={true}
       theme={theme}
+      // Removeu as props showToastOnClose e toastMessage
     >
       <FormGroup>
         <Label theme={theme}>Nome *</Label>

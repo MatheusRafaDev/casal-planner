@@ -1,11 +1,13 @@
+// App.jsx
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import styled from 'styled-components';
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { Toaster } from 'react-hot-toast';
+import { ConfirmProvider } from './context/ConfirmContext';
+import ConfirmModal from './components/ConfirmModal';
 
 // Componentes
 import Header from './components/Header';
@@ -17,7 +19,6 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 
 import GlobalStyle from './styles/GlobalStyle';
-
 
 // ================= CONTAINERS =================
 
@@ -35,7 +36,6 @@ const MainContent = styled.main`
     padding: 1rem 15px;
   }
 `;
-
 
 function AppRoutes() {
   const { estaAutenticado, loading } = useAuth();
@@ -68,26 +68,49 @@ function AppRoutes() {
   );
 }
 
-
-
-
 function StyledThemeWrapper() {
   const { theme } = useTheme();
 
   return (
     <StyledThemeProvider theme={theme}>
       <GlobalStyle />
-      <AppRoutes />
-      <ToastContainer />
+      <ConfirmProvider>
+        <AppRoutes />
+        <ConfirmModal theme={theme} />
+      </ConfirmProvider>
+      <Toaster
+        position="top-right"
+        reverseOrder={false}
+        gutter={8}
+        toastOptions={{
+          duration: 4000,
+          style: {
+            borderRadius: '12px',
+            background: theme === 'dark' ? '#1e1e1e' : '#ffffff',
+            color: theme === 'dark' ? '#e0e0e0' : '#333333',
+            border: `1px solid ${theme === 'dark' ? '#333' : '#ddd'}`,
+          },
+          success: {
+            duration: 3000,
+          },
+          error: {
+            duration: 4000,
+            icon: '❌',
+          },
+        }}
+      />
     </StyledThemeProvider>
   );
 }
 
-
-
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <AuthProvider>
         <ThemeProvider>
           <StyledThemeWrapper />

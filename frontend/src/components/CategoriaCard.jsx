@@ -1,6 +1,8 @@
-// src/components/CategoriaCard.jsx (parte do container principal)
+// src/components/CategoriaCard.jsx
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Pencil, GripVertical, Check, DollarSign, ShoppingBag, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Pencil, Check, DollarSign, ShoppingBag, ChevronDown, ChevronUp } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useConfirm } from '../context/ConfirmContext';
 import {
   CategoriesGrid,
   CardContainer,
@@ -62,7 +64,7 @@ const CategoriaCard = ({
   draggedItem,
   theme 
 }) => {
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  const { showConfirm } = useConfirm();
   const [isDragging, setIsDragging] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   
@@ -86,14 +88,97 @@ const CategoriaCard = ({
     };
   }, [isDragging, onItemDragEnd]);
 
-  const handleDeleteClick = (itemId) => {
-    if (confirmDelete === itemId) {
-      onDeleteItem(itemId);
-      setConfirmDelete(null);
-    } else {
-      setConfirmDelete(itemId);
-      setTimeout(() => setConfirmDelete(null), 3000);
+  // Função para confirmar exclusão de item usando ConfirmModal
+  const handleDeleteItemClick = (item) => {
+    showConfirm({
+      title: 'Excluir Item',
+      itemName: item.nome,
+      itemType: 'item',
+      message: `Tem certeza que deseja excluir o item "${item.nome}"?`,
+      onConfirm: async () => {
+        await onDeleteItem(item.id);
+        // O toast de sucesso será mostrado pelo ConfirmModal
+      }
+    });
+  };
+
+  // Função para confirmar exclusão de categoria
+  const handleDeleteCategoriaClick = () => {
+    if (categoria.isPadrao) {
+      toast.error('Categoria padrão não pode ser excluída', {
+        duration: 3000,
+        icon: '❌',
+        style: {
+          borderRadius: '12px',
+          background: '#dc3545',
+          color: '#fff',
+        },
+      });
+      return;
     }
+
+    if (itens.length > 0) {
+      toast.error(
+        `Não é possível excluir a categoria "${categoria.nome}" pois possui ${itens.length} item(ns) vinculado(s)`,
+        {
+          duration: 5000,
+          icon: '❌',
+          style: {
+            borderRadius: '12px',
+            background: '#dc3545',
+            color: '#fff',
+          },
+        }
+      );
+      return;
+    }
+
+    showConfirm({
+      title: 'Excluir Categoria',
+      itemName: categoria.nome,
+      itemType: 'categoria',
+      message: `Tem certeza que deseja excluir a categoria "${categoria.nome}"?`,
+      onConfirm: async () => {
+        await onDeleteCategoria(categoria.id);
+        // O toast de sucesso será mostrado pelo ConfirmModal
+      }
+    });
+  };
+
+  // Função para marcar item como comprado
+    const handleToggleComprado = (item) => {
+    const novoEstado = !item.comprado;
+    onUpdateItem(item.id, { comprado: novoEstado });
+    
+    // Toast diferente para marcar e desmarcar
+    if (novoEstado) {
+      // Marcando como comprado
+      toast.success(`"${item.nome}" marcado como comprado!`, {
+        duration: 2000,
+        icon: '',
+        style: {
+          borderRadius: '12px',
+          background: theme === 'dark' ? '#1e1e1e' : '#4CAF50',
+          color: '#fff',
+        },
+      });
+    } else {
+      // Desmarcando (volta para a lista)
+      toast.success(`"${item.nome}" voltou para a lista!`, {
+        duration: 2000,
+        icon: '',
+        style: {
+          borderRadius: '12px',
+          background: theme === 'dark' ? '#1e1e1e' : '#ff9800', // Laranja para desmarcar
+          color: '#fff',
+        },
+      });
+    }
+  };
+
+  // Função para adicionar item com toast
+  const handleAddItemClick = () => {
+    onAddItem(categoria.id);
   };
 
   const handleDragStart = (e, itemId) => {
@@ -114,8 +199,10 @@ const CategoriaCard = ({
     <CardContainer theme={theme}>
       <CardHeader color={categoria.bg} theme={theme}>
         <HeaderLeft>
-          <DragHandle theme={theme} className="drag-handle" />
-          <Icon>{categoria.icone || '📁'}</Icon>
+          <DragHandle theme={theme} className="drag-handle">
+            <span>⋮⋮</span>
+          </DragHandle>
+          <Icon theme={theme}>{categoria.icone || '📁'}</Icon>
           <TitleSection>
             <Title theme={theme}>{categoria.nome}</Title>
             <Subtitle theme={theme}>
@@ -130,19 +217,25 @@ const CategoriaCard = ({
         </HeaderLeft>
         
         <HeaderActions>
-          <IconButton onClick={() => onAddItem(categoria.id)} theme={theme} title="Adicionar item">
+          <IconButton 
+            onClick={handleAddItemClick}
+            theme={theme} 
+            title="Adicionar item"
+          >
             <Plus size={18} />
           </IconButton>
+          
           {!categoria.isPadrao && (
             <IconButton 
               danger 
-              onClick={() => onDeleteCategoria(categoria.id)} 
+              onClick={handleDeleteCategoriaClick}
               theme={theme}
               title="Excluir categoria"
             >
               <Trash2 size={16} />
             </IconButton>
           )}
+          
           <ExpandButton 
             onClick={() => setIsExpanded(!isExpanded)}
             theme={theme}
@@ -180,14 +273,17 @@ const CategoriaCard = ({
                     <ItemLeft>
                       <ItemDragHandle 
                         className="drag-handle"
-                        theme={theme} 
-                      />
-                      <CheckboxButton
-                        $checked={item.comprado}
-                        onClick={() => onUpdateItem(item.id, { comprado: !item.comprado })}
                         theme={theme}
                       >
-                        {item.comprado && <CheckIcon />}
+                        <span>⋮</span>
+                      </ItemDragHandle>
+                      
+                      <CheckboxButton
+                        $checked={item.comprado}
+                        onClick={() => handleToggleComprado(item)}
+                        theme={theme}
+                      >
+                        {item.comprado && <CheckIcon>✓</CheckIcon>}
                       </CheckboxButton>
                       
                       <ItemContent>
@@ -231,10 +327,9 @@ const CategoriaCard = ({
                         </ItemActionButton>
                         <ItemActionButton 
                           variant="delete"
-                          onClick={() => handleDeleteClick(item.id)}
+                          onClick={() => handleDeleteItemClick(item)}
                           theme={theme}
-                          $confirm={confirmDelete === item.id}
-                          title={confirmDelete === item.id ? "Clique novamente para confirmar" : "Excluir item"}
+                          title="Excluir item"
                         >
                           <Trash2 size={16} />
                         </ItemActionButton>
@@ -253,7 +348,10 @@ const CategoriaCard = ({
             {itens.length === 0 && (
               <EmptyState>
                 <EmptyText theme={theme}>Nenhum item adicionado</EmptyText>
-                <AddButton onClick={() => onAddItem(categoria.id)} theme={theme}>
+                <AddButton 
+                  onClick={handleAddItemClick}
+                  theme={theme}
+                >
                   <Plus size={18} />
                   Adicionar primeiro item
                 </AddButton>

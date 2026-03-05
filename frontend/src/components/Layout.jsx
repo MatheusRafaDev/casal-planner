@@ -11,7 +11,6 @@ const Layout = ({ children }) => {
   const { isDarkMode, toggleTheme, theme } = useTheme();
   const [menuAberto, setMenuAberto] = useState(false);
 
-  // ✅ APENAS Início e Perfil
   const menuItems = [
     { path: '/inicio', icon: '🏠', label: 'Início' },
     { path: '/perfil', icon: '👤', label: 'Perfil' },

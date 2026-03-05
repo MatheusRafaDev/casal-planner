@@ -51,9 +51,9 @@ import {
 } from "../styles/pages/LoginStyles";
 
 const Login = () => {
-  // Receber o estado passado na navegação
-  const location = useLocation(); // ✅ Usando o hook do React Router
-  const [modo, setModo] = useState(location.state?.modo || "login"); // ✅ Pega o estado ou usa "login" como padrão
+
+  const location = useLocation(); 
+  const [modo, setModo] = useState(location.state?.modo || "login"); 
   
   const [isCasal, setIsCasal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
