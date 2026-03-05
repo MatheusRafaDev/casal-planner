@@ -7,7 +7,6 @@ export const Overlay = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: ${(props) => props.theme.border};
   backdrop-filter: blur(8px);
   animation: fadeIn 0.2s ease;
 

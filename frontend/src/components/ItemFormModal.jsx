@@ -1,262 +1,175 @@
-// src/components/ItemFormModal.jsx
 import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
-import toast from 'react-hot-toast';
+import ValidatedInput from './Form/ValidatedInput';
+import Select from './Form/Select';
+import { useItemValidation } from '../hooks/useItemValidation';
+import { usePriceFormat } from '../hooks/usePriceFormat';
+import { showToast } from '../utils/toastUtils';
 import {
-  FormGroup,
-  Label,
-  Input,
-  Select,
   ModalButtons,
   CancelarButton,
-  SalvarButton,
-  ErrorMessage
+  SalvarButton
 } from '../styles/components/ItemFormModalStyles';
-import { formatarMoeda, desformatarMoeda } from '../utils/mascaras';
+
+const DEFAULT_FORM_DATA = {
+  id: null,
+  nome: '',
+  marca: '',
+  preco: 0,
+  quantidade: 1,
+  pagamento: 'normal',
+  comprado: false,
+  categoriaId: null
+};
 
 const ItemFormModal = ({
   isOpen,
   onClose,
-  formData,
-  setFormData,
+  formData: externalFormData,
+  setFormData: setExternalFormData,
   onSave,
   isEditing,
   theme,
 }) => {
-  const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
-  const [localPrecoFormatado, setLocalPrecoFormatado] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Hooks personalizados
+  const {
+    errors,
+    touched,
+    validarFormulario,
+    handleBlur,
+    handleChange,
+    resetValidation,
+    setErrors,
+    setTouched,
+    hasErrors
+  } = useItemValidation();
 
-  // Initialize formatted price when formData changes
+  const {
+    formattedValue: precoFormatado,
+    handlePriceChange: hookPriceChange,
+    handlePriceBlur,
+    setPrice: setPrecoRaw,
+    resetPrice
+  } = usePriceFormat(externalFormData?.preco || 0);
+
+  // Atualiza o preço no hook quando externalFormData mudar
   useEffect(() => {
-    if (formData?.preco) {
-      setLocalPrecoFormatado(formatarMoeda(formData.preco.toString()));
-    } else {
-      setLocalPrecoFormatado('');
+    if (externalFormData?.preco !== undefined) {
+      setPrecoRaw(externalFormData.preco);
     }
-    
-    // Reset errors and touched when modal opens
+  }, [externalFormData?.preco, setPrecoRaw]);
+
+  // Reset quando abre o modal
+  useEffect(() => {
     if (isOpen) {
-      setErrors({});
-      setTouched({});
+      if (!isEditing) {
+        resetValidation();
+        resetPrice();
+        setExternalFormData(prev => ({
+          ...DEFAULT_FORM_DATA,
+          categoriaId: prev?.categoriaId || null
+        }));
+      }
     }
-  }, [formData.preco, isOpen]);
+  }, [isOpen, isEditing, resetValidation, resetPrice, setExternalFormData]);
 
-  // Validação de cada campo
-  const validarCampo = (campo, valor) => {
-    switch (campo) {
-      case 'nome':
-        if (!valor || valor.trim() === '') {
-          return 'Nome é obrigatório';
-        }
-        if (valor.length < 3) {
-          return 'Nome deve ter pelo menos 3 caracteres';
-        }
-        if (valor.length > 100) {
-          return 'Nome deve ter no máximo 100 caracteres';
-        }
-        if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(valor)) {
-          return 'Nome deve conter apenas letras e espaços';
-        }
-        return '';
-
-      case 'marca':
-        if (valor && valor.length > 50) {
-          return 'Marca deve ter no máximo 50 caracteres';
-        }
-        if (valor && !/^[a-zA-ZÀ-ÿ\s]+$/.test(valor)) {
-          return 'Marca deve conter apenas letras e espaços';
-        }
-        return '';
-
-      case 'preco':
-        if (!valor || valor === '' || valor === '0') {
-          return 'Preço é obrigatório';
-        }
-        const precoNum = desformatarMoeda(valor);
-        if (isNaN(precoNum) || precoNum <= 0) {
-          return 'Preço deve ser maior que zero';
-        }
-        if (precoNum > 9999999.99) {
-          return 'Preço muito alto (máximo: R$ 9.999.999,99)';
-        }
-        return '';
-
-      case 'quantidade':
-        if (valor < 1) {
-          return 'Quantidade deve ser pelo menos 1';
-        }
-        if (valor > 999999) {
-          return 'Quantidade máxima é 999.999';
-        }
-        if (!Number.isInteger(Number(valor))) {
-          return 'Quantidade deve ser um número inteiro';
-        }
-        return '';
-
-      default:
-        return '';
+  const createFieldHandler = (fieldName) => ({
+    onChange: (e) => {
+      const value = fieldName === 'quantidade' 
+        ? parseInt(e.target.value) || 1 
+        : e.target.value;
+      
+      setExternalFormData((prev) => ({ ...prev, [fieldName]: value }));
+      handleChange(fieldName, value, touched[fieldName]);
+    },
+    onBlur: () => {
+      handleBlur(fieldName, externalFormData[fieldName]);
     }
-  };
-
-  // Valida todos os campos do formulário
-  const validarFormulario = () => {
-    const novosErros = {
-      nome: validarCampo('nome', formData.nome),
-      marca: validarCampo('marca', formData.marca),
-      preco: validarCampo('preco', localPrecoFormatado),
-      quantidade: validarCampo('quantidade', formData.quantidade)
-    };
-
-    setErrors(novosErros);
-    return !Object.values(novosErros).some(erro => erro !== '');
-  };
-
-  // Handlers com validação em tempo real
-  const handleNomeChange = (e) => {
-    const valor = e.target.value;
-    setFormData({ ...formData, nome: valor });
-    
-    if (touched.nome) {
-      setErrors(prev => ({ ...prev, nome: validarCampo('nome', valor) }));
-    }
-  };
-
-  const handleNomeBlur = () => {
-    setTouched(prev => ({ ...prev, nome: true }));
-    setErrors(prev => ({ ...prev, nome: validarCampo('nome', formData.nome) }));
-  };
-
-  const handleMarcaChange = (e) => {
-    const valor = e.target.value;
-    setFormData({ ...formData, marca: valor });
-    
-    if (touched.marca) {
-      setErrors(prev => ({ ...prev, marca: validarCampo('marca', valor) }));
-    }
-  };
-
-  const handleMarcaBlur = () => {
-    setTouched(prev => ({ ...prev, marca: true }));
-    setErrors(prev => ({ ...prev, marca: validarCampo('marca', formData.marca) }));
-  };
+  });
 
   const handlePrecoChange = (e) => {
-    const rawValue = e.target.value;
-    const formatado = formatarMoeda(rawValue);
-    const desformatado = desformatarMoeda(formatado);
+    const result = hookPriceChange(e);
     
-    setLocalPrecoFormatado(formatado);
-    setFormData({
-      ...formData,
-      preco: desformatado
-    });
-
-    if (touched.preco) {
-      setErrors(prev => ({
-        ...prev,
-        preco: validarCampo('preco', formatado)
+    if (result && result.raw !== undefined) {
+      setExternalFormData((prev) => ({ 
+        ...prev, 
+        preco: result.raw 
       }));
+      
+      handleChange('preco', result.raw, touched.preco);
     }
   };
 
   const handlePrecoBlur = () => {
-    setTouched(prev => ({ ...prev, preco: true }));
-    setErrors(prev => ({
-      ...prev,
-      preco: validarCampo('preco', localPrecoFormatado)
-    }));
-  };
-
-  const handleQuantidadeChange = (e) => {
-    const valor = parseInt(e.target.value) || 1;
-    setFormData({
-      ...formData,
-      quantidade: valor
-    });
-    
-    if (touched.quantidade) {
-      setErrors(prev => ({
-        ...prev,
-        quantidade: validarCampo('quantidade', valor)
-      }));
-    }
-  };
-
-  const handleQuantidadeBlur = () => {
-    setTouched(prev => ({ ...prev, quantidade: true }));
-    setErrors(prev => ({
-      ...prev,
-      quantidade: validarCampo('quantidade', formData.quantidade)
-    }));
+    handlePriceBlur();
+    handleBlur('preco', externalFormData.preco);
   };
 
   const handleSave = async () => {
-    // Marca todos os campos como tocados
-    setTouched({
+    const allTouched = {
       nome: true,
       marca: true,
       preco: true,
       quantidade: true
-    });
+    };
+    setTouched(allTouched);
 
-    // Valida todos os campos
-    const ehValido = validarFormulario();
+    const novosErros = validarFormulario(externalFormData, precoFormatado);
+    setErrors(novosErros);
+
+    const ehValido = !Object.values(novosErros).some(erro => erro !== '');
 
     if (ehValido) {
+      if (externalFormData.preco <= 0) {
+        setErrors(prev => ({ ...prev, preco: 'Preço deve ser maior que zero' }));
+        showToast.error('Preço deve ser maior que zero', theme);
+        return;
+      }
+
+      setIsSaving(true);
       try {
-        // Chama onSave (que deve ser uma função assíncrona)
-        await onSave();
+        const dadosParaEnvio = {
+          ...externalFormData,
+          nome: externalFormData.nome?.trim(),
+          marca: externalFormData.marca?.trim() || null,
+          preco: Number(externalFormData.preco),
+          quantidade: Number(externalFormData.quantidade),
+          categoriaId: Number(externalFormData.categoriaId)
+        };
+
+        console.log('📦 Enviando:', dadosParaEnvio);
         
-        // Só mostra o toast APÓS o save ser concluído com sucesso
-        const nomeItem = formData.nome || 'Item';
-        toast.success(
+        await onSave(dadosParaEnvio);
+        
+        showToast.success(
           isEditing 
-            ? `"${nomeItem}" editado com sucesso!` 
-            : `"${nomeItem}" adicionado com sucesso!`,
-          {
-            duration: 3000,
-            icon: '',
-            style: {
-              borderRadius: '12px',
-              background: theme === 'dark' ? '#1e1e1e' : '#4CAF50',
-              color: theme === 'dark' ? '#e0e0e0' : '#fff',
-            },
-          }
+            ? `"${externalFormData.nome}" editado com sucesso!` 
+            : `"${externalFormData.nome}" adicionado com sucesso!`,
+          theme
         );
         
-        // Fecha o modal
         handleClose();
       } catch (error) {
-        // Se der erro, mostra toast de erro
-        toast.error('Erro ao salvar item. Tente novamente.', {
-          duration: 4000,
-          icon: '❌',
-          style: {
-            borderRadius: '12px',
-            background: '#dc3545',
-            color: '#fff',
-          },
-        });
+        console.error('Erro:', error);
+        const mensagemErro = error.response?.data?.message || 'Erro ao salvar item';
+        showToast.error(mensagemErro, theme);
+      } finally {
+        setIsSaving(false);
       }
     } else {
-      toast.error('Por favor, corrija os erros no formulário', {
-        duration: 4000,
-        icon: '❌',
-        style: {
-          borderRadius: '12px',
-          background: '#dc3545',
-          color: '#fff',
-        },
-      });
+      showToast.error('Por favor, corrija os erros no formulário', theme);
     }
   };
 
   const handleClose = () => {
-    setErrors({});
-    setTouched({});
+    resetValidation();
+    resetPrice();
     onClose();
   };
+
+  if (!isOpen) return null;
 
   return (
     <Modal
@@ -265,100 +178,100 @@ const ItemFormModal = ({
       title={isEditing ? "✏️ Editar Item" : "➕ Adicionar Item"}
       disableOutsideClick={true}
       theme={theme}
-      // Removeu as props showToastOnClose e toastMessage
     >
-      <FormGroup>
-        <Label theme={theme}>Nome *</Label>
-        <Input
-          type="text"
-          value={formData.nome || ''}
-          onChange={handleNomeChange}
-          onBlur={handleNomeBlur}
-          placeholder="Ex: Geladeira"
-          theme={theme}
-          className={errors.nome && touched.nome ? 'error' : ''}
-          maxLength={100}
-        />
-        {errors.nome && touched.nome && (
-          <ErrorMessage theme={theme}>{errors.nome}</ErrorMessage>
-        )}
-      </FormGroup>
+      <ValidatedInput
+        label="Nome"
+        name="nome"
+        value={externalFormData.nome || ''}
+        onChange={createFieldHandler('nome').onChange}
+        onBlur={createFieldHandler('nome').onBlur}
+        error={errors.nome}
+        touched={touched.nome}
+        theme={theme}
+        required
+        placeholder="Ex: Geladeira"
+        maxLength={100}
+        disabled={isSaving}
+        autoFocus
+      />
 
-      <FormGroup>
-        <Label theme={theme}>Marca</Label>
-        <Input
-          type="text"
-          value={formData.marca || ''}
-          onChange={handleMarcaChange}
-          onBlur={handleMarcaBlur}
-          placeholder="Ex: Consul"
-          theme={theme}
-          className={errors.marca && touched.marca ? 'error' : ''}
-          maxLength={50}
-        />
-        {errors.marca && touched.marca && (
-          <ErrorMessage theme={theme}>{errors.marca}</ErrorMessage>
-        )}
-      </FormGroup>
+      <ValidatedInput
+        label="Marca"
+        name="marca"
+        value={externalFormData.marca || ''}
+        onChange={createFieldHandler('marca').onChange}
+        onBlur={createFieldHandler('marca').onBlur}
+        error={errors.marca}
+        touched={touched.marca}
+        theme={theme}
+        placeholder="Ex: Consul"
+        maxLength={50}
+        disabled={isSaving}
+      />
 
-      <FormGroup>
-        <Label theme={theme}>Preço (R$) *</Label>
-        <Input
-          type="text"
-          value={localPrecoFormatado}
-          onChange={handlePrecoChange}
-          onBlur={handlePrecoBlur}
-          placeholder="Ex: 2.500,00"
-          theme={theme}
-          className={errors.preco && touched.preco ? 'error' : ''}
-        />
-        {errors.preco && touched.preco && (
-          <ErrorMessage theme={theme}>{errors.preco}</ErrorMessage>
-        )}
-      </FormGroup>
+      <ValidatedInput
+        label="Preço"
+        name="preco"
+        type="text"
+        value={precoFormatado}
+        onChange={handlePrecoChange}
+        onBlur={handlePrecoBlur}
+        error={errors.preco}
+        touched={touched.preco}
+        theme={theme}
+        required
+        placeholder="0,00"
+        disabled={isSaving}
+      />
 
-      <FormGroup>
-        <Label theme={theme}>Quantidade</Label>
-        <Input
-          type="number"
-          min="1"
-          max="999999"
-          step="1"
-          value={formData.quantidade || 1}
-          onChange={handleQuantidadeChange}
-          onBlur={handleQuantidadeBlur}
-          theme={theme}
-          className={errors.quantidade && touched.quantidade ? 'error' : ''}
-        />
-        {errors.quantidade && touched.quantidade && (
-          <ErrorMessage theme={theme}>{errors.quantidade}</ErrorMessage>
-        )}
-      </FormGroup>
+      <ValidatedInput
+        label="Quantidade"
+        name="quantidade"
+        type="number"
+        value={externalFormData.quantidade || 1}
+        onChange={createFieldHandler('quantidade').onChange}
+        onBlur={createFieldHandler('quantidade').onBlur}
+        error={errors.quantidade}
+        touched={touched.quantidade}
+        theme={theme}
+        min="1"
+        max="999999"
+        step="1"
+        disabled={isSaving}
+      />
 
-      <FormGroup>
-        <Label theme={theme}>Pagamento</Label>
-        <Select
-          value={formData.pagamento || 'normal'}
-          onChange={(e) =>
-            setFormData({ ...formData, pagamento: e.target.value })
-          }
-          theme={theme}
-        >
-          <option value="normal">💵 Normal</option>
-          <option value="vr">🍽️ VR/VA</option>
-        </Select>
-      </FormGroup>
+      <Select
+        label="Pagamento"
+        value={externalFormData.pagamento || 'normal'}
+        onChange={(e) => setExternalFormData((prev) => ({ ...prev, pagamento: e.target.value }))}
+        theme={theme}
+        disabled={isSaving}
+      >
+        <option value="normal">💵 Normal</option>
+        <option value="vr">🍽️ VR/VA</option>
+      </Select>
 
       <ModalButtons>
-        <CancelarButton onClick={handleClose} theme={theme}>
+        <CancelarButton 
+          onClick={handleClose} 
+          theme={theme}
+          disabled={isSaving}
+          type="button"
+        >
           Cancelar
         </CancelarButton>
         <SalvarButton 
           onClick={handleSave} 
           theme={theme}
-          disabled={Object.values(errors).some(error => error !== '')}
+          disabled={hasErrors() || isSaving}
+          type="button"
         >
-          {isEditing ? "Salvar" : "Adicionar"}
+          {isSaving 
+            ? 'Salvando...' 
+            : isEditing 
+              ? 'Salvar' 
+              : 'Adicionar'
+          }
         </SalvarButton>
       </ModalButtons>
     </Modal>

@@ -1,10 +1,10 @@
 // src/components/CategoriaCard.jsx
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Pencil, Check, DollarSign, ShoppingBag, ChevronDown, ChevronUp } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { useConfirm } from '../context/ConfirmContext';
+import { Plus, Trash2, Pencil, ChevronDown, ChevronUp } from 'lucide-react';
+import { useItemActions } from '../hooks/useItemActions';
+import { useCategoryActions } from '../hooks/useCategoryActions';
+import { formatarMoeda, getPaymentIcon } from '../utils/formatters';
 import {
-  CategoriesGrid,
   CardContainer,
   CardHeader,
   HeaderLeft,
@@ -24,7 +24,6 @@ import {
   ItemInfo,
   ItemName,
   ItemBrand,
-  ItemDetails,
   PaymentBadge,
   ItemActions,
   ItemActionButton,
@@ -64,21 +63,20 @@ const CategoriaCard = ({
   draggedItem,
   theme 
 }) => {
-  const { showConfirm } = useConfirm();
   const [isDragging, setIsDragging] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   
+  // Hooks personalizados
+  const { handleToggleComprado, handleDeleteItem, handleEditItem } = 
+    useItemActions(theme, onUpdateItem, onDeleteItem);
+  
+  const { handleDeleteCategoria: onDeleteCategoriaClick } = 
+    useCategoryActions(categoria, itens, theme, onDeleteCategoria);
+  
+  // Cálculos
   const totalCategoria = itens.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
   const itensComprados = itens.filter(item => item.comprado).length;
   const progresso = itens.length > 0 ? (itensComprados / itens.length) * 100 : 0;
-  
-  const formatarMoeda = (valor) => {
-    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
-
-  const getPaymentIcon = (tipo) => {
-    return tipo === 'vr' ? <DollarSign size={12} /> : <ShoppingBag size={12} />;
-  };
 
   useEffect(() => {
     return () => {
@@ -87,99 +85,6 @@ const CategoriaCard = ({
       }
     };
   }, [isDragging, onItemDragEnd]);
-
-  // Função para confirmar exclusão de item usando ConfirmModal
-  const handleDeleteItemClick = (item) => {
-    showConfirm({
-      title: 'Excluir Item',
-      itemName: item.nome,
-      itemType: 'item',
-      message: `Tem certeza que deseja excluir o item "${item.nome}"?`,
-      onConfirm: async () => {
-        await onDeleteItem(item.id);
-        // O toast de sucesso será mostrado pelo ConfirmModal
-      }
-    });
-  };
-
-  // Função para confirmar exclusão de categoria
-  const handleDeleteCategoriaClick = () => {
-    if (categoria.isPadrao) {
-      toast.error('Categoria padrão não pode ser excluída', {
-        duration: 3000,
-        icon: '❌',
-        style: {
-          borderRadius: '12px',
-          background: '#dc3545',
-          color: '#fff',
-        },
-      });
-      return;
-    }
-
-    if (itens.length > 0) {
-      toast.error(
-        `Não é possível excluir a categoria "${categoria.nome}" pois possui ${itens.length} item(ns) vinculado(s)`,
-        {
-          duration: 5000,
-          icon: '❌',
-          style: {
-            borderRadius: '12px',
-            background: '#dc3545',
-            color: '#fff',
-          },
-        }
-      );
-      return;
-    }
-
-    showConfirm({
-      title: 'Excluir Categoria',
-      itemName: categoria.nome,
-      itemType: 'categoria',
-      message: `Tem certeza que deseja excluir a categoria "${categoria.nome}"?`,
-      onConfirm: async () => {
-        await onDeleteCategoria(categoria.id);
-        // O toast de sucesso será mostrado pelo ConfirmModal
-      }
-    });
-  };
-
-  // Função para marcar item como comprado
-    const handleToggleComprado = (item) => {
-    const novoEstado = !item.comprado;
-    onUpdateItem(item.id, { comprado: novoEstado });
-    
-    // Toast diferente para marcar e desmarcar
-    if (novoEstado) {
-      // Marcando como comprado
-      toast.success(`"${item.nome}" marcado como comprado!`, {
-        duration: 2000,
-        icon: '',
-        style: {
-          borderRadius: '12px',
-          background: theme === 'dark' ? '#1e1e1e' : '#4CAF50',
-          color: '#fff',
-        },
-      });
-    } else {
-      // Desmarcando (volta para a lista)
-      toast.success(`"${item.nome}" voltou para a lista!`, {
-        duration: 2000,
-        icon: '',
-        style: {
-          borderRadius: '12px',
-          background: theme === 'dark' ? '#1e1e1e' : '#ff9800', // Laranja para desmarcar
-          color: '#fff',
-        },
-      });
-    }
-  };
-
-  // Função para adicionar item com toast
-  const handleAddItemClick = () => {
-    onAddItem(categoria.id);
-  };
 
   const handleDragStart = (e, itemId) => {
     if (e.target.closest('.drag-handle')) {
@@ -218,7 +123,7 @@ const CategoriaCard = ({
         
         <HeaderActions>
           <IconButton 
-            onClick={handleAddItemClick}
+            onClick={() => onAddItem(categoria.id)}
             theme={theme} 
             title="Adicionar item"
           >
@@ -228,7 +133,7 @@ const CategoriaCard = ({
           {!categoria.isPadrao && (
             <IconButton 
               danger 
-              onClick={handleDeleteCategoriaClick}
+              onClick={onDeleteCategoriaClick}
               theme={theme}
               title="Excluir categoria"
             >
@@ -318,7 +223,7 @@ const CategoriaCard = ({
                     <ItemActions>
                       <ActionGroup>
                         <ItemActionButton 
-                          onClick={() => onUpdateItem(item.id, { edit: true })}
+                          onClick={() => handleEditItem(item)}
                           theme={theme}
                           variant="edit"
                           title="Editar item"
@@ -327,7 +232,7 @@ const CategoriaCard = ({
                         </ItemActionButton>
                         <ItemActionButton 
                           variant="delete"
-                          onClick={() => handleDeleteItemClick(item)}
+                          onClick={() => handleDeleteItem(item)}
                           theme={theme}
                           title="Excluir item"
                         >
@@ -349,7 +254,7 @@ const CategoriaCard = ({
               <EmptyState>
                 <EmptyText theme={theme}>Nenhum item adicionado</EmptyText>
                 <AddButton 
-                  onClick={handleAddItemClick}
+                  onClick={() => onAddItem(categoria.id)}
                   theme={theme}
                 >
                   <Plus size={18} />
