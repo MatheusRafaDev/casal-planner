@@ -1,48 +1,119 @@
-import React from 'react';
-import { TrendingUp, Coffee, DollarSign, CheckCircle } from 'lucide-react';
-import {
-  ResumoGrid,
-  ResumoItem
-} from '../styles/components/ResumoCardsStyles';
+// ResumoCards.jsx
+import React, { useMemo } from 'react';
+import { TrendingUp, Coffee, DollarSign, CheckCircle, ArrowUp, ArrowDown } from 'lucide-react';
+import * as S from '../styles/components/ResumoCardsStyles';
 
-const ResumoCards = ({ resumo }) => {
-  const formatarPreco = (valor) => {
-    return valor?.toLocaleString('pt-BR', {
+const ResumoCards = ({ resumo = {}, comparativo = {}, theme }) => {
+
+  const formatarPreco = (valor = 0) =>
+    valor.toLocaleString('pt-BR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    }) || '0,00';
+    });
+
+  const getTrend = (valor = 0) => {
+    if (valor > 0) return 'up';
+    if (valor < 0) return 'down';
+    return null;
   };
 
+  const cards = useMemo(() => [
+    {
+      id: 'totalGeral',
+      label: 'Total Geral',
+      descricao: 'Valor total de todos os itens',
+      value: resumo.totalGeral,
+      icon: TrendingUp,
+      color: theme.primary,
+      prefix: 'R$ ',
+      badge: 'Visão Geral'
+    },
+    {
+      id: 'totalVR',
+      label: 'VR / Vale Alimentação',
+      descricao: 'Total em benefícios',
+      value: resumo.totalVR,
+      icon: Coffee,
+      color: theme.vrva,
+      prefix: 'R$ ',
+      badge: 'Benefícios'
+    },
+    {
+      id: 'totalNormal',
+      label: 'Pagamento Normal',
+      descricao: 'Total em dinheiro/cartão',
+      value: resumo.totalNormal,
+      icon: DollarSign,
+      color: theme.secondary,
+      prefix: 'R$ ',
+      badge: 'À vista'
+    },
+    {
+      id: 'totalComprados',
+      label: 'Itens Comprados',
+      descricao: 'Total de itens já adquiridos',
+      value: resumo.totalComprados,
+      icon: CheckCircle,
+      color: theme.success,
+      suffix: ' itens',
+      badge: 'Realizados',
+      formatter: (val) => val || 0
+    }
+  ], [resumo, theme]);
+
   return (
-    <ResumoGrid>
-      <ResumoItem>
-        <TrendingUp className="icon" size={20} color="#8B5CF6" />
-        <span className="label">Total Geral</span>
-        <span className="value">R$ {formatarPreco(resumo?.totalGeral)}</span>
-      </ResumoItem>
-      
-      <ResumoItem>
-        <Coffee className="icon" size={20} color="#8B5CF6" />
-        <span className="label">VR/VA</span>
-        <span className="value" style={{ color: '#8B5CF6' }}>
-          R$ {formatarPreco(resumo?.totalVR)}
-        </span>
-      </ResumoItem>
-      
-      <ResumoItem>
-        <DollarSign className="icon" size={20} color="#EC4899" />
-        <span className="label">Normal</span>
-        <span className="value" style={{ color: '#EC4899' }}>
-          R$ {formatarPreco(resumo?.totalNormal)}
-        </span>
-      </ResumoItem>
-      
-      <ResumoItem>
-        <CheckCircle className="icon" size={20} color="#10B981" />
-        <span className="label">Comprados</span>
-        <span className="value">{resumo?.totalComprados || 0}</span>
-      </ResumoItem>
-    </ResumoGrid>
+    <S.ResumoGrid>
+      {cards.map((card) => {
+        const Icon = card.icon;
+        const trendValue = comparativo[card.id] || 0;
+        const trend = getTrend(trendValue);
+
+        const formattedValue = card.formatter
+          ? card.formatter(card.value)
+          : formatarPreco(card.value);
+
+        return (
+          <S.ResumoCard key={card.id} $color={card.color}>
+            <S.CardHeader>
+              <S.CardIcon $color={card.color}>
+                <Icon size={18} />
+              </S.CardIcon>
+              <S.CardBadge $color={card.color}>
+                {card.badge}
+              </S.CardBadge>
+            </S.CardHeader>
+
+            <S.CardContent>
+              <S.CardTitle>{card.label}</S.CardTitle>
+              <S.CardDescription>{card.descricao}</S.CardDescription>
+
+              <S.CardValue $color={card.color}>
+                {card.prefix && <span>{card.prefix}</span>}
+                {formattedValue}
+                {card.suffix && <span>{card.suffix}</span>}
+              </S.CardValue>
+            </S.CardContent>
+
+            <S.CardFooter>
+              <S.TrendIndicator
+                $trend={trend}
+                $stable={!trend}
+              >
+                {trend === 'up' && <ArrowUp size={14} />}
+                {trend === 'down' && <ArrowDown size={14} />}
+                <span>{Math.abs(trendValue)}%</span>
+              </S.TrendIndicator>
+
+              <S.CompareText>
+                {trend === 'up' && `${trendValue}% maior que mês passado`}
+                {trend === 'down' && `${Math.abs(trendValue)}% menor que mês passado`}
+                {!trend && 'Estável em relação ao mês passado'}
+              </S.CompareText>
+            </S.CardFooter>
+          </S.ResumoCard>
+        );
+      })}
+    </S.ResumoGrid>
   );
 };
 

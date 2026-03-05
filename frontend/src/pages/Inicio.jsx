@@ -262,7 +262,7 @@ const Inicio = () => {
         </WelcomeSubtitle>
       </WelcomeSection>
 
-      <ResumoCards resumo={resumo} />
+      <ResumoCards resumo={resumo} theme={theme} />
 
       <Filtros
         filter={filter}
