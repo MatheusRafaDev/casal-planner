@@ -66,15 +66,15 @@ const CategoriaCard = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
-
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const { handleToggleComprado, handleDeleteItem, handleEditItem } =
-  useItemActions(
-    theme, 
-    onToggleComprado, 
-    onUpdateItem,     
-    onDeleteItem
-  );
+    useItemActions(
+      theme,
+      onToggleComprado,
+      onUpdateItem,
+      onDeleteItem
+    );
 
   const { handleDeleteCategoria: onDeleteCategoriaClick } = useCategoryActions(
     categoria,
@@ -85,12 +85,11 @@ const CategoriaCard = ({
   );
 
   const totalCategoria = itens.reduce(
-    (acc, item) => acc + item.preco * item.quantidade,
+    (acc, item) => acc + (item.preco * item.quantidade || 0),
     0,
   );
   const itensComprados = itens.filter((item) => item.comprado).length;
-  const progresso =
-    itens.length > 0 ? (itensComprados / itens.length) * 100 : 0;
+  const progresso = itens.length > 0 ? (itensComprados / itens.length) * 100 : 0;
 
   useEffect(() => {
     return () => {
@@ -101,17 +100,51 @@ const CategoriaCard = ({
   }, [isDragging, onItemDragEnd]);
 
   const handleDragStart = (e, itemId) => {
-    if (e.target.closest(".drag-handle")) {
+    // Só permite arrastar se clicou no drag handle específico do item
+    if (e.target.closest(".item-drag-handle")) {
+      console.log('🎯 Iniciando drag do item:', itemId);
       setIsDragging(true);
       onItemDragStart(itemId);
+      e.dataTransfer.setData('text/plain', itemId);
+      e.dataTransfer.effectAllowed = 'move';
     } else {
       e.preventDefault();
     }
   };
 
   const handleDragEnd = () => {
+    console.log('🎯 Finalizando drag do item');
     setIsDragging(false);
+    setIsDragOver(false);
     onItemDragEnd();
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const itemId = e.dataTransfer.getData('text/plain');
+    console.log('🎯 Drop na categoria:', categoria.id, 'item:', itemId);
+    
+    if (itemId) {
+      // Verifica se o item não está já nesta categoria
+      const itemExisteNaCategoria = itens.some(item => item.id === itemId);
+      if (!itemExisteNaCategoria) {
+        onItemDrop(categoria.id);
+      } else {
+        console.log('ℹ️ Item já está nesta categoria');
+      }
+    }
   };
 
   const handleEditCategoriaClick = () => {
@@ -121,10 +154,19 @@ const CategoriaCard = ({
   };
 
   return (
-    <CardContainer theme={theme}>
+    <CardContainer 
+      theme={theme}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      $isDragOver={isDragOver}
+    >
       <CardHeader color={categoria.bg} theme={theme}>
         <HeaderLeft>
-          <DragHandle theme={theme} className="drag-handle">
+          <DragHandle 
+            theme={theme} 
+            className="drag-handle"
+          >
             <span>⋮⋮</span>
           </DragHandle>
           <Icon theme={theme}>{categoria.icon}</Icon>
@@ -199,10 +241,16 @@ const CategoriaCard = ({
                     draggable
                     onDragStart={(e) => handleDragStart(e, item.id)}
                     onDragEnd={handleDragEnd}
-                    style={{ opacity: draggedItem === item.id ? 0.5 : 1 }}
+                    style={{ 
+                      opacity: draggedItem === item.id ? 0.5 : 1,
+                      cursor: 'default'
+                    }}
                   >
                     <ItemLeft>
-                      <ItemDragHandle className="drag-handle" theme={theme}>
+                      <ItemDragHandle 
+                        className="item-drag-handle" 
+                        theme={theme}
+                      >
                         <span>⋮</span>
                       </ItemDragHandle>
 

@@ -216,7 +216,6 @@ const Inicio = () => {
     setCategorias(newCategorias);
     setDraggedCardIndex(null);
     setDragOverCardIndex(null);
-    showMessage('Categoria reordenada');
   };
 
   // Handlers de drag and drop para itens
@@ -261,14 +260,11 @@ const Inicio = () => {
   };
 
   const handleDeleteCategoria = async (categoriaId) => {
-    if (!window.confirm('Tem certeza que deseja deletar esta categoria? Todos os itens serão removidos.')) {
-      return;
-    }
+   
 
     try {
       await categoriasService.delete(categoriaId);
       await loadData();
-      showMessage('Categoria deletada com sucesso');
     } catch (error) {
       console.error("Erro ao deletar categoria:", error);
       showMessage('Erro ao deletar categoria', 'error');

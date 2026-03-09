@@ -1,9 +1,11 @@
-
 import { useCallback } from 'react';
 import { showToast } from '../utils/toastUtils';
+import { useConfirm } from '../context/ConfirmContext';
 
 export const useCategoryActions = (categoria, itens, theme, onDeleteCategoria, onEditCategoria) => {
-  const handleDeleteCategoria = useCallback(async () => {
+  const { showConfirm } = useConfirm();
+
+  const handleDeleteCategoria = useCallback(() => {
     if (categoria.isPadrao) {
       showToast.warning('Esta categoria não pode ser excluída pois é padrão do sistema', theme);
       return;
@@ -13,15 +15,20 @@ export const useCategoryActions = (categoria, itens, theme, onDeleteCategoria, o
       ? `Esta categoria possui ${itens.length} item(ns). Deseja realmente excluí-la?`
       : 'Tem certeza que deseja excluir esta categoria?';
 
-    if (window.confirm(mensagem)) {
-      try {
-        await onDeleteCategoria(categoria.id);
-        showToast.success(`Categoria "${categoria.nome}" excluída com sucesso!`, theme);
-      } catch (error) {
-        showToast.error('Erro ao excluir categoria', theme);
+    showConfirm({
+      title: 'Excluir Categoria',
+      itemName: categoria.nome,
+      itemType: 'categoria',
+      message: mensagem,
+      onConfirm: async () => {
+        try {
+          await onDeleteCategoria(categoria.id);
+        } catch (error) {
+          showToast.error('Erro ao excluir categoria', theme);
+        }
       }
-    }
-  }, [categoria, itens, theme, onDeleteCategoria]);
+    });
+  }, [categoria, itens, theme, onDeleteCategoria, showConfirm]);
 
   const handleEditCategoria = useCallback(() => {
     if (categoria.isPadrao) {
