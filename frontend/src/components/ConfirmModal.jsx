@@ -104,7 +104,7 @@ const ConfirmModal = ({ theme }) => {
       console.error('Erro ao excluir:', error);
       toast.error(`❌ Erro ao excluir ${itemType}. Tente novamente.`, {
         duration: 4000,
-        icon: '❌',
+        icon: '',
         style: {
           borderRadius: '12px',
           background: '#dc3545',

@@ -95,7 +95,7 @@ function StyledThemeWrapper() {
           },
           error: {
             duration: 4000,
-            icon: '❌',
+            icon: '',
           },
         }}
       />

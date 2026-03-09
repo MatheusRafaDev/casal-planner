@@ -1,53 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Plus, Trash2, Pencil, ChevronDown, ChevronUp } from "lucide-react";
 import { useItemActions } from "../hooks/useItemActions";
 import { useCategoryActions } from "../hooks/useCategoryActions";
 import { formatarMoeda, getPaymentIcon } from "../utils/formatters";
-import {
-  CardContainer,
-  CardHeader,
-  HeaderLeft,
-  DragHandle,
-  Icon,
-  TitleSection,
-  Title,
-  Subtitle,
-  HeaderActions,
-  IconButton,
-  ItemsList,
-  ItemRow,
-  ItemLeft,
-  ItemDragHandle,
-  CheckboxButton,
-  CheckIcon,
-  ItemInfo,
-  ItemName,
-  ItemBrand,
-  PaymentBadge,
-  ItemActions,
-  ItemActionButton,
-  ItemContent,
-  ItemQuantity,
-  ItemPrice,
-  ItemTotal,
-  ItemTotalValue,
-  ItemMeta,
-  ItemMetaInfo,
-  EmptyState,
-  EmptyText,
-  AddButton,
-  ActionGroup,
-  CategoryProgress,
-  ProgressBar,
-  ProgressFill,
-  CategoryFooter,
-  CategoryStats,
-  StatItem,
-  ExpandButton,
-  ItemsCount,
-  TotalValue,
-  CardContent,
-} from "../styles/components/CategoriaCardStyles";
+import * as S from "../styles/components/CategoriaCardStyles";
 
 const CategoriaCard = ({
   categoria,
@@ -60,23 +16,17 @@ const CategoriaCard = ({
   onItemDragStart,
   onItemDragEnd,
   onItemDrop,
-  draggedItem,
+  draggedItemId,
   theme,
   onToggleComprado,
 }) => {
-  const [isDragging, setIsDragging] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const [isDragOver, setIsDragOver] = useState(false);
 
   const { handleToggleComprado, handleDeleteItem, handleEditItem } =
-    useItemActions(
-      theme,
-      onToggleComprado,
-      onUpdateItem,
-      onDeleteItem
-    );
+    useItemActions(theme, onToggleComprado, onUpdateItem, onDeleteItem);
 
-  const { handleDeleteCategoria: onDeleteCategoriaClick } = useCategoryActions(
+  const { handleDeleteCategoria, handleEditCategoria } = useCategoryActions(
     categoria,
     itens,
     theme,
@@ -91,267 +41,215 @@ const CategoriaCard = ({
   const itensComprados = itens.filter((item) => item.comprado).length;
   const progresso = itens.length > 0 ? (itensComprados / itens.length) * 100 : 0;
 
-  useEffect(() => {
-    return () => {
-      if (isDragging && onItemDragEnd) {
-        onItemDragEnd();
-      }
-    };
-  }, [isDragging, onItemDragEnd]);
 
-  const handleDragStart = (e, itemId) => {
-    // Só permite arrastar se clicou no drag handle específico do item
-    if (e.target.closest(".item-drag-handle")) {
-      console.log('🎯 Iniciando drag do item:', itemId);
-      setIsDragging(true);
-      onItemDragStart(itemId);
-      e.dataTransfer.setData('text/plain', itemId);
-      e.dataTransfer.effectAllowed = 'move';
-    } else {
-      e.preventDefault();
-    }
+  const handleItemDragStart = (e, itemId) => {
+    e.stopPropagation();
+    onItemDragStart(itemId);
+    e.dataTransfer.setData('text/plain', itemId);
+    e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleDragEnd = () => {
-    console.log('🎯 Finalizando drag do item');
-    setIsDragging(false);
-    setIsDragOver(false);
+  const handleItemDragEnd = () => {
     onItemDragEnd();
   };
 
+
   const handleDragOver = (e) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+    e.stopPropagation();
     setIsDragOver(true);
   };
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsDragOver(false);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragOver(false);
     
     const itemId = e.dataTransfer.getData('text/plain');
-    console.log('🎯 Drop na categoria:', categoria.id, 'item:', itemId);
     
     if (itemId) {
-      // Verifica se o item não está já nesta categoria
-      const itemExisteNaCategoria = itens.some(item => item.id === itemId);
-      if (!itemExisteNaCategoria) {
-        onItemDrop(categoria.id);
-      } else {
-        console.log('ℹ️ Item já está nesta categoria');
-      }
-    }
-  };
-
-  const handleEditCategoriaClick = () => {
-    if (onEditCategoria) {
-      onEditCategoria(categoria);
+      onItemDrop(categoria.id);
     }
   };
 
   return (
-    <CardContainer 
+    <S.CardContainer 
       theme={theme}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       $isDragOver={isDragOver}
     >
-      <CardHeader color={categoria.bg} theme={theme}>
-        <HeaderLeft>
-          <DragHandle 
+      <S.CardHeader color={categoria.bg} theme={theme}>
+        <S.HeaderLeft>
+
+          <S.DragHandle 
             theme={theme} 
-            className="drag-handle"
-          >
-            <span>⋮⋮</span>
-          </DragHandle>
-          <Icon theme={theme}>{categoria.icon}</Icon>
-          <TitleSection>
-            <Title theme={theme}>{categoria.nome}</Title>
-            <Subtitle theme={theme}>
-              <ItemsCount>
+            className="category-drag-handle"
+          />
+          <S.Icon theme={theme}>{categoria.icon}</S.Icon>
+          <S.TitleSection>
+            <S.Title theme={theme}>{categoria.nome}</S.Title>
+            <S.Subtitle theme={theme}>
+              <S.ItemsCount>
                 {itens.length} {itens.length === 1 ? "item" : "itens"}
-              </ItemsCount>
-              <TotalValue>{formatarMoeda(totalCategoria)}</TotalValue>
-            </Subtitle>
-          </TitleSection>
-        </HeaderLeft>
+              </S.ItemsCount>
+              <S.TotalValue>{formatarMoeda(totalCategoria)}</S.TotalValue>
+            </S.Subtitle>
+          </S.TitleSection>
+        </S.HeaderLeft>
 
-        <HeaderActions>
-          <IconButton
-            onClick={() => onAddItem(categoria.id)}
-            theme={theme}
-            title="Adicionar item"
-          >
+        <S.HeaderActions>
+          <S.IconButton onClick={() => onAddItem(categoria.id)} theme={theme}>
             <Plus size={18} />
-          </IconButton>
-
-          <IconButton
-            onClick={handleEditCategoriaClick}
-            theme={theme}
-            title="Editar categoria"
-          >
+          </S.IconButton>
+          <S.IconButton onClick={handleEditCategoria} theme={theme}>
             <Pencil size={16} />
-          </IconButton>
-
+          </S.IconButton>
           {!categoria.isPadrao && (
-            <IconButton
-              danger
-              onClick={onDeleteCategoriaClick}
-              theme={theme}
-              title="Excluir categoria"
-            >
+            <S.IconButton danger onClick={handleDeleteCategoria} theme={theme}>
               <Trash2 size={16} />
-            </IconButton>
+            </S.IconButton>
           )}
-
-          <ExpandButton
-            onClick={() => setIsExpanded(!isExpanded)}
-            theme={theme}
-          >
+          <S.ExpandButton onClick={() => setIsExpanded(!isExpanded)} theme={theme}>
             {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-          </ExpandButton>
-        </HeaderActions>
-      </CardHeader>
+          </S.ExpandButton>
+        </S.HeaderActions>
+      </S.CardHeader>
 
-      <CategoryProgress>
-        <ProgressBar theme={theme}>
-          <ProgressFill
+      <S.CategoryProgress>
+        <S.ProgressBar theme={theme}>
+          <S.ProgressFill
             theme={theme}
             style={{ width: `${progresso}%` }}
             color={categoria.bg}
           />
-        </ProgressBar>
-      </CategoryProgress>
+        </S.ProgressBar>
+      </S.CategoryProgress>
 
-      <CardContent>
+      <S.CardContent>
         {isExpanded && (
           <>
             {itens.length > 0 && (
-              <ItemsList $hasItems={itens.length > 0}>
+              <S.ItemsList>
                 {itens.map((item) => (
-                  <ItemRow
+                  <S.ItemRow
                     key={item.id}
                     $purchased={item.comprado}
                     theme={theme}
                     draggable
-                    onDragStart={(e) => handleDragStart(e, item.id)}
-                    onDragEnd={handleDragEnd}
-                    style={{ 
-                      opacity: draggedItem === item.id ? 0.5 : 1,
-                      cursor: 'default'
-                    }}
+                    onDragStart={(e) => handleItemDragStart(e, item.id)}
+                    onDragEnd={handleItemDragEnd}
+                    style={{ opacity: draggedItemId === item.id ? 0.5 : 1 }}
                   >
-                    <ItemLeft>
-                      <ItemDragHandle 
-                        className="item-drag-handle" 
-                        theme={theme}
-                      >
-                        <span>⋮</span>
-                      </ItemDragHandle>
+                    <S.ItemLeft>
 
-                      <CheckboxButton
+                      <span 
+                        className="item-drag-handle"
+                        style={{ 
+                          cursor: 'grab', 
+                          marginRight: '8px',
+                          padding: '0 4px',
+                          color: theme?.textSoft || '#666'
+                        }}
+                      >
+                        ⋮⋮
+                      </span>
+
+                      <S.CheckboxButton
                         $checked={item.comprado}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
+                        onClick={(e) => {
+                          e.stopPropagation();
                           handleToggleComprado(item.id, item.comprado);
                         }}
                         theme={theme}
                       >
-                        {item.comprado && <CheckIcon>✓</CheckIcon>}
-                      </CheckboxButton>
+                        {item.comprado && <S.CheckIcon />}
+                      </S.CheckboxButton>
 
-                      <ItemContent>
-                        <ItemInfo>
-                          <ItemName $purchased={item.comprado} theme={theme}>
+                      <S.ItemContent>
+                        <S.ItemInfo>
+                          <S.ItemName $purchased={item.comprado} theme={theme}>
                             {item.nome}
-                          </ItemName>
+                          </S.ItemName>
                           {item.marca && (
-                            <ItemBrand theme={theme}>{item.marca}</ItemBrand>
+                            <S.ItemBrand theme={theme}>{item.marca}</S.ItemBrand>
                           )}
-                        </ItemInfo>
+                        </S.ItemInfo>
 
-                        <ItemMeta>
-                          <ItemMetaInfo theme={theme}>
-                            <ItemQuantity>{item.quantidade}x</ItemQuantity>
-                            <ItemPrice>{formatarMoeda(item.preco)}</ItemPrice>
-                            <PaymentBadge $type={item.pagamento} theme={theme}>
+                        <S.ItemMeta>
+                          <S.ItemMetaInfo theme={theme}>
+                            <S.ItemQuantity>{item.quantidade}x</S.ItemQuantity>
+                            <S.ItemPrice>{formatarMoeda(item.preco)}</S.ItemPrice>
+                            <S.PaymentBadge $type={item.pagamento} theme={theme}>
                               {getPaymentIcon(item.pagamento)}
-                              <span>
-                                {item.pagamento === "vr" ? "VR" : "Normal"}
-                              </span>
-                            </PaymentBadge>
-                          </ItemMetaInfo>
-                        </ItemMeta>
-                      </ItemContent>
-                    </ItemLeft>
+                              <span>{item.pagamento === "vr" ? "VR" : "Normal"}</span>
+                            </S.PaymentBadge>
+                          </S.ItemMetaInfo>
+                        </S.ItemMeta>
+                      </S.ItemContent>
+                    </S.ItemLeft>
 
-                    <ItemActions>
-                      <ActionGroup>
-                        <ItemActionButton
+                    <S.ItemActions>
+                      <S.ActionGroup>
+                        <S.ItemActionButton
                           onClick={() => handleEditItem(item)}
                           theme={theme}
                           variant="edit"
-                          title="Editar item"
                         >
-                          <Pencil size={16} />
-                        </ItemActionButton>
-                        <ItemActionButton
+                          <Pencil size={14} />
+                        </S.ItemActionButton>
+                        <S.ItemActionButton
                           variant="delete"
                           onClick={() => handleDeleteItem(item)}
                           theme={theme}
-                          title="Excluir item"
                         >
-                          <Trash2 size={16} />
-                        </ItemActionButton>
-                      </ActionGroup>
-                      <ItemTotal theme={theme}>
-                        <ItemTotalValue>
+                          <Trash2 size={14} />
+                        </S.ItemActionButton>
+                      </S.ActionGroup>
+                      <S.ItemTotal theme={theme}>
+                        <S.ItemTotalValue>
                           {formatarMoeda(item.preco * item.quantidade)}
-                        </ItemTotalValue>
-                      </ItemTotal>
-                    </ItemActions>
-                  </ItemRow>
+                        </S.ItemTotalValue>
+                      </S.ItemTotal>
+                    </S.ItemActions>
+                  </S.ItemRow>
                 ))}
-              </ItemsList>
+              </S.ItemsList>
             )}
 
             {itens.length === 0 && (
-              <EmptyState>
-                <EmptyText theme={theme}>Nenhum item adicionado</EmptyText>
-                <AddButton
-                  onClick={() => onAddItem(categoria.id)}
-                  theme={theme}
-                >
+              <S.EmptyState>
+                <S.EmptyText theme={theme}>Nenhum item adicionado</S.EmptyText>
+                <S.AddButton onClick={() => onAddItem(categoria.id)} theme={theme}>
                   <Plus size={18} />
                   Adicionar primeiro item
-                </AddButton>
-              </EmptyState>
+                </S.AddButton>
+              </S.EmptyState>
             )}
           </>
         )}
-      </CardContent>
+      </S.CardContent>
 
-      <CategoryFooter theme={theme}>
-        <CategoryStats>
-          <StatItem theme={theme}>
+      <S.CategoryFooter theme={theme}>
+        <S.CategoryStats>
+          <S.StatItem theme={theme}>
             <span>Itens comprados:</span>
-            <strong>
-              {itensComprados}/{itens.length}
-            </strong>
-          </StatItem>
-          <StatItem theme={theme}>
+            <strong>{itensComprados}/{itens.length}</strong>
+          </S.StatItem>
+          <S.StatItem theme={theme}>
             <span>Progresso:</span>
             <strong>{progresso.toFixed(0)}%</strong>
-          </StatItem>
-        </CategoryStats>
-      </CategoryFooter>
-    </CardContainer>
+          </S.StatItem>
+        </S.CategoryStats>
+      </S.CategoryFooter>
+    </S.CardContainer>
   );
 };
 
