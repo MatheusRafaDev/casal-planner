@@ -6,7 +6,7 @@ import {
   FilterButtons,
   FilterButton,
   AddCategoryButton
-} from '../styles/components/FiltrosStyles'; // ← DEVE SER FiltrosStyles, NÃO ItemFormModalStyles!
+} from '../styles/components/FiltrosStyles'; 
 
 const Filtros = ({ filter, setFilter, onAddCategory, theme }) => {
   return (

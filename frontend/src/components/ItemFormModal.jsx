@@ -139,8 +139,6 @@ const ItemFormModal = ({
           categoriaId: Number(externalFormData.categoriaId)
         };
 
-        console.log('📦 Enviando:', dadosParaEnvio);
-        
         await onSave(dadosParaEnvio);
         
         showToast.success(

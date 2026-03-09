@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// src/pages/Inicio.jsx
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import ResumoCards from "../components/ResumoCards";
@@ -26,29 +27,70 @@ import {
   DragCardWrapper,
 } from "../styles/pages/InicioStyles";
 
+const calcularResumo = (itens) => {
+  const itensArray = Array.isArray(itens) ? itens : [];
+  
+  const totalGeral = itensArray.reduce(
+    (acc, item) => acc + ((item?.preco || 0) * (item?.quantidade || 0)), 0
+  );
+  
+  const totalVR = itensArray
+    .filter((i) => i?.pagamento === "vr")
+    .reduce((acc, item) => acc + ((item?.preco || 0) * (item?.quantidade || 0)), 0);
+    
+  const totalNormal = itensArray
+    .filter((i) => i?.pagamento === "normal")
+    .reduce((acc, item) => acc + ((item?.preco || 0) * (item?.quantidade || 0)), 0);
+    
+  const totalComprados = itensArray.filter((i) => i?.comprado).length;
+
+  return {
+    totalGeral,
+    totalVR,
+    totalNormal,
+    totalComprados,
+    totalItens: itensArray.length,
+  };
+};
+
 const Inicio = () => {
   const { theme } = useTheme();
   const { usuario } = useAuth();
+  
+
   const [categorias, setCategorias] = useState([]);
   const [itens, setItens] = useState([]);
-  const [resumo, setResumo] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
+  const [resumo, setResumo] = useState({
+    totalGeral: 0,
+    totalVR: 0,
+    totalNormal: 0,
+    totalComprados: 0,
+    totalItens: 0
+  });
 
-  // Modals
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filter, setFilter] = useState("all");
+  const [message, setMessage] = useState({ text: '', type: '' });
+  
+
   const [itemModal, setItemModal] = useState({
     isOpen: false,
     categoriaId: null,
     itemId: null,
   });
-  const [categoriaModal, setCategoriaModal] = useState(false);
+  
+  const [categoriaModal, setCategoriaModal] = useState({
+    isOpen: false,
+    categoria: null,
+    isEditing: false
+  });
 
-  // Drag and drop
+
   const [draggedCardIndex, setDraggedCardIndex] = useState(null);
   const [dragOverCardIndex, setDragOverCardIndex] = useState(null);
   const [draggedItem, setDraggedItem] = useState(null);
 
-  // Form states
   const [formData, setFormData] = useState({
     nome: "",
     marca: "",
@@ -58,57 +100,88 @@ const Inicio = () => {
     pagamento: "normal",
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [categoriasData, itensData] = await Promise.all([
-        categoriasService.listar(),
-        itensService.getAll(),
-      ]);
-
-      setCategorias(categoriasData);
-      setItens(itensData);
-
-      // Calcular resumo
-      const totalGeral = itensData.reduce(
-        (acc, item) => acc + item.preco * item.quantidade,
-        0,
-      );
-      const totalVR = itensData
-        .filter((i) => i.pagamento === "vr")
-        .reduce((acc, item) => acc + item.preco * item.quantidade, 0);
-      const totalNormal = itensData
-        .filter((i) => i.pagamento === "normal")
-        .reduce((acc, item) => acc + item.preco * item.quantidade, 0);
-      const totalComprados = itensData.filter((i) => i.comprado).length;
-
-      setResumo({
-        totalGeral,
-        totalVR,
-        totalNormal,
-        totalComprados,
-        totalItens: itensData.length,
-      });
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-    } finally {
-      setLoading(false);
-    }
+  const showMessage = (text, type = 'success') => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage({ text: '', type: '' }), 3000);
   };
 
-  // Filtro de itens
-  const filteredItems =
-    filter === "all"
-      ? itens
-      : itens.filter(
-          (i) => i.pagamento === (filter === "vrva" ? "vr" : "normal"),
-        );
 
-  // ===== DRAG AND DROP PARA CARDS =====
+  useEffect(() => {
+    if (usuario) {
+      loadData();
+    } else {
+      setLoading(false);
+      setError("Usuário não autenticado");
+    }
+  }, [usuario]);
+
+  const loadData = async () => {
+  try {
+    setLoading(true);
+    setError(null);
+    
+    const results = await Promise.allSettled([
+      categoriasService.listarDoUsuario(),
+      itensService.getAll(),
+    ]);
+    
+
+    if (results[0].status === 'fulfilled') {
+      const categoriasData = results[0].value;
+      setCategorias(Array.isArray(categoriasData) ? categoriasData : []);
+    } else {
+      console.error('❌ Erro ao carregar categorias:', results[0].reason);
+      setCategorias([]);
+      showMessage('Erro ao carregar categorias', 'error');
+    }
+    
+    // Processar itens
+    let itensData = [];
+    if (results[1].status === 'fulfilled') {
+      itensData = results[1].value;
+ 
+  
+      setItens(Array.isArray(itensData) ? itensData : []);
+    } else {
+      setItens([]);
+      showMessage('Erro ao carregar itens', 'error');
+    }
+
+    // Calcular resumo
+    setResumo(calcularResumo(itensData));
+    
+  } catch (error) {
+    console.error("❌ Erro ao carregar dados:", error);
+    setError(error.message || "Erro ao carregar dados");
+    showMessage('Erro ao carregar dados', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const categoriasArray = useMemo(() => Array.isArray(categorias) ? categorias : [], [categorias]);
+  const itensArray = useMemo(() => Array.isArray(itens) ? itens : [], [itens]);
+  
+  const filteredItems = useMemo(() => {
+    if (!Array.isArray(itensArray)) return [];
+    if (filter === "all") return itensArray;
+    return itensArray.filter(i => i?.pagamento === (filter === "vrva" ? "vr" : "normal"));
+  }, [itensArray, filter]);
+
+  const handleToggleComprado = async (itemId, comprado) => {
+
+  
+  try {
+    const response = await itensService.updateComprado(itemId, comprado );
+    await loadData();
+    showMessage('Item comprado');
+  } catch (error) {
+    showMessage('Erro ao atualizar item', 'error');
+  }
+};
+
+
   const handleCardDragStart = (e, index) => {
     setDraggedCardIndex(index);
     e.dataTransfer.effectAllowed = "move";
@@ -136,16 +209,17 @@ const Inicio = () => {
       return;
     }
 
-    const newCategorias = [...categorias];
+    const newCategorias = [...categoriasArray];
     const [removed] = newCategorias.splice(draggedCardIndex, 1);
     newCategorias.splice(targetIndex, 0, removed);
 
     setCategorias(newCategorias);
     setDraggedCardIndex(null);
     setDragOverCardIndex(null);
+    showMessage('Categoria reordenada');
   };
 
-  // ===== DRAG AND DROP PARA ITENS =====
+  // Handlers de drag and drop para itens
   const handleItemDragStart = (itemId) => {
     setDraggedItem(itemId);
   };
@@ -159,16 +233,55 @@ const Inicio = () => {
 
     try {
       await itensService.update(draggedItem, { categoriaId });
-      loadData();
+      await loadData();
+      showMessage('Item movido com sucesso');
     } catch (error) {
       console.error("Erro ao mover item:", error);
+      showMessage('Erro ao mover item', 'error');
+    } finally {
+      setDraggedItem(null);
     }
-    setDraggedItem(null);
   };
 
-  // ===== CRUD DE ITENS =====
+  // Handlers de categoria
+  const handleAddCategoria = () => {
+    setCategoriaModal({
+      isOpen: true,
+      categoria: null,
+      isEditing: false
+    });
+  };
+
+  const handleEditCategoria = (categoria) => {
+    setCategoriaModal({
+      isOpen: true,
+      categoria,
+      isEditing: true
+    });
+  };
+
+  const handleDeleteCategoria = async (categoriaId) => {
+    if (!window.confirm('Tem certeza que deseja deletar esta categoria? Todos os itens serão removidos.')) {
+      return;
+    }
+
+    try {
+      await categoriasService.delete(categoriaId);
+      await loadData();
+      showMessage('Categoria deletada com sucesso');
+    } catch (error) {
+      console.error("Erro ao deletar categoria:", error);
+      showMessage('Erro ao deletar categoria', 'error');
+    }
+  };
+
+  // Handlers de item
   const handleAddItem = (categoriaId) => {
-    setItemModal({ isOpen: true, categoriaId, itemId: null });
+    setItemModal({ 
+      isOpen: true, 
+      categoriaId, 
+      itemId: null 
+    });
     setFormData({
       nome: "",
       marca: "",
@@ -179,36 +292,68 @@ const Inicio = () => {
     });
   };
 
-  const handleEditItem = (itemId, data) => {
-    if (data.edit) {
-      const item = itens.find((i) => i.id === itemId);
-      setItemModal({ isOpen: true, categoriaId: item.categoriaId, itemId });
-      setFormData({
-        nome: item.nome,
-        marca: item.marca || "",
-        preco: item.preco.toString(),
-        precoFormatado: formatarValorParaExibicao(item.preco),
-        quantidade: item.quantidade,
-        pagamento: item.pagamento,
-      });
-    } else {
-      itensService.update(itemId, data).then(loadData);
+  const handleEditItem = (itemId) => {
+    const item = itensArray.find((i) => i.id === itemId);
+    console.log(itemId)
+
+    if (!item) {
+      showMessage('Item não encontrado', 'error');
+      return;
+    }
+    
+    setItemModal({
+      isOpen: true,
+      categoriaId: item.categoriaId,
+      itemId: item.id,
+    });
+
+    setFormData({
+      nome: item.nome || "",
+      marca: item.marca || "",
+      preco: item.preco?.toString() || "",
+      precoFormatado: formatarValorParaExibicao(item.preco || 0),
+      quantidade: item.quantidade || 1,
+      pagamento: item.pagamento || "normal",
+    });
+  };
+
+  const handleDeleteItem = async (itemId) => {
+    if (!window.confirm('Tem certeza que deseja deletar este item?')) {
+      return;
+    }
+
+    try {
+      await itensService.delete(itemId);
+      await loadData();
+      showMessage('Item deletado com sucesso');
+    } catch (error) {
+      console.error("Erro ao deletar item:", error);
+      showMessage('Erro ao deletar item', 'error');
     }
   };
 
-  const handleDeleteItem = (itemId) => {
-    itensService.delete(itemId).then(loadData);
-  };
-
   const handleSaveItem = async () => {
-    if (!formData.nome) {
+    // Validações
+    if (!formData.nome?.trim()) {
       alert("Nome é obrigatório");
       return;
     }
 
+    if (formData.quantidade <= 0) {
+      alert("Quantidade deve ser maior que zero");
+      return;
+    }
+
     const precoNumerico = desformatarMoeda(
-      formData.precoFormatado || formData.preco,
+      formData.preco
     );
+
+    if (precoNumerico < 0 || isNaN(precoNumerico)) {
+      alert("Preço inválido");
+      return;
+    }
+
+
 
     const itemData = {
       nome: formData.nome.trim(),
@@ -222,22 +367,26 @@ const Inicio = () => {
     try {
       if (itemModal.itemId) {
         await itensService.update(itemModal.itemId, itemData);
+        showMessage('Item atualizado com sucesso');
       } else {
         await itensService.create(itemData);
+        showMessage('Item criado com sucesso');
       }
 
       setItemModal({ isOpen: false, categoriaId: null, itemId: null });
-      loadData();
+      await loadData();
     } catch (error) {
       console.error("Erro detalhado:", error.response?.data);
       alert(`Erro: ${error.response?.data?.message || "Erro ao salvar item"}`);
     }
   };
 
-  // ===== CRUD DE CATEGORIAS =====
-  const handleDeleteCategoria = async (categoriaId) => {
-    await categoriasService.delete(categoriaId);
-    loadData();
+  const handleCloseCategoriaModal = () => {
+    setCategoriaModal({ 
+      isOpen: false, 
+      categoria: null, 
+      isEditing: false 
+    });
   };
 
   if (loading) {
@@ -251,11 +400,50 @@ const Inicio = () => {
     );
   }
 
+  if (error) {
+    return (
+      <InicioContainer theme={theme}>
+        <LoadingContainer theme={theme}>
+          <p style={{ color: '#f44336' }}>Erro: {error}</p>
+          <button 
+            onClick={loadData}
+            style={{
+              marginTop: '16px',
+              padding: '8px 16px',
+              background: theme?.primary || '#2196f3',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Tentar novamente
+          </button>
+        </LoadingContainer>
+      </InicioContainer>
+    );
+  }
+
   return (
     <InicioContainer theme={theme}>
+      {message.text && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          padding: '12px 24px',
+          background: message.type === 'error' ? '#f44336' : '#4caf50',
+          color: 'white',
+          borderRadius: '4px',
+          zIndex: 9999
+        }}>
+          {message.text}
+        </div>
+      )}
+
       <WelcomeSection theme={theme}>
         <WelcomeTitle theme={theme}>
-          Bem-vindo de volta, {usuario?.nomeCompleto?.split(" ")[0]}! 👋
+          Bem-vindo de volta, {usuario?.nomeCompleto?.split(" ")[0] || "Usuário"}! 👋
         </WelcomeTitle>
         <WelcomeSubtitle theme={theme}>
           Continue organizando seu lar com o CasalPlanner
@@ -267,46 +455,71 @@ const Inicio = () => {
       <Filtros
         filter={filter}
         setFilter={setFilter}
-        onAddCategory={() => setCategoriaModal(true)}
+        onAddCategory={handleAddCategoria}
         theme={theme}
       />
 
-      <CategoriesGrid>
-        {categorias.map((categoria, index) => (
-          <DragCardWrapper
-            key={categoria.id}
-            $isDragging={draggedCardIndex === index}
-            $isDragOver={dragOverCardIndex === index}
-            draggable
-            onDragStart={(e) => handleCardDragStart(e, index)}
-            onDragEnd={handleCardDragEnd}
-            onDragOver={(e) => handleCardDragOver(e, index)}
-            onDragLeave={() => setDragOverCardIndex(null)}
-            onDrop={(e) => handleCardDrop(e, index)}
+      {categoriasArray.length === 0 ? (
+        <LoadingContainer theme={theme}>
+          <p>Nenhuma categoria encontrada. Comece criando sua primeira categoria!</p>
+          <button 
+            onClick={handleAddCategoria}
+            style={{
+              marginTop: '16px',
+              padding: '12px 24px',
+              background: theme?.primary || '#2196f3',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '1rem',
+              cursor: 'pointer'
+            }}
           >
-            <CategoriaCard
-              categoria={categoria}
-              itens={filteredItems.filter(
-                (i) => i.categoriaId === categoria.id,
-              )}
-              onAddItem={handleAddItem}
-              onUpdateItem={handleEditItem}
-              onDeleteItem={handleDeleteItem}
-              onDeleteCategoria={handleDeleteCategoria}
-              onItemDragStart={handleItemDragStart}
-              onItemDragEnd={handleItemDragEnd}
-              onItemDrop={handleItemDrop}
-              draggedItem={draggedItem}
-              theme={theme}
-            />
-          </DragCardWrapper>
-        ))}
-      </CategoriesGrid>
+            + Adicionar Categoria
+          </button>
+        </LoadingContainer>
+      ) : (
+        <CategoriesGrid>
+          {categoriasArray.map((categoria, index) => (
+            <DragCardWrapper
+              key={categoria?.id || index}
+              $isDragging={draggedCardIndex === index}
+              $isDragOver={dragOverCardIndex === index}
+              draggable
+              onDragStart={(e) => handleCardDragStart(e, index)}
+              onDragEnd={handleCardDragEnd}
+              onDragOver={(e) => handleCardDragOver(e, index)}
+              onDragLeave={() => setDragOverCardIndex(null)}
+              onDrop={(e) => handleCardDrop(e, index)}
+            >
+              <CategoriaCard
+                categoria={categoria || {}}
+                itens={filteredItems.filter(
+                  (i) => i?.categoriaId === categoria?.id,
+                )}
+                onAddItem={handleAddItem}
+                onUpdateItem={handleEditItem}
+                onDeleteItem={handleDeleteItem}
+                onDeleteCategoria={handleDeleteCategoria}
+                onEditCategoria={handleEditCategoria}
+                onItemDragStart={handleItemDragStart}
+                onItemDragEnd={handleItemDragEnd}
+                onItemDrop={handleItemDrop}
+                onToggleComprado={handleToggleComprado}
+                draggedItem={draggedItem}
+                theme={theme}
+              />
+            </DragCardWrapper>
+          ))}
+        </CategoriesGrid>
+      )}
 
       <AddCategoriaModal
-        isOpen={categoriaModal}
-        onClose={() => setCategoriaModal(false)}
+        isOpen={categoriaModal.isOpen}
+        onClose={handleCloseCategoriaModal}
         onCategoryAdded={loadData}
+        categoriaParaEditar={categoriaModal.categoria}
+        isEditing={categoriaModal.isEditing}
         theme={theme}
       />
 

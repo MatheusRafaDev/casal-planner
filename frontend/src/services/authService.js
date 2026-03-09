@@ -45,18 +45,16 @@ export const authService = {
     }
   },
 
-  // Utilitários de token
+
   salvarToken(token) {
     localStorage.setItem('token', token);
     if (api.defaults?.headers) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
-    console.log('✅ Token salvo no localStorage');
   },
 
   salvarUsuario(usuario) {
     localStorage.setItem('usuario', JSON.stringify(usuario));
-    console.log('✅ Usuário salvo no localStorage');
   },
 
   getToken() {
@@ -74,7 +72,6 @@ export const authService = {
     if (api.defaults?.headers) {
       delete api.defaults.headers.common['Authorization'];
     }
-    console.log('✅ Logout realizado');
   },
 
   estaAutenticado() {

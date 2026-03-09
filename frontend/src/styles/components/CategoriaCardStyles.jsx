@@ -1,4 +1,4 @@
-// src/styles/components/CategoriaCardStyles.js (CORRIGIDO)
+
 import styled from 'styled-components';
 import { GripVertical, Check } from 'lucide-react';
 

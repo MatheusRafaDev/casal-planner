@@ -1,8 +1,7 @@
-// src/services/categoriasService.js
 import api from './api';
 
 export const categoriasService = {
-  // Listar todas as categorias
+  // Lista todas as categorias (padrão + do usuário)
   async listar() {
     try {
       const response = await api.get('/categorias');
@@ -13,7 +12,17 @@ export const categoriasService = {
     }
   },
 
-  // Buscar categoria por ID
+  // Lista apenas as categorias do usuário logado
+  async listarDoUsuario() {
+    try {
+      const response = await api.get('/categorias/usuario');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao listar categorias do usuário:', error);
+      throw error;
+    }
+  },
+
   async getById(id) {
     try {
       const response = await api.get(`/categorias/${id}`);
@@ -24,7 +33,6 @@ export const categoriasService = {
     }
   },
 
-  // Criar nova categoria
   async create(categoria) {
     try {
       const response = await api.post('/categorias', categoria);
@@ -35,7 +43,6 @@ export const categoriasService = {
     }
   },
 
-  // Atualizar categoria
   async update(id, categoria) {
     try {
       const response = await api.put(`/categorias/${id}`, categoria);
@@ -46,7 +53,6 @@ export const categoriasService = {
     }
   },
 
-  // Deletar categoria
   async delete(id) {
     try {
       const response = await api.delete(`/categorias/${id}`);
@@ -59,13 +65,26 @@ export const categoriasService = {
 
   async verificarNomeExistente(nome) {
     try {
-      const response = await api.get('/categorias', {
-        params: { nome: nome.trim() }
-      });
-      return response.data.length > 0;
+      const categorias = await this.listarDoUsuario();
+      const nomeTrimmed = nome.trim().toLowerCase();
+      const existe = categorias.some(cat => 
+        cat.nome.toLowerCase() === nomeTrimmed
+      );
+      return existe;
     } catch (error) {
       console.error('Erro ao verificar nome:', error);
       return false;
+    }
+  },
+
+  // Contar quantas categorias o usuário tem
+  async contarCategoriasDoUsuario() {
+    try {
+      const categorias = await this.listarDoUsuario();
+      return categorias.length;
+    } catch (error) {
+      console.error('Erro ao contar categorias:', error);
+      return 0;
     }
   }
 };

@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { categoriasService } from '../services/categoriasService';
 import { useCategoryValidation } from '../hooks/useCategoryValidation';
 import { showToast } from '../utils/toastUtils';
-import { COLORS, ICONS, hslToHex } from '../constants/categoryConstants';
+import { COLORS, ICONS, hexToHsl, hslToHex } from '../constants/categoryConstants';
 
 import {
   Overlay,
@@ -35,7 +35,14 @@ const ErrorMessage = styled.span`
   `}
 `;
 
-const AddCategoriaModal = ({ isOpen, onClose, onCategoryAdded, theme }) => {
+const AddCategoriaModal = ({ 
+  isOpen, 
+  onClose, 
+  onCategoryAdded, 
+  theme,
+  categoriaParaEditar = null,
+  isEditing = false 
+}) => {
   const [name, setName] = useState('');
   const [color, setColor] = useState(COLORS[0]);
   const [icon, setIcon] = useState('🏠');
@@ -44,15 +51,26 @@ const AddCategoriaModal = ({ isOpen, onClose, onCategoryAdded, theme }) => {
   const { errors, touched, handleBlur, handleChange, resetValidation, setErrors } = 
     useCategoryValidation();
 
-  // Reset form when modal opens/closes
+  // Carregar dados da categoria quando estiver editando
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen && isEditing && categoriaParaEditar) {
+
+      setName(categoriaParaEditar.nome || '');
+      setIcon(categoriaParaEditar.icon || '🏠');
+      
+      // Converter cor hex para formato HSL usado no seletor
+      if (categoriaParaEditar.bg) {
+        const hslColor = hexToHsl(categoriaParaEditar.bg);
+        setColor(hslColor);
+      }
+    } else if (isOpen && !isEditing) {
+      // Reset para valores padrão quando for criação
       setName('');
       setColor(COLORS[0]);
       setIcon('🏠');
       resetValidation();
     }
-  }, [isOpen, resetValidation]);
+  }, [isOpen, isEditing, categoriaParaEditar, resetValidation]);
 
   // Prevenir scroll do body quando modal está aberto
   useEffect(() => {
@@ -97,14 +115,22 @@ const AddCategoriaModal = ({ isOpen, onClose, onCategoryAdded, theme }) => {
       const [h, s, l] = color.split(' ');
       const hexColor = hslToHex(parseInt(h), parseInt(s), parseInt(l));
       
-      await categoriasService.create({
+
+      const categoriaData = {
         nome: name.trim(),
-        icone: icon,
+        icon: icon,
         bg: hexColor,
         text: '#ffffff'
-      });
+      };
 
-      showToast.success(`Categoria "${name}" criada com sucesso!`, theme);
+      if (isEditing && categoriaParaEditar) {
+        await categoriasService.update(categoriaParaEditar.id, categoriaData);
+        showToast.success(`Categoria "${name}" atualizada com sucesso!`, theme);
+      } else {
+
+        await categoriasService.create(categoriaData);
+        showToast.success(`Categoria "${name}" criada com sucesso!`, theme);
+      }
 
       if (onCategoryAdded) {
         onCategoryAdded();
@@ -113,14 +139,14 @@ const AddCategoriaModal = ({ isOpen, onClose, onCategoryAdded, theme }) => {
       handleClose();
       
     } catch (error) {
-      console.error('Erro ao criar categoria:', error);
+      console.error('Erro ao salvar categoria:', error);
       
       if (error.response?.status === 400) {
         showToast.error('Dados inválidos. Verifique as informações.', theme);
       } else if (error.response?.status === 401) {
         showToast.error('Sessão expirada. Faça login novamente.', theme);
       } else {
-        showToast.error('Erro ao criar categoria. Tente novamente.', theme);
+        showToast.error(`Erro ao ${isEditing ? 'atualizar' : 'criar'} categoria. Tente novamente.`, theme);
       }
     } finally {
       setLoading(false);
@@ -133,7 +159,7 @@ const AddCategoriaModal = ({ isOpen, onClose, onCategoryAdded, theme }) => {
     <Overlay onClick={handleClose} theme={theme}>
       <ModalContainer onClick={(e) => e.stopPropagation()} theme={theme}>
         <Header theme={theme}>
-          <h2>➕ Nova Categoria</h2>
+          <h2>{isEditing ? '✏️ Editar Categoria' : '➕ Nova Categoria'}</h2>
           <CloseButton onClick={handleClose} theme={theme}>
             ✕
           </CloseButton>
@@ -215,7 +241,10 @@ const AddCategoriaModal = ({ isOpen, onClose, onCategoryAdded, theme }) => {
               disabled={loading || !name.trim() || errors.nome}
               theme={theme}
             >
-              {loading ? 'Criando...' : 'Criar Categoria'}
+              {loading 
+                ? (isEditing ? 'Salvando...' : 'Criando...') 
+                : (isEditing ? 'Salvar Alterações' : 'Criar Categoria')
+              }
             </CriarButton>
           </ModalButtons>
         </Form>

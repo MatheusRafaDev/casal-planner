@@ -60,7 +60,7 @@ const Perfil = () => {
   // Carregar dados do usuário
   useEffect(() => {
     if (usuario) {
-      console.log('📊 Usuário carregado:', usuario);
+
       setDados({
         nomeCompleto: usuario.nomeCompleto || usuario.nome || '',
         email: usuario.email || '',

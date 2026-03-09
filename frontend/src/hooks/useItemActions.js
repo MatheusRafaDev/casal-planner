@@ -1,16 +1,14 @@
-// src/hooks/useItemActions.js
 import { useCallback } from 'react';
 import { showToast } from '../utils/toastUtils';
 import { useConfirm } from '../context/ConfirmContext';
 
-export const useItemActions = (theme, onUpdateItem, onDeleteItem) => {
+export const useItemActions = (theme, onToggleComprado, onEditItem, onDeleteItem) => {
   const { showConfirm } = useConfirm();
+  const handleToggleComprado = useCallback((itemId, compradoAtual) => {
+  const novoEstado = !compradoAtual;
+  onToggleComprado(itemId, novoEstado);
 
-  const handleToggleComprado = useCallback((item) => {
-    const novoEstado = !item.comprado;
-    onUpdateItem(item.id, { comprado: novoEstado });
-    showToast.itemToggled(item.nome, novoEstado, theme);
-  }, [onUpdateItem, theme]);
+}, [onToggleComprado, theme]);
 
   const handleDeleteItem = useCallback((item) => {
     showConfirm({
@@ -22,11 +20,11 @@ export const useItemActions = (theme, onUpdateItem, onDeleteItem) => {
         await onDeleteItem(item.id);
       }
     });
-  }, [onDeleteItem, showConfirm, theme]);
+  }, [onDeleteItem, showConfirm]);
 
   const handleEditItem = useCallback((item) => {
-    onUpdateItem(item.id, { edit: true });
-  }, [onUpdateItem]);
+    onEditItem(item.id);
+  }, [onEditItem]);
 
   return {
     handleToggleComprado,

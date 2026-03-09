@@ -1,9 +1,8 @@
-// src/components/CategoriaCard.jsx
-import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Pencil, ChevronDown, ChevronUp } from 'lucide-react';
-import { useItemActions } from '../hooks/useItemActions';
-import { useCategoryActions } from '../hooks/useCategoryActions';
-import { formatarMoeda, getPaymentIcon } from '../utils/formatters';
+import React, { useState, useEffect } from "react";
+import { Plus, Trash2, Pencil, ChevronDown, ChevronUp } from "lucide-react";
+import { useItemActions } from "../hooks/useItemActions";
+import { useCategoryActions } from "../hooks/useCategoryActions";
+import { formatarMoeda, getPaymentIcon } from "../utils/formatters";
 import {
   CardContainer,
   CardHeader,
@@ -47,36 +46,51 @@ import {
   ExpandButton,
   ItemsCount,
   TotalValue,
-  CardContent
-} from '../styles/components/CategoriaCardStyles';
+  CardContent,
+} from "../styles/components/CategoriaCardStyles";
 
-const CategoriaCard = ({ 
-  categoria, 
-  itens, 
-  onAddItem, 
-  onUpdateItem, 
+const CategoriaCard = ({
+  categoria,
+  itens,
+  onAddItem,
+  onUpdateItem,
   onDeleteItem,
   onDeleteCategoria,
+  onEditCategoria,
   onItemDragStart,
   onItemDragEnd,
   onItemDrop,
   draggedItem,
-  theme 
+  theme,
+  onToggleComprado,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
-  
-  // Hooks personalizados
-  const { handleToggleComprado, handleDeleteItem, handleEditItem } = 
-    useItemActions(theme, onUpdateItem, onDeleteItem);
-  
-  const { handleDeleteCategoria: onDeleteCategoriaClick } = 
-    useCategoryActions(categoria, itens, theme, onDeleteCategoria);
-  
-  // Cálculos
-  const totalCategoria = itens.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
-  const itensComprados = itens.filter(item => item.comprado).length;
-  const progresso = itens.length > 0 ? (itensComprados / itens.length) * 100 : 0;
+
+
+  const { handleToggleComprado, handleDeleteItem, handleEditItem } =
+  useItemActions(
+    theme, 
+    onToggleComprado, 
+    onUpdateItem,     
+    onDeleteItem
+  );
+
+  const { handleDeleteCategoria: onDeleteCategoriaClick } = useCategoryActions(
+    categoria,
+    itens,
+    theme,
+    onDeleteCategoria,
+    onEditCategoria,
+  );
+
+  const totalCategoria = itens.reduce(
+    (acc, item) => acc + item.preco * item.quantidade,
+    0,
+  );
+  const itensComprados = itens.filter((item) => item.comprado).length;
+  const progresso =
+    itens.length > 0 ? (itensComprados / itens.length) * 100 : 0;
 
   useEffect(() => {
     return () => {
@@ -87,7 +101,7 @@ const CategoriaCard = ({
   }, [isDragging, onItemDragEnd]);
 
   const handleDragStart = (e, itemId) => {
-    if (e.target.closest('.drag-handle')) {
+    if (e.target.closest(".drag-handle")) {
       setIsDragging(true);
       onItemDragStart(itemId);
     } else {
@@ -100,6 +114,12 @@ const CategoriaCard = ({
     onItemDragEnd();
   };
 
+  const handleEditCategoriaClick = () => {
+    if (onEditCategoria) {
+      onEditCategoria(categoria);
+    }
+  };
+
   return (
     <CardContainer theme={theme}>
       <CardHeader color={categoria.bg} theme={theme}>
@@ -107,32 +127,38 @@ const CategoriaCard = ({
           <DragHandle theme={theme} className="drag-handle">
             <span>⋮⋮</span>
           </DragHandle>
-          <Icon theme={theme}>{categoria.icone || '📁'}</Icon>
+          <Icon theme={theme}>{categoria.icon}</Icon>
           <TitleSection>
             <Title theme={theme}>{categoria.nome}</Title>
             <Subtitle theme={theme}>
               <ItemsCount>
-                {itens.length} {itens.length === 1 ? 'item' : 'itens'}
+                {itens.length} {itens.length === 1 ? "item" : "itens"}
               </ItemsCount>
-              <TotalValue>
-                {formatarMoeda(totalCategoria)}
-              </TotalValue>
+              <TotalValue>{formatarMoeda(totalCategoria)}</TotalValue>
             </Subtitle>
           </TitleSection>
         </HeaderLeft>
-        
+
         <HeaderActions>
-          <IconButton 
+          <IconButton
             onClick={() => onAddItem(categoria.id)}
-            theme={theme} 
+            theme={theme}
             title="Adicionar item"
           >
             <Plus size={18} />
           </IconButton>
-          
+
+          <IconButton
+            onClick={handleEditCategoriaClick}
+            theme={theme}
+            title="Editar categoria"
+          >
+            <Pencil size={16} />
+          </IconButton>
+
           {!categoria.isPadrao && (
-            <IconButton 
-              danger 
+            <IconButton
+              danger
               onClick={onDeleteCategoriaClick}
               theme={theme}
               title="Excluir categoria"
@@ -140,8 +166,8 @@ const CategoriaCard = ({
               <Trash2 size={16} />
             </IconButton>
           )}
-          
-          <ExpandButton 
+
+          <ExpandButton
             onClick={() => setIsExpanded(!isExpanded)}
             theme={theme}
           >
@@ -152,8 +178,8 @@ const CategoriaCard = ({
 
       <CategoryProgress>
         <ProgressBar theme={theme}>
-          <ProgressFill 
-            theme={theme} 
+          <ProgressFill
+            theme={theme}
             style={{ width: `${progresso}%` }}
             color={categoria.bg}
           />
@@ -165,9 +191,9 @@ const CategoriaCard = ({
           <>
             {itens.length > 0 && (
               <ItemsList $hasItems={itens.length > 0}>
-                {itens.map(item => (
-                  <ItemRow 
-                    key={item.id} 
+                {itens.map((item) => (
+                  <ItemRow
+                    key={item.id}
                     $purchased={item.comprado}
                     theme={theme}
                     draggable
@@ -176,44 +202,41 @@ const CategoriaCard = ({
                     style={{ opacity: draggedItem === item.id ? 0.5 : 1 }}
                   >
                     <ItemLeft>
-                      <ItemDragHandle 
-                        className="drag-handle"
-                        theme={theme}
-                      >
+                      <ItemDragHandle className="drag-handle" theme={theme}>
                         <span>⋮</span>
                       </ItemDragHandle>
-                      
+
                       <CheckboxButton
                         $checked={item.comprado}
-                        onClick={() => handleToggleComprado(item)}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          handleToggleComprado(item.id, item.comprado);
+                        }}
                         theme={theme}
                       >
                         {item.comprado && <CheckIcon>✓</CheckIcon>}
                       </CheckboxButton>
-                      
+
                       <ItemContent>
                         <ItemInfo>
                           <ItemName $purchased={item.comprado} theme={theme}>
                             {item.nome}
                           </ItemName>
                           {item.marca && (
-                            <ItemBrand theme={theme}>
-                              {item.marca}
-                            </ItemBrand>
+                            <ItemBrand theme={theme}>{item.marca}</ItemBrand>
                           )}
                         </ItemInfo>
 
                         <ItemMeta>
                           <ItemMetaInfo theme={theme}>
-                            <ItemQuantity>
-                              {item.quantidade}x
-                            </ItemQuantity>
-                            <ItemPrice>
-                              {formatarMoeda(item.preco)}
-                            </ItemPrice>
+                            <ItemQuantity>{item.quantidade}x</ItemQuantity>
+                            <ItemPrice>{formatarMoeda(item.preco)}</ItemPrice>
                             <PaymentBadge $type={item.pagamento} theme={theme}>
                               {getPaymentIcon(item.pagamento)}
-                              <span>{item.pagamento === 'vr' ? 'VR' : 'Normal'}</span>
+                              <span>
+                                {item.pagamento === "vr" ? "VR" : "Normal"}
+                              </span>
                             </PaymentBadge>
                           </ItemMetaInfo>
                         </ItemMeta>
@@ -222,7 +245,7 @@ const CategoriaCard = ({
 
                     <ItemActions>
                       <ActionGroup>
-                        <ItemActionButton 
+                        <ItemActionButton
                           onClick={() => handleEditItem(item)}
                           theme={theme}
                           variant="edit"
@@ -230,7 +253,7 @@ const CategoriaCard = ({
                         >
                           <Pencil size={16} />
                         </ItemActionButton>
-                        <ItemActionButton 
+                        <ItemActionButton
                           variant="delete"
                           onClick={() => handleDeleteItem(item)}
                           theme={theme}
@@ -253,7 +276,7 @@ const CategoriaCard = ({
             {itens.length === 0 && (
               <EmptyState>
                 <EmptyText theme={theme}>Nenhum item adicionado</EmptyText>
-                <AddButton 
+                <AddButton
                   onClick={() => onAddItem(categoria.id)}
                   theme={theme}
                 >
@@ -270,7 +293,9 @@ const CategoriaCard = ({
         <CategoryStats>
           <StatItem theme={theme}>
             <span>Itens comprados:</span>
-            <strong>{itensComprados}/{itens.length}</strong>
+            <strong>
+              {itensComprados}/{itens.length}
+            </strong>
           </StatItem>
           <StatItem theme={theme}>
             <span>Progresso:</span>
