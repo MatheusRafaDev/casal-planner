@@ -1,4 +1,4 @@
-// src/components/Home/HeroSection.jsx
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, ArrowRight } from 'lucide-react';

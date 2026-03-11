@@ -1,11 +1,11 @@
-// src/pages/Home.jsx
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import Header from '../components/Header';
 import HeroSection from '../components/Home/HeroSection';
 import FeaturesSection from '../components/Home/FeaturesSection';
-import Footer from '../components/Footer'; // ou FooterSimple
+import Footer from '../components/Footer'; 
 
 import {
   Container

@@ -1,4 +1,4 @@
-// src/utils/toastUtils.js
+
 import toast from 'react-hot-toast';
 
 const toastStyles = {
@@ -53,7 +53,7 @@ export const showToast = {
   info: (message, theme = 'light') => {
     toast(message, toastStyles.info(theme));
   },
-  // Toast específico para toggle de item comprado
+
   itemToggled: (itemName, isComprado, theme = 'light') => {
     const message = isComprado 
       ? `"${itemName}" marcado como comprado!`

@@ -1,4 +1,4 @@
-// src/hooks/useToastModal.js
+
 import toast from 'react-hot-toast';
 
 export const useToastModal = () => {
@@ -54,7 +54,7 @@ export const useToastModal = () => {
     });
   };
 
-  // Para operações assíncronas
+
   const showPromise = (promise, messages, options = {}) => {
     return toast.promise(promise, messages, {
       style: {

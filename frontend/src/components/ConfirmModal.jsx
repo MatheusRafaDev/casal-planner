@@ -1,4 +1,4 @@
-// src/components/ConfirmModal.jsx
+
 import React, { useState } from 'react';
 import Modal from './Modal';
 import styled from 'styled-components';
@@ -88,7 +88,7 @@ const ConfirmModal = ({ theme }) => {
     try {
       await onConfirm();
       
-      // Mostrar toast de sucesso com o formato padronizado
+ 
       toast.success(`"${itemName}" excluído com sucesso!`, {
         duration: 3000,
         icon: '',

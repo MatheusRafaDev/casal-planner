@@ -1,4 +1,4 @@
-// src/hooks/useCategoryValidation.js
+
 import { useState, useCallback } from 'react';
 import { categoriasService } from '../services/categoriasService';
 

@@ -1,4 +1,4 @@
-// src/components/AddCategoriaModal.jsx
+
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { categoriasService } from '../services/categoriasService';
@@ -51,20 +51,19 @@ const AddCategoriaModal = ({
   const { errors, touched, handleBlur, handleChange, resetValidation, setErrors } = 
     useCategoryValidation();
 
-  // Carregar dados da categoria quando estiver editando
+
   useEffect(() => {
     if (isOpen && isEditing && categoriaParaEditar) {
 
       setName(categoriaParaEditar.nome || '');
       setIcon(categoriaParaEditar.icon || '🏠');
-      
-      // Converter cor hex para formato HSL usado no seletor
+
       if (categoriaParaEditar.bg) {
         const hslColor = hexToHsl(categoriaParaEditar.bg);
         setColor(hslColor);
       }
     } else if (isOpen && !isEditing) {
-      // Reset para valores padrão quando for criação
+
       setName('');
       setColor(COLORS[0]);
       setIcon('🏠');
@@ -72,7 +71,7 @@ const AddCategoriaModal = ({
     }
   }, [isOpen, isEditing, categoriaParaEditar, resetValidation]);
 
-  // Prevenir scroll do body quando modal está aberto
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';

@@ -1,4 +1,4 @@
-// src/constants/homeConstants.js
+
 import { ShoppingCart, Users, BarChart3, CheckCircle } from 'lucide-react';
 
 export const FEATURES = [

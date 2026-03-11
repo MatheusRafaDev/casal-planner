@@ -1,13 +1,13 @@
 import styled from 'styled-components';
 
-// Container principal
+
 export const Container = styled.div`
   min-height: 100vh;
   background: ${props => props.theme.background};
   color: ${props => props.theme.text};
 `;
 
-// Hero Section
+
 export const Hero = styled.section`
   max-width: 800px;
   margin: 60px auto;
@@ -102,7 +102,7 @@ export const HeroButton = styled.button`
   }
 `;
 
-// Features Section
+
 export const Features = styled.section`
   max-width: 1000px;
   margin: 60px auto;
@@ -162,7 +162,7 @@ export const FeatureCard = styled.div`
   }
 `;
 
-// Footer
+
 export const Footer = styled.footer`
   border-top: 1px solid ${props => props.theme.border};
   padding: 24px 0;

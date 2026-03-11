@@ -1,4 +1,4 @@
-// ResumoCards.jsx
+
 import React, { useMemo } from 'react';
 import { TrendingUp, Coffee, DollarSign, CheckCircle, ArrowUp, ArrowDown } from 'lucide-react';
 import * as S from '../styles/components/ResumoCardsStyles';

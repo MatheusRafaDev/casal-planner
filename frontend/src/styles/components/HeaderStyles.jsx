@@ -208,7 +208,6 @@ export const DropdownItem = styled.button`
   }
 `;
 
-// Adicione estas constantes ao seu arquivo de estilos existente
 
 export const NavLinks = styled.div`
   display: flex;

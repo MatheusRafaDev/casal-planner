@@ -1,4 +1,4 @@
-// src/components/Home/FeaturesSection.jsx
+
 import React from 'react';
 import { ShoppingCart, Users, BarChart3, CheckCircle } from 'lucide-react';
 import {
@@ -7,7 +7,7 @@ import {
   FeatureCard
 } from '../../styles/pages/HomeStyles';
 
-// Dados das features em constante separada
+
 const FEATURES = [
   { 
     icon: ShoppingCart, 

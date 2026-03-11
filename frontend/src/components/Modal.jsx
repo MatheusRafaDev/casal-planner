@@ -1,4 +1,4 @@
-// src/components/Modal.jsx
+
 import React from 'react';
 import toast from 'react-hot-toast';
 import {
@@ -16,7 +16,7 @@ const Modal = ({
   disableOutsideClick, 
   theme,
   
-  // Novas props para toast
+
   showToastOnClose = false,
   toastMessage = '',
   toastType = 'success'
@@ -30,7 +30,7 @@ const Modal = ({
   };
 
   const handleClose = () => {
-    // Mostrar toast se configurado
+
     if (showToastOnClose && toastMessage) {
       switch (toastType) {
         case 'success':

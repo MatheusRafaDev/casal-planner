@@ -33,7 +33,7 @@ const ItemFormModal = ({
 }) => {
   const [isSaving, setIsSaving] = useState(false);
   
-  // Hooks personalizados
+
   const {
     errors,
     touched,
@@ -54,14 +54,13 @@ const ItemFormModal = ({
     resetPrice
   } = usePriceFormat(externalFormData?.preco || 0);
 
-  // Atualiza o preço no hook quando externalFormData mudar
   useEffect(() => {
     if (externalFormData?.preco !== undefined) {
       setPrecoRaw(externalFormData.preco);
     }
   }, [externalFormData?.preco, setPrecoRaw]);
 
-  // Reset quando abre o modal
+
   useEffect(() => {
     if (isOpen) {
       if (!isEditing) {

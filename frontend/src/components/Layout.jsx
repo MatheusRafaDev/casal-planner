@@ -90,7 +90,7 @@ const Layout = ({ children }) => {
   );
 };
 
-// Styled Components
+
 const LayoutContainer = styled.div`
   min-height: 100vh;
   background: ${props => props.theme.background};

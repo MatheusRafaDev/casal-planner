@@ -1,7 +1,7 @@
 import api from './api';
 
 export const authService = {
-  // Login unificado (funciona para individual e casal)
+
   async login(dados) {
     try {
       const response = await api.post('/auth/login', dados);
@@ -12,7 +12,7 @@ export const authService = {
     }
   },
 
-  // Login específico para casal (caso precise)
+
   async loginCasal(dados) {
     try {
       const response = await api.post('/auth/login-casal', dados);
@@ -23,7 +23,7 @@ export const authService = {
     }
   },
 
-  // Registro individual
+
   async registrar(dados) {
     try {
       const response = await api.post('/auth/registrar', dados);
@@ -34,7 +34,7 @@ export const authService = {
     }
   },
 
-  // Registro de casal
+
   async registrarCasal(dados) {
     try {
       const response = await api.post('/auth/registrar-casal', dados);

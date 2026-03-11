@@ -17,6 +17,8 @@ public class Categoria
 
     public bool IsPadrao { get; set; } = false;
 
+    public int Ordem { get; set; } = 0;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [BsonRepresentation(BsonType.ObjectId)]

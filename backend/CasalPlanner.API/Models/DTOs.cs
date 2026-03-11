@@ -285,4 +285,9 @@ namespace CasalPlanner.API.Models
         public bool Comprado { get; set; }
     }
 
+    public class ReordenarCategoriasDto
+    {
+        public List<string> CategoriaIds { get; set; } // Lista de IDs na nova ordem
+    }
+
 }

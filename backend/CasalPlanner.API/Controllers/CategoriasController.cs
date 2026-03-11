@@ -112,8 +112,8 @@ public class CategoriasController : ControllerBase
                 Nome = dto.Nome,
                 Icon = string.IsNullOrEmpty(dto.Icon) ? "📁" : dto.Icon,
                 Bg = dto.Bg,
-                IsPadrao = false, 
-                UsuarioId = usuarioId, 
+                IsPadrao = false,
+                UsuarioId = usuarioId,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -259,8 +259,7 @@ public class CategoriasController : ControllerBase
         }
     }
 
-    // Endpoint para buscar apenas categorias do usuário (opcional)
-    // Endpoint para buscar apenas categorias do usuário
+
     [HttpGet("usuario")]
     public async Task<ActionResult<IEnumerable<Categoria>>> GetCategoriasDoUsuario()
     {
@@ -285,5 +284,24 @@ public class CategoriasController : ControllerBase
             return StatusCode(500, new { error = ex.Message });
         }
 
+    }
+
+    [HttpPut("reordenar")]
+    public async Task<IActionResult> ReordenarCategorias([FromBody] ReordenarCategoriasDto dto)
+    {
+        var usuarioId = GetUsuarioId();
+
+        for (int i = 0; i < dto.CategoriaIds.Count; i++)
+        {
+            var update = Builders<Categoria>.Update
+                .Set(c => c.Ordem, i); // Adicione o campo Ordem no modelo
+
+            await _context.Categorias.UpdateOneAsync(
+                c => c.Id == dto.CategoriaIds[i] && c.UsuarioId == usuarioId,
+                update
+            );
+        }
+
+        return Ok();
     }
 }

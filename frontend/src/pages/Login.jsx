@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 
-// Ícones do Lucide React
 import { 
   Heart, 
   LogIn, 
@@ -60,7 +59,7 @@ const Login = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [formData, setFormData] = useState({
-    // Dados individuais
+
     nomeCompleto: "",
     email: "",
     senha: "",
@@ -70,7 +69,6 @@ const Login = () => {
     telefone: "",
     rendaMensal: "",
 
-    // Dados do casal (quando ativado)
     pessoa1: {
       nomeCompleto: "",
       email: "",

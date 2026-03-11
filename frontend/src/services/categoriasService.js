@@ -1,7 +1,7 @@
 import api from './api';
 
 export const categoriasService = {
-  // Lista todas as categorias (padrão + do usuário)
+
   async listar() {
     try {
       const response = await api.get('/categorias');
@@ -12,7 +12,7 @@ export const categoriasService = {
     }
   },
 
-  // Lista apenas as categorias do usuário logado
+
   async listarDoUsuario() {
     try {
       const response = await api.get('/categorias/usuario');
@@ -77,7 +77,6 @@ export const categoriasService = {
     }
   },
 
-  // Contar quantas categorias o usuário tem
   async contarCategoriasDoUsuario() {
     try {
       const categorias = await this.listarDoUsuario();
@@ -86,5 +85,10 @@ export const categoriasService = {
       console.error('Erro ao contar categorias:', error);
       return 0;
     }
+  },
+
+  async reordenar(categoriaIds) {
+    const response = await api.put('/categorias/reordenar', { categoriaIds });
+    return response.data;
   }
 };

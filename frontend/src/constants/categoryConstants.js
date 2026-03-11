@@ -1,4 +1,4 @@
-// src/constants/categoryConstants.js
+
 export const COLORS = [
   '0 70% 50%',   // Vermelho
   '30 70% 50%',   // Laranja
@@ -24,10 +24,10 @@ export const hslToHex = (h, s, l) => {
 };
 
 export const hexToHsl = (hex) => {
-  // Remove o # se existir
+
   hex = hex.replace(/^#/, '');
   
-  // Converte para RGB
+
   let r = parseInt(hex.substring(0, 2), 16) / 255;
   let g = parseInt(hex.substring(2, 4), 16) / 255;
   let b = parseInt(hex.substring(4, 6), 16) / 255;
@@ -37,7 +37,7 @@ export const hexToHsl = (hex) => {
   let h, s, l = (max + min) / 2;
   
   if (max === min) {
-    h = s = 0; // achromatic
+    h = s = 0;
   } else {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);

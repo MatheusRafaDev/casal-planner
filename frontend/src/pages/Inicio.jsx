@@ -1,5 +1,5 @@
 // src/pages/Inicio.jsx
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import ResumoCards from "../components/ResumoCards";
@@ -93,7 +93,6 @@ const Inicio = () => {
 
   const [draggedCardIndex, setDraggedCardIndex] = useState(null);
   const [dragOverCardIndex, setDragOverCardIndex] = useState(null);
-  const [draggedItem, setDraggedItem] = useState(null);
   const [draggedItemId, setDraggedItemId] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -104,6 +103,9 @@ const Inicio = () => {
     quantidade: 1,
     pagamento: "normal",
   });
+
+  // Ref para guardar a posição do scroll
+  const scrollPositionRef = useRef(0);
 
   const showMessage = (text, type = "success") => {
     setMessage({ text, type });
@@ -121,6 +123,8 @@ const Inicio = () => {
 
   const loadData = async () => {
     try {
+      scrollPositionRef.current = window.scrollY;
+      
       setLoading(true);
       setError(null);
 
@@ -130,7 +134,8 @@ const Inicio = () => {
       ]);
 
       if (results[0].status === "fulfilled") {
-        const categoriasData = results[0].value;
+        let categoriasData = results[0].value;
+        categoriasData = categoriasData.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
         setCategorias(Array.isArray(categoriasData) ? categoriasData : []);
       } else {
         console.error("❌ Erro ao carregar categorias:", results[0].reason);
@@ -148,12 +153,20 @@ const Inicio = () => {
       }
 
       setResumo(calcularResumo(itensData));
+      
     } catch (error) {
       console.error("❌ Erro ao carregar dados:", error);
       setError(error.message || "Erro ao carregar dados");
       showMessage("Erro ao carregar dados", "error");
     } finally {
       setLoading(false);
+      
+      setTimeout(() => {
+        window.scrollTo({
+          top: scrollPositionRef.current,
+          behavior: 'auto'
+        });
+      }, 0);
     }
   };
 
@@ -184,86 +197,82 @@ const Inicio = () => {
     }
   };
 
+  // DRAG DE CATEGORIAS - VERSÃO MAIS SIMPLES POSSÍVEL
   const handleCardDragStart = (e, index) => {
-    if (e.target.closest(".category-drag-handle")) {
-      console.log("📦 Categoria drag start:", index);
-      setDraggedCardIndex(index);
-      e.dataTransfer.setData("text/plain", `categoria-${index}`);
-      e.dataTransfer.effectAllowed = "move";
-    } else {
-      e.preventDefault();
-    }
-  };
-
-  const handleCardDragEnd = () => {
-    setDraggedCardIndex(null);
-    setDragOverCardIndex(null);
+    console.log("🔵 DRAG START - Índice:", index);
+    setDraggedCardIndex(index);
+    e.dataTransfer.setData("text/plain", index.toString());
+    e.dataTransfer.effectAllowed = "move";
   };
 
   const handleCardDragOver = (e, index) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
     if (draggedCardIndex !== null && index !== dragOverCardIndex) {
+      console.log("🟡 DRAG OVER - Índice:", index);
       setDragOverCardIndex(index);
     }
   };
 
   const handleCardDrop = async (e, targetIndex) => {
     e.preventDefault();
+    
+    const sourceIndex = e.dataTransfer.getData("text/plain");
+    console.log("🟢 DROP - Source:", sourceIndex, "Target:", targetIndex);
 
-    if (draggedCardIndex === null || draggedCardIndex === targetIndex) {
+    if (sourceIndex === null || sourceIndex === targetIndex.toString()) {
       setDraggedCardIndex(null);
       setDragOverCardIndex(null);
       return;
     }
 
+    // Reordena localmente
     const newCategorias = [...categoriasArray];
-    const [removed] = newCategorias.splice(draggedCardIndex, 1);
+    const [removed] = newCategorias.splice(parseInt(sourceIndex), 1);
     newCategorias.splice(targetIndex, 0, removed);
 
+    // Atualiza UI
     setCategorias(newCategorias);
+    
+    try {
+      const categoriaIds = newCategorias.map(c => c.id);
+      await categoriasService.reordenar(categoriaIds);
+      showMessage("Categorias reordenadas");
+    } catch (error) {
+      console.error("Erro ao salvar ordem:", error);
+      await loadData();
+    }
+
     setDraggedCardIndex(null);
     setDragOverCardIndex(null);
-    showMessage("Categoria reordenada");
   };
 
   // Drag de ITENS
   const handleItemDragStart = (itemId) => {
-   
     setDraggedItemId(itemId);
-    setDraggedItem(true);
   };
 
   const handleItemDragEnd = () => {
     setDraggedItemId(null);
-    setDraggedItem(null);
   };
 
   const handleItemDrop = async (categoriaId) => {
-    
-    if (!draggedItemId) {
-      console.log("❌ Sem item sendo arrastado");
-      return;
-    }
+    if (!draggedItemId) return;
 
     const itemAtual = itensArray.find((i) => i.id === draggedItemId);
     if (itemAtual?.categoriaId === categoriaId) {
-      console.log("ℹ️ Item já está nesta categoria");
       setDraggedItemId(null);
-      setDraggedItem(null);
       return;
     }
 
     try {
       await itensService.update(draggedItemId, { categoriaId });
       await loadData();
-      showMessage("Item movido com sucesso");
+      showMessage("Item movido");
     } catch (error) {
-      console.error("❌ Erro ao mover item:", error);
-      showMessage("Erro ao mover item", "error");
+      console.error("Erro ao mover item:", error);
     } finally {
       setDraggedItemId(null);
-      setDraggedItem(null);
     }
   };
 
@@ -288,10 +297,9 @@ const Inicio = () => {
     try {
       await categoriasService.delete(categoriaId);
       await loadData();
-      showMessage("Categoria deletada com sucesso");
+      showMessage("Categoria deletada");
     } catch (error) {
       console.error("Erro ao deletar categoria:", error);
-      showMessage("Erro ao deletar categoria", "error");
     }
   };
 
@@ -314,10 +322,7 @@ const Inicio = () => {
 
   const handleEditItem = (itemId) => {
     const item = itensArray.find((i) => i.id === itemId);
-    if (!item) {
-      showMessage("Item não encontrado", "error");
-      return;
-    }
+    if (!item) return;
 
     setItemModal({
       isOpen: true,
@@ -339,10 +344,9 @@ const Inicio = () => {
     try {
       await itensService.delete(itemId);
       await loadData();
-      showMessage("Item deletado com sucesso");
+      showMessage("Item deletado");
     } catch (error) {
       console.error("Erro ao deletar item:", error);
-      showMessage("Erro ao deletar item", "error");
     }
   };
 
@@ -352,13 +356,7 @@ const Inicio = () => {
       return;
     }
 
-    if (formData.quantidade <= 0) {
-      alert("Quantidade deve ser maior que zero");
-      return;
-    }
-
     const precoNumerico = desformatarMoeda(formData.preco);
-
     if (precoNumerico < 0 || isNaN(precoNumerico)) {
       alert("Preço inválido");
       return;
@@ -376,17 +374,15 @@ const Inicio = () => {
     try {
       if (itemModal.itemId) {
         await itensService.update(itemModal.itemId, itemData);
-        showMessage("Item atualizado com sucesso");
       } else {
         await itensService.create(itemData);
-        showMessage("Item criado com sucesso");
       }
 
       setItemModal({ isOpen: false, categoriaId: null, itemId: null });
       await loadData();
+      showMessage("Item salvo");
     } catch (error) {
-      console.error("Erro detalhado:", error.response?.data);
-      alert(`Erro: ${error.response?.data?.message || "Erro ao salvar item"}`);
+      console.error("Erro ao salvar item:", error);
     }
   };
 
@@ -403,31 +399,7 @@ const Inicio = () => {
       <InicioContainer theme={theme}>
         <LoadingContainer theme={theme}>
           <LoadingSpinner theme={theme} />
-          <p>Carregando seu planejamento...</p>
-        </LoadingContainer>
-      </InicioContainer>
-    );
-  }
-
-  if (error) {
-    return (
-      <InicioContainer theme={theme}>
-        <LoadingContainer theme={theme}>
-          <p style={{ color: "#f44336" }}>Erro: {error}</p>
-          <button
-            onClick={loadData}
-            style={{
-              marginTop: "16px",
-              padding: "8px 16px",
-              background: theme?.primary || "#2196f3",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            Tentar novamente
-          </button>
+          <p>Carregando...</p>
         </LoadingContainer>
       </InicioContainer>
     );
@@ -454,11 +426,10 @@ const Inicio = () => {
 
       <WelcomeSection theme={theme}>
         <WelcomeTitle theme={theme}>
-          Bem-vindo de volta,{" "}
-          {usuario?.nomeCompleto?.split(" ")[0] || "Usuário"}! 👋
+          Bem-vindo, {usuario?.nomeCompleto?.split(" ")[0] || "Usuário"}! 👋
         </WelcomeTitle>
         <WelcomeSubtitle theme={theme}>
-          Continue organizando seu lar com o CasalPlanner
+          Organize seu lar com o CasalPlanner
         </WelcomeSubtitle>
       </WelcomeSection>
 
@@ -473,22 +444,8 @@ const Inicio = () => {
 
       {categoriasArray.length === 0 ? (
         <LoadingContainer theme={theme}>
-          <p>
-            Nenhuma categoria encontrada. Comece criando sua primeira categoria!
-          </p>
-          <button
-            onClick={handleAddCategoria}
-            style={{
-              marginTop: "16px",
-              padding: "12px 24px",
-              background: theme?.primary || "#2196f3",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              fontSize: "1rem",
-              cursor: "pointer",
-            }}
-          >
+          <p>Nenhuma categoria encontrada.</p>
+          <button onClick={handleAddCategoria}>
             + Adicionar Categoria
           </button>
         </LoadingContainer>
@@ -501,10 +458,13 @@ const Inicio = () => {
               $isDragOver={dragOverCardIndex === index}
               draggable
               onDragStart={(e) => handleCardDragStart(e, index)}
-              onDragEnd={handleCardDragEnd}
               onDragOver={(e) => handleCardDragOver(e, index)}
               onDragLeave={() => setDragOverCardIndex(null)}
               onDrop={(e) => handleCardDrop(e, index)}
+              onDragEnd={() => {
+                setDraggedCardIndex(null);
+                setDragOverCardIndex(null);
+              }}
             >
               <CategoriaCard
                 categoria={categoria || {}}

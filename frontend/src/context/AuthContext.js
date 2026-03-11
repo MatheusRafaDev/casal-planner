@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
     carregarUsuario();
   }, []);
 
-  // Login unificado (funciona para individual e casal)
+
   const login = async (email, senha) => {
     try {
       const response = await authService.login({ email, senha });
@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Login específico para casal (caso precise)
+
   const loginCasal = async (email, senha) => {
     try {
       const response = await authService.loginCasal({ email, senha });
@@ -122,7 +122,7 @@ export const AuthProvider = ({ children }) => {
       usuario,
       loading,
       login,
-      loginCasal,      // Adicionado loginCasal
+      loginCasal,      
       registrar,
       registrarCasal,
       logout,

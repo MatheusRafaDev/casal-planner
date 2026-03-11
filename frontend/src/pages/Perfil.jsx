@@ -41,7 +41,7 @@ const Perfil = () => {
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Estados para os dados
+
   const [dados, setDados] = useState({
     nomeCompleto: '',
     email: '',
@@ -57,7 +57,7 @@ const Perfil = () => {
     confirmar: ''
   });
 
-  // Carregar dados do usuário
+
   useEffect(() => {
     if (usuario) {
 
@@ -87,12 +87,12 @@ const Perfil = () => {
     setErro('');
     
     try {
-      // Validar campos
+
       if (!dados.nomeCompleto) {
         throw new Error('Nome completo é obrigatório');
       }
 
-      // Preparar dados para atualizar
+
       const dadosAtualizados = {
         nomeCompleto: dados.nomeCompleto,
         telefone: dados.telefone || null,
@@ -100,12 +100,9 @@ const Perfil = () => {
         rendaMensal: dados.rendaMensal ? parseFloat(dados.rendaMensal) : null
       };
 
-      // Chamar API (simulado por enquanto)
-      // const response = await authService.atualizarPerfil(dadosAtualizados);
-      
-      // Simular sucesso
+
+
       setTimeout(() => {
-        // Atualizar no contexto
         atualizarUsuario(dadosAtualizados);
         
         setMensagem('Perfil atualizado com sucesso!');
@@ -122,7 +119,7 @@ const Perfil = () => {
   };
 
   const handleAlterarSenha = async () => {
-    // Validações
+
     if (!senha.atual) {
       setErro('Digite a senha atual');
       setTimeout(() => setErro(''), 3000);
@@ -144,7 +141,7 @@ const Perfil = () => {
     setLoading(true);
     
     try {
-      // Chamar API (simulado)
+
       setTimeout(() => {
         setMensagem('Senha alterada com sucesso!');
         setTimeout(() => setMensagem(''), 3000);
@@ -178,7 +175,6 @@ const Perfil = () => {
     }
   };
 
-  // Estatísticas (mock)
   const estatisticas = {
     categorias: 12,
     itens: 48,
@@ -217,7 +213,7 @@ const Perfil = () => {
 
         <InfoContainer>
           {!editando ? (
-            // MODO VISUALIZAÇÃO
+
             <>
               <InfoGroup>
                 <Label $darkMode={darkMode}>Nome completo</Label>
@@ -254,7 +250,7 @@ const Perfil = () => {
               </InfoRow>
             </>
           ) : (
-            // MODO EDIÇÃO
+
             <>
               <FormGroup>
                 <Label $darkMode={darkMode}>Nome completo *</Label>

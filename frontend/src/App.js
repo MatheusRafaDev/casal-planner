@@ -1,4 +1,4 @@
-// App.jsx
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -9,10 +9,10 @@ import { Toaster } from 'react-hot-toast';
 import { ConfirmProvider } from './context/ConfirmContext';
 import ConfirmModal from './components/ConfirmModal';
 
-// Componentes
+
 import Header from './components/Header';
 
-// Páginas
+
 import Inicio from './pages/Inicio';
 import Perfil from './pages/Perfil';
 import Home from './pages/Home';
@@ -20,7 +20,7 @@ import Login from './pages/Login';
 
 import GlobalStyle from './styles/GlobalStyle';
 
-// ================= CONTAINERS =================
+
 
 const AppContainer = styled.div`
   min-height: 100vh;

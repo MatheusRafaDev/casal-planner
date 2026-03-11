@@ -1,4 +1,4 @@
-// styles/components/ItemFormModalStyles.js
+
 import styled from 'styled-components';
 
 export const FormGroup = styled.div`
@@ -84,7 +84,7 @@ export const SalvarButton = styled(CancelarButton)`
   }
 `;
 
-// Add this new export for ErrorMessage
+
 export const ErrorMessage = styled.span`
   color: #dc3545;
   font-size: 0.85rem;

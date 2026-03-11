@@ -1,4 +1,4 @@
-// src/utils/formatters.js
+
 import { DollarSign, ShoppingBag } from 'lucide-react';
 import React from 'react';
 
