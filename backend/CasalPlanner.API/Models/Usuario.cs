@@ -21,7 +21,7 @@ namespace CasalPlanner.API.Models
         public string? SenhaHash { get; set; }
         public string? CPF { get; set; }
         public DateTime? DataNascimento { get; set; }
-        public string? Telefone { get; set; }
+
         public decimal? RendaMensal { get; set; }
         public bool IsCasal { get; set; } = false;
         
@@ -46,7 +46,7 @@ namespace CasalPlanner.API.Models
         public string SenhaHashPessoa1 { get; set; } = string.Empty;
         public string CPFPessoa1 { get; set; } = string.Empty;
         public DateTime DataNascimentoPessoa1 { get; set; }
-        public string? TelefonePessoa1 { get; set; }
+
         public decimal? RendaMensalPessoa1 { get; set; }
         public string? AvatarPessoa1 { get; set; }
         
@@ -56,7 +56,7 @@ namespace CasalPlanner.API.Models
         public string SenhaHashPessoa2 { get; set; } = string.Empty;
         public string CPFPessoa2 { get; set; } = string.Empty;
         public DateTime DataNascimentoPessoa2 { get; set; }
-        public string? TelefonePessoa2 { get; set; }
+
         public decimal? RendaMensalPessoa2 { get; set; }
         public string? AvatarPessoa2 { get; set; }
         

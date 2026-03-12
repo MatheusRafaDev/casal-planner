@@ -9,7 +9,6 @@ import {
   UserPlus, 
   Mail, 
   Lock, 
-  Phone, 
   Calendar,
   DollarSign,
   Users,
@@ -22,6 +21,15 @@ import {
   User
 } from 'lucide-react';
 
+// Import das funções de formatação
+import {
+  formatarCPF,
+  formatarValorInput,
+  formatarDataInput,
+  converterDataBRparaISO,
+  validarData,
+  validarCPF
+} from "../utils/formatters";
 
 import {
   LoginContainer,
@@ -50,7 +58,6 @@ import {
 } from "../styles/pages/LoginStyles";
 
 const Login = () => {
-
   const location = useLocation(); 
   const [modo, setModo] = useState(location.state?.modo || "login"); 
   
@@ -59,14 +66,12 @@ const Login = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [formData, setFormData] = useState({
-
     nomeCompleto: "",
     email: "",
     senha: "",
     confirmarSenha: "",
     cpf: "",
     dataNascimento: "",
-    telefone: "",
     rendaMensal: "",
 
     pessoa1: {
@@ -76,7 +81,6 @@ const Login = () => {
       confirmarSenha: "",
       cpf: "",
       dataNascimento: "",
-      telefone: "",
       rendaMensal: "",
     },
     pessoa2: {
@@ -86,7 +90,6 @@ const Login = () => {
       confirmarSenha: "",
       cpf: "",
       dataNascimento: "",
-      telefone: "",
       rendaMensal: "",
     },
     dataInclusao: new Date().toISOString().split("T")[0],
@@ -137,9 +140,7 @@ const Login = () => {
         return false;
       }
       if (formData.pessoa1.senha.length < 6) {
-        setSenhaError(
-          "A senha da primeira pessoa deve ter no mínimo 6 caracteres",
-        );
+        setSenhaError("A senha da primeira pessoa deve ter no mínimo 6 caracteres");
         return false;
       }
       if (formData.pessoa2.senha !== formData.pessoa2.confirmarSenha) {
@@ -147,9 +148,7 @@ const Login = () => {
         return false;
       }
       if (formData.pessoa2.senha.length < 6) {
-        setSenhaError(
-          "A senha da segunda pessoa deve ter no mínimo 6 caracteres",
-        );
+        setSenhaError("A senha da segunda pessoa deve ter no mínimo 6 caracteres");
         return false;
       }
     } else {
@@ -163,11 +162,6 @@ const Login = () => {
       }
     }
     return true;
-  };
-
-  const validarCPF = (cpf) => {
-    const cpfLimpo = cpf.replace(/\D/g, "");
-    return cpfLimpo.length === 11;
   };
 
   const handleSubmit = async (e) => {
@@ -188,6 +182,12 @@ const Login = () => {
           setError("CPF inválido. Deve conter 11 dígitos.");
           return;
         }
+        
+        // Validar data de nascimento
+        if (!validarData(formData.dataNascimento)) {
+          setError("Data de nascimento inválida. Use o formato DD/MM/AAAA.");
+          return;
+        }
       } else {
         if (!validarCPF(formData.pessoa1.cpf)) {
           setError("CPF da primeira pessoa inválido. Deve conter 11 dígitos.");
@@ -195,6 +195,16 @@ const Login = () => {
         }
         if (!validarCPF(formData.pessoa2.cpf)) {
           setError("CPF da segunda pessoa inválido. Deve conter 11 dígitos.");
+          return;
+        }
+        
+        // Validar datas de nascimento do casal
+        if (!validarData(formData.pessoa1.dataNascimento)) {
+          setError("Data de nascimento da primeira pessoa inválida.");
+          return;
+        }
+        if (!validarData(formData.pessoa2.dataNascimento)) {
+          setError("Data de nascimento da segunda pessoa inválida.");
           return;
         }
       }
@@ -231,8 +241,7 @@ const Login = () => {
             emailPessoa1: formData.pessoa1.email,
             senhaPessoa1: formData.pessoa1.senha,
             cpfPessoa1: formData.pessoa1.cpf,
-            dataNascimentoPessoa1: formData.pessoa1.dataNascimento,
-            telefonePessoa1: formData.pessoa1.telefone || null,
+            dataNascimentoPessoa1: converterDataBRparaISO(formData.pessoa1.dataNascimento),
             rendaMensalPessoa1: formData.pessoa1.rendaMensal
               ? parseFloat(
                   formData.pessoa1.rendaMensal
@@ -245,8 +254,7 @@ const Login = () => {
             emailPessoa2: formData.pessoa2.email,
             senhaPessoa2: formData.pessoa2.senha,
             cpfPessoa2: formData.pessoa2.cpf,
-            dataNascimentoPessoa2: formData.pessoa2.dataNascimento,
-            telefonePessoa2: formData.pessoa2.telefone || null,
+            dataNascimentoPessoa2: converterDataBRparaISO(formData.pessoa2.dataNascimento),
             rendaMensalPessoa2: formData.pessoa2.rendaMensal
               ? parseFloat(
                   formData.pessoa2.rendaMensal
@@ -276,8 +284,7 @@ const Login = () => {
             email: formData.email,
             senha: formData.senha,
             cpf: formData.cpf,
-            dataNascimento: formData.dataNascimento,
-            telefone: formData.telefone || null,
+            dataNascimento: converterDataBRparaISO(formData.dataNascimento),
             rendaMensal: formData.rendaMensal
               ? parseFloat(
                   formData.rendaMensal.replace(/\./g, "").replace(",", "."),
@@ -303,29 +310,6 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatarCPF = (value) => {
-    const cpf = value.replace(/\D/g, "");
-    if (cpf.length <= 11) {
-      return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-    }
-    return value;
-  };
-
-  const formatarTelefone = (value) => {
-    const telefone = value.replace(/\D/g, "");
-    if (telefone.length <= 11) {
-      return telefone.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
-    }
-    return value;
-  };
-
-  const formatarRenda = (value) => {
-    const numero = value.replace(/\D/g, "");
-    if (numero.length === 0) return "";
-    const valor = (parseInt(numero) / 100).toFixed(2);
-    return valor.replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
   return (
@@ -565,37 +549,23 @@ const Login = () => {
                         Data nasc. *
                       </Label>
                       <Input
-                        type="date"
+                        type="text"
                         name="dataNascimento"
                         value={formData.dataNascimento}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          const formatado = formatarDataInput(e.target.value);
+                          handleChange({
+                            target: { name: "dataNascimento", value: formatado },
+                          });
+                        }}
+                        placeholder="DD/MM/AAAA"
+                        maxLength="10"
                         theme={theme}
                       />
                     </FormGroup>
                   </FormRow>
 
                   <FormRow>
-                    <FormGroup half>
-                      <Label theme={theme}>
-                        <Phone size={16} />
-                        Telefone
-                      </Label>
-                      <Input
-                        type="text"
-                        name="telefone"
-                        value={formData.telefone}
-                        onChange={(e) => {
-                          const formatado = formatarTelefone(e.target.value);
-                          handleChange({
-                            target: { name: "telefone", value: formatado },
-                          });
-                        }}
-                        placeholder="(11) 99999-9999"
-                        maxLength="15"
-                        theme={theme}
-                      />
-                    </FormGroup>
-
                     <FormGroup half>
                       <Label theme={theme}>
                         <DollarSign size={16} />
@@ -606,7 +576,7 @@ const Login = () => {
                         name="rendaMensal"
                         value={formData.rendaMensal}
                         onChange={(e) => {
-                          const formatado = formatarRenda(e.target.value);
+                          const formatado = formatarValorInput(e.target.value);
                           handleChange({
                             target: { name: "rendaMensal", value: formatado },
                           });
@@ -703,10 +673,17 @@ const Login = () => {
                     <FormGroup half>
                       <Label theme={theme}>Data nasc. *</Label>
                       <Input
-                        type="date"
+                        type="text"
                         name="pessoa1_dataNascimento"
                         value={formData.pessoa1.dataNascimento}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          const formatado = formatarDataInput(e.target.value);
+                          handleChange({
+                            target: { name: "pessoa1_dataNascimento", value: formatado },
+                          });
+                        }}
+                        placeholder="DD/MM/AAAA"
+                        maxLength="10"
                         theme={theme}
                       />
                     </FormGroup>
@@ -714,31 +691,13 @@ const Login = () => {
 
                   <FormRow>
                     <FormGroup half>
-                      <Label theme={theme}>Telefone</Label>
-                      <Input
-                        type="text"
-                        name="pessoa1_telefone"
-                        value={formData.pessoa1.telefone}
-                        onChange={(e) => {
-                          const formatado = formatarTelefone(e.target.value);
-                          handleChange({
-                            target: { name: "pessoa1_telefone", value: formatado },
-                          });
-                        }}
-                        placeholder="(11) 99999-9999"
-                        maxLength="15"
-                        theme={theme}
-                      />
-                    </FormGroup>
-
-                    <FormGroup half>
                       <Label theme={theme}>Renda mensal</Label>
                       <Input
                         type="text"
                         name="pessoa1_rendaMensal"
                         value={formData.pessoa1.rendaMensal}
                         onChange={(e) => {
-                          const formatado = formatarRenda(e.target.value);
+                          const formatado = formatarValorInput(e.target.value);
                           handleChange({
                             target: { name: "pessoa1_rendaMensal", value: formatado },
                           });
@@ -832,10 +791,17 @@ const Login = () => {
                     <FormGroup half>
                       <Label theme={theme}>Data nasc. *</Label>
                       <Input
-                        type="date"
+                        type="text"
                         name="pessoa2_dataNascimento"
                         value={formData.pessoa2.dataNascimento}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          const formatado = formatarDataInput(e.target.value);
+                          handleChange({
+                            target: { name: "pessoa2_dataNascimento", value: formatado },
+                          });
+                        }}
+                        placeholder="DD/MM/AAAA"
+                        maxLength="10"
                         theme={theme}
                       />
                     </FormGroup>
@@ -843,31 +809,13 @@ const Login = () => {
 
                   <FormRow>
                     <FormGroup half>
-                      <Label theme={theme}>Telefone</Label>
-                      <Input
-                        type="text"
-                        name="pessoa2_telefone"
-                        value={formData.pessoa2.telefone}
-                        onChange={(e) => {
-                          const formatado = formatarTelefone(e.target.value);
-                          handleChange({
-                            target: { name: "pessoa2_telefone", value: formatado },
-                          });
-                        }}
-                        placeholder="(11) 99999-9999"
-                        maxLength="15"
-                        theme={theme}
-                      />
-                    </FormGroup>
-
-                    <FormGroup half>
                       <Label theme={theme}>Renda mensal</Label>
                       <Input
                         type="text"
                         name="pessoa2_rendaMensal"
                         value={formData.pessoa2.rendaMensal}
                         onChange={(e) => {
-                          const formatado = formatarRenda(e.target.value);
+                          const formatado = formatarValorInput(e.target.value);
                           handleChange({
                             target: { name: "pessoa2_rendaMensal", value: formatado },
                           });

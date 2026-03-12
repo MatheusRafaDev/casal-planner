@@ -22,7 +22,6 @@ export const itensService = {
   },
 
   async update(id, data) {
-    console.log(data);
     try {
       const response = await api.put(`/itens/${id}`, data);
       return response.data;

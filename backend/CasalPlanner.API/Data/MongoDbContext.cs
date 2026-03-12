@@ -64,6 +64,8 @@ public class MongoDbContext
             TipoConta = TipoConta.Casal,
             IsCasal = true,
             Email = "",
+            NomeCompleto = "João" + " e " + "Maria",
+            RendaMensal = 9500.00m,
             ModoEscuro = false, 
             CasalInfo = new CasalInfo
             {
@@ -73,7 +75,7 @@ public class MongoDbContext
                 SenhaHashPessoa1 = BCrypt.Net.BCrypt.HashPassword("123456"),
                 CPFPessoa1 = "123.456.789-00",
                 DataNascimentoPessoa1 = new DateTime(1990, 1, 1),
-                TelefonePessoa1 = "(11) 99999-9999",
+
                 RendaMensalPessoa1 = 5000.00m,
 
                 NomeCompletoPessoa2 = "Maria Silva",
@@ -81,10 +83,9 @@ public class MongoDbContext
                 SenhaHashPessoa2 = BCrypt.Net.BCrypt.HashPassword("123456"),
                 CPFPessoa2 = "987.654.321-00",
                 DataNascimentoPessoa2 = new DateTime(1992, 2, 2),
-                TelefonePessoa2 = "(11) 98888-8888",
                 RendaMensalPessoa2 = 4500.00m,
 
-                // Informações do casal
+
                 DataCasamento = new DateTime(2020, 1, 1),
                 CreatedAt = DateTime.UtcNow
             },

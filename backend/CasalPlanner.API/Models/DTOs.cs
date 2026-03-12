@@ -25,7 +25,6 @@ namespace CasalPlanner.API.Models
         [Required(ErrorMessage = "Data de nascimento é obrigatória")]
         public DateTime DataNascimento { get; set; }
 
-        public string? Telefone { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Renda mensal inválida")]
         public decimal? RendaMensal { get; set; }
@@ -76,7 +75,7 @@ namespace CasalPlanner.API.Models
         [Required(ErrorMessage = "Data de nascimento da primeira pessoa é obrigatória")]
         public DateTime DataNascimentoPessoa1 { get; set; }
 
-        public string? TelefonePessoa1 { get; set; }
+
 
         [Range(0, double.MaxValue, ErrorMessage = "Renda mensal inválida")]
         public decimal? RendaMensalPessoa1 { get; set; }
@@ -100,7 +99,7 @@ namespace CasalPlanner.API.Models
         [Required(ErrorMessage = "Data de nascimento da segunda pessoa é obrigatória")]
         public DateTime DataNascimentoPessoa2 { get; set; }
 
-        public string? TelefonePessoa2 { get; set; }
+
 
         [Range(0, double.MaxValue, ErrorMessage = "Renda mensal inválida")]
         public decimal? RendaMensalPessoa2 { get; set; }
@@ -145,14 +144,16 @@ namespace CasalPlanner.API.Models
     public class AtualizarCasalDto
     {
         public string? NomeCompletoPessoa1 { get; set; }
-        public string? TelefonePessoa1 { get; set; }
+
         public DateTime? DataNascimentoPessoa1 { get; set; }
         public decimal? RendaMensalPessoa1 { get; set; }
 
         public string? NomeCompletoPessoa2 { get; set; }
-        public string? TelefonePessoa2 { get; set; }
+
         public DateTime? DataNascimentoPessoa2 { get; set; }
         public decimal? RendaMensalPessoa2 { get; set; }
+
+        public decimal? RendaMensal { get; set; }
 
         public DateTime? DataCasamento { get; set; }
     }
@@ -161,7 +162,7 @@ namespace CasalPlanner.API.Models
     public class AtualizarPerfilDto
     {
         public string? NomeCompleto { get; set; }
-        public string? Telefone { get; set; }
+
         public DateTime? DataNascimento { get; set; }
         public decimal? RendaMensal { get; set; }
     }
@@ -271,7 +272,7 @@ namespace CasalPlanner.API.Models
         public string? Email { get; set; }
         public string? CPF { get; set; }
         public DateTime? DataNascimento { get; set; }
-        public string? Telefone { get; set; }
+
         public decimal? RendaMensal { get; set; }
 
         // Para conta casal
@@ -279,18 +280,20 @@ namespace CasalPlanner.API.Models
         public string? EmailPessoa1 { get; set; }
         public string? CPFPessoa1 { get; set; }
         public DateTime? DataNascimentoPessoa1 { get; set; }
-        public string? TelefonePessoa1 { get; set; }
+
         public decimal? RendaMensalPessoa1 { get; set; }
 
         public string? NomeCompletoPessoa2 { get; set; }
         public string? EmailPessoa2 { get; set; }
         public string? CPFPessoa2 { get; set; }
         public DateTime? DataNascimentoPessoa2 { get; set; }
-        public string? TelefonePessoa2 { get; set; }
+
         public decimal? RendaMensalPessoa2 { get; set; }
 
         public DateTime? DataCasamento { get; set; }
 
         public string? Token { get; set; }
     }
+    
+    
 }

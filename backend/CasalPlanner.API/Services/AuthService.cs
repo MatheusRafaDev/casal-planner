@@ -49,7 +49,7 @@ namespace CasalPlanner.API.Services
                 SenhaHash = BCrypt.Net.BCrypt.HashPassword(dto.Senha),
                 CPF = dto.CPF,
                 DataNascimento = dto.DataNascimento,
-                Telefone = dto.Telefone,
+
                 RendaMensal = dto.RendaMensal,
                 TipoConta = TipoConta.Individual,
                 IsCasal = false,
@@ -84,12 +84,14 @@ namespace CasalPlanner.API.Services
 
                 var usuario = new Usuario
                 {
-
+                    
+                    NomeCompleto = $"{dto.NomeCompletoPessoa1} & {dto.NomeCompletoPessoa2}",
+                    RendaMensal = dto.RendaMensalPessoa1 + dto.RendaMensalPessoa2,
                     Email = "", 
                     TipoConta = TipoConta.Casal,
                     IsCasal = true,
                     CreatedAt = DateTime.UtcNow,
-                    ModoEscuro = false,
+                    ModoEscuro = true,
                     CasalInfo = new CasalInfo
                     {
                         NomeCompletoPessoa1 = dto.NomeCompletoPessoa1,
@@ -97,7 +99,6 @@ namespace CasalPlanner.API.Services
                         SenhaHashPessoa1 = BCrypt.Net.BCrypt.HashPassword(dto.SenhaPessoa1),
                         CPFPessoa1 = dto.CPFPessoa1,
                         DataNascimentoPessoa1 = dto.DataNascimentoPessoa1,
-                        TelefonePessoa1 = dto.TelefonePessoa1,
                         RendaMensalPessoa1 = dto.RendaMensalPessoa1,
 
                         NomeCompletoPessoa2 = dto.NomeCompletoPessoa2,
@@ -105,11 +106,11 @@ namespace CasalPlanner.API.Services
                         SenhaHashPessoa2 = BCrypt.Net.BCrypt.HashPassword(dto.SenhaPessoa2),
                         CPFPessoa2 = dto.CPFPessoa2,
                         DataNascimentoPessoa2 = dto.DataNascimentoPessoa2,
-                        TelefonePessoa2 = dto.TelefonePessoa2,
                         RendaMensalPessoa2 = dto.RendaMensalPessoa2,
 
                         DataCasamento = dto.DataCasamento,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        
                     }
                 };
 
@@ -221,13 +222,13 @@ namespace CasalPlanner.API.Services
             var update = Builders<Usuario>.Update;
             var updates = new List<UpdateDefinition<Usuario>>();
 
+            var renda = dto.RendaMensalPessoa1 + dto.RendaMensalPessoa2;
+
             if (usuario.CasalInfo != null)
             {
                 if (dto.NomeCompletoPessoa1 != null)
                     updates.Add(update.Set(u => u.CasalInfo.NomeCompletoPessoa1, dto.NomeCompletoPessoa1));
 
-                if (dto.TelefonePessoa1 != null)
-                    updates.Add(update.Set(u => u.CasalInfo.TelefonePessoa1, dto.TelefonePessoa1));
 
                 if (dto.DataNascimentoPessoa1.HasValue)
                     updates.Add(update.Set(u => u.CasalInfo.DataNascimentoPessoa1, dto.DataNascimentoPessoa1.Value));
@@ -238,14 +239,14 @@ namespace CasalPlanner.API.Services
                 if (dto.NomeCompletoPessoa2 != null)
                     updates.Add(update.Set(u => u.CasalInfo.NomeCompletoPessoa2, dto.NomeCompletoPessoa2));
 
-                if (dto.TelefonePessoa2 != null)
-                    updates.Add(update.Set(u => u.CasalInfo.TelefonePessoa2, dto.TelefonePessoa2));
-
                 if (dto.DataNascimentoPessoa2.HasValue)
                     updates.Add(update.Set(u => u.CasalInfo.DataNascimentoPessoa2, dto.DataNascimentoPessoa2.Value));
 
                 if (dto.RendaMensalPessoa2.HasValue)
                     updates.Add(update.Set(u => u.CasalInfo.RendaMensalPessoa2, dto.RendaMensalPessoa2.Value));
+
+                if (dto.RendaMensal.HasValue)
+                    updates.Add(update.Set(u => u.RendaMensal, renda));
 
                 if (dto.DataCasamento.HasValue)
                     updates.Add(update.Set(u => u.CasalInfo.DataCasamento, dto.DataCasamento.Value));

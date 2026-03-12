@@ -130,7 +130,7 @@ public class AuthController : ControllerBase
                 email = usuarioIndividual.Email,
                 cpf = usuarioIndividual.CPF,
                 dataNascimento = usuarioIndividual.DataNascimento,
-                telefone = usuarioIndividual.Telefone,
+
                 rendaMensal = usuarioIndividual.RendaMensal,
                 token = token,
                 tipoConta = "Individual",
@@ -208,13 +208,11 @@ public class AuthController : ControllerBase
             EmailPessoa1 = usuario.CasalInfo?.EmailPessoa1,
             CPFPessoa1 = usuario.CasalInfo?.CPFPessoa1,
             DataNascimentoPessoa1 = usuario.CasalInfo?.DataNascimentoPessoa1,
-            TelefonePessoa1 = usuario.CasalInfo?.TelefonePessoa1,
             RendaMensalPessoa1 = usuario.CasalInfo?.RendaMensalPessoa1,
             NomeCompletoPessoa2 = usuario.CasalInfo?.NomeCompletoPessoa2,
             EmailPessoa2 = usuario.CasalInfo?.EmailPessoa2,
             CPFPessoa2 = usuario.CasalInfo?.CPFPessoa2,
             DataNascimentoPessoa2 = usuario.CasalInfo?.DataNascimentoPessoa2,
-            TelefonePessoa2 = usuario.CasalInfo?.TelefonePessoa2,
             RendaMensalPessoa2 = usuario.CasalInfo?.RendaMensalPessoa2,
             DataCasamento = usuario.CasalInfo?.DataCasamento,
             ModoEscuro = usuario.ModoEscuro,
@@ -262,7 +260,6 @@ public class AuthController : ControllerBase
                 email = usuario.Email,
                 cpf = usuario.CPF,
                 dataNascimento = usuario.DataNascimento,
-                telefone = usuario.Telefone,
                 rendaMensal = usuario.RendaMensal,
                 tipoConta = "Individual",
                 isCasal = false,
@@ -286,8 +283,6 @@ public class AuthController : ControllerBase
 
         if (dto.NomeCompleto != null)
             updates.Add(update.Set(u => u.NomeCompleto, dto.NomeCompleto));
-        if (dto.Telefone != null)
-            updates.Add(update.Set(u => u.Telefone, dto.Telefone));
         if (dto.DataNascimento.HasValue)
             updates.Add(update.Set(u => u.DataNascimento, dto.DataNascimento.Value));
         if (dto.RendaMensal.HasValue)
@@ -313,13 +308,12 @@ public class AuthController : ControllerBase
 
         var update = Builders<Usuario>.Update;
         var updates = new List<UpdateDefinition<Usuario>>();
+        var renda = dto.RendaMensalPessoa1 + dto.RendaMensalPessoa2;
 
         if (usuario.CasalInfo != null)
         {
             if (dto.NomeCompletoPessoa1 != null)
                 updates.Add(update.Set(u => u.CasalInfo.NomeCompletoPessoa1, dto.NomeCompletoPessoa1));
-            if (dto.TelefonePessoa1 != null)
-                updates.Add(update.Set(u => u.CasalInfo.TelefonePessoa1, dto.TelefonePessoa1));
             if (dto.DataNascimentoPessoa1.HasValue)
                 updates.Add(update.Set(u => u.CasalInfo.DataNascimentoPessoa1, dto.DataNascimentoPessoa1.Value));
             if (dto.RendaMensalPessoa1.HasValue)
@@ -327,8 +321,6 @@ public class AuthController : ControllerBase
 
             if (dto.NomeCompletoPessoa2 != null)
                 updates.Add(update.Set(u => u.CasalInfo.NomeCompletoPessoa2, dto.NomeCompletoPessoa2));
-            if (dto.TelefonePessoa2 != null)
-                updates.Add(update.Set(u => u.CasalInfo.TelefonePessoa2, dto.TelefonePessoa2));
             if (dto.DataNascimentoPessoa2.HasValue)
                 updates.Add(update.Set(u => u.CasalInfo.DataNascimentoPessoa2, dto.DataNascimentoPessoa2.Value));
             if (dto.RendaMensalPessoa2.HasValue)
@@ -338,6 +330,8 @@ public class AuthController : ControllerBase
                 updates.Add(update.Set(u => u.CasalInfo.DataCasamento, dto.DataCasamento.Value));
 
             updates.Add(update.Set(u => u.CasalInfo.UpdatedAt, DateTime.UtcNow));
+
+            updates.Add(update.Set(u => u.RendaMensal, renda));   
         }
 
         if (updates.Any())
