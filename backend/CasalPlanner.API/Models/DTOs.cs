@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CasalPlanner.API.Models
 {
-    // DTOs existentes
+    // ========== AUTENTICAÇÃO ==========
     public class RegistroDto
     {
         [Required(ErrorMessage = "Nome completo é obrigatório")]
@@ -51,53 +51,10 @@ namespace CasalPlanner.API.Models
         public string Token { get; set; } = string.Empty;
         public bool IsCasal { get; set; }
         public string? TipoConta { get; set; }
+        public bool ModoEscuro { get; set; }
     }
 
-    public class CriarItemDto
-    {
-        [Required]
-        public string Nome { get; set; } = string.Empty;
-
-        public string Marca { get; set; } = string.Empty;
-
-        [Required]
-        [Range(0.01, double.MaxValue)]
-        public decimal Preco { get; set; }
-
-        [Range(1, int.MaxValue)]
-        public int Quantidade { get; set; } = 1;
-
-        [Required]
-        public string CategoriaId { get; set; } = string.Empty;
-
-        public string Pagamento { get; set; } = "normal";
-    }
-
-    public class AtualizarItemDto
-    {
-        public string? Nome { get; set; }
-        public string? Marca { get; set; }
-        public decimal? Preco { get; set; }
-        public int? Quantidade { get; set; }
-        public string? CategoriaId { get; set; }
-        public bool? Comprado { get; set; }
-        public string? Pagamento { get; set; }
-    }
-
-
-
-
-    public class ResumoDto
-    {
-        public decimal TotalGeral { get; set; }
-        public decimal TotalVR { get; set; }
-        public decimal TotalNormal { get; set; }
-        public int TotalComprados { get; set; }
-        public int TotalItens { get; set; }
-        public Dictionary<string, int> ItensPorCategoria { get; set; } = new();
-    }
-
-
+    // ========== CASAL ==========
     public class RegistroCasalDto
     {
         // Pessoa 1
@@ -148,10 +105,7 @@ namespace CasalPlanner.API.Models
         [Range(0, double.MaxValue, ErrorMessage = "Renda mensal inválida")]
         public decimal? RendaMensalPessoa2 { get; set; }
 
-        // Informações do casal (COM DATA DE CASAMENTO)
         public DateTime? DataCasamento { get; set; }
-
-        // Data de inclusão
         public DateTime DataInclusao { get; set; } = DateTime.UtcNow;
     }
 
@@ -173,6 +127,7 @@ namespace CasalPlanner.API.Models
         public string Token { get; set; } = string.Empty;
         public string TipoConta { get; set; } = "Casal";
         public string PessoaQueLogou { get; set; } = string.Empty;
+        public bool ModoEscuro { get; set; }
 
         public string NomeCompletoPessoa1 { get; set; } = string.Empty;
         public string EmailPessoa1 { get; set; } = string.Empty;
@@ -189,22 +144,26 @@ namespace CasalPlanner.API.Models
 
     public class AtualizarCasalDto
     {
-        // Pessoa 1
         public string? NomeCompletoPessoa1 { get; set; }
         public string? TelefonePessoa1 { get; set; }
         public DateTime? DataNascimentoPessoa1 { get; set; }
         public decimal? RendaMensalPessoa1 { get; set; }
-        public string? AvatarPessoa1 { get; set; }
 
-        // Pessoa 2
         public string? NomeCompletoPessoa2 { get; set; }
         public string? TelefonePessoa2 { get; set; }
         public DateTime? DataNascimentoPessoa2 { get; set; }
         public decimal? RendaMensalPessoa2 { get; set; }
-        public string? AvatarPessoa2 { get; set; }
 
-        // Informações do casal
         public DateTime? DataCasamento { get; set; }
+    }
+
+    // ========== PERFIL ==========
+    public class AtualizarPerfilDto
+    {
+        public string? NomeCompleto { get; set; }
+        public string? Telefone { get; set; }
+        public DateTime? DataNascimento { get; set; }
+        public decimal? RendaMensal { get; set; }
     }
 
     public class AlterarSenhaDto
@@ -221,12 +180,91 @@ namespace CasalPlanner.API.Models
         public string NovaSenha { get; set; } = string.Empty;
     }
 
+    public class ModoEscuroDto
+    {
+        public bool ModoEscuro { get; set; }
+    }
+
+    // ========== ITENS ==========
+    public class CriarItemDto
+    {
+        [Required]
+        public string Nome { get; set; } = string.Empty;
+
+        public string Marca { get; set; } = string.Empty;
+
+        [Required]
+        [Range(0.01, double.MaxValue)]
+        public decimal Preco { get; set; }
+
+        [Range(1, int.MaxValue)]
+        public int Quantidade { get; set; } = 1;
+
+        [Required]
+        public string CategoriaId { get; set; } = string.Empty;
+
+        public string Pagamento { get; set; } = "normal";
+    }
+
+    public class AtualizarItemDto
+    {
+        public string? Nome { get; set; }
+        public string? Marca { get; set; }
+        public decimal? Preco { get; set; }
+        public int? Quantidade { get; set; }
+        public string? CategoriaId { get; set; }
+        public bool? Comprado { get; set; }
+        public string? Pagamento { get; set; }
+    }
+
+    public class AtualizarCompradoDto
+    {
+        public bool Comprado { get; set; }
+    }
+
+    // ========== CATEGORIAS ==========
+    public class CriarCategoriaDto
+    {
+        [Required]
+        public string Nome { get; set; } = string.Empty;
+
+        public string? Icon { get; set; }
+
+        [Required]
+        public string Bg { get; set; } = "#d6e9d6";
+    }
+
+    public class AtualizarCategoriaDto
+    {
+        public string? Nome { get; set; }
+        public string? Icon { get; set; }
+        public string? Bg { get; set; }
+    }
+
+    public class ReordenarCategoriasDto
+    {
+        public List<string> CategoriaIds { get; set; } = new();
+    }
+
+    // ========== RESUMO ==========
+    public class ResumoDto
+    {
+        public decimal TotalGeral { get; set; }
+        public decimal TotalVR { get; set; }
+        public decimal TotalNormal { get; set; }
+        public int TotalComprados { get; set; }
+        public int TotalItens { get; set; }
+        public Dictionary<string, int> ItensPorCategoria { get; set; } = new();
+    }
+
+    // ========== RESPOSTA DE USUÁRIO ==========
     public class UsuarioResponseDto
     {
         public string Id { get; set; } = string.Empty;
         public string TipoConta { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLoginAt { get; set; }
+        public bool ModoEscuro { get; set; }
 
         // Para conta individual
         public string? NomeCompleto { get; set; }
@@ -251,43 +289,8 @@ namespace CasalPlanner.API.Models
         public string? TelefonePessoa2 { get; set; }
         public decimal? RendaMensalPessoa2 { get; set; }
 
-        // Informações do casal
         public DateTime? DataCasamento { get; set; }
 
-        // Preferências
-        public PreferenciasUsuario? Preferencias { get; set; }
-
-        // Token (opcional)
         public string? Token { get; set; }
     }
-
-    public class CriarCategoriaDto
-    {
-        [Required]
-        public string Nome { get; set; } = string.Empty;
-
-        public string? Icon { get; set; }
-
-        [Required]
-        public string Bg { get; set; } = "#d6e9d6";
-    }
-
-    public class AtualizarCategoriaDto
-    {
-        public string? Nome { get; set; }
-        public string? Icon { get; set; }
-        public string? Bg { get; set; }
-    }
-
-
-    public class AtualizarCompradoDto
-    {
-        public bool Comprado { get; set; }
-    }
-
-    public class ReordenarCategoriasDto
-    {
-        public List<string> CategoriaIds { get; set; } // Lista de IDs na nova ordem
-    }
-
 }

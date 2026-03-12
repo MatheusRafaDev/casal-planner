@@ -30,71 +30,27 @@ public class MongoDbContext
     {
         try
         {
-
-            // ===== 1. CONFIGURAR ÍNDICES =====
-            await ConfigurarIndices();
-
-            // ===== 2. CRIAR/OBTER CASAL DE EXEMPLO =====
             var casal = await ObterOuCriarCasalExemplo();
-            
+
             if (casal == null)
             {
-                Console.WriteLine("❌ Erro fatal: Não foi possível criar/obter o casal de exemplo!");
+
                 return;
             }
 
             await CriarCategoriasPadrao(casal);
-
             await CriarItensIniciais(casal);
-
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Erro no seed de dados: {ex.Message}");
-            Console.WriteLine($"StackTrace: {ex.StackTrace}");
-        }
-    }
-
-    private async Task ConfigurarIndices()
-    {
-        try
-        {
-            // Listar índices existentes para debug
-            var indexes = await (await _usuarios.Indexes.ListAsync()).ToListAsync();
-            // Verificar se o índice já existe antes de criar
-            var indexExists = indexes.Any(i => i["name"] == "Email_1");
-
-            if (!indexExists)
-            {
-                // Criar índice para email em contas individuais
-                var indexKeys = Builders<Usuario>.IndexKeys.Ascending(u => u.Email);
-                var indexOptions = new CreateIndexOptions
-                {
-                    Unique = true,
-                    Sparse = true,
-                    Name = "Email_1"
-                };
-                var indexModel = new CreateIndexModel<Usuario>(indexKeys, indexOptions);
-
-                await _usuarios.Indexes.CreateOneAsync(indexModel);
-            }
-            else
-            {
-
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"❌ Erro ao criar índices: {ex.Message}");
         }
     }
 
     private async Task<Usuario?> ObterOuCriarCasalExemplo()
     {
-        // Verificar se já existe um casal de exemplo
         var casalExistente = await _usuarios
-            .Find(u => u.TipoConta == TipoConta.Casal && 
-                       u.CasalInfo != null && 
+            .Find(u => u.TipoConta == TipoConta.Casal &&
+                       u.CasalInfo != null &&
                        u.CasalInfo.EmailPessoa1 == "joao@email.com")
             .FirstOrDefaultAsync();
 
@@ -103,16 +59,15 @@ public class MongoDbContext
             return casalExistente;
         }
 
-
-        // IMPORTANTE: Para contas do tipo Casal, os campos individuais (NomeCompleto, Email, SenhaHash, etc.)
-        // devem permanecer null. Toda a informação fica dentro de CasalInfo.
         var casal = new Usuario
         {
             TipoConta = TipoConta.Casal,
             IsCasal = true,
+            Email = "",
+            ModoEscuro = false, 
             CasalInfo = new CasalInfo
             {
-                // Pessoa 1 - João
+ 
                 NomeCompletoPessoa1 = "João Silva",
                 EmailPessoa1 = "joao@email.com",
                 SenhaHashPessoa1 = BCrypt.Net.BCrypt.HashPassword("123456"),
@@ -121,7 +76,6 @@ public class MongoDbContext
                 TelefonePessoa1 = "(11) 99999-9999",
                 RendaMensalPessoa1 = 5000.00m,
 
-                // Pessoa 2 - Maria
                 NomeCompletoPessoa2 = "Maria Silva",
                 EmailPessoa2 = "maria@email.com",
                 SenhaHashPessoa2 = BCrypt.Net.BCrypt.HashPassword("123456"),
@@ -134,8 +88,7 @@ public class MongoDbContext
                 DataCasamento = new DateTime(2020, 1, 1),
                 CreatedAt = DateTime.UtcNow
             },
-            CreatedAt = DateTime.UtcNow,
-            Preferencias = new PreferenciasUsuario()
+            CreatedAt = DateTime.UtcNow
         };
 
         await _usuarios.InsertOneAsync(casal);
@@ -144,15 +97,12 @@ public class MongoDbContext
 
     private async Task CriarCategoriasPadrao(Usuario casal)
     {
-
         var categoriasCount = await _categorias.CountDocumentsAsync(c => c.IsPadrao);
 
         if (categoriasCount > 0)
         {
             return;
         }
-
-
 
         var categorias = new List<Categoria>
         {
@@ -189,7 +139,7 @@ public class MongoDbContext
                 CreatedAt = DateTime.UtcNow
             },
             new() {
-                Nome = " Lavanderia",
+                Nome = "Lavanderia",
                 Bg = "#97266d",
                 Icon = "🧼",
                 IsPadrao = true,
@@ -203,25 +153,21 @@ public class MongoDbContext
 
     private async Task CriarItensIniciais(Usuario casal)
     {
-        // Verificar se já existem itens
         var itensCount = await _itens.CountDocumentsAsync(_ => true);
-        
+
         if (itensCount > 0)
         {
             return;
         }
 
-        // Buscar IDs das categorias
-        var cozinha = await _categorias.Find(c => c.Nome == "🍳 Cozinha").FirstOrDefaultAsync();
-        var sala = await _categorias.Find(c => c.Nome == "🛋️ Sala").FirstOrDefaultAsync();
+        var cozinha = await _categorias.Find(c => c.Nome == "Cozinha").FirstOrDefaultAsync();
+        var sala = await _categorias.Find(c => c.Nome == "Sala").FirstOrDefaultAsync();
 
         if (cozinha == null || sala == null)
         {
             return;
         }
 
-
-        // Itens iniciais
         var itens = new List<Item>
         {
             new() {
@@ -281,10 +227,9 @@ public class MongoDbContext
             if (casal == null)
             {
                 Console.WriteLine("❌ Nenhum casal encontrado no banco!");
-                
-                // Listar todos os usuários para debug
+
                 var todosUsuarios = await _usuarios.Find(_ => true).ToListAsync();
-                
+
                 foreach (var u in todosUsuarios)
                 {
                     Console.WriteLine($"- Usuário ID: {u.Id}, TipoConta: {u.TipoConta}");
@@ -298,14 +243,11 @@ public class MongoDbContext
                         Console.WriteLine($"  Email: {u.Email}");
                     }
                 }
-                
+
                 return false;
             }
-            else
-            {
-                var itensCount = await _itens.CountDocumentsAsync(i => i.UsuarioId == casal.Id);
-                return true;
-            }
+
+            return true;
         }
         catch (Exception ex)
         {
@@ -314,20 +256,20 @@ public class MongoDbContext
         }
     }
 
-    // Método adicional para debug
     public async Task DebugInfo()
     {
         Console.WriteLine("\n=== INFORMAÇÕES DE DEBUG ===");
-        
+
         var usuarios = await _usuarios.Find(_ => true).ToListAsync();
         Console.WriteLine($"Total de usuários: {usuarios.Count}");
-        
+
         foreach (var u in usuarios)
         {
             Console.WriteLine($"\nUsuário: {u.Id}");
             Console.WriteLine($"  TipoConta: {u.TipoConta}");
             Console.WriteLine($"  IsCasal: {u.IsCasal}");
-            
+            Console.WriteLine($"  ModoEscuro: {u.ModoEscuro}");
+
             if (u.CasalInfo != null)
             {
                 Console.WriteLine($"  CasalInfo:");
@@ -351,17 +293,17 @@ public class MongoDbContext
                 Console.WriteLine($"    Renda: {u.RendaMensal:C}");
             }
         }
-        
+
         var categorias = await _categorias.Find(_ => true).ToListAsync();
         Console.WriteLine($"\nTotal de categorias: {categorias.Count}");
         foreach (var c in categorias)
         {
             Console.WriteLine($"  {c.Nome} - ID: {c.Id}");
         }
-        
+
         var itens = await _itens.Find(_ => true).ToListAsync();
         Console.WriteLine($"\nTotal de itens: {itens.Count}");
-        
+
         Console.WriteLine("=== FIM DEBUG ===\n");
     }
 }

@@ -91,6 +91,17 @@ const Header = () => {
                     <span>Perfil</span>
                   </DropdownItem>
 
+                  <DropdownItem 
+                    onClick={() => {
+                      navigate('/inicio');
+                      setMenuAberto(false);
+                    }}
+                    theme={theme}
+                  >
+                    <Home size={16} />
+                    <span>Início</span>
+                  </DropdownItem>
+
 
                   <DropdownItem 
                     onClick={() => {

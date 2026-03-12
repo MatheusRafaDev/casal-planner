@@ -3,6 +3,8 @@ using CasalPlanner.API.Models;
 using CasalPlanner.API.Services;
 using CasalPlanner.API.Data;
 using MongoDB.Driver;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace CasalPlanner.API.Controllers;
 
@@ -24,25 +26,75 @@ public class AuthController : ControllerBase
         _context = context;
     }
 
-    #region Endpoints Individuais
+    private string GetUsuarioId()
+    {
+        return User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+    }
 
+    private async Task CriarCategoriasPadrao(string usuarioId)
+    {
+        var categoriasPadrao = new List<Categoria>
+        {
+            new() {
+                Nome = "Cozinha",
+                Bg = "#2c5e2c",
+                Icon = "🍳",
+                IsPadrao = true,
+                UsuarioId = usuarioId,
+                CreatedAt = DateTime.UtcNow
+            },
+            new() {
+                Nome = "Sala",
+                Bg = "#b84a2c",
+                Icon = "🛋️",
+                IsPadrao = true,
+                UsuarioId = usuarioId,
+                CreatedAt = DateTime.UtcNow
+            },
+            new() {
+                Nome = "Quarto",
+                Bg = "#2c528",
+                Icon = "🛏️",
+                IsPadrao = true,
+                UsuarioId = usuarioId,
+                CreatedAt = DateTime.UtcNow
+            },
+            new() {
+                Nome = "Banheiro",
+                Bg = "#e2d9ed",
+                Icon = "🛁",
+                IsPadrao = true,
+                UsuarioId = usuarioId,
+                CreatedAt = DateTime.UtcNow
+            },
+            new() {
+                Nome = "Lavanderia",
+                Bg = "#97266d",
+                Icon = "🧼",
+                IsPadrao = true,
+                UsuarioId = usuarioId,
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+
+        await _context.Categorias.InsertManyAsync(categoriasPadrao);
+    }
+
+    #region Endpoints Públicos
+
+    [AllowAnonymous]
     [HttpPost("registrar")]
     public async Task<ActionResult<LoginResponseDto>> Registrar([FromBody] RegistroDto dto)
     {
-        _logger.LogInformation("Tentativa de registro para email: {Email}", dto.Email);
-
         var usuario = await _authService.Registrar(dto);
-
         if (usuario == null)
-        {
-            _logger.LogWarning("Registro falhou: email já cadastrado - {Email}", dto.Email);
             return BadRequest(new { message = "Email já cadastrado" });
-        }
+
+        // Criar categorias padrão para o novo usuário
+        await CriarCategoriasPadrao(usuario.Id!);
 
         var token = _authService.GerarToken(usuario);
-
-        _logger.LogInformation("Registro bem-sucedido para: {Email}", dto.Email);
-
+        
         return Ok(new LoginResponseDto
         {
             Id = usuario.Id!,
@@ -50,125 +102,100 @@ public class AuthController : ControllerBase
             Email = usuario.Email ?? "",
             Token = token,
             IsCasal = usuario.IsCasal,
-            TipoConta = usuario.TipoConta.ToString()
+            TipoConta = usuario.TipoConta.ToString(),
+            ModoEscuro = usuario.ModoEscuro
         });
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
-public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
-{
-    _logger.LogInformation("Tentativa de login para email: {Email}", dto.Email);
-
-    // Primeiro, tenta encontrar como usuário individual
-    var usuarioIndividual = await _authService.ObterUsuarioPorEmail(dto.Email);
-    
-    if (usuarioIndividual != null && usuarioIndividual.SenhaHash != null)
+    public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
     {
-        // Verificar senha do usuário individual
-        if (!BCrypt.Net.BCrypt.Verify(dto.Senha, usuarioIndividual.SenhaHash))
-        {
-            _logger.LogWarning("Senha inválida para usuário individual: {Email}", dto.Email);
-            return Unauthorized(new { message = "Email ou senha inválidos" });
-        }
-
-        // Atualizar último login
-        var update = Builders<Usuario>.Update
-            .Set(u => u.LastLoginAt, DateTime.UtcNow);
-        await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioIndividual.Id, update);
-
-        var token = _authService.GerarToken(usuarioIndividual);
-
-        _logger.LogInformation("Login individual bem-sucedido: {Email}", dto.Email);
-
-        return Ok(new
-        {
-            id = usuarioIndividual.Id,
-            nomeCompleto = usuarioIndividual.NomeCompleto,
-            email = usuarioIndividual.Email,
-            token = token,
-            tipoConta = "Individual",
-            isCasal = false
-        });
-    }
-
-    // Se não encontrou como individual, tenta como casal
-    var usuarioCasal = await _authService.ObterCasalPorEmail(dto.Email);
-    
-    if (usuarioCasal?.CasalInfo != null)
-    {
-        string pessoaQueLogou = "";
-        bool senhaValida = false;
-
-        // Verificar qual pessoa do casal está fazendo login
-        if (usuarioCasal.CasalInfo.EmailPessoa1 == dto.Email)
-        {
-            senhaValida = BCrypt.Net.BCrypt.Verify(dto.Senha, usuarioCasal.CasalInfo.SenhaHashPessoa1);
-            pessoaQueLogou = "pessoa1";
-        }
-        else if (usuarioCasal.CasalInfo.EmailPessoa2 == dto.Email)
-        {
-            senhaValida = BCrypt.Net.BCrypt.Verify(dto.Senha, usuarioCasal.CasalInfo.SenhaHashPessoa2);
-            pessoaQueLogou = "pessoa2";
-        }
-
-        if (!senhaValida)
-        {
-            _logger.LogWarning("Senha inválida para casal: {Email}", dto.Email);
-            return Unauthorized(new { message = "Email ou senha inválidos" });
-        }
-
-        // Atualizar último login
-        var update = Builders<Usuario>.Update
-            .Set(u => u.LastLoginAt, DateTime.UtcNow);
-        await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioCasal.Id, update);
-
-        var token = _authService.GerarTokenCasal(usuarioCasal, pessoaQueLogou);
+        var usuarioIndividual = await _authService.ObterUsuarioPorEmail(dto.Email);
         
-        var nome = pessoaQueLogou == "pessoa1" 
-            ? usuarioCasal.CasalInfo.NomeCompletoPessoa1 
-            : usuarioCasal.CasalInfo.NomeCompletoPessoa2;
-
-        _logger.LogInformation("Login de casal bem-sucedido: {Email}", dto.Email);
-
-        return Ok(new
+        if (usuarioIndividual != null && usuarioIndividual.SenhaHash != null)
         {
-            id = usuarioCasal.Id,
-            nomeCompleto = nome,
-            email = dto.Email,
-            token = token,
-            tipoConta = "Casal",
-            isCasal = true,
-            pessoaQueLogou = pessoaQueLogou,
-            nomeCompletoPessoa1 = usuarioCasal.CasalInfo.NomeCompletoPessoa1,
-            emailPessoa1 = usuarioCasal.CasalInfo.EmailPessoa1,
-            nomeCompletoPessoa2 = usuarioCasal.CasalInfo.NomeCompletoPessoa2,
-            emailPessoa2 = usuarioCasal.CasalInfo.EmailPessoa2,
-            dataCasamento = usuarioCasal.CasalInfo.DataCasamento
-        });
+            if (!BCrypt.Net.BCrypt.Verify(dto.Senha, usuarioIndividual.SenhaHash))
+                return Unauthorized(new { message = "Email ou senha inválidos" });
+
+            var update = Builders<Usuario>.Update.Set(u => u.LastLoginAt, DateTime.UtcNow);
+            await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioIndividual.Id, update);
+
+            var token = _authService.GerarToken(usuarioIndividual);
+
+            return Ok(new
+            {
+                id = usuarioIndividual.Id,
+                nomeCompleto = usuarioIndividual.NomeCompleto,
+                email = usuarioIndividual.Email,
+                cpf = usuarioIndividual.CPF,
+                dataNascimento = usuarioIndividual.DataNascimento,
+                telefone = usuarioIndividual.Telefone,
+                rendaMensal = usuarioIndividual.RendaMensal,
+                token = token,
+                tipoConta = "Individual",
+                isCasal = false,
+                modoEscuro = usuarioIndividual.ModoEscuro
+            });
+        }
+
+        var usuarioCasal = await _authService.ObterCasalPorEmail(dto.Email);
+        
+        if (usuarioCasal?.CasalInfo != null)
+        {
+            string pessoaQueLogou = "";
+            bool senhaValida = false;
+
+            if (usuarioCasal.CasalInfo.EmailPessoa1 == dto.Email)
+            {
+                senhaValida = BCrypt.Net.BCrypt.Verify(dto.Senha, usuarioCasal.CasalInfo.SenhaHashPessoa1);
+                pessoaQueLogou = "pessoa1";
+            }
+            else if (usuarioCasal.CasalInfo.EmailPessoa2 == dto.Email)
+            {
+                senhaValida = BCrypt.Net.BCrypt.Verify(dto.Senha, usuarioCasal.CasalInfo.SenhaHashPessoa2);
+                pessoaQueLogou = "pessoa2";
+            }
+
+            if (!senhaValida)
+                return Unauthorized(new { message = "Email ou senha inválidos" });
+
+            var update = Builders<Usuario>.Update.Set(u => u.LastLoginAt, DateTime.UtcNow);
+            await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioCasal.Id, update);
+
+            var token = _authService.GerarTokenCasal(usuarioCasal, pessoaQueLogou);
+            
+            var nome = pessoaQueLogou == "pessoa1" 
+                ? usuarioCasal.CasalInfo.NomeCompletoPessoa1 
+                : usuarioCasal.CasalInfo.NomeCompletoPessoa2;
+
+            return Ok(new
+            {
+                id = usuarioCasal.Id,
+                nomeCompleto = nome,
+                email = dto.Email,
+                token = token,
+                tipoConta = "Casal",
+                isCasal = true,
+                pessoaQueLogou = pessoaQueLogou,
+                casalInfo = usuarioCasal.CasalInfo,
+                modoEscuro = usuarioCasal.ModoEscuro
+            });
+        }
+
+        return Unauthorized(new { message = "Email ou senha inválidos" });
     }
 
-    // Se não encontrou em lugar nenhum
-    _logger.LogWarning("Usuário não encontrado: {Email}", dto.Email);
-    return Unauthorized(new { message = "Email ou senha inválidos" });
-}
-
-    #endregion
-
-    #region Endpoints para Casal
-
+    [AllowAnonymous]
     [HttpPost("registrar-casal")]
     public async Task<ActionResult<UsuarioResponseDto>> RegistrarCasal([FromBody] RegistroCasalDto dto)
     {
-        _logger.LogInformation("Tentativa de registro de casal: {Email1} e {Email2}",
-            dto.EmailPessoa1, dto.EmailPessoa2);
-
         var usuario = await _authService.RegistrarCasal(dto);
-
         if (usuario == null)
-        {
-            _logger.LogWarning("Registro de casal falhou: emails já existentes");
             return BadRequest(new { message = "Um dos emails já está cadastrado" });
-        }
+
+        // Criar categorias padrão para o novo casal
+        await CriarCategoriasPadrao(usuario.Id!);
 
         var token = _authService.GerarTokenCasal(usuario, "pessoa1");
 
@@ -190,100 +217,216 @@ public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
             TelefonePessoa2 = usuario.CasalInfo?.TelefonePessoa2,
             RendaMensalPessoa2 = usuario.CasalInfo?.RendaMensalPessoa2,
             DataCasamento = usuario.CasalInfo?.DataCasamento,
-            Preferencias = usuario.Preferencias,
+            ModoEscuro = usuario.ModoEscuro,
             Token = token
         };
 
-        _logger.LogInformation("Casal registrado com sucesso: {Id}", usuario.Id);
         return Ok(response);
     }
 
-    [HttpPost("login-casal")]
-    public async Task<ActionResult<LoginCasalResponseDto>> LoginCasal([FromBody] LoginCasalDto dto)
+    #endregion
+
+    #region Endpoints Protegidos
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<ActionResult<object>> GetCurrentUser()
     {
-        _logger.LogInformation("Tentativa de login do casal com email: {Email}", dto.Email);
+        var usuarioId = GetUsuarioId();
+        if (string.IsNullOrEmpty(usuarioId))
+            return Unauthorized();
 
-        var resultado = await _authService.LoginCasal(dto);
+        var usuario = await _context.Usuarios.Find(u => u.Id == usuarioId).FirstOrDefaultAsync();
+        if (usuario == null)
+            return NotFound();
 
-        if (resultado == null)
+        if (usuario.TipoConta == TipoConta.Casal)
         {
-            _logger.LogWarning("Login do casal falhou para: {Email}", dto.Email);
-            return Unauthorized(new { message = "Email ou senha inválidos" });
+            return Ok(new
+            {
+                id = usuario.Id,
+                tipoConta = "Casal",
+                isCasal = true,
+                casalInfo = usuario.CasalInfo,
+                modoEscuro = usuario.ModoEscuro,
+                createdAt = usuario.CreatedAt,
+                lastLoginAt = usuario.LastLoginAt
+            });
         }
-
-        return Ok(resultado);
-    }
-
-    [HttpGet("perfil-casal/{id}")]
-    public async Task<ActionResult<UsuarioResponseDto>> ObterPerfilCasal(string id)
-    {
-        _logger.LogInformation("Buscando perfil do casal: {Id}", id);
-
-        var usuario = await _authService.ObterUsuarioPorId(id);
-
-        if (usuario == null || usuario.TipoConta != TipoConta.Casal)
-            return NotFound(new { message = "Casal não encontrado" });
-
-        var response = new UsuarioResponseDto
+        else
         {
-            Id = usuario.Id!,
-            TipoConta = "Casal",
-            CreatedAt = usuario.CreatedAt,
-            LastLoginAt = usuario.LastLoginAt,
-            NomeCompletoPessoa1 = usuario.CasalInfo?.NomeCompletoPessoa1,
-            EmailPessoa1 = usuario.CasalInfo?.EmailPessoa1,
-            CPFPessoa1 = usuario.CasalInfo?.CPFPessoa1,
-            DataNascimentoPessoa1 = usuario.CasalInfo?.DataNascimentoPessoa1,
-            TelefonePessoa1 = usuario.CasalInfo?.TelefonePessoa1,
-            RendaMensalPessoa1 = usuario.CasalInfo?.RendaMensalPessoa1,
-            NomeCompletoPessoa2 = usuario.CasalInfo?.NomeCompletoPessoa2,
-            EmailPessoa2 = usuario.CasalInfo?.EmailPessoa2,
-            CPFPessoa2 = usuario.CasalInfo?.CPFPessoa2,
-            DataNascimentoPessoa2 = usuario.CasalInfo?.DataNascimentoPessoa2,
-            TelefonePessoa2 = usuario.CasalInfo?.TelefonePessoa2,
-            RendaMensalPessoa2 = usuario.CasalInfo?.RendaMensalPessoa2,
-            DataCasamento = usuario.CasalInfo?.DataCasamento,
-            Preferencias = usuario.Preferencias
-        };
-
-        return Ok(response);
+            return Ok(new
+            {
+                id = usuario.Id,
+                nomeCompleto = usuario.NomeCompleto,
+                email = usuario.Email,
+                cpf = usuario.CPF,
+                dataNascimento = usuario.DataNascimento,
+                telefone = usuario.Telefone,
+                rendaMensal = usuario.RendaMensal,
+                tipoConta = "Individual",
+                isCasal = false,
+                modoEscuro = usuario.ModoEscuro,
+                createdAt = usuario.CreatedAt,
+                lastLoginAt = usuario.LastLoginAt
+            });
+        }
     }
 
-    [HttpPut("perfil-casal/{id}")]
-    public async Task<ActionResult<UsuarioResponseDto>> AtualizarPerfilCasal(
-        string id,
-        [FromBody] AtualizarCasalDto dto)
+    [Authorize]
+    [HttpPut("perfil/{id}")]
+    public async Task<ActionResult<object>> AtualizarPerfil(string id, [FromBody] AtualizarPerfilDto dto)
     {
-        _logger.LogInformation("Atualizando perfil do casal: {Id}", id);
+        var usuario = await _context.Usuarios.Find(u => u.Id == id).FirstOrDefaultAsync();
+        if (usuario == null)
+            return NotFound();
 
-        var usuario = await _authService.AtualizarPerfilCasal(id, dto);
+        var update = Builders<Usuario>.Update;
+        var updates = new List<UpdateDefinition<Usuario>>();
+
+        if (dto.NomeCompleto != null)
+            updates.Add(update.Set(u => u.NomeCompleto, dto.NomeCompleto));
+        if (dto.Telefone != null)
+            updates.Add(update.Set(u => u.Telefone, dto.Telefone));
+        if (dto.DataNascimento.HasValue)
+            updates.Add(update.Set(u => u.DataNascimento, dto.DataNascimento.Value));
+        if (dto.RendaMensal.HasValue)
+            updates.Add(update.Set(u => u.RendaMensal, dto.RendaMensal.Value));
+
+        if (updates.Any())
+            await _context.Usuarios.UpdateOneAsync(u => u.Id == id, update.Combine(updates));
+
+        var usuarioAtualizado = await _context.Usuarios.Find(u => u.Id == id).FirstOrDefaultAsync();
+        return Ok(usuarioAtualizado);
+    }
+
+    [Authorize]
+    [HttpPut("perfil-casal/{id}")]
+    public async Task<ActionResult<object>> AtualizarPerfilCasal(string id, [FromBody] AtualizarCasalDto dto)
+    {
+        var usuario = await _context.Usuarios
+            .Find(u => u.Id == id && u.TipoConta == TipoConta.Casal)
+            .FirstOrDefaultAsync();
 
         if (usuario == null)
-            return NotFound(new { message = "Casal não encontrado" });
+            return NotFound();
 
-        var response = new UsuarioResponseDto
+        var update = Builders<Usuario>.Update;
+        var updates = new List<UpdateDefinition<Usuario>>();
+
+        if (usuario.CasalInfo != null)
         {
-            Id = usuario.Id!,
-            TipoConta = "Casal",
-            CreatedAt = usuario.CreatedAt,
-            LastLoginAt = usuario.LastLoginAt,
-            NomeCompletoPessoa1 = usuario.CasalInfo?.NomeCompletoPessoa1,
-            EmailPessoa1 = usuario.CasalInfo?.EmailPessoa1,
-            CPFPessoa1 = usuario.CasalInfo?.CPFPessoa1,
-            DataNascimentoPessoa1 = usuario.CasalInfo?.DataNascimentoPessoa1,
-            TelefonePessoa1 = usuario.CasalInfo?.TelefonePessoa1,
-            RendaMensalPessoa1 = usuario.CasalInfo?.RendaMensalPessoa1,
-            NomeCompletoPessoa2 = usuario.CasalInfo?.NomeCompletoPessoa2,
-            EmailPessoa2 = usuario.CasalInfo?.EmailPessoa2,
-            CPFPessoa2 = usuario.CasalInfo?.CPFPessoa2,
-            DataNascimentoPessoa2 = usuario.CasalInfo?.DataNascimentoPessoa2,
-            TelefonePessoa2 = usuario.CasalInfo?.TelefonePessoa2,
-            RendaMensalPessoa2 = usuario.CasalInfo?.RendaMensalPessoa2,
-            DataCasamento = usuario.CasalInfo?.DataCasamento,
-            Preferencias = usuario.Preferencias
-        };
+            if (dto.NomeCompletoPessoa1 != null)
+                updates.Add(update.Set(u => u.CasalInfo.NomeCompletoPessoa1, dto.NomeCompletoPessoa1));
+            if (dto.TelefonePessoa1 != null)
+                updates.Add(update.Set(u => u.CasalInfo.TelefonePessoa1, dto.TelefonePessoa1));
+            if (dto.DataNascimentoPessoa1.HasValue)
+                updates.Add(update.Set(u => u.CasalInfo.DataNascimentoPessoa1, dto.DataNascimentoPessoa1.Value));
+            if (dto.RendaMensalPessoa1.HasValue)
+                updates.Add(update.Set(u => u.CasalInfo.RendaMensalPessoa1, dto.RendaMensalPessoa1.Value));
 
-        return Ok(response);
+            if (dto.NomeCompletoPessoa2 != null)
+                updates.Add(update.Set(u => u.CasalInfo.NomeCompletoPessoa2, dto.NomeCompletoPessoa2));
+            if (dto.TelefonePessoa2 != null)
+                updates.Add(update.Set(u => u.CasalInfo.TelefonePessoa2, dto.TelefonePessoa2));
+            if (dto.DataNascimentoPessoa2.HasValue)
+                updates.Add(update.Set(u => u.CasalInfo.DataNascimentoPessoa2, dto.DataNascimentoPessoa2.Value));
+            if (dto.RendaMensalPessoa2.HasValue)
+                updates.Add(update.Set(u => u.CasalInfo.RendaMensalPessoa2, dto.RendaMensalPessoa2.Value));
+
+            if (dto.DataCasamento.HasValue)
+                updates.Add(update.Set(u => u.CasalInfo.DataCasamento, dto.DataCasamento.Value));
+
+            updates.Add(update.Set(u => u.CasalInfo.UpdatedAt, DateTime.UtcNow));
+        }
+
+        if (updates.Any())
+            await _context.Usuarios.UpdateOneAsync(u => u.Id == id, update.Combine(updates));
+
+        var usuarioAtualizado = await _context.Usuarios.Find(u => u.Id == id).FirstOrDefaultAsync();
+        return Ok(usuarioAtualizado);
+    }
+
+    [Authorize]
+    [HttpPut("modo-escuro/{id}")]
+    public async Task<IActionResult> AtualizarModoEscuro(string id, [FromBody] ModoEscuroDto dto)
+    {
+        var update = Builders<Usuario>.Update.Set(u => u.ModoEscuro, dto.ModoEscuro);
+        var result = await _context.Usuarios.UpdateOneAsync(u => u.Id == id, update);
+
+        if (result.MatchedCount == 0)
+            return NotFound();
+
+        return Ok(new { modoEscuro = dto.ModoEscuro });
+    }
+
+    [Authorize]
+    [HttpPost("alterar-senha")]
+    public async Task<IActionResult> AlterarSenha([FromBody] AlterarSenhaDto dto)
+    {
+        var usuario = await _authService.ObterUsuarioPorEmail(dto.Email);
+        
+        if (usuario != null)
+        {
+            if (!BCrypt.Net.BCrypt.Verify(dto.SenhaAtual, usuario.SenhaHash))
+                return BadRequest(new { message = "Senha atual incorreta" });
+
+            var novaSenhaHash = BCrypt.Net.BCrypt.HashPassword(dto.NovaSenha);
+            var update = Builders<Usuario>.Update.Set(u => u.SenhaHash, novaSenhaHash);
+            await _context.Usuarios.UpdateOneAsync(u => u.Id == usuario.Id, update);
+            
+            return Ok(new { message = "Senha alterada com sucesso" });
+        }
+
+        var usuarioCasal = await _authService.ObterCasalPorEmail(dto.Email);
+        
+        if (usuarioCasal?.CasalInfo != null)
+        {
+            if (usuarioCasal.CasalInfo.EmailPessoa1 == dto.Email)
+            {
+                if (!BCrypt.Net.BCrypt.Verify(dto.SenhaAtual, usuarioCasal.CasalInfo.SenhaHashPessoa1))
+                    return BadRequest(new { message = "Senha atual incorreta" });
+
+                var novaSenhaHash = BCrypt.Net.BCrypt.HashPassword(dto.NovaSenha);
+                var update = Builders<Usuario>.Update.Set(u => u.CasalInfo.SenhaHashPessoa1, novaSenhaHash);
+                await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioCasal.Id, update);
+            }
+            else if (usuarioCasal.CasalInfo.EmailPessoa2 == dto.Email)
+            {
+                if (!BCrypt.Net.BCrypt.Verify(dto.SenhaAtual, usuarioCasal.CasalInfo.SenhaHashPessoa2))
+                    return BadRequest(new { message = "Senha atual incorreta" });
+
+                var novaSenhaHash = BCrypt.Net.BCrypt.HashPassword(dto.NovaSenha);
+                var update = Builders<Usuario>.Update.Set(u => u.CasalInfo.SenhaHashPessoa2, novaSenhaHash);
+                await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioCasal.Id, update);
+            }
+            else
+            {
+                return NotFound();
+            }
+
+            return Ok(new { message = "Senha alterada com sucesso" });
+        }
+
+        return NotFound();
+    }
+
+    [Authorize]
+    [HttpDelete("usuario/{id}")]
+    public async Task<IActionResult> ExcluirConta(string id)
+    {
+        var result = await _context.Usuarios.DeleteOneAsync(u => u.Id == id);
+        if (result.DeletedCount == 0)
+            return NotFound();
+
+        return Ok(new { message = "Conta excluída com sucesso" });
+    }
+
+    [Authorize]
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        return Ok(new { message = "Logout realizado com sucesso" });
     }
 
     #endregion

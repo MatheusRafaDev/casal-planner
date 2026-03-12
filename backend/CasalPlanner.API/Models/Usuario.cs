@@ -9,12 +9,10 @@ namespace CasalPlanner.API.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
         
-        // Informações da Conta
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastLoginAt { get; set; }
         public bool IsAtivo { get; set; } = true;
         
-        // Tipo de conta
         public TipoConta TipoConta { get; set; } = TipoConta.Individual;
         
         // Para contas individuais
@@ -30,14 +28,14 @@ namespace CasalPlanner.API.Models
         // Para contas de casal
         public CasalInfo? CasalInfo { get; set; }
         
-        // Preferências
-        public PreferenciasUsuario Preferencias { get; set; } = new();
+        // Apenas modo escuro como preferência
+        public bool ModoEscuro { get; set; } = false;
     }
     
     public enum TipoConta
     {
-        Individual,  // Uma pessoa
-        Casal        // Duas pessoas compartilhando
+        Individual,
+        Casal
     }
     
     public class CasalInfo
@@ -62,20 +60,9 @@ namespace CasalPlanner.API.Models
         public decimal? RendaMensalPessoa2 { get; set; }
         public string? AvatarPessoa2 { get; set; }
         
-        // Informações do casal (COM DATA DE CASAMENTO)
         public DateTime? DataCasamento { get; set; }
         
-        // Metadados
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
-    }
-    
-    public class PreferenciasUsuario
-    {
-        public bool ModoEscuro { get; set; } = false;
-        public string Moeda { get; set; } = "BRL";
-        public string Idioma { get; set; } = "pt-BR";
-        public bool NotificacoesEmail { get; set; } = true;
-        public string? CorPrimaria { get; set; } = "#27ae60";
     }
 }
