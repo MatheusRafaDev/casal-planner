@@ -101,14 +101,20 @@ export const Tab = styled.button`
   padding: 0.5rem;
   font-size: 0.95rem;
   cursor: pointer;
-  color: ${props => props.active ? props.theme.primary : props.theme.textSoft};
-  font-weight: ${props => props.active ? '600' : '400'};
-  border-bottom: 2px solid ${props => props.active ? props.theme.primary : 'transparent'};
+  color: ${props => props.$active ? props.theme.primary : props.theme.textSoft};
+  font-weight: ${props => props.$active ? '600' : '400'};
+  border-bottom: 2px solid ${props => props.$active ? props.theme.primary : 'transparent'};
+  transition: all 0.2s;
 
   svg {
     width: 16px;
     height: 16px;
     margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  span {
+    vertical-align: middle;
   }
 
   &:hover {
@@ -135,7 +141,8 @@ export const Form = styled.form`
 
 export const FormGroup = styled.div`
   margin-bottom: 1rem;
-  flex: ${props => props.half ? '1' : 'auto'};
+  flex: ${props => props.$half ? '1' : 'auto'};
+  width: 100%;
 `;
 
 export const FormRow = styled.div`
@@ -170,17 +177,42 @@ export const Input = styled.input`
   border: 1px solid ${props => props.theme.border};
   border-radius: 6px;
   font-size: 0.95rem;
-  transition: 0.2s;
+  transition: all 0.2s;
   background: ${props => props.theme.surface};
   color: ${props => props.theme.text};
 
   &:focus {
     outline: none;
     border-color: ${props => props.theme.primary};
+    box-shadow: 0 0 0 3px ${props => props.theme.primary}20;
+    background: ${props => props.theme.surface};
+    color: ${props => props.theme.text};
+  }
+
+  /* Estilo para autocomplete do navegador */
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px ${props => props.theme.surface} inset !important;
+    -webkit-text-fill-color: ${props => props.theme.text} !important;
+    caret-color: ${props => props.theme.text};
+    border: 1px solid ${props => props.theme.border};
+  }
+
+  &:focus:-webkit-autofill {
+    border-color: ${props => props.theme.primary};
+    -webkit-box-shadow: 0 0 0 30px ${props => props.theme.surface} inset, 0 0 0 3px ${props => props.theme.primary}20 !important;
   }
 
   &::placeholder {
     color: ${props => props.theme.textLight};
+  }
+
+  /* Remove fundo amarelo do autocomplete no Edge */
+  &:-internal-autofill-selected {
+    background-color: ${props => props.theme.surface} !important;
+    color: ${props => props.theme.text} !important;
   }
 `;
 
@@ -197,6 +229,8 @@ export const PasswordToggle = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: color 0.2s;
+  z-index: 2;
 
   &:hover {
     color: ${props => props.theme.primary};
@@ -225,6 +259,10 @@ export const CheckboxLabel = styled.label`
     cursor: pointer;
     accent-color: ${props => props.theme.primary};
   }
+
+  svg {
+    color: ${props => props.theme.primary};
+  }
 `;
 
 export const CheckboxHelper = styled.p`
@@ -243,6 +281,10 @@ export const SectionTitle = styled.h3`
   margin: 1.2rem 0 0.8rem 0;
   padding-bottom: 0.3rem;
   border-bottom: 1px solid ${props => props.theme.border};
+
+  svg {
+    color: ${props => props.theme.primary};
+  }
 `;
 
 export const LoginButton = styled.button`
@@ -255,10 +297,12 @@ export const LoginButton = styled.button`
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: 0.2s;
+  transition: all 0.2s;
 
   &:hover:not(:disabled) {
     background: ${props => props.theme.primaryDark};
+    transform: translateY(-1px);
+    box-shadow: ${props => props.theme.shadowHover};
   }
 
   &:disabled {
@@ -279,6 +323,10 @@ export const InfoMessage = styled.div`
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+
+  svg {
+    color: ${props => props.theme.success};
+  }
 `;
 
 export const BackLink = styled.button`
@@ -294,8 +342,17 @@ export const BackLink = styled.button`
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  transition: color 0.2s;
 
   &:hover {
     color: ${props => props.theme.primary};
+  }
+
+  svg {
+    transition: transform 0.2s;
+  }
+
+  &:hover svg {
+    transform: translateX(-3px);
   }
 `;

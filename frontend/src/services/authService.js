@@ -1,15 +1,18 @@
 import api from './api';
 
-export const authService = {
-  // Autenticação
+class AuthService {
+
   async login(dados) {
     try {
       const response = await api.post('/auth/login', dados);
+
       if (response.data.token) {
-        this.salvarToken(response.data.token);
-        // Padronizar o objeto de usuário antes de salvar
-        const usuario = this.padronizarUsuario(response.data);
-        this.salvarUsuario(usuario);
+        this._salvarToken(response.data.token);
+        
+
+        const usuario = this._padronizarUsuario(response.data);
+        this._salvarUsuario(usuario);
+        
         return usuario;
       }
       return response.data;
@@ -17,72 +20,51 @@ export const authService = {
       console.error('Erro no login:', error);
       throw error;
     }
-  },
+  }
 
-  async registrar(dados) {
+  async logout() {
     try {
-      // Converter dados do frontend para o formato esperado pelo backend
-      const dadosBackend = {
-        nomeCompleto: dados.nomeCompleto,
-        email: dados.email,
-        senha: dados.senha,
-        cpf: dados.cpf,
-        dataNascimento: dados.dataNascimento,
-        rendaMensal: dados.rendaMensal || 0
-      };
-
-      const response = await api.post('/auth/registrar', dadosBackend);
-      if (response.data.token) {
-        this.salvarToken(response.data.token);
-        const usuario = this.padronizarUsuario(response.data);
-        this.salvarUsuario(usuario);
-        return usuario;
-      }
-      return response.data;
+      await api.post('/auth/logout');
     } catch (error) {
-      console.error('Erro no registro:', error);
-      throw error;
+      console.error('Erro no logout:', error);
+    } finally {
+      this._logoutLocal();
     }
-  },
+  }
 
-  async registrarCasal(dados) {
+  getToken() {
+    return localStorage.getItem('token');
+  }
+
+  getUsuario() {
     try {
-      // Converter dados do frontend para o formato esperado pelo backend
-      const dadosBackend = {
-        nomeCompletoPessoa1: dados.nomeCompletoPessoa1,
-        emailPessoa1: dados.emailPessoa1,
-        senhaPessoa1: dados.senhaPessoa1,
-        cpfPessoa1: dados.cpfPessoa1,
-        dataNascimentoPessoa1: dados.dataNascimentoPessoa1,
-        rendaMensalPessoa1: dados.rendaMensalPessoa1 || 0,
-        
-        nomeCompletoPessoa2: dados.nomeCompletoPessoa2,
-        emailPessoa2: dados.emailPessoa2,
-        senhaPessoa2: dados.senhaPessoa2,
-        cpfPessoa2: dados.cpfPessoa2,
-        dataNascimentoPessoa2: dados.dataNascimentoPessoa2,
-        rendaMensalPessoa2: dados.rendaMensalPessoa2 || 0,
-        
-        dataCasamento: dados.dataCasamento
-      };
-
-      const response = await api.post('/auth/registrar-casal', dadosBackend);
-      if (response.data.token) {
-        this.salvarToken(response.data.token);
-        const usuario = this.padronizarUsuario(response.data);
-        this.salvarUsuario(usuario);
-        return usuario;
-      }
-      return response.data;
+      const usuario = localStorage.getItem('usuario');
+      return usuario ? JSON.parse(usuario) : null;
     } catch (error) {
-      console.error('Erro no registro casal:', error);
-      throw error;
+      console.error('Erro ao parsear usuário:', error);
+      return null;
     }
-  },
+  }
 
-  // Função auxiliar para padronizar o objeto de usuário
-  padronizarUsuario(data) {
-    // Se já tiver isCasal, mantém
+  estaAutenticado() {
+    return !!this.getToken();
+  }
+
+  _salvarToken(token) {
+    localStorage.setItem('token', token);
+  }
+
+  _salvarUsuario(usuario) {
+    localStorage.setItem('usuario', JSON.stringify(usuario));
+  }
+
+  _logoutLocal() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+  }
+
+  _padronizarUsuario(data) {
+
     if (data.isCasal !== undefined) {
       return {
         id: data.id,
@@ -101,7 +83,6 @@ export const authService = {
       };
     }
 
-    // Para respostas do /me ou registro
     if (data.tipoConta === 'Casal' || data.isCasal) {
       return {
         id: data.id,
@@ -112,6 +93,7 @@ export const authService = {
         tipoConta: '1',
         modoEscuro: data.modoEscuro || false,
         pessoaQueLogou: data.pessoaQueLogou || 'pessoa1',
+        rendaMensal: data.rendaMensal,
         casalInfo: {
           nomeCompletoPessoa1: data.nomeCompletoPessoa1 || data.casalInfo?.nomeCompletoPessoa1,
           emailPessoa1: data.emailPessoa1 || data.casalInfo?.emailPessoa1,
@@ -129,7 +111,10 @@ export const authService = {
         },
         createdAt: data.createdAt || data.dataInclusao
       };
-    } else {
+    } 
+    
+
+    else {
       return {
         id: data.id,
         nomeCompleto: data.nomeCompleto,
@@ -144,167 +129,7 @@ export const authService = {
         createdAt: data.createdAt || data.dataInclusao
       };
     }
-  },
-
-  // Perfil
-  async getCurrentUser() {
-    try {
-      const response = await api.get('/auth/me');
-      const usuario = this.padronizarUsuario(response.data);
-      return usuario;
-    } catch (error) {
-      console.error('Erro ao buscar usuário:', error);
-      throw error;
-    }
-  },
-
-  async atualizarPerfil(id, dados) {
-    try {
-      // Converter para o formato esperado pelo backend
-      const dadosBackend = {
-        nomeCompleto: dados.nomeCompleto,
-        dataNascimento: dados.dataNascimento,
-        rendaMensal: dados.rendaMensal
-      };
-
-      const response = await api.put(`/auth/perfil/${id}`, dadosBackend);
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      throw error;
-    }
-  },
-
-  async atualizarPerfilCasal(id, dados) {
-    try {
-      // Converter para o formato esperado pelo backend
-      const dadosBackend = {
-        nomeCompletoPessoa1: dados.nomeCompletoPessoa1,
-        dataNascimentoPessoa1: dados.dataNascimentoPessoa1,
-        rendaMensalPessoa1: dados.rendaMensalPessoa1,
-        
-        nomeCompletoPessoa2: dados.nomeCompletoPessoa2,
-        dataNascimentoPessoa2: dados.dataNascimentoPessoa2,
-        rendaMensalPessoa2: dados.rendaMensalPessoa2,
-        
-        dataCasamento: dados.dataCasamento
-      };
-
-      const response = await api.put(`/auth/perfil-casal/${id}`, dadosBackend);
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao atualizar perfil casal:', error);
-      throw error;
-    }
-  },
-
-  async atualizarModoEscuro(id, modoEscuro) {
-    try {
-      const response = await api.put(`/auth/modo-escuro/${id}`, { modoEscuro });
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao atualizar modo escuro:', error);
-      throw error;
-    }
-  },
-
-  async alterarSenha(dados) {
-    try {
-      const response = await api.post('/auth/alterar-senha', dados);
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao alterar senha:', error);
-      throw error;
-    }
-  },
-
-  async excluirConta(id) {
-    try {
-      const response = await api.delete(`/auth/usuario/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao excluir conta:', error);
-      throw error;
-    }
-  },
-
-  async logout() {
-    try {
-      await api.post('/auth/logout');
-    } catch (error) {
-      console.error('Erro no logout:', error);
-    } finally {
-      this.logoutLocal();
-    }
-  },
-
-  // Gerenciamento de token
-  salvarToken(token) {
-    localStorage.setItem('token', token);
-    this.configurarToken();
-  },
-
-  salvarUsuario(usuario) {
-    localStorage.setItem('usuario', JSON.stringify(usuario));
-  },
-
-  getToken() {
-    return localStorage.getItem('token');
-  },
-
-  getUsuario() {
-    try {
-      const usuario = localStorage.getItem('usuario');
-      return usuario ? JSON.parse(usuario) : null;
-    } catch (error) {
-      console.error('Erro ao parsear usuário:', error);
-      return null;
-    }
-  },
-
-  logoutLocal() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('usuario');
-    if (api.defaults?.headers) {
-      delete api.defaults.headers.common['Authorization'];
-    }
-  },
-
-  estaAutenticado() {
-    return !!this.getToken();
-  },
-
-  configurarToken() {
-    const token = this.getToken();
-    if (token && api.defaults?.headers) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    }
-  },
-
-  async verificarToken() {
-    try {
-      if (!this.estaAutenticado()) return false;
-      await this.getCurrentUser();
-      return true;
-    } catch (error) {
-      this.logoutLocal();
-      return false;
-    }
   }
-};
+}
 
-// Configurar token inicial
-authService.configurarToken();
-
-// Interceptor para renovar token ou logout em caso de 401
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401 && !error.config._retry) {
-      error.config._retry = true;
-      authService.logoutLocal();
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+export default new AuthService();

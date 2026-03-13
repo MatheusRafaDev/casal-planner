@@ -1,17 +1,15 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import styled from 'styled-components';
+import { StyleSheetManager } from 'styled-components';
+import isPropValid from '@emotion/is-prop-valid';
 import { Toaster } from 'react-hot-toast';
 import { ConfirmProvider } from './context/ConfirmContext';
 import ConfirmModal from './components/ConfirmModal';
-
-
 import Header from './components/Header';
-
 
 import Inicio from './pages/Inicio';
 import Perfil from './pages/Perfil';
@@ -19,8 +17,6 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 
 import GlobalStyle from './styles/GlobalStyle';
-
-
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -105,18 +101,20 @@ function StyledThemeWrapper() {
 
 function App() {
   return (
-    <BrowserRouter
-      future={{
-        v7_startTransition: true,
-        v7_relativeSplatPath: true,
-      }}
-    >
-      <AuthProvider>
-        <ThemeProvider>
-          <StyledThemeWrapper />
-        </ThemeProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <StyleSheetManager shouldForwardProp={isPropValid}>
+      <BrowserRouter
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
+        <AuthProvider>
+          <ThemeProvider>
+            <StyledThemeWrapper />
+          </ThemeProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </StyleSheetManager>
   );
 }
 

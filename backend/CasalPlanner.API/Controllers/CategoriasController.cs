@@ -4,6 +4,7 @@ using System.Security.Claims;
 using MongoDB.Driver;
 using MongoDB.Bson;
 using CasalPlanner.API.Models;
+using CasalPlanner.API.Models.DTOs; 
 using CasalPlanner.API.Data;
 
 namespace CasalPlanner.API.Controllers;

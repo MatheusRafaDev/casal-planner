@@ -4,6 +4,7 @@ using System.Security.Claims;
 using MongoDB.Driver;
 using CasalPlanner.API.Data;
 using CasalPlanner.API.Models;
+using CasalPlanner.API.Models.DTOs; 
 
 namespace CasalPlanner.API.Controllers
 {

@@ -1,4 +1,4 @@
-// src/pages/Inicio.jsx
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
@@ -104,7 +104,7 @@ const Inicio = () => {
     pagamento: "normal",
   });
 
-  // Ref para guardar a posição do scroll
+
   const scrollPositionRef = useRef(0);
 
   const showMessage = (text, type = "success") => {
@@ -197,9 +197,9 @@ const Inicio = () => {
     }
   };
 
-  // DRAG DE CATEGORIAS - VERSÃO MAIS SIMPLES POSSÍVEL
+ 
   const handleCardDragStart = (e, index) => {
-    console.log("🔵 DRAG START - Índice:", index);
+
     setDraggedCardIndex(index);
     e.dataTransfer.setData("text/plain", index.toString());
     e.dataTransfer.effectAllowed = "move";
@@ -209,7 +209,7 @@ const Inicio = () => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
     if (draggedCardIndex !== null && index !== dragOverCardIndex) {
-      console.log("🟡 DRAG OVER - Índice:", index);
+
       setDragOverCardIndex(index);
     }
   };
@@ -218,7 +218,7 @@ const Inicio = () => {
     e.preventDefault();
     
     const sourceIndex = e.dataTransfer.getData("text/plain");
-    console.log("🟢 DROP - Source:", sourceIndex, "Target:", targetIndex);
+
 
     if (sourceIndex === null || sourceIndex === targetIndex.toString()) {
       setDraggedCardIndex(null);
@@ -226,12 +226,12 @@ const Inicio = () => {
       return;
     }
 
-    // Reordena localmente
+  
     const newCategorias = [...categoriasArray];
     const [removed] = newCategorias.splice(parseInt(sourceIndex), 1);
     newCategorias.splice(targetIndex, 0, removed);
 
-    // Atualiza UI
+ 
     setCategorias(newCategorias);
     
     try {
@@ -247,7 +247,7 @@ const Inicio = () => {
     setDragOverCardIndex(null);
   };
 
-  // Drag de ITENS
+
   const handleItemDragStart = (itemId) => {
     setDraggedItemId(itemId);
   };
@@ -276,7 +276,6 @@ const Inicio = () => {
     }
   };
 
-  // Handlers de categoria
   const handleAddCategoria = () => {
     setCategoriaModal({
       isOpen: true,
@@ -303,7 +302,7 @@ const Inicio = () => {
     }
   };
 
-  // Handlers de item
+
   const handleAddItem = (categoriaId) => {
     setItemModal({
       isOpen: true,

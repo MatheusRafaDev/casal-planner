@@ -50,7 +50,7 @@ export const hexToHsl = (hex) => {
     h /= 6;
   }
   
-  // Converte para porcentagens e formata como string
+
   h = Math.round(h * 360);
   s = Math.round(s * 100);
   l = Math.round(l * 100);

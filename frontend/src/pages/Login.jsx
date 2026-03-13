@@ -21,7 +21,6 @@ import {
   User
 } from 'lucide-react';
 
-// Import das funções de formatação
 import {
   formatarCPF,
   formatarValorInput,
@@ -114,18 +113,18 @@ const Login = () => {
 
     if (name.startsWith("pessoa1_")) {
       const campo = name.replace("pessoa1_", "");
-      setFormData({
-        ...formData,
-        pessoa1: { ...formData.pessoa1, [campo]: value },
-      });
+      setFormData(prev => ({
+        ...prev,
+        pessoa1: { ...prev.pessoa1, [campo]: value },
+      }));
     } else if (name.startsWith("pessoa2_")) {
       const campo = name.replace("pessoa2_", "");
-      setFormData({
-        ...formData,
-        pessoa2: { ...formData.pessoa2, [campo]: value },
-      });
+      setFormData(prev => ({
+        ...prev,
+        pessoa2: { ...prev.pessoa2, [campo]: value },
+      }));
     } else {
-      setFormData({ ...formData, [name]: value });
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
 
     if (modo === "registro" && (name.includes("senha") || name.includes("confirmar"))) {
@@ -182,8 +181,7 @@ const Login = () => {
           setError("CPF inválido. Deve conter 11 dígitos.");
           return;
         }
-        
-        // Validar data de nascimento
+
         if (!validarData(formData.dataNascimento)) {
           setError("Data de nascimento inválida. Use o formato DD/MM/AAAA.");
           return;
@@ -197,8 +195,7 @@ const Login = () => {
           setError("CPF da segunda pessoa inválido. Deve conter 11 dígitos.");
           return;
         }
-        
-        // Validar datas de nascimento do casal
+
         if (!validarData(formData.pessoa1.dataNascimento)) {
           setError("Data de nascimento da primeira pessoa inválida.");
           return;
@@ -246,7 +243,7 @@ const Login = () => {
               ? parseFloat(
                   formData.pessoa1.rendaMensal
                     .replace(/\./g, "")
-                    .replace(",", "."),
+                    .replace(",", ".")
                 )
               : null,
 
@@ -259,7 +256,7 @@ const Login = () => {
               ? parseFloat(
                   formData.pessoa2.rendaMensal
                     .replace(/\./g, "")
-                    .replace(",", "."),
+                    .replace(",", ".")
                 )
               : null,
             dataInclusao: formData.dataInclusao,
@@ -287,7 +284,7 @@ const Login = () => {
             dataNascimento: converterDataBRparaISO(formData.dataNascimento),
             rendaMensal: formData.rendaMensal
               ? parseFloat(
-                  formData.rendaMensal.replace(/\./g, "").replace(",", "."),
+                  formData.rendaMensal.replace(/\./g, "").replace(",", ".")
                 )
               : null,
             dataInclusao: formData.dataInclusao,
@@ -305,7 +302,7 @@ const Login = () => {
       setError(
         err.response?.data?.message ||
           err.message ||
-          "Erro ao processar solicitação",
+          "Erro ao processar solicitação"
       );
     } finally {
       setLoading(false);
@@ -315,7 +312,6 @@ const Login = () => {
   return (
     <LoginContainer theme={theme}>
       <LoginCard theme={theme}>
-        {/* Logo */}
         <LogoWrapper>
           <LogoIcon theme={theme}>
             <Heart size={32} />
@@ -325,10 +321,9 @@ const Login = () => {
         <Title theme={theme}>CasalPlanner</Title>
         <Subtitle theme={theme}>Organize a vida a dois</Subtitle>
 
-        {/* Tabs */}
         <TabsContainer theme={theme}>
           <Tab 
-            active={modo === "login"} 
+            $active={modo === "login"} 
             onClick={() => {
               setModo("login");
               setError("");
@@ -340,7 +335,7 @@ const Login = () => {
             <span>Login</span>
           </Tab>
           <Tab 
-            active={modo === "registro"} 
+            $active={modo === "registro"} 
             onClick={() => {
               setModo("registro");
               setError("");
@@ -353,7 +348,6 @@ const Login = () => {
           </Tab>
         </TabsContainer>
 
-        {/* Mensagens de erro */}
         {error && (
           <ErrorMessage theme={theme}>
             <AlertCircle size={16} />
@@ -368,7 +362,6 @@ const Login = () => {
         )}
 
         <Form onSubmit={handleSubmit}>
-          {/* FORMULÁRIO DE LOGIN */}
           {modo === "login" && (
             <>
               <FormGroup>
@@ -423,7 +416,6 @@ const Login = () => {
             </>
           )}
 
-          {/* FORMULÁRIO DE REGISTRO */}
           {modo === "registro" && (
             <>
               <CheckboxWrapper theme={theme}>
@@ -444,7 +436,6 @@ const Login = () => {
               </CheckboxWrapper>
 
               {!isCasal ? (
-                /* FORMULÁRIO INDIVIDUAL */
                 <>
                   <FormGroup>
                     <Label theme={theme}>
@@ -477,7 +468,7 @@ const Login = () => {
                   </FormGroup>
 
                   <FormRow>
-                    <FormGroup half>
+                    <FormGroup $half>
                       <Label theme={theme}>
                         <Lock size={16} />
                         Senha *
@@ -495,7 +486,7 @@ const Login = () => {
                       </InputWrapper>
                     </FormGroup>
 
-                    <FormGroup half>
+                    <FormGroup $half>
                       <Label theme={theme}>
                         <Lock size={16} />
                         Confirmar *
@@ -522,7 +513,7 @@ const Login = () => {
                   </FormRow>
 
                   <FormRow>
-                    <FormGroup half>
+                    <FormGroup $half>
                       <Label theme={theme}>
                         <Hash size={16} />
                         CPF *
@@ -543,7 +534,7 @@ const Login = () => {
                       />
                     </FormGroup>
 
-                    <FormGroup half>
+                    <FormGroup $half>
                       <Label theme={theme}>
                         <Calendar size={16} />
                         Data nasc. *
@@ -566,7 +557,7 @@ const Login = () => {
                   </FormRow>
 
                   <FormRow>
-                    <FormGroup half>
+                    <FormGroup $half>
                       <Label theme={theme}>
                         <DollarSign size={16} />
                         Renda mensal
@@ -588,7 +579,6 @@ const Login = () => {
                   </FormRow>
                 </>
               ) : (
-                /* FORMULÁRIO CASAL */
                 <>
                   <SectionTitle theme={theme}>
                     <User size={18} />
@@ -620,7 +610,7 @@ const Login = () => {
                   </FormGroup>
 
                   <FormRow>
-                    <FormGroup half>
+                    <FormGroup $half>
                       <Label theme={theme}>Senha *</Label>
                       <InputWrapper>
                         <Input
@@ -635,7 +625,7 @@ const Login = () => {
                       </InputWrapper>
                     </FormGroup>
 
-                    <FormGroup half>
+                    <FormGroup $half>
                       <Label theme={theme}>Confirmar *</Label>
                       <InputWrapper>
                         <Input
@@ -652,7 +642,7 @@ const Login = () => {
                   </FormRow>
 
                   <FormRow>
-                    <FormGroup half>
+                    <FormGroup $half>
                       <Label theme={theme}>CPF *</Label>
                       <Input
                         type="text"
@@ -670,7 +660,7 @@ const Login = () => {
                       />
                     </FormGroup>
 
-                    <FormGroup half>
+                    <FormGroup $half>
                       <Label theme={theme}>Data nasc. *</Label>
                       <Input
                         type="text"
@@ -690,7 +680,7 @@ const Login = () => {
                   </FormRow>
 
                   <FormRow>
-                    <FormGroup half>
+                    <FormGroup $half>
                       <Label theme={theme}>Renda mensal</Label>
                       <Input
                         type="text"
@@ -738,7 +728,7 @@ const Login = () => {
                   </FormGroup>
 
                   <FormRow>
-                    <FormGroup half>
+                    <FormGroup $half>
                       <Label theme={theme}>Senha *</Label>
                       <InputWrapper>
                         <Input
@@ -753,7 +743,7 @@ const Login = () => {
                       </InputWrapper>
                     </FormGroup>
 
-                    <FormGroup half>
+                    <FormGroup $half>
                       <Label theme={theme}>Confirmar *</Label>
                       <InputWrapper>
                         <Input
@@ -770,7 +760,7 @@ const Login = () => {
                   </FormRow>
 
                   <FormRow>
-                    <FormGroup half>
+                    <FormGroup $half>
                       <Label theme={theme}>CPF *</Label>
                       <Input
                         type="text"
@@ -788,7 +778,7 @@ const Login = () => {
                       />
                     </FormGroup>
 
-                    <FormGroup half>
+                    <FormGroup $half>
                       <Label theme={theme}>Data nasc. *</Label>
                       <Input
                         type="text"
@@ -808,7 +798,7 @@ const Login = () => {
                   </FormRow>
 
                   <FormRow>
-                    <FormGroup half>
+                    <FormGroup $half>
                       <Label theme={theme}>Renda mensal</Label>
                       <Input
                         type="text"

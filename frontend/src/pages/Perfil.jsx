@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { authService } from '../services/authService';
+import usuarioService from '../services/usuarioService';
 
-// Import das funções de formatação
 import {
   formatarMoeda,
   formatarValorInput,
@@ -15,7 +14,6 @@ import {
   converterValorParaNumero
 } from '../utils/formatters';
 
-// Import dos estilos
 import {
   PerfilContainer,
   Header,
@@ -66,7 +64,6 @@ const Perfil = () => {
   const [carregandoDados, setCarregandoDados] = useState(true);
   const [mostrarModalExcluir, setMostrarModalExcluir] = useState(false);
 
-  // Estado para casal
   const [dadosCasal, setDadosCasal] = useState({
     nomeCompletoPessoa1: '',
     emailPessoa1: '',
@@ -84,7 +81,6 @@ const Perfil = () => {
     createdAt: ''
   });
 
-  // Estado para individual
   const [dadosIndividual, setDadosIndividual] = useState({
     nomeCompleto: '',
     email: '',
@@ -94,14 +90,11 @@ const Perfil = () => {
     rendaMensalValor: 0
   });
 
-  // Estado para senha
   const [senha, setSenha] = useState({
     atual: '',
     nova: '',
     confirmar: ''
   });
-
-  // ========== FUNÇÕES DE HANDLE ==========
 
   const handleChangeCasal = (e) => {
     const { name, value } = e.target;
@@ -122,7 +115,6 @@ const Perfil = () => {
         }
         
         novosDados.RendaMensal = novosDados.rendaMensalPessoa1Valor + novosDados.rendaMensalPessoa2Valor;
-        
         return novosDados;
       });
     } else if (name.includes('dataNascimento')) {
@@ -157,8 +149,6 @@ const Perfil = () => {
     const { name, value } = e.target;
     setSenha(prev => ({ ...prev, [name]: value }));
   };
-
-  // ========== FUNÇÕES DE VALIDAÇÃO ==========
 
   const validarDadosCasal = () => {
     if (!dadosCasal.nomeCompletoPessoa1) {
@@ -210,28 +200,19 @@ const Perfil = () => {
     return true;
   };
 
-
-
   const handleSalvarPerfil = async () => {
     setLoading(true);
     setErro('');
     setMensagem('');
-    
-
 
     try {
       const isCasal = usuario.isCasal || usuario.tipoConta === 1;
 
-
       if (isCasal) {
-
         if (!validarDadosCasal()) {
           setLoading(false);
-          console.log("Validação do casal falhou:", erro);
           return;
         }
-
-
 
         const dadosAtualizados = {
           nomeCompletoPessoa1: dadosCasal.nomeCompletoPessoa1,
@@ -244,8 +225,7 @@ const Perfil = () => {
           rendaMensalPessoa2: dadosCasal.rendaMensalPessoa2Valor || 0
         };
 
-
-        const dadosCasal = await authService.atualizarPerfilCasal(usuario.id, dadosAtualizados);
+        await usuarioService.atualizarPerfilCasal(usuario.id, dadosAtualizados);
 
         const usuarioAtualizado = {
           ...usuario,
@@ -256,7 +236,6 @@ const Perfil = () => {
             rendaMensalPessoa2: dadosCasal.rendaMensalPessoa2Valor.toString(),
           },
         };
-
 
         atualizarUsuario(usuarioAtualizado);
       } else {
@@ -272,7 +251,7 @@ const Perfil = () => {
           rendaMensal: dadosIndividual.rendaMensalValor || 0
         };
 
-        await authService.atualizarPerfil(usuario.id, dadosAtualizados);
+        await usuarioService.atualizarPerfil(usuario.id, dadosAtualizados);
         
         const usuarioAtualizado = {
           ...usuario,
@@ -323,7 +302,7 @@ const Perfil = () => {
         email = usuario.email;
       }
 
-      await authService.alterarSenha({
+      await usuarioService.alterarSenha({
         email: email,
         senhaAtual: senha.atual,
         novaSenha: senha.nova
@@ -346,7 +325,7 @@ const Perfil = () => {
     setErro('');
     
     try {
-      await authService.excluirConta(usuario.id);
+      await usuarioService.excluirConta(usuario.id);
       await logout();
     } catch (error) {
       setErro(error.response?.data?.message || 'Erro ao excluir conta');
@@ -356,8 +335,6 @@ const Perfil = () => {
       setLoading(false);
     }
   };
-
-
 
   const formatarDataCriacao = (data) => {
     if (!data) return 'Não informado';
@@ -374,56 +351,63 @@ const Perfil = () => {
     }
   };
 
-
-
   useEffect(() => {
-    if (usuario) {
-      setCarregandoDados(true);
-      
-      if (usuario.isCasal || usuario.tipoConta === 1) {
-        const casalInfo = usuario.casalInfo || {};
-        
-        const rendaPessoa1 = parseFloat(casalInfo.rendaMensalPessoa1 || 0);
-        const rendaPessoa2 = parseFloat(casalInfo.rendaMensalPessoa2 || 0);
-        
-        setDadosCasal({
-          nomeCompletoPessoa1: casalInfo.nomeCompletoPessoa1 || '',
-          emailPessoa1: casalInfo.emailPessoa1 || '',
-          cpfPessoa1: casalInfo.cpfPessoa1 || '',
-          dataNascimentoPessoa1: formatarDataExibicao(casalInfo.dataNascimentoPessoa1),
-          rendaMensalPessoa1: casalInfo.rendaMensalPessoa1 ? 
-            formatarMoeda(parseFloat(casalInfo.rendaMensalPessoa1)) : '',
-          rendaMensalPessoa1Valor: rendaPessoa1,
-          nomeCompletoPessoa2: casalInfo.nomeCompletoPessoa2 || '',
-          emailPessoa2: casalInfo.emailPessoa2 || '',
-          cpfPessoa2: casalInfo.cpfPessoa2 || '',
-          dataNascimentoPessoa2: formatarDataExibicao(casalInfo.dataNascimentoPessoa2),
-          rendaMensalPessoa2: casalInfo.rendaMensalPessoa2 ? 
-            formatarMoeda(parseFloat(casalInfo.rendaMensalPessoa2)) : '',
-          rendaMensalPessoa2Valor: rendaPessoa2,
-          RendaMensal: usuario.RendaMensal,
-          createdAt: casalInfo.createdAt || ''
-          
-        });
-      } else {
-        const renda = parseFloat(usuario.rendaMensal || 0);
-        
-        setDadosIndividual({
-          nomeCompleto: usuario.nomeCompleto || '',
-          email: usuario.email || '',
-          cpf: usuario.cpf || '',
-          dataNascimento: formatarDataExibicao(usuario.dataNascimento),
-          rendaMensal: usuario.rendaMensal ? 
-            formatarMoeda(parseFloat(usuario.rendaMensal)) : '',
-          rendaMensalValor: renda
-        });
+    const carregarDados = async () => {
+      if (!usuario) {
+        setCarregandoDados(false);
+        return;
       }
 
-      setCarregandoDados(false);
-    }
-  }, [usuario]);
+      try {
+        setCarregandoDados(true);
+        
+        if (usuario.isCasal || usuario.tipoConta === 1) {
+          const casalInfo = usuario.casalInfo || {};
+          
+          const rendaPessoa1 = parseFloat(casalInfo.rendaMensalPessoa1 || 0);
+          const rendaPessoa2 = parseFloat(casalInfo.rendaMensalPessoa2 || 0);
+          
+          setDadosCasal({
+            nomeCompletoPessoa1: casalInfo.nomeCompletoPessoa1 || '',
+            emailPessoa1: casalInfo.emailPessoa1 || '',
+            cpfPessoa1: casalInfo.cpfPessoa1 || '',
+            dataNascimentoPessoa1: formatarDataExibicao(casalInfo.dataNascimentoPessoa1),
+            rendaMensalPessoa1: casalInfo.rendaMensalPessoa1 ? 
+              formatarMoeda(parseFloat(casalInfo.rendaMensalPessoa1)) : '',
+            rendaMensalPessoa1Valor: rendaPessoa1,
+            nomeCompletoPessoa2: casalInfo.nomeCompletoPessoa2 || '',
+            emailPessoa2: casalInfo.emailPessoa2 || '',
+            cpfPessoa2: casalInfo.cpfPessoa2 || '',
+            dataNascimentoPessoa2: formatarDataExibicao(casalInfo.dataNascimentoPessoa2),
+            rendaMensalPessoa2: casalInfo.rendaMensalPessoa2 ? 
+              formatarMoeda(parseFloat(casalInfo.rendaMensalPessoa2)) : '',
+            rendaMensalPessoa2Valor: rendaPessoa2,
+            RendaMensal: usuario.rendaMensal || 0,
+            createdAt: casalInfo.createdAt || ''
+          });
+        } else {
+          const renda = parseFloat(usuario.rendaMensal || 0);
+          
+          setDadosIndividual({
+            nomeCompleto: usuario.nomeCompleto || '',
+            email: usuario.email || '',
+            cpf: usuario.cpf || '',
+            dataNascimento: formatarDataExibicao(usuario.dataNascimento),
+            rendaMensal: usuario.rendaMensal ? 
+              formatarMoeda(parseFloat(usuario.rendaMensal)) : '',
+            rendaMensalValor: renda
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        setErro('Erro ao carregar dados do perfil');
+      } finally {
+        setCarregandoDados(false);
+      }
+    };
 
-  // ========== RENDERIZAÇÃO ==========
+    carregarDados();
+  }, [usuario]);
 
   if (carregandoDados) {
     return (
@@ -453,7 +437,11 @@ const Perfil = () => {
       <Header>
         <h1>Meu Perfil</h1>
         {!editando && !editandoSenha && (
-          <EditarButton onClick={() => setEditando(true)} disabled={loading}>
+          <EditarButton 
+            $primary 
+            onClick={() => setEditando(true)} 
+            disabled={loading}
+          >
             ✏️ Editar Perfil
           </EditarButton>
         )}
@@ -795,7 +783,6 @@ const Perfil = () => {
         </InfoContainer>
       </PerfilCard>
 
-      {/* SEGURANÇA */}
       {!editando && (
         <PerfilCard>
           <SectionTitle>🔒 Segurança</SectionTitle>
@@ -861,7 +848,10 @@ const Perfil = () => {
       {!editando && !editandoSenha && (
         <PerfilCard>
           <SectionTitle>⚠️ Zona de Perigo</SectionTitle>
-          <AlterarSenhaButton danger onClick={() => setMostrarModalExcluir(true)}>
+          <AlterarSenhaButton 
+            $danger 
+            onClick={() => setMostrarModalExcluir(true)}
+          >
             🗑️ Excluir Conta
           </AlterarSenhaButton>
         </PerfilCard>
@@ -884,7 +874,11 @@ const Perfil = () => {
               <CancelarButton onClick={() => setMostrarModalExcluir(false)}>
                 Cancelar
               </CancelarButton>
-              <ConfirmarButton onClick={handleExcluirConta} disabled={loading}>
+              <ConfirmarButton 
+                $danger  
+                onClick={handleExcluirConta} 
+                disabled={loading}
+              >
                 {loading ? 'Excluindo...' : 'Excluir conta'}
               </ConfirmarButton>
             </ModalFooter>

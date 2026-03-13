@@ -1,4 +1,4 @@
-// PerfilStyles.js
+
 import styled from 'styled-components';
 
 export const PerfilContainer = styled.div`
@@ -34,9 +34,9 @@ export const EditarButton = styled.button`
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: ${props => props.theme.primary};
-  color: ${props => props.theme.surface};
-  border: none;
+  background: ${props => props.$primary ? props.theme.primary : props.theme.surface};
+  color: ${props => props.$primary ? props.theme.surface : props.theme.text};
+  border: ${props => props.$primary ? 'none' : `1px solid ${props.theme.border}`};
   border-radius: ${props => props.theme.radiusFull};
   font-size: 0.9rem;
   font-weight: 500;
@@ -45,7 +45,7 @@ export const EditarButton = styled.button`
   transition: all 0.2s;
 
   &:hover:not(:disabled) {
-    background: ${props => props.theme.primaryDark};
+    background: ${props => props.$primary ? props.theme.primaryDark : props.theme.hover};
     transform: translateY(-2px);
     box-shadow: ${props => props.theme.shadowHover};
   }
@@ -260,7 +260,6 @@ export const FormGroup = styled.div`
   gap: 0.3rem;
   margin-bottom: 1rem;
   width: 100%;
-  flex: ${props => props.half ? '1' : 'auto'};
 `;
 
 export const FormRow = styled.div`
@@ -385,17 +384,17 @@ export const AlterarSenhaButton = styled.button`
   gap: 0.5rem;
   width: 100%;
   padding: 0.8rem;
-  background: ${props => props.danger ? props.theme.error + '10' : props.theme.hover};
-  border: 1px solid ${props => props.danger ? props.theme.error + '30' : props.theme.border};
+  background: ${props => props.$danger ? props.theme.error + '10' : props.theme.hover};
+  border: 1px solid ${props => props.$danger ? props.theme.error + '30' : props.theme.border};
   border-radius: ${props => props.theme.radius};
-  color: ${props => props.danger ? props.theme.error : props.theme.text};
+  color: ${props => props.$danger ? props.theme.error : props.theme.text};
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background: ${props => props.danger ? props.theme.error + '20' : props.theme.borderLight};
+    background: ${props => props.$danger ? props.theme.error + '20' : props.theme.borderLight};
     transform: translateY(-2px);
   }
 `;
@@ -540,7 +539,7 @@ export const FecharButton = styled.button`
 
 export const ConfirmarButton = styled.button`
   padding: 0.7rem 2rem;
-  background: ${props => props.theme.error};
+  background: ${props => props.$danger ? props.theme.error : props.theme.primary};
   border: none;
   border-radius: ${props => props.theme.radiusFull};
   color: ${props => props.theme.surface};
@@ -551,7 +550,7 @@ export const ConfirmarButton = styled.button`
   transition: all 0.2s;
 
   &:hover:not(:disabled) {
-    background: ${props => props.theme.accentDark};
+    background: ${props => props.$danger ? props.theme.error + 'dd' : props.theme.primaryDark};
     transform: translateY(-2px);
     box-shadow: ${props => props.theme.shadowHover};
   }

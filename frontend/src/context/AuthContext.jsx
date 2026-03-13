@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { authService } from '../services/authService';
+import authService from '../services/authService';
+import usuarioService from '../services/usuarioService';
 import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
@@ -21,9 +22,7 @@ export const AuthProvider = ({ children }) => {
       const usuarioSalvo = authService.getUsuario();
       
       if (token && usuarioSalvo) {
-        const tokenValido = await authService.verificarToken();
-        if (tokenValido) setUsuario(usuarioSalvo);
-        else authService.logoutLocal();
+        setUsuario(usuarioSalvo);
       }
       setLoading(false);
     };
@@ -33,9 +32,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, senha) => {
     try {
       const response = await authService.login({ email, senha });
-      if (response?.token) {
+      if (response) {
         setUsuario(response);
-        navigate('/');
+        navigate('/dashboard');
         return { success: true };
       }
       return { success: false, error: 'Resposta inválida' };
@@ -46,10 +45,10 @@ export const AuthProvider = ({ children }) => {
 
   const registrar = async (dados) => {
     try {
-      const response = await authService.registrar(dados);
-      if (response?.token) {
+      const response = await usuarioService.registrar(dados);
+      if (response) {
         setUsuario(response);
-        navigate('/');
+        navigate('/dashboard');
         return { success: true };
       }
       return { success: false, error: 'Resposta inválida' };
@@ -60,10 +59,10 @@ export const AuthProvider = ({ children }) => {
 
   const registrarCasal = async (dados) => {
     try {
-      const response = await authService.registrarCasal(dados);
-      if (response?.token) {
+      const response = await usuarioService.registrarCasal(dados);
+      if (response) {
         setUsuario(response);
-        navigate('/');
+        navigate('/dashboard');
         return { success: true };
       }
       return { success: false, error: 'Resposta inválida' };
@@ -80,15 +79,15 @@ export const AuthProvider = ({ children }) => {
 
   const atualizarUsuario = (novosDados) => {
     setUsuario(novosDados);
-    authService.salvarUsuario(novosDados);
+    authService._salvarUsuario(novosDados);
   };
 
   const atualizarPerfil = async (id, dados) => {
     try {
-      const response = await authService.atualizarPerfil(id, dados);
+      const response = await usuarioService.atualizarPerfil(id, dados);
       const usuarioAtualizado = { ...usuario, ...dados };
       setUsuario(usuarioAtualizado);
-      authService.salvarUsuario(usuarioAtualizado);
+      authService._salvarUsuario(usuarioAtualizado);
       return { success: true, data: response };
     } catch (error) {
       return { success: false, error: error.response?.data?.message || 'Erro ao atualizar perfil' };
@@ -97,13 +96,13 @@ export const AuthProvider = ({ children }) => {
 
   const atualizarPerfilCasal = async (id, dados) => {
     try {
-      const response = await authService.atualizarPerfilCasal(id, dados);
+      const response = await usuarioService.atualizarPerfilCasal(id, dados);
       const usuarioAtualizado = {
         ...usuario,
         casalInfo: { ...usuario.casalInfo, ...dados }
       };
       setUsuario(usuarioAtualizado);
-      authService.salvarUsuario(usuarioAtualizado);
+      authService._salvarUsuario(usuarioAtualizado);
       return { success: true, data: response };
     } catch (error) {
       return { success: false, error: error.response?.data?.message || 'Erro ao atualizar perfil' };
@@ -112,10 +111,10 @@ export const AuthProvider = ({ children }) => {
 
   const atualizarModoEscuro = async (id, modoEscuro) => {
     try {
-      const response = await authService.atualizarModoEscuro(id, modoEscuro);
+      const response = await usuarioService.atualizarModoEscuro(id, modoEscuro);
       const usuarioAtualizado = { ...usuario, modoEscuro };
       setUsuario(usuarioAtualizado);
-      authService.salvarUsuario(usuarioAtualizado);
+      authService._salvarUsuario(usuarioAtualizado);
       return { success: true, data: response };
     } catch (error) {
       return { success: false, error: error.response?.data?.message || 'Erro ao atualizar modo escuro' };
@@ -124,7 +123,7 @@ export const AuthProvider = ({ children }) => {
 
   const alterarSenha = async (dados) => {
     try {
-      const response = await authService.alterarSenha(dados);
+      const response = await usuarioService.alterarSenha(dados);
       return { success: true, data: response };
     } catch (error) {
       return { success: false, error: error.response?.data?.message || 'Erro ao alterar senha' };
@@ -133,7 +132,7 @@ export const AuthProvider = ({ children }) => {
 
   const excluirConta = async (id) => {
     try {
-      const response = await authService.excluirConta(id);
+      const response = await usuarioService.excluirConta(id);
       logout();
       return { success: true, data: response };
     } catch (error) {
@@ -145,7 +144,7 @@ export const AuthProvider = ({ children }) => {
     usuario,
     loading,
     estaAutenticado: !!usuario,
-    isCasal: usuario?.isCasal || usuario?.tipoConta === 'Casal',
+    isCasal: usuario?.isCasal || usuario?.tipoConta === '1',
     pessoaLogada: usuario?.pessoaQueLogou || null,
     
     login,
