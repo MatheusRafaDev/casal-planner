@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext'; // ✅ Caminho correto
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import styled from 'styled-components';
 import { StyleSheetManager } from 'styled-components';
@@ -118,4 +118,4 @@ function App() {
   );
 }
 
-export default App;
+export default App; // ✅ Export default

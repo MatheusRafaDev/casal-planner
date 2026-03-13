@@ -36,6 +36,11 @@ export const lightTheme = {
   info: '#3B82F6',
 
 
+
+  gradient: 'linear-gradient(135deg, #A78BFA 0%, #F9A8D4 100%)',
+  gradientSoft: 'linear-gradient(135deg, #27272A 0%, #18181B 100%)',
+  gradientAccent: 'linear-gradient(135deg, #FF6B6B 0%, #A78BFA 100%)',
+
   shadowCard: '0 4px 12px rgba(0,0,0,0.05)',
   radius: '8px',
 };

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using CasalPlanner.API.Models;
-using CasalPlanner.API.Models.DTOs; 
+using CasalPlanner.API.Models.DTOs;
 using CasalPlanner.API.Services;
 using CasalPlanner.API.Data;
 using MongoDB.Driver;
@@ -82,7 +82,7 @@ public class UsuarioController : ControllerBase
     }
 
     // ========== MÉTODOS DE MAPEAMENTO SEGUROS ==========
-    
+
     private object MapearUsuarioIndividualParaResposta(Usuario usuario)
     {
         return new
@@ -148,7 +148,7 @@ public class UsuarioController : ControllerBase
         await CriarCategoriasPadrao(usuario.Id!);
 
         var token = _authService.GerarToken(usuario);
-        
+
         return Ok(new LoginResponseDto
         {
             Id = usuario.Id!,
@@ -239,12 +239,14 @@ public class UsuarioController : ControllerBase
             updates.Add(update.Set(u => u.DataNascimento, dto.DataNascimento.Value));
         if (dto.RendaMensal.HasValue)
             updates.Add(update.Set(u => u.RendaMensal, dto.RendaMensal.Value));
+        if (dto.CPF != null)
+            updates.Add(update.Set(u => u.CPF, dto.CPF));
 
         if (updates.Any())
             await _context.Usuarios.UpdateOneAsync(u => u.Id == id, update.Combine(updates));
 
         var usuarioAtualizado = await _context.Usuarios.Find(u => u.Id == id).FirstOrDefaultAsync();
-        
+
         if (usuarioAtualizado?.TipoConta == TipoConta.Casal)
         {
             return Ok(MapearUsuarioCasalParaResposta(usuarioAtualizado));
@@ -290,14 +292,14 @@ public class UsuarioController : ControllerBase
                 updates.Add(update.Set(u => u.CasalInfo.DataCasamento, dto.DataCasamento.Value));
 
             updates.Add(update.Set(u => u.CasalInfo.UpdatedAt, DateTime.UtcNow));
-            updates.Add(update.Set(u => u.RendaMensal, renda));   
+            updates.Add(update.Set(u => u.RendaMensal, renda));
         }
 
         if (updates.Any())
             await _context.Usuarios.UpdateOneAsync(u => u.Id == id, update.Combine(updates));
 
         var usuarioAtualizado = await _context.Usuarios.Find(u => u.Id == id).FirstOrDefaultAsync();
-        
+
         return Ok(MapearUsuarioCasalParaResposta(usuarioAtualizado!));
     }
 
@@ -319,7 +321,7 @@ public class UsuarioController : ControllerBase
     public async Task<IActionResult> AlterarSenha([FromBody] AlterarSenhaDto dto)
     {
         var usuario = await _authService.ObterUsuarioPorEmail(dto.Email);
-        
+
         if (usuario != null)
         {
             if (!BCrypt.Net.BCrypt.Verify(dto.SenhaAtual, usuario.SenhaHash))
@@ -328,12 +330,12 @@ public class UsuarioController : ControllerBase
             var novaSenhaHash = BCrypt.Net.BCrypt.HashPassword(dto.NovaSenha);
             var update = Builders<Usuario>.Update.Set(u => u.SenhaHash, novaSenhaHash);
             await _context.Usuarios.UpdateOneAsync(u => u.Id == usuario.Id, update);
-            
+
             return Ok(new { message = "Senha alterada com sucesso" });
         }
 
         var usuarioCasal = await _authService.ObterCasalPorEmail(dto.Email);
-        
+
         if (usuarioCasal?.CasalInfo != null)
         {
             if (usuarioCasal.CasalInfo.EmailPessoa1 == dto.Email)

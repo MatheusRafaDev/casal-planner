@@ -6,6 +6,7 @@ const ThemeContext = createContext();
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
+  // Estado inicial APENAS do localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
@@ -13,6 +14,7 @@ export const ThemeProvider = ({ children }) => {
 
   const theme = isDarkMode ? darkTheme : lightTheme;
 
+  // Salva no localStorage sempre que muda
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
   }, [isDarkMode]);

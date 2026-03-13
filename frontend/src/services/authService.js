@@ -73,7 +73,7 @@ class AuthService {
         token: data.token,
         isCasal: data.isCasal,
         tipoConta: data.isCasal ? '1' : '0',
-        modoEscuro: data.modoEscuro || false,
+        modoEscuro: data.modoEscuro || true,
         pessoaQueLogou: data.pessoaQueLogou,
         casalInfo: data.casalInfo,
         rendaMensal: data.rendaMensal,

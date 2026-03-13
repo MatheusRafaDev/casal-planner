@@ -24,12 +24,11 @@ namespace CasalPlanner.API.Models
 
         public decimal? RendaMensal { get; set; }
         public bool IsCasal { get; set; } = false;
-        
-        // Para contas de casal
+
         public CasalInfo? CasalInfo { get; set; }
         
-        // Apenas modo escuro como preferência
-        public bool ModoEscuro { get; set; } = false;
+
+        public bool ModoEscuro { get; set; } = true;
     }
     
     public enum TipoConta

@@ -85,7 +85,11 @@ export const AuthProvider = ({ children }) => {
   const atualizarPerfil = async (id, dados) => {
     try {
       const response = await usuarioService.atualizarPerfil(id, dados);
-      const usuarioAtualizado = { ...usuario, ...dados };
+      const usuarioAtualizado = { 
+        ...usuario, 
+        ...dados,
+        rendaMensal: dados.rendaMensal?.toString() || usuario.rendaMensal
+      };
       setUsuario(usuarioAtualizado);
       authService._salvarUsuario(usuarioAtualizado);
       return { success: true, data: response };
@@ -97,10 +101,20 @@ export const AuthProvider = ({ children }) => {
   const atualizarPerfilCasal = async (id, dados) => {
     try {
       const response = await usuarioService.atualizarPerfilCasal(id, dados);
+      
+      const rendaTotal = (dados.rendaMensalPessoa1 || 0) + (dados.rendaMensalPessoa2 || 0);
+      
       const usuarioAtualizado = {
         ...usuario,
-        casalInfo: { ...usuario.casalInfo, ...dados }
+        rendaMensal: rendaTotal,
+        casalInfo: { 
+          ...usuario.casalInfo, 
+          ...dados,
+          rendaMensalPessoa1: dados.rendaMensalPessoa1?.toString(),
+          rendaMensalPessoa2: dados.rendaMensalPessoa2?.toString()
+        }
       };
+      
       setUsuario(usuarioAtualizado);
       authService._salvarUsuario(usuarioAtualizado);
       return { success: true, data: response };

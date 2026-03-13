@@ -162,11 +162,12 @@ namespace CasalPlanner.API.Models.DTOs
 
     // ========== PERFIL ==========
     public class AtualizarPerfilDto
-    {
-        public string? NomeCompleto { get; set; }
-        public DateTime? DataNascimento { get; set; }
-        public decimal? RendaMensal { get; set; }
-    }
+{
+    public string? NomeCompleto { get; set; }
+    public DateTime? DataNascimento { get; set; }
+    public decimal? RendaMensal { get; set; }
+    public string? CPF { get; set; } 
+}
 
     public class AtualizarCasalDto
     {

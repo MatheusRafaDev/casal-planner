@@ -69,6 +69,8 @@ class UsuarioService {
   async getCurrentUser() {
     try {
       const response = await api.get('/usuario/me');
+
+
       const usuario = authService._padronizarUsuario(response.data);
       
       const usuarioAtual = authService.getUsuario();
@@ -85,27 +87,33 @@ class UsuarioService {
   }
 
   async atualizarPerfil(id, dados) {
-    try {
-      const dadosBackend = {
-        nomeCompleto: dados.nomeCompleto,
-        dataNascimento: dados.dataNascimento,
-        rendaMensal: dados.rendaMensal
-      };
 
-      const response = await api.put(`/usuario/perfil/${id}`, dadosBackend);
 
-      const usuarioAtual = authService.getUsuario();
-      if (usuarioAtual && usuarioAtual.id === id) {
-        const usuarioAtualizado = { ...usuarioAtual, ...response.data };
-        authService._salvarUsuario(usuarioAtualizado);
-      }
-      
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      throw error;
+  try {
+
+    const dadosBackend = {
+      nomeCompleto: dados.nomeCompleto,
+      dataNascimento: dados.dataNascimento,
+      rendaMensal: dados.rendaMensal,
+      cpf: dados.cpf 
+    };
+
+    const response = await api.put(`/usuario/perfil/${id}`, dadosBackend);
+
+    console.log('Resposta da API:', response.data);
+
+    const usuarioAtual = authService.getUsuario();
+    if (usuarioAtual && usuarioAtual.id === id) {
+      const usuarioAtualizado = { ...usuarioAtual, ...response.data };
+      authService._salvarUsuario(usuarioAtualizado);
     }
+    
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao atualizar perfil:', error);
+    throw error;
   }
+}
 
   async atualizarPerfilCasal(id, dados) {
     try {

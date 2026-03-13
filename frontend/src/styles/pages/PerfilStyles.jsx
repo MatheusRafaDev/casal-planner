@@ -120,12 +120,13 @@ export const AvatarSection = styled.div`
 export const Avatar = styled.div`
   width: 80px;
   height: 80px;
-  border-radius: ${props => props.theme.radiusFull};
+  border-radius: 50%; /* Use valor fixo em vez de depender do tema */
   background: ${props => props.theme.primary}15;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 3px solid ${props => props.theme.primary};
+  overflow: hidden;
 `;
 
 export const AvatarPlaceholder = styled.div`
