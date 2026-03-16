@@ -31,21 +31,18 @@ public class MongoDbContext
         try
         {
             var casal = await ObterOuCriarCasalExemplo();
-
             if (casal == null)
             {
-
                 return;
             }
-
             await CriarCategoriasPadrao(casal);
             await CriarItensIniciais(casal);
         }
-        catch (Exception ex)
+        catch (Exception ex) // 🔥 Manter a variável mesmo não usada
         {
+            Console.WriteLine($"❌ Erro ao executar seed data: {ex.Message}"); // 🔥 Adicionar log
         }
     }
-
     private async Task<Usuario?> ObterOuCriarCasalExemplo()
     {
         var casalExistente = await _usuarios
@@ -66,10 +63,10 @@ public class MongoDbContext
             Email = "",
             NomeCompleto = "João" + " e " + "Maria",
             RendaMensal = 9500.00m,
-            ModoEscuro = false, 
+            ModoEscuro = false,
             CasalInfo = new CasalInfo
             {
- 
+
                 NomeCompletoPessoa1 = "João Silva",
                 EmailPessoa1 = "joao@email.com",
                 SenhaHashPessoa1 = BCrypt.Net.BCrypt.HashPassword("123456"),
@@ -306,5 +303,18 @@ public class MongoDbContext
         Console.WriteLine($"\nTotal de itens: {itens.Count}");
 
         Console.WriteLine("=== FIM DEBUG ===\n");
+    }
+
+    public async Task TestarConexaoAsync()
+    {
+        try
+        {
+            var collections = await _database.ListCollectionNamesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Falha na conexão com MongoDB: {ex.Message}");
+            throw;
+        }
     }
 }

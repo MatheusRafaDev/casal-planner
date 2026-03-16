@@ -7,6 +7,7 @@ const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
+
   if (!context) throw new Error('useAuth deve ser usado dentro de AuthProvider');
   return context;
 };
@@ -17,38 +18,49 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+
     const carregarUsuario = async () => {
-      const token = authService.getToken();
-      const usuarioSalvo = authService.getUsuario();
-      
-      if (token && usuarioSalvo) {
-        setUsuario(usuarioSalvo);
+      try {
+
+        const autenticado = await authService.estaAutenticado();
+
+        if (autenticado) {
+
+          const dadosUsuario = await authService.buscarDadosCompletos();
+          setUsuario(dadosUsuario);
+        } else {
+          setUsuario(null);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar usuário:', error);
+        setUsuario(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
+    
     carregarUsuario();
   }, []);
 
   const login = async (email, senha) => {
     try {
-      const response = await authService.login({ email, senha });
-      if (response) {
-        setUsuario(response);
-        navigate('/dashboard');
+      const usuario = await authService.login({ email, senha });
+      if (usuario) {
+        setUsuario(usuario);
         return { success: true };
       }
       return { success: false, error: 'Resposta inválida' };
     } catch (error) {
+      console.error('❌ Erro no login:', error);
       return { success: false, error: error.response?.data?.message || 'Erro ao fazer login' };
     }
   };
 
   const registrar = async (dados) => {
     try {
-      const response = await usuarioService.registrar(dados);
-      if (response) {
-        setUsuario(response);
-        navigate('/dashboard');
+      const usuario = await usuarioService.registrar(dados);
+      if (usuario) {
+        setUsuario(usuario);
         return { success: true };
       }
       return { success: false, error: 'Resposta inválida' };
@@ -59,10 +71,9 @@ export const AuthProvider = ({ children }) => {
 
   const registrarCasal = async (dados) => {
     try {
-      const response = await usuarioService.registrarCasal(dados);
-      if (response) {
-        setUsuario(response);
-        navigate('/dashboard');
+      const usuario = await usuarioService.registrarCasal(dados);
+      if (usuario) {
+        setUsuario(usuario);
         return { success: true };
       }
       return { success: false, error: 'Resposta inválida' };
@@ -79,19 +90,17 @@ export const AuthProvider = ({ children }) => {
 
   const atualizarUsuario = (novosDados) => {
     setUsuario(novosDados);
-    authService._salvarUsuario(novosDados);
+   
   };
 
   const atualizarPerfil = async (id, dados) => {
     try {
       const response = await usuarioService.atualizarPerfil(id, dados);
-      const usuarioAtualizado = { 
-        ...usuario, 
-        ...dados,
-        rendaMensal: dados.rendaMensal?.toString() || usuario.rendaMensal
-      };
-      setUsuario(usuarioAtualizado);
-      authService._salvarUsuario(usuarioAtualizado);
+      
+
+      const dadosAtualizados = await authService.buscarDadosCompletos();
+      setUsuario(dadosAtualizados);
+      
       return { success: true, data: response };
     } catch (error) {
       return { success: false, error: error.response?.data?.message || 'Erro ao atualizar perfil' };
@@ -102,21 +111,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await usuarioService.atualizarPerfilCasal(id, dados);
       
-      const rendaTotal = (dados.rendaMensalPessoa1 || 0) + (dados.rendaMensalPessoa2 || 0);
+
+      const dadosAtualizados = await authService.buscarDadosCompletos();
+      setUsuario(dadosAtualizados);
       
-      const usuarioAtualizado = {
-        ...usuario,
-        rendaMensal: rendaTotal,
-        casalInfo: { 
-          ...usuario.casalInfo, 
-          ...dados,
-          rendaMensalPessoa1: dados.rendaMensalPessoa1?.toString(),
-          rendaMensalPessoa2: dados.rendaMensalPessoa2?.toString()
-        }
-      };
-      
-      setUsuario(usuarioAtualizado);
-      authService._salvarUsuario(usuarioAtualizado);
       return { success: true, data: response };
     } catch (error) {
       return { success: false, error: error.response?.data?.message || 'Erro ao atualizar perfil' };
@@ -126,9 +124,11 @@ export const AuthProvider = ({ children }) => {
   const atualizarModoEscuro = async (id, modoEscuro) => {
     try {
       const response = await usuarioService.atualizarModoEscuro(id, modoEscuro);
+      
+
       const usuarioAtualizado = { ...usuario, modoEscuro };
       setUsuario(usuarioAtualizado);
-      authService._salvarUsuario(usuarioAtualizado);
+      
       return { success: true, data: response };
     } catch (error) {
       return { success: false, error: error.response?.data?.message || 'Erro ao atualizar modo escuro' };
@@ -171,9 +171,7 @@ export const AuthProvider = ({ children }) => {
     atualizarPerfilCasal,
     atualizarModoEscuro,
     alterarSenha,
-    excluirConta,
-    
-    getToken: authService.getToken
+    excluirConta
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

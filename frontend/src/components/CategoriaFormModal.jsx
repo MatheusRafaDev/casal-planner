@@ -22,7 +22,7 @@ import {
   ModalButtons,
   CancelarButton,
   CriarButton
-} from '../styles/components/AddCategoriaModalStyles';
+} from '../styles/components/CategoriaFormModalStyles';
 
 const ErrorMessage = styled.span`
   color: #dc3545;
@@ -35,7 +35,7 @@ const ErrorMessage = styled.span`
   `}
 `;
 
-const AddCategoriaModal = ({ 
+const CategoriaFormModal = ({ 
   isOpen, 
   onClose, 
   onCategoryAdded, 
@@ -252,4 +252,4 @@ const AddCategoriaModal = ({
   );
 };
 
-export default AddCategoriaModal;
+export default CategoriaFormModal;

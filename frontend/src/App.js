@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { ThemeProvider, useTheme } from './context/ThemeContext'; // ✅ Caminho correto
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import styled from 'styled-components';
 import { StyleSheetManager } from 'styled-components';
@@ -18,6 +18,16 @@ import Login from './pages/Login';
 
 import GlobalStyle from './styles/GlobalStyle';
 
+const LoadingScreen = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: ${props => props.theme.background};
+  color: ${props => props.theme.primary};
+  font-size: 1.2rem;
+`;
+
 const AppContainer = styled.div`
   min-height: 100vh;
   background: ${({ theme }) => theme.background};
@@ -33,34 +43,72 @@ const MainContent = styled.main`
   }
 `;
 
-function AppRoutes() {
+function PrivateRoute({ children }) {
   const { estaAutenticado, loading } = useAuth();
+  
+  if (loading) {
+    return <LoadingScreen>Carregando...</LoadingScreen>;
+  }
+  
+  return estaAutenticado ? children : <Navigate to="/login" />;
+}
+
+function PublicRoute({ children }) {
+  const { estaAutenticado, loading } = useAuth();
+  
+  if (loading) {
+    return <LoadingScreen>Carregando...</LoadingScreen>;
+  }
+  
+  return !estaAutenticado ? children : <Navigate to="/inicio" />;
+}
+
+function AppRoutes() {
+  const { loading } = useAuth();
+
 
   if (loading) {
-    return <div className="loading">Carregando...</div>;
-  }
-
-  if (!estaAutenticado) {
-    return (
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    );
+    return <LoadingScreen>Carregando...</LoadingScreen>;
   }
 
   return (
-    <AppContainer>
-      <Header />
-      <MainContent>
-        <Routes>
-          <Route path="/inicio" element={<Inicio />} />
-          <Route path="/perfil" element={<Perfil />} />
-          <Route path="*" element={<Navigate to="/inicio" replace />} />
-        </Routes>
-      </MainContent>
-    </AppContainer>
+    <Routes>
+      <Route path="/" element={
+        <PublicRoute>
+          <Home />
+        </PublicRoute>
+      } />
+      
+      <Route path="/login" element={
+        <PublicRoute>
+          <Login />
+        </PublicRoute>
+      } />
+      
+      <Route path="/inicio" element={
+        <PrivateRoute>
+          <AppContainer>
+            <Header />
+            <MainContent>
+              <Inicio />
+            </MainContent>
+          </AppContainer>
+        </PrivateRoute>
+      } />
+      
+      <Route path="/perfil" element={
+        <PrivateRoute>
+          <AppContainer>
+            <Header />
+            <MainContent>
+              <Perfil />
+            </MainContent>
+          </AppContainer>
+        </PrivateRoute>
+      } />
+      
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
@@ -85,13 +133,6 @@ function StyledThemeWrapper() {
             background: theme === 'dark' ? '#1e1e1e' : '#ffffff',
             color: theme === 'dark' ? '#e0e0e0' : '#333333',
             border: `1px solid ${theme === 'dark' ? '#333' : '#ddd'}`,
-          },
-          success: {
-            duration: 3000,
-          },
-          error: {
-            duration: 4000,
-            icon: '',
           },
         }}
       />
@@ -118,4 +159,4 @@ function App() {
   );
 }
 
-export default App; // ✅ Export default
+export default App;

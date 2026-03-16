@@ -6,7 +6,7 @@ Release/
 *.dll
 *.exe
 *.pdb
-
+.env
 # Visual Studio files
 .vs/
 .vscode/

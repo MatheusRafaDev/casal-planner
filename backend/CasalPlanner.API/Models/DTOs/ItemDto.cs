@@ -23,6 +23,11 @@ namespace CasalPlanner.API.Models.DTOs
         public string Pagamento { get; set; } = "normal";
     }
 
+    public class UpdateCompradoDto
+    {
+        public bool Comprado { get; set; }
+    }
+
     public class AtualizarItemDto
     {
         public string? Nome { get; set; }

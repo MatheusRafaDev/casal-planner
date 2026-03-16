@@ -1,202 +1,187 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using MongoDB.Driver;
-using CasalPlanner.API.Models;
-using CasalPlanner.API.Models.DTOs; 
-using CasalPlanner.API.Data;
+using CasalPlanner.API.Services;
+using CasalPlanner.API.Models.DTOs;
 
 namespace CasalPlanner.API.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class ItensController : ControllerBase
     {
-        private readonly MongoDbContext _context;
+        private readonly IItemService _itemService;
 
-        public ItensController(MongoDbContext context)
+        public ItensController(IItemService itemService)
         {
-            _context = context;
+            _itemService = itemService;
         }
 
         private string GetUsuarioId()
         {
-            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "casal-default";
+            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                ?? throw new UnauthorizedAccessException("Usuário não autenticado");
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Item>>> GetItens()
+        public async Task<IActionResult> GetItens()
         {
-            var usuarioId = GetUsuarioId();
-
-            return await _context.Itens
-                .Find(i => i.UsuarioId == usuarioId)
-                .SortByDescending(i => i.CreatedAt)
-                .ToListAsync();
+            try
+            {
+                var usuarioId = GetUsuarioId();
+                var itens = await _itemService.GetItensByUsuarioId(usuarioId);
+                return Ok(itens);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Item>> GetItem(string id)
+        public async Task<IActionResult> GetItem(string id)
         {
-            var usuarioId = GetUsuarioId();
+            try
+            {
+                var usuarioId = GetUsuarioId();
+                var item = await _itemService.GetItemById(id, usuarioId);
 
-            var item = await _context.Itens
-                .Find(i => i.Id == id && i.UsuarioId == usuarioId)
-                .FirstOrDefaultAsync();
+                if (item == null)
+                    return NotFound(); 
 
-            if (item == null)
-                return NotFound();
-
-            return item;
-        }
-
-        [HttpGet("categoria/{categoriaId}")]
-        public async Task<ActionResult<IEnumerable<Item>>> GetItensPorCategoria(string categoriaId)
-        {
-            var usuarioId = GetUsuarioId();
-
-            var filter = Builders<Item>.Filter.And(
-                Builders<Item>.Filter.Eq(i => i.CategoriaId, categoriaId),
-                Builders<Item>.Filter.Eq(i => i.UsuarioId, usuarioId)
-            );
-
-            return await _context.Itens
-                .Find(filter)
-                .SortBy(i => i.Comprado)
-                .ThenByDescending(i => i.CreatedAt)
-                .ToListAsync();
+                return Ok(item);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         [HttpPost]
-        public async Task<ActionResult<Item>> CreateItem([FromBody] CriarItemDto dto)
+        public async Task<IActionResult> CriarItem([FromBody] CriarItemDto dto)
         {
-            var usuarioId = GetUsuarioId();
-
-            var categoria = await _context.Categorias
-                .Find(c => c.Id == dto.CategoriaId)
-                .FirstOrDefaultAsync();
-
-            if (categoria == null)
-                return BadRequest("Categoria não encontrada");
-
-            var item = new Item
+            try
             {
-                Nome = dto.Nome,
-                Marca = dto.Marca,
-                Preco = dto.Preco,
-                Quantidade = dto.Quantidade,
-                CategoriaId = dto.CategoriaId,
-                Pagamento = dto.Pagamento,
-                UsuarioId = usuarioId,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await _context.Itens.InsertOneAsync(item);
-
-            return CreatedAtAction(nameof(GetItem), new { id = item.Id }, item);
+                var usuarioId = GetUsuarioId();
+                var item = await _itemService.CriarItem(dto, usuarioId);
+                return CreatedAtAction(nameof(GetItem), new { id = item.Id }, item);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateItem(string id, [FromBody] AtualizarItemDto dto)
+        public async Task<IActionResult> AtualizarItem(string id, [FromBody] AtualizarItemDto dto)
         {
-            var usuarioId = GetUsuarioId();
-
-            var item = await _context.Itens
-                .Find(i => i.Id == id && i.UsuarioId == usuarioId)
-                .FirstOrDefaultAsync();
-
-            if (item == null)
-                return NotFound();
-
-            var update = Builders<Item>.Update;
-            var updates = new List<UpdateDefinition<Item>>();
-
-            if (dto.Nome != null)
-                updates.Add(update.Set(i => i.Nome, dto.Nome));
-
-            if (dto.Marca != null)
-                updates.Add(update.Set(i => i.Marca, dto.Marca));
-
-            if (dto.Preco.HasValue)
-                updates.Add(update.Set(i => i.Preco, dto.Preco.Value));
-
-            if (dto.Quantidade.HasValue)
-                updates.Add(update.Set(i => i.Quantidade, dto.Quantidade.Value));
-
-            if (dto.CategoriaId != null)
+            try
             {
-                var categoria = await _context.Categorias
-                    .Find(c => c.Id == dto.CategoriaId)
-                    .FirstOrDefaultAsync();
+                var usuarioId = GetUsuarioId();
+                var item = await _itemService.AtualizarItem(id, dto, usuarioId);
 
-                if (categoria == null)
-                    return BadRequest("Categoria não encontrada");
+                if (item == null)
+                    return NotFound();
 
-                updates.Add(update.Set(i => i.CategoriaId, dto.CategoriaId));
+                return Ok(item);
             }
-
-            if (dto.Comprado.HasValue)
-                updates.Add(update.Set(i => i.Comprado, dto.Comprado.Value));
-
-            if (dto.Pagamento != null)
-                updates.Add(update.Set(i => i.Pagamento, dto.Pagamento));
-
-            if (updates.Any())
+            catch (UnauthorizedAccessException)
             {
-                await _context.Itens.UpdateOneAsync(
-                    i => i.Id == id,
-                    update.Combine(updates)
-                );
+                return Unauthorized();
             }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
 
-            return NoContent();
+        // 🔥 NOVA ROTA: Atualizar apenas o status "comprado"
+        [HttpPut("{id}/comprado")]
+        public async Task<IActionResult> UpdateComprado(string id, [FromBody] UpdateCompradoDto dto)
+        {
+            try
+            {
+                var usuarioId = GetUsuarioId();
+                
+                var item = await _itemService.GetItemById(id, usuarioId);
+                if (item == null)
+                    return NotFound();
+
+                var updateDto = new AtualizarItemDto
+                {
+                    Comprado = dto.Comprado
+                };
+
+                var itemAtualizado = await _itemService.AtualizarItem(id, updateDto, usuarioId);
+                
+                if (itemAtualizado == null)
+                    return NotFound();
+
+                return Ok(itemAtualizado);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteItem(string id)
+        public async Task<IActionResult> DeletarItem(string id)
         {
-            var usuarioId = GetUsuarioId();
+            try
+            {
+                var usuarioId = GetUsuarioId();
+                var deletado = await _itemService.DeletarItem(id, usuarioId);
 
-            var result = await _context.Itens.DeleteOneAsync(
-                i => i.Id == id && i.UsuarioId == usuarioId
-            );
+                if (!deletado)
+                    return NotFound();
 
-            if (result.DeletedCount == 0)
-                return NotFound();
-
-            return NoContent();
+                return NoContent();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
-        [HttpPut("{id}/comprado")]
-        public async Task<ActionResult<Item>> UpdateComprado(string id, [FromBody] AtualizarCompradoDto dto)
+        [HttpGet("categoria/{categoriaId}")]
+        public async Task<IActionResult> GetItensByCategoria(string categoriaId)
         {
-            var usuarioId = GetUsuarioId();
-
-            var item = await _context.Itens
-                .Find(i => i.Id == id && i.UsuarioId == usuarioId)
-                .FirstOrDefaultAsync();
-
-            if (item == null)
-                return NotFound();
-
-            var update = Builders<Item>.Update
-                .Set(i => i.Comprado, dto.Comprado);
-
-            await _context.Itens.UpdateOneAsync(
-                i => i.Id == id,
-                update
-            );
-
-            // Busca o item atualizado
-            var itemAtualizado = await _context.Itens
-                .Find(i => i.Id == id && i.UsuarioId == usuarioId)
-                .FirstOrDefaultAsync();
-
-            return Ok(itemAtualizado);
+            try
+            {
+                var usuarioId = GetUsuarioId();
+                var itens = await _itemService.GetItensByCategoria(categoriaId, usuarioId);
+                return Ok(itens);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
     }
-
-
-
 }

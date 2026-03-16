@@ -20,6 +20,8 @@ public class Item
     public bool Comprado { get; set; } = false;
     public string Pagamento { get; set; } = "normal";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
     [BsonRepresentation(BsonType.ObjectId)]
     public string UsuarioId { get; set; } = string.Empty;

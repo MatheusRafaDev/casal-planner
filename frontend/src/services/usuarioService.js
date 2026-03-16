@@ -2,7 +2,6 @@ import api from './api';
 import authService from './authService';
 
 class UsuarioService {
-
   async registrar(dados) {
     try {
       const dadosBackend = {
@@ -16,9 +15,8 @@ class UsuarioService {
 
       const response = await api.post('/usuario/registrar', dadosBackend);
       
-      if (response.data.token) {
-        authService._salvarToken(response.data.token);
-        const usuario = authService._padronizarUsuario(response.data);
+      if (response.data.usuario) {
+        const usuario = authService._padronizarUsuario(response.data.usuario);
         authService._salvarUsuario(usuario);
         return usuario;
       }
@@ -39,22 +37,19 @@ class UsuarioService {
         cpfPessoa1: dados.cpfPessoa1,
         dataNascimentoPessoa1: dados.dataNascimentoPessoa1,
         rendaMensalPessoa1: dados.rendaMensalPessoa1 || 0,
-        
         nomeCompletoPessoa2: dados.nomeCompletoPessoa2,
         emailPessoa2: dados.emailPessoa2,
         senhaPessoa2: dados.senhaPessoa2,
         cpfPessoa2: dados.cpfPessoa2,
         dataNascimentoPessoa2: dados.dataNascimentoPessoa2,
         rendaMensalPessoa2: dados.rendaMensalPessoa2 || 0,
-        
         dataCasamento: dados.dataCasamento
       };
 
       const response = await api.post('/usuario/registrar-casal', dadosBackend);
 
-      if (response.data.token) {
-        authService._salvarToken(response.data.token);
-        const usuario = authService._padronizarUsuario(response.data);
+      if (response.data.usuario) {
+        const usuario = authService._padronizarUsuario(response.data.usuario);
         authService._salvarUsuario(usuario);
         return usuario;
       }
@@ -69,8 +64,6 @@ class UsuarioService {
   async getCurrentUser() {
     try {
       const response = await api.get('/usuario/me');
-
-
       const usuario = authService._padronizarUsuario(response.data);
       
       const usuarioAtual = authService.getUsuario();
@@ -87,33 +80,30 @@ class UsuarioService {
   }
 
   async atualizarPerfil(id, dados) {
+    try {
 
+      console.log("Dados recebidos para atualização de perfil:", dados);
+      const dadosBackend = {
+        nomeCompleto: dados.nomeCompleto,
+        dataNascimento: dados.dataNascimento,
+        rendaMensal: dados.rendaMensal,
+        cpf: dados.cpf 
+      };
 
-  try {
+      const response = await api.put(`/usuario/perfil/${id}`, dadosBackend);
 
-    const dadosBackend = {
-      nomeCompleto: dados.nomeCompleto,
-      dataNascimento: dados.dataNascimento,
-      rendaMensal: dados.rendaMensal,
-      cpf: dados.cpf 
-    };
-
-    const response = await api.put(`/usuario/perfil/${id}`, dadosBackend);
-
-    console.log('Resposta da API:', response.data);
-
-    const usuarioAtual = authService.getUsuario();
-    if (usuarioAtual && usuarioAtual.id === id) {
-      const usuarioAtualizado = { ...usuarioAtual, ...response.data };
-      authService._salvarUsuario(usuarioAtualizado);
+      const usuarioAtual = authService.getUsuario();
+      if (usuarioAtual && usuarioAtual.id === id) {
+        const usuarioAtualizado = { ...usuarioAtual, ...response.data };
+        authService._salvarUsuario(usuarioAtualizado);
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      throw error;
     }
-    
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao atualizar perfil:', error);
-    throw error;
   }
-}
 
   async atualizarPerfilCasal(id, dados) {
     try {
@@ -121,16 +111,13 @@ class UsuarioService {
         nomeCompletoPessoa1: dados.nomeCompletoPessoa1,
         dataNascimentoPessoa1: dados.dataNascimentoPessoa1,
         rendaMensalPessoa1: dados.rendaMensalPessoa1,
-        
         nomeCompletoPessoa2: dados.nomeCompletoPessoa2,
         dataNascimentoPessoa2: dados.dataNascimentoPessoa2,
         rendaMensalPessoa2: dados.rendaMensalPessoa2,
-        
         dataCasamento: dados.dataCasamento
       };
 
       const response = await api.put(`/usuario/perfil-casal/${id}`, dadosBackend);
-      
 
       const usuarioAtual = authService.getUsuario();
       if (usuarioAtual && usuarioAtual.id === id) {
@@ -148,7 +135,6 @@ class UsuarioService {
   async atualizarModoEscuro(id, modoEscuro) {
     try {
       const response = await api.put(`/usuario/modo-escuro/${id}`, { modoEscuro });
-      
 
       const usuarioAtual = authService.getUsuario();
       if (usuarioAtual && usuarioAtual.id === id) {
@@ -176,9 +162,7 @@ class UsuarioService {
   async excluirConta(id) {
     try {
       const response = await api.delete(`/usuario/usuario/${id}`);
-      
       authService._logoutLocal();
-      
       return response.data;
     } catch (error) {
       console.error('Erro ao excluir conta:', error);

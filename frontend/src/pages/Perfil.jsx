@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import usuarioService from "../services/usuarioService";
+import authService from "../services/authService";
 
 import {
   formatarMoeda,
@@ -63,6 +64,8 @@ const Perfil = () => {
   const [loading, setLoading] = useState(false);
   const [carregandoDados, setCarregandoDados] = useState(true);
   const [mostrarModalExcluir, setMostrarModalExcluir] = useState(false);
+  const [dadosOriginais, setDadosOriginais] = useState(null);
+
 
   const [dadosCasal, setDadosCasal] = useState({
     nomeCompletoPessoa1: "",
@@ -155,6 +158,20 @@ const Perfil = () => {
     setSenha((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleCancelar = () => {
+    if (dadosOriginais) {
+      const isCasal = usuario?.isCasal || usuario?.tipoConta === 1;
+
+      if (isCasal) {
+        setDadosCasal(dadosOriginais);
+      } else {
+        setDadosIndividual(dadosOriginais);
+      }
+    }
+    setEditando(false);
+    setErro("");
+  };
+
   const validarDadosCasal = () => {
     if (!dadosCasal.nomeCompletoPessoa1) {
       setErro("Nome da primeira pessoa é obrigatório");
@@ -220,7 +237,7 @@ const Perfil = () => {
     setMensagem("");
 
     try {
-      const isCasal = usuario.isCasal || usuario.tipoConta === 1;
+      const isCasal = usuario?.isCasal || usuario?.tipoConta === 1;
 
       if (isCasal) {
         if (!validarDadosCasal()) {
@@ -255,11 +272,6 @@ const Perfil = () => {
         };
 
         atualizarUsuario(usuarioAtualizado);
-
-        setDadosCasal((prev) => ({
-          ...prev,
-          RendaMensal: dadosCasal.RendaMensal,
-        }));
       } else {
         if (!validarDadosIndividual()) {
           setLoading(false);
@@ -272,14 +284,17 @@ const Perfil = () => {
             ? converterDataBRparaISO(dadosIndividual.dataNascimento)
             : null,
           rendaMensal: dadosIndividual.rendaMensalValor || 0,
+          cpf: dadosIndividual.cpf.replace(/\D/g, ""),
         };
 
         await usuarioService.atualizarPerfil(usuario.id, dadosAtualizados);
 
         const usuarioAtualizado = {
           ...usuario,
-          ...dadosAtualizados,
+          nomeCompleto: dadosIndividual.nomeCompleto,
+          dataNascimento: dadosIndividual.dataNascimento,
           rendaMensal: dadosIndividual.rendaMensalValor.toString(),
+          cpf: dadosIndividual.cpf.replace(/\D/g, ""),
         };
         atualizarUsuario(usuarioAtualizado);
       }
@@ -321,13 +336,13 @@ const Perfil = () => {
 
     try {
       let email;
-      if (usuario.isCasal || usuario.tipoConta === 1) {
+      if (usuario?.isCasal || usuario?.tipoConta === 1) {
         email =
           usuario.pessoaQueLogou === "pessoa1"
-            ? usuario.casalInfo.emailPessoa1
-            : usuario.casalInfo.emailPessoa2;
+            ? usuario.casalInfo?.emailPessoa1
+            : usuario.casalInfo?.emailPessoa2;
       } else {
-        email = usuario.email;
+        email = usuario?.email;
       }
 
       await usuarioService.alterarSenha({
@@ -379,73 +394,79 @@ const Perfil = () => {
     }
   };
 
-  useEffect(() => {
-    const carregarDados = async () => {
-      if (!usuario) {
-        setCarregandoDados(false);
-        return;
+  
+useEffect(() => {
+  const carregarDados = async () => {
+    if (!usuario) {
+      setCarregandoDados(false);
+      return;
+    }
+
+    try {
+      setCarregandoDados(true);
+
+      if (usuario.isCasal || usuario.tipoConta === 1) {
+        const casalInfo = usuario.casalInfo || {};
+
+        const rendaPessoa1 = parseFloat(casalInfo.rendaMensalPessoa1 || 0);
+        const rendaPessoa2 = parseFloat(casalInfo.rendaMensalPessoa2 || 0);
+
+        const novosDadosCasal = {
+          nomeCompletoPessoa1: casalInfo.nomeCompletoPessoa1 || "",
+          emailPessoa1: casalInfo.emailPessoa1 || "",
+          cpfPessoa1: casalInfo.cpfPessoa1 ? formatarCPF(casalInfo.cpfPessoa1) : "",
+          dataNascimentoPessoa1: formatarDataExibicao(
+            casalInfo.dataNascimentoPessoa1,
+          ),
+          rendaMensalPessoa1: casalInfo.rendaMensalPessoa1
+            ? formatarMoeda(parseFloat(casalInfo.rendaMensalPessoa1))
+            : "",
+          rendaMensalPessoa1Valor: rendaPessoa1,
+          nomeCompletoPessoa2: casalInfo.nomeCompletoPessoa2 || "",
+          emailPessoa2: casalInfo.emailPessoa2 || "",
+          cpfPessoa2: casalInfo.cpfPessoa2 ? formatarCPF(casalInfo.cpfPessoa2) : "",
+          dataNascimentoPessoa2: formatarDataExibicao(
+            casalInfo.dataNascimentoPessoa2,
+          ),
+          rendaMensalPessoa2: casalInfo.rendaMensalPessoa2
+            ? formatarMoeda(parseFloat(casalInfo.rendaMensalPessoa2))
+            : "",
+          rendaMensalPessoa2Valor: rendaPessoa2,
+          RendaMensal: usuario.rendaMensal || 0,
+          createdAt: casalInfo.createdAt || "",
+        };
+
+        setDadosCasal(novosDadosCasal);
+        setDadosOriginais(novosDadosCasal);
+      } else {
+        const renda = parseFloat(usuario.rendaMensal || 0);
+
+
+        const novosDadosIndividual = {
+          nomeCompleto: usuario.nomeCompleto || "",
+          email: usuario.email || "",
+          cpf: usuario.cpf ? formatarCPF(usuario.cpf) : "",
+          dataNascimento: formatarDataExibicao(usuario.dataNascimento),
+          rendaMensal: usuario.rendaMensal
+            ? formatarMoeda(parseFloat(usuario.rendaMensal))
+            : "",
+          rendaMensalValor: renda,
+        };
+
+        setDadosIndividual(novosDadosIndividual);
+        setDadosOriginais(novosDadosIndividual);
       }
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error);
+      setErro("Erro ao carregar dados do perfil");
+    } finally {
+      setCarregandoDados(false);
+    }
+  };
 
+  carregarDados();
+}, [usuario]);
 
-      try {
-        setCarregandoDados(true);
-
-        if (usuario.isCasal || usuario.tipoConta === 1) {
-          const casalInfo = usuario.casalInfo || {};
-
-          const rendaPessoa1 = parseFloat(casalInfo.rendaMensalPessoa1 || 0);
-          const rendaPessoa2 = parseFloat(casalInfo.rendaMensalPessoa2 || 0);
-
-          setDadosCasal({
-            nomeCompletoPessoa1: casalInfo.nomeCompletoPessoa1 || "",
-            emailPessoa1: casalInfo.emailPessoa1 || "",
-            cpfPessoa1: casalInfo.cpfPessoa1 || "",
-            dataNascimentoPessoa1: formatarDataExibicao(
-              casalInfo.dataNascimentoPessoa1,
-            ),
-            rendaMensalPessoa1: casalInfo.rendaMensalPessoa1
-              ? formatarMoeda(parseFloat(casalInfo.rendaMensalPessoa1))
-              : "",
-            rendaMensalPessoa1Valor: rendaPessoa1,
-            nomeCompletoPessoa2: casalInfo.nomeCompletoPessoa2 || "",
-            emailPessoa2: casalInfo.emailPessoa2 || "",
-            cpfPessoa2: casalInfo.cpfPessoa2 || "",
-            dataNascimentoPessoa2: formatarDataExibicao(
-              casalInfo.dataNascimentoPessoa2,
-            ),
-            rendaMensalPessoa2: casalInfo.rendaMensalPessoa2
-              ? formatarMoeda(parseFloat(casalInfo.rendaMensalPessoa2))
-              : "",
-            rendaMensalPessoa2Valor: rendaPessoa2,
-            RendaMensal: usuario.rendaMensal || 0,
-            createdAt: casalInfo.createdAt || "",
-          });
-        } else {
-          const renda = parseFloat(usuario.rendaMensal || 0);
-
-
-
-          setDadosIndividual({
-            nomeCompleto: usuario.nomeCompleto || "",
-            email: usuario.email || "",
-            cpf: usuario.cpf || "",
-            dataNascimento: formatarDataExibicao(usuario.dataNascimento),
-            rendaMensal: usuario.rendaMensal
-              ? formatarMoeda(parseFloat(usuario.rendaMensal))
-              : "",
-            rendaMensalValor: renda,
-          });
-        }
-      } catch (error) {
-        console.error("Erro ao carregar dados:", error);
-        setErro("Erro ao carregar dados do perfil");
-      } finally {
-        setCarregandoDados(false);
-      }
-    };
-
-    carregarDados();
-  }, [usuario]);
 
   if (carregandoDados) {
     return (
@@ -480,7 +501,7 @@ const Perfil = () => {
             onClick={() => setEditando(true)}
             disabled={loading}
           >
-           Editar Perfil
+            Editar Perfil
           </EditarButton>
         )}
       </Header>
@@ -538,7 +559,7 @@ const Perfil = () => {
                   <InfoRow $half>
                     <InfoGroup>
                       <Label>Data de nascimento</Label>
-                      <Valor>{dadosCasal.dataNascimento || "-"}</Valor>
+                      <Valor>{dadosCasal.dataNascimentoPessoa1 || "-"}</Valor>
                     </InfoGroup>
                     <InfoGroup>
                       <Label>Renda mensal</Label>
@@ -716,10 +737,7 @@ const Perfil = () => {
                 </RendaTotalCard>
 
                 <FormActions>
-                  <CancelarButton
-                    onClick={() => setEditando(false)}
-                    disabled={loading}
-                  >
+                  <CancelarButton onClick={handleCancelar} disabled={loading}>
                     Cancelar
                   </CancelarButton>
                   <SalvarButton onClick={handleSalvarPerfil} disabled={loading}>
@@ -730,30 +748,34 @@ const Perfil = () => {
             )
           ) : !editando ? (
             <>
-              <InfoRow $half>
+              <InfoRow>
                 <InfoGroup>
                   <Label>Nome completo</Label>
-                  <Valor>{dadosIndividual.nomeCompleto}</Valor>
-                </InfoGroup>
-                <InfoGroup>
-                  <Label>E-mail</Label>
-                  <Valor>{dadosIndividual.email}</Valor>
+                  <Valor>{dadosIndividual.nomeCompleto || "-"}</Valor>
                 </InfoGroup>
               </InfoRow>
               <InfoRow $half>
+                <InfoGroup>
+                  <Label>E-mail</Label>
+                  <Valor>{dadosIndividual.email || "-"}</Valor>
+                </InfoGroup>
                 <InfoGroup>
                   <Label>CPF</Label>
                   <Valor>{dadosIndividual.cpf || "-"}</Valor>
                 </InfoGroup>
+              </InfoRow>
+              <InfoRow $half>
                 <InfoGroup>
                   <Label>Data de nascimento</Label>
                   <Valor>{dadosIndividual.dataNascimento || "-"}</Valor>
                 </InfoGroup>
+                <InfoGroup>
+                  <Label>Renda mensal</Label>
+                  <Valor className="destaque">
+                    {formatarMoeda(dadosIndividual.rendaMensalValor)}
+                  </Valor>
+                </InfoGroup>
               </InfoRow>
-              <RendaTotalCard>
-                <Label>Renda mensal</Label>
-                <Valor>{formatarMoeda(dadosIndividual.rendaMensalValor)}</Valor>
-              </RendaTotalCard>
 
               <DataCriacao>
                 Conta criada em{" "}
@@ -791,7 +813,6 @@ const Perfil = () => {
                     onChange={handleChangeIndividual}
                     placeholder="000.000.000-00"
                     maxLength="14"
-                    disabled
                   />
                 </FormGroup>
                 <FormGroup>
@@ -823,10 +844,7 @@ const Perfil = () => {
               </RendaTotalCard>
 
               <FormActions>
-                <CancelarButton
-                  onClick={() => setEditando(false)}
-                  disabled={loading}
-                >
+                <CancelarButton onClick={handleCancelar} disabled={loading}>
                   Cancelar
                 </CancelarButton>
                 <SalvarButton onClick={handleSalvarPerfil} disabled={loading}>

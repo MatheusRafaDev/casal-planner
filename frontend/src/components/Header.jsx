@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Heart, Sun, Moon, LogOut, User, ChevronDown, Home } from 'lucide-react';
 import usuarioService from '../services/usuarioService';
-import authService from '../services/authService'; // Importe o authService
 
 import {
   HeaderContainer,
@@ -30,21 +29,22 @@ const Header = () => {
   const [menuAberto, setMenuAberto] = useState(false);
   const [nomeExibicao, setNomeExibicao] = useState('');
   const [atualizandoTema, setAtualizandoTema] = useState(false);
+  const sincronizacaoFeita = useRef(false);
 
   const isLogado = !!usuario;
 
-  // Sincroniza o tema com o usuário quando ele loga
+  // ✅ CORREÇÃO: Sincroniza o tema sem recarregar a página
   useEffect(() => {
-    if (usuario && usuario.modoEscuro !== undefined && usuario.modoEscuro !== isDarkMode) {
-      // Se o tema do usuário for diferente do atual, atualiza o tema
-      // Mas sem chamar o toggleTheme para não criar loop
-      const savedTheme = localStorage.getItem('darkMode');
-      if (savedTheme !== String(usuario.modoEscuro)) {
-        localStorage.setItem('darkMode', JSON.stringify(usuario.modoEscuro));
-        window.location.reload(); // Recarrega para aplicar o tema
+    if (usuario && usuario.modoEscuro !== undefined && !sincronizacaoFeita.current) {
+      if (usuario.modoEscuro !== isDarkMode) {
+        sincronizacaoFeita.current = true;
+        // Só muda se for diferente, mas sem recarregar
+        if (usuario.modoEscuro !== isDarkMode) {
+          toggleTheme();
+        }
       }
     }
-  }, [usuario]);
+  }, [usuario, isDarkMode, toggleTheme]);
 
   useEffect(() => {
     if (usuario) {
@@ -93,6 +93,7 @@ const Header = () => {
       toggleTheme();
     } finally {
       setAtualizandoTema(false);
+      sincronizacaoFeita.current = false; // Reset para próximas mudanças
     }
   };
 
@@ -105,6 +106,18 @@ const Header = () => {
     if (!nomeExibicao || nomeExibicao === 'Usuário') return 'Usuário';
     return nomeExibicao.split(' ')[0];
   };
+
+  // Fechar menu ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuAberto && !event.target.closest('.user-menu-container')) {
+        setMenuAberto(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuAberto]);
 
   if (!isLogado) {
     return (
@@ -166,7 +179,7 @@ const Header = () => {
             {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
           </ThemeButton>
 
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative' }} className="user-menu-container">
             <UserMenu onClick={() => setMenuAberto(!menuAberto)} theme={theme}>
               <UserAvatar theme={theme}>
                 {getInitials()}

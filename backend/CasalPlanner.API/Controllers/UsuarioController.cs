@@ -198,8 +198,6 @@ public class UsuarioController : ControllerBase
         return Ok(response);
     }
 
-    // ========== ENDPOINTS PROTEGIDOS (GERENCIAMENTO) ==========
-
     [Authorize]
     [HttpGet("me")]
     public async Task<ActionResult<object>> GetCurrentUser()
@@ -214,14 +212,48 @@ public class UsuarioController : ControllerBase
 
         if (usuario.TipoConta == TipoConta.Casal)
         {
-            return Ok(MapearUsuarioCasalParaResposta(usuario));
+            return Ok(new
+            {
+                usuario.Id,
+                usuario.NomeCompleto,
+                usuario.Email,
+                usuario.TipoConta,
+                usuario.IsCasal,
+                usuario.ModoEscuro,
+                usuario.RendaMensal,
+                CasalInfo = new
+                {
+                    usuario.CasalInfo?.NomeCompletoPessoa1,
+                    usuario.CasalInfo?.EmailPessoa1,
+                    usuario.CasalInfo?.CPFPessoa1,
+                    DataNascimentoPessoa1 = usuario.CasalInfo?.DataNascimentoPessoa1.ToString("yyyy-MM-dd"), // 🔥 Corrigido
+                    usuario.CasalInfo?.RendaMensalPessoa1,
+                    usuario.CasalInfo?.NomeCompletoPessoa2,
+                    usuario.CasalInfo?.EmailPessoa2,
+                    usuario.CasalInfo?.CPFPessoa2,
+                    DataNascimentoPessoa2 = usuario.CasalInfo?.DataNascimentoPessoa2.ToString("yyyy-MM-dd"), // 🔥 Corrigido
+                    usuario.CasalInfo?.RendaMensalPessoa2,
+                    DataCasamento = usuario.CasalInfo?.DataCasamento?.ToString("yyyy-MM-dd"),
+                    usuario.CasalInfo?.CreatedAt
+                }
+            });
         }
         else
         {
-            return Ok(MapearUsuarioIndividualParaResposta(usuario));
+            return Ok(new
+            {
+                usuario.Id,
+                usuario.NomeCompleto,
+                usuario.Email,
+                usuario.TipoConta,
+                usuario.IsCasal,
+                usuario.ModoEscuro,
+                usuario.RendaMensal,
+                usuario.CPF,
+                DataNascimento = usuario.DataNascimento?.ToString("yyyy-MM-dd")
+            });
         }
     }
-
     [Authorize]
     [HttpPut("perfil/{id}")]
     public async Task<ActionResult<object>> AtualizarPerfil(string id, [FromBody] AtualizarPerfilDto dto)

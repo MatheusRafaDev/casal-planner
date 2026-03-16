@@ -1,7 +1,6 @@
 import api from './api';
 
 export const categoriasService = {
-
   async listar() {
     try {
       const response = await api.get('/categorias');
@@ -11,7 +10,6 @@ export const categoriasService = {
       throw error;
     }
   },
-
 
   async listarDoUsuario() {
     try {

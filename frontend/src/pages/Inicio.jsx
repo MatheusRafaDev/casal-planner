@@ -4,7 +4,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import ResumoCards from "../components/ResumoCards";
 import CategoriaCard from "../components/CategoriaCard";
-import AddCategoriaModal from "../components/AddCategoriaModal";
+import CategoriaFormModal from "../components/CategoriaFormModal";
 import Filtros from "../components/Filtros";
 import ItemFormModal from "../components/ItemFormModal";
 import { categoriasService } from "../services/categoriasService";
@@ -487,7 +487,7 @@ const Inicio = () => {
         </CategoriesGrid>
       )}
 
-      <AddCategoriaModal
+      <CategoriaFormModal
         isOpen={categoriaModal.isOpen}
         onClose={handleCloseCategoriaModal}
         onCategoryAdded={loadData}
