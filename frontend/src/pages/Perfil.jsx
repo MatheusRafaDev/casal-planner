@@ -257,6 +257,7 @@ const Perfil = () => {
           rendaMensalPessoa2: dadosCasal.rendaMensalPessoa2Valor || 0,
         };
 
+
         await usuarioService.atualizarPerfilCasal(usuario.id, dadosAtualizados);
 
         const usuarioAtualizado = {

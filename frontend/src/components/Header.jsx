@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Heart, Sun, Moon, LogOut, User, ChevronDown, Home } from 'lucide-react';
 import usuarioService from '../services/usuarioService';
+import authService from '../services/authService'; // 🔥 IMPORTAR authService
 
 import {
   HeaderContainer,
@@ -29,37 +30,61 @@ const Header = () => {
   const [menuAberto, setMenuAberto] = useState(false);
   const [nomeExibicao, setNomeExibicao] = useState('');
   const [atualizandoTema, setAtualizandoTema] = useState(false);
+  const [dadosUsuario, setDadosUsuario] = useState(null); // 🔥 Estado para dados completos
   const sincronizacaoFeita = useRef(false);
 
   const isLogado = !!usuario;
 
-  // ✅ CORREÇÃO: Sincroniza o tema sem recarregar a página
+  // 🔥 Buscar dados completos do usuário
+  useEffect(() => {
+    const carregarDadosCompletos = async () => {
+      if (usuario) {
+        try {
+          const dados = await authService.buscarDadosCompletos();
+          setDadosUsuario(dados);
+        } catch (error) {
+          console.error('Erro ao buscar dados completos:', error);
+          setDadosUsuario(usuario); // Fallback para dados do contexto
+        }
+      }
+    };
+
+    carregarDadosCompletos();
+  }, [usuario]);
+
+  // Atualizar nome de exibição quando dadosUsuario mudar
+  useEffect(() => {
+    const usuarioParaExibir = dadosUsuario || usuario;
+    
+    if (usuarioParaExibir) {
+      if (usuarioParaExibir.isCasal || usuarioParaExibir.tipoConta === 'Casal' || usuarioParaExibir.tipoConta === 1) {
+        const pessoaLogada = usuarioParaExibir.pessoaQueLogou || 'pessoa1';
+        const casalInfo = usuarioParaExibir.casalInfo || {};
+        
+        const nome = pessoaLogada === 'pessoa1' 
+          ? casalInfo?.nomeCompletoPessoa1 
+          : casalInfo?.nomeCompletoPessoa2;
+        
+        setNomeExibicao(nome || 'Usuário');
+      } else {
+        setNomeExibicao(usuarioParaExibir.nomeCompleto || 'Usuário');
+      }
+    } else {
+      setNomeExibicao('');
+    }
+  }, [dadosUsuario, usuario]);
+
+  // Sincroniza o tema sem recarregar a página
   useEffect(() => {
     if (usuario && usuario.modoEscuro !== undefined && !sincronizacaoFeita.current) {
       if (usuario.modoEscuro !== isDarkMode) {
         sincronizacaoFeita.current = true;
-        // Só muda se for diferente, mas sem recarregar
         if (usuario.modoEscuro !== isDarkMode) {
           toggleTheme();
         }
       }
     }
   }, [usuario, isDarkMode, toggleTheme]);
-
-  useEffect(() => {
-    if (usuario) {
-      if (usuario.isCasal || usuario.tipoConta === 'Casal' || usuario.tipoConta === 1) {
-        const nome = usuario.pessoaQueLogou === 'pessoa1' 
-          ? usuario.casalInfo?.nomeCompletoPessoa1 
-          : usuario.casalInfo?.nomeCompletoPessoa2;
-        setNomeExibicao(nome || 'Usuário');
-      } else {
-        setNomeExibicao(usuario.nomeCompleto || 'Usuário');
-      }
-    } else {
-      setNomeExibicao('');
-    }
-  }, [usuario]);
 
   const handleToggleTheme = async () => {
     if (atualizandoTema) return;
@@ -68,32 +93,30 @@ const Header = () => {
     const novoModoEscuro = !isDarkMode;
     
     try {
-      // Primeiro alterna o tema local
       toggleTheme();
       
-      // Se estiver logado, salva no backend
       if (usuario) {
         await usuarioService.atualizarModoEscuro(usuario.id, novoModoEscuro);
         
-
         const usuarioAtualizado = { 
           ...usuario, 
           modoEscuro: novoModoEscuro 
         };
         
         atualizarUsuario(usuarioAtualizado);
+        
+        // Atualizar também os dados completos
+        setDadosUsuario(prev => prev ? { ...prev, modoEscuro: novoModoEscuro } : null);
       } else {
-
         localStorage.setItem('darkMode', JSON.stringify(novoModoEscuro));
       }
       
     } catch (error) {
       console.error('Erro ao salvar preferência de tema:', error);
-      // Reverte o tema em caso de erro
       toggleTheme();
     } finally {
       setAtualizandoTema(false);
-      sincronizacaoFeita.current = false; // Reset para próximas mudanças
+      sincronizacaoFeita.current = false;
     }
   };
 

@@ -301,57 +301,99 @@ public class UsuarioController : ControllerBase
     }
 
     [Authorize]
-    [HttpPut("perfil-casal/{id}")]
-    public async Task<ActionResult<object>> AtualizarPerfilCasal(string id, [FromBody] AtualizarCasalDto dto)
+[HttpPut("perfil-casal/{id}")]
+public async Task<ActionResult<object>> AtualizarPerfilCasal(string id, [FromBody] AtualizarCasalDto dto)
+{
+    if (id != GetUsuarioId())
+        return Forbid();
+
+    var usuario = await _context.Usuarios
+        .Find(u => u.Id == id && u.TipoConta == TipoConta.Casal)
+        .FirstOrDefaultAsync();
+
+    if (usuario == null)
+        return NotFound();
+
+    var update = Builders<Usuario>.Update;
+    var updates = new List<UpdateDefinition<Usuario>>();
+
+    var rendaPessoa1 = dto.RendaMensalPessoa1 ?? usuario.CasalInfo?.RendaMensalPessoa1 ?? 0;
+    var rendaPessoa2 = dto.RendaMensalPessoa2 ?? usuario.CasalInfo?.RendaMensalPessoa2 ?? 0;
+    var rendaTotal = rendaPessoa1 + rendaPessoa2;
+
+    if (usuario.CasalInfo != null)
     {
-        var usuario = await _context.Usuarios
-            .Find(u => u.Id == id && u.TipoConta == TipoConta.Casal)
-            .FirstOrDefaultAsync();
+        if (!string.IsNullOrWhiteSpace(dto.NomeCompletoPessoa1))
+            updates.Add(update.Set(u => u.CasalInfo.NomeCompletoPessoa1, dto.NomeCompletoPessoa1));
 
-        if (usuario == null)
-            return NotFound();
+        if (dto.DataNascimentoPessoa1.HasValue)
+            updates.Add(update.Set(u => u.CasalInfo.DataNascimentoPessoa1, dto.DataNascimentoPessoa1.Value));
 
-        var update = Builders<Usuario>.Update;
-        var updates = new List<UpdateDefinition<Usuario>>();
-        var renda = (dto.RendaMensalPessoa1 ?? 0) + (dto.RendaMensalPessoa2 ?? 0);
+        if (dto.RendaMensalPessoa1.HasValue)
+            updates.Add(update.Set(u => u.CasalInfo.RendaMensalPessoa1, dto.RendaMensalPessoa1.Value));
 
+        if (!string.IsNullOrWhiteSpace(dto.NomeCompletoPessoa2))
+            updates.Add(update.Set(u => u.CasalInfo.NomeCompletoPessoa2, dto.NomeCompletoPessoa2));
 
-        if (usuario.TipoConta == TipoConta.Casal)
-        {
-            return Ok(new
-            {
-                usuario.Id,
-                usuario.NomeCompleto,
-                usuario.Email,
-                usuario.TipoConta,
-                usuario.IsCasal,
-                usuario.ModoEscuro,
-                usuario.RendaMensal,
-                CasalInfo = new
-                {
-                    NomeCompletoPessoa1 = usuario.CasalInfo?.NomeCompletoPessoa1 ?? "",
-                    EmailPessoa1 = usuario.CasalInfo?.EmailPessoa1 ?? "",
-                    CPFPessoa1 = usuario.CasalInfo?.CPFPessoa1 ?? "",
-                    DataNascimentoPessoa1 = usuario.CasalInfo?.DataNascimentoPessoa1.ToString("yyyy-MM-dd"),
-                    RendaMensalPessoa1 = usuario.CasalInfo?.RendaMensalPessoa1 ?? 0,
-                    NomeCompletoPessoa2 = usuario.CasalInfo?.NomeCompletoPessoa2 ?? "",
-                    EmailPessoa2 = usuario.CasalInfo?.EmailPessoa2 ?? "",
-                    CPFPessoa2 = usuario.CasalInfo?.CPFPessoa2 ?? "",
-                    DataNascimentoPessoa2 = usuario.CasalInfo?.DataNascimentoPessoa2.ToString("yyyy-MM-dd"),
-                    RendaMensalPessoa2 = usuario.CasalInfo?.RendaMensalPessoa2 ?? 0,
-                    DataCasamento = usuario.CasalInfo?.DataCasamento?.ToString("yyyy-MM-dd"),
-                    CreatedAt = usuario.CasalInfo?.CreatedAt
-                }
-            });
-        }
+        if (dto.DataNascimentoPessoa2.HasValue)
+            updates.Add(update.Set(u => u.CasalInfo.DataNascimentoPessoa2, dto.DataNascimentoPessoa2.Value));
 
-        if (updates.Any())
-            await _context.Usuarios.UpdateOneAsync(u => u.Id == id, update.Combine(updates));
+        if (dto.RendaMensalPessoa2.HasValue)
+            updates.Add(update.Set(u => u.CasalInfo.RendaMensalPessoa2, dto.RendaMensalPessoa2.Value));
 
-        var usuarioAtualizado = await _context.Usuarios.Find(u => u.Id == id).FirstOrDefaultAsync();
+        if (dto.DataCasamento.HasValue)
+            updates.Add(update.Set(u => u.CasalInfo.DataCasamento, dto.DataCasamento.Value));
 
-        return Ok(MapearUsuarioCasalParaResposta(usuarioAtualizado!));
+        updates.Add(update.Set(u => u.CasalInfo.UpdatedAt, DateTime.UtcNow));
     }
+
+    if (dto.RendaMensalPessoa1.HasValue || dto.RendaMensalPessoa2.HasValue)
+    {
+        updates.Add(update.Set(u => u.RendaMensal, rendaTotal));
+    }
+
+    if (updates.Any())
+    {
+        await _context.Usuarios.UpdateOneAsync(
+            u => u.Id == id,
+            update.Combine(updates)
+        );
+    }
+
+    var usuarioAtualizado = await _context.Usuarios
+        .Find(u => u.Id == id)
+        .FirstOrDefaultAsync();
+
+    if (usuarioAtualizado == null)
+        return NotFound();
+
+    return Ok(new
+    {
+        usuarioAtualizado.Id,
+        usuarioAtualizado.NomeCompleto,
+        usuarioAtualizado.Email,
+        usuarioAtualizado.TipoConta,
+        usuarioAtualizado.IsCasal,
+        usuarioAtualizado.ModoEscuro,
+        usuarioAtualizado.RendaMensal,
+        CasalInfo = new
+        {
+            NomeCompletoPessoa1 = usuarioAtualizado.CasalInfo?.NomeCompletoPessoa1 ?? "",
+            EmailPessoa1 = usuarioAtualizado.CasalInfo?.EmailPessoa1 ?? "",
+            CPFPessoa1 = usuarioAtualizado.CasalInfo?.CPFPessoa1 ?? "",
+            DataNascimentoPessoa1 = usuarioAtualizado.CasalInfo?.DataNascimentoPessoa1.ToString("yyyy-MM-dd"),
+            RendaMensalPessoa1 = usuarioAtualizado.CasalInfo?.RendaMensalPessoa1 ?? 0,
+            NomeCompletoPessoa2 = usuarioAtualizado.CasalInfo?.NomeCompletoPessoa2 ?? "",
+            EmailPessoa2 = usuarioAtualizado.CasalInfo?.EmailPessoa2 ?? "",
+            CPFPessoa2 = usuarioAtualizado.CasalInfo?.CPFPessoa2 ?? "",
+            DataNascimentoPessoa2 = usuarioAtualizado.CasalInfo?.DataNascimentoPessoa2.ToString("yyyy-MM-dd"),
+            RendaMensalPessoa2 = usuarioAtualizado.CasalInfo?.RendaMensalPessoa2 ?? 0,
+            DataCasamento = usuarioAtualizado.CasalInfo?.DataCasamento?.ToString("yyyy-MM-dd"),
+            CreatedAt = usuarioAtualizado.CasalInfo?.CreatedAt,
+            UpdatedAt = usuarioAtualizado.CasalInfo?.UpdatedAt
+        }
+    });
+}
 
     [Authorize]
     [HttpPut("modo-escuro/{id}")]

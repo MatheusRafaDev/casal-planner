@@ -89,7 +89,6 @@ namespace CasalPlanner.API.Models.DTOs
         [Range(0, 999999.99)]
         public decimal? RendaMensalPessoa1 { get; set; }
 
-        // Pessoa 2
         [StringLength(100, MinimumLength = 3)]
         public string? NomeCompletoPessoa2 { get; set; }
 
@@ -105,7 +104,6 @@ namespace CasalPlanner.API.Models.DTOs
         public decimal? RendaMensal { get; set; }
     }
 
-    // ========== ALTERAÇÃO DE SENHA ==========
     public class AlterarSenhaDto
     {
         [Required(ErrorMessage = "Email é obrigatório")]

@@ -107,6 +107,7 @@ class UsuarioService {
 
   async atualizarPerfilCasal(id, dados) {
     try {
+
       const dadosBackend = {
         nomeCompletoPessoa1: dados.nomeCompletoPessoa1,
         dataNascimentoPessoa1: dados.dataNascimentoPessoa1,
@@ -116,7 +117,6 @@ class UsuarioService {
         rendaMensalPessoa2: dados.rendaMensalPessoa2,
         dataCasamento: dados.dataCasamento
       };
-
       const response = await api.put(`/usuario/perfil-casal/${id}`, dadosBackend);
 
       const usuarioAtual = authService.getUsuario();

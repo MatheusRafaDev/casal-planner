@@ -163,7 +163,6 @@ const Inicio = () => {
     try {
       await itensService.updateComprado(itemId, comprado);
       await loadData();
-      showMessage("Item atualizado");
     } catch (error) {
       showMessage("Erro ao atualizar item", "error");
     }
@@ -233,7 +232,6 @@ const Inicio = () => {
     try {
       await itensService.update(draggedItemId, { categoriaId });
       await loadData();
-      showMessage("Item movido");
     } catch (error) {
       console.error("Erro ao mover item:", error);
     } finally {
@@ -307,7 +305,6 @@ const Inicio = () => {
     try {
       await itensService.delete(itemId);
       await loadData();
-      showMessage("Item deletado");
     } catch (error) {
       console.error("Erro ao deletar item:", error);
     }
@@ -343,7 +340,7 @@ const Inicio = () => {
 
       setItemModal({ isOpen: false, categoriaId: null, itemId: null });
       await loadData();
-      showMessage("Item salvo");
+
     } catch (error) {
       console.error("Erro ao salvar item:", error);
     }
@@ -396,20 +393,6 @@ const Inicio = () => {
         </WelcomeSubtitle>
       </WelcomeSection>
 
-      {/* 🔥 Banner de fallback (se necessário) */}
-      {usandoFallback && (
-        <div style={{ 
-          background: theme.warning + '20', 
-          color: theme.warning,
-          padding: '10px 20px',
-          borderRadius: '8px',
-          marginBottom: '20px',
-          textAlign: 'center',
-          fontSize: '0.9rem'
-        }}>
-          ⚠️ Usando resumo calculado localmente (back-end indisponível)
-        </div>
-      )}
 
       {/* 🔥 ResumoCards com comparativo */}
       <ResumoCards 
