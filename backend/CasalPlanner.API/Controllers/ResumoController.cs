@@ -1,68 +1,48 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using CasalPlanner.API.Services;
 using System.Security.Claims;
-using MongoDB.Driver;
-using CasalPlanner.API.Data;
-using CasalPlanner.API.Models;
-using CasalPlanner.API.Models.DTOs; 
 
 namespace CasalPlanner.API.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class ResumoController : ControllerBase
     {
-        private readonly MongoDbContext _context;
-        
-        public ResumoController(MongoDbContext context)
+        private readonly IResumoService _resumoService;
+        private readonly ILogger<ResumoController> _logger;
+
+        public ResumoController(IResumoService resumoService, ILogger<ResumoController> logger)
         {
-            _context = context;
+            _resumoService = resumoService;
+            _logger = logger;
         }
-        
+
         private string GetUsuarioId()
         {
-            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "casal-default";
+            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
         }
-        
+
         [HttpGet]
-        public async Task<ActionResult<ResumoDto>> GetResumo()
+        public async Task<IActionResult> GetResumo()
         {
-            var usuarioId = GetUsuarioId();
-            
-            var itens = await _context.Itens
-                .Find(i => i.UsuarioId == usuarioId)
-                .ToListAsync();
-            
-            var categorias = await _context.Categorias
-                .Find(c => c.UsuarioId == null || c.UsuarioId == usuarioId)
-                .ToListAsync();
-            
-            var categoriasDict = categorias.ToDictionary(c => c.Id!, c => c.Nome);
-            
-            var naoComprados = itens.Where(i => !i.Comprado);
-            
-            var totalVR = naoComprados
-                .Where(i => i.Pagamento == "vr")
-                .Sum(i => i.Preco * i.Quantidade);
-                
-            var totalNormal = naoComprados
-                .Where(i => i.Pagamento == "normal")
-                .Sum(i => i.Preco * i.Quantidade);
-            
-            var resumo = new ResumoDto
+            try
             {
-                TotalGeral = totalVR + totalNormal,
-                TotalVR = totalVR,
-                TotalNormal = totalNormal,
-                TotalComprados = itens.Count(i => i.Comprado),
-                TotalItens = itens.Count,
-                ItensPorCategoria = itens
-                    .GroupBy(i => categoriasDict.GetValueOrDefault(i.CategoriaId, "Sem categoria"))
-                    .ToDictionary(g => g.Key, g => g.Count())
-            };
-            
-            return resumo;
+                var usuarioId = GetUsuarioId();
+                if (string.IsNullOrEmpty(usuarioId))
+                {
+                    return Unauthorized(new { error = "Usuário não autenticado" });
+                }
+
+                var resumo = await _resumoService.ObterResumo(usuarioId);
+                return Ok(resumo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao obter resumo");
+                return StatusCode(500, new { error = "Erro interno ao processar resumo" });
+            }
         }
     }
 }

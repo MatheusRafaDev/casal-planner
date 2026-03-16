@@ -10,29 +10,22 @@ namespace CasalPlanner.API.Models.DTOs
         public decimal TotalNormal { get; set; }
         public int TotalComprados { get; set; }
         public int TotalItens { get; set; }
-        public decimal MediaPreco { get; set; }
-        public Dictionary<string, int> ItensPorCategoria { get; set; } = new();
-        public Dictionary<string, decimal> ValorPorCategoria { get; set; } = new();
-        public List<ItemResponseDto> UltimosItens { get; set; } = new();
+        public Dictionary<string, decimal> PorCategoria { get; set; } = new();
+        public Dictionary<string, int> QuantidadePorCategoria { get; set; } = new();
     }
 
-    public class ResumoSemanalDto
+    public class ComparativoDto
     {
-        public string Semana { get; set; } = string.Empty;
-        public DateTime DataInicio { get; set; }
-        public DateTime DataFim { get; set; }
-        public decimal TotalGasto { get; set; }
-        public int TotalItens { get; set; }
-        public Dictionary<string, decimal> GastoPorDia { get; set; } = new();
+        public decimal TotalGeral { get; set; }
+        public decimal TotalVR { get; set; }
+        public decimal TotalNormal { get; set; }
+        public decimal TotalComprados { get; set; }
+        public decimal PercentualGeral { get; set; }
     }
 
-    public class ResumoMensalDto
+    public class ResumoResponseDto
     {
-        public int Mes { get; set; }
-        public int Ano { get; set; }
-        public decimal TotalGasto { get; set; }
-        public int TotalItens { get; set; }
-        public Dictionary<string, decimal> GastoPorCategoria { get; set; } = new();
-        public Dictionary<int, decimal> GastoPorSemana { get; set; } = new();
+        public ResumoDto Atual { get; set; } = new();
+        public ComparativoDto Comparativo { get; set; } = new();
     }
 }

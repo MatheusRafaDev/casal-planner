@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
@@ -9,6 +8,7 @@ import Filtros from "../components/Filtros";
 import ItemFormModal from "../components/ItemFormModal";
 import { categoriasService } from "../services/categoriasService";
 import { itensService } from "../services/itensService";
+import { useResumo } from '../hooks/useResumo';
 
 import {
   formatarMoeda,
@@ -27,57 +27,25 @@ import {
   DragCardWrapper,
 } from "../styles/pages/InicioStyles";
 
-const calcularResumo = (itens) => {
-  const itensArray = Array.isArray(itens) ? itens : [];
-
-  const totalGeral = itensArray.reduce(
-    (acc, item) => acc + (item?.preco || 0) * (item?.quantidade || 0),
-    0,
-  );
-
-  const totalVR = itensArray
-    .filter((i) => i?.pagamento === "vr")
-    .reduce(
-      (acc, item) => acc + (item?.preco || 0) * (item?.quantidade || 0),
-      0,
-    );
-
-  const totalNormal = itensArray
-    .filter((i) => i?.pagamento === "normal")
-    .reduce(
-      (acc, item) => acc + (item?.preco || 0) * (item?.quantidade || 0),
-      0,
-    );
-
-  const totalComprados = itensArray.filter((i) => i?.comprado).length;
-
-  return {
-    totalGeral,
-    totalVR,
-    totalNormal,
-    totalComprados,
-    totalItens: itensArray.length,
-  };
-};
-
 const Inicio = () => {
   const { theme } = useTheme();
   const { usuario } = useAuth();
 
   const [categorias, setCategorias] = useState([]);
   const [itens, setItens] = useState([]);
-  const [resumo, setResumo] = useState({
-    totalGeral: 0,
-    totalVR: 0,
-    totalNormal: 0,
-    totalComprados: 0,
-    totalItens: 0,
-  });
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState("all");
   const [message, setMessage] = useState({ text: "", type: "" });
+
+  // 🔥 Usar o hook de resumo
+  const { 
+    resumo, 
+    comparativo, 
+    loading: loadingResumo,
+    usandoFallback,
+    refetch: refetchResumo
+  } = useResumo(itens);
 
   const [itemModal, setItemModal] = useState({
     isOpen: false,
@@ -104,7 +72,6 @@ const Inicio = () => {
     pagamento: "normal",
   });
 
-
   const scrollPositionRef = useRef(0);
 
   const showMessage = (text, type = "success") => {
@@ -120,6 +87,13 @@ const Inicio = () => {
       setError("Usuário não autenticado");
     }
   }, [usuario]);
+
+  // 🔥 Atualizar resumo quando itens mudarem
+  useEffect(() => {
+    if (!loading) {
+      refetchResumo();
+    }
+  }, [itens, loading, refetchResumo]);
 
   const loadData = async () => {
     try {
@@ -143,16 +117,13 @@ const Inicio = () => {
         showMessage("Erro ao carregar categorias", "error");
       }
 
-      let itensData = [];
       if (results[1].status === "fulfilled") {
-        itensData = results[1].value;
+        const itensData = results[1].value;
         setItens(Array.isArray(itensData) ? itensData : []);
       } else {
         setItens([]);
         showMessage("Erro ao carregar itens", "error");
       }
-
-      setResumo(calcularResumo(itensData));
       
     } catch (error) {
       console.error("❌ Erro ao carregar dados:", error);
@@ -174,6 +145,7 @@ const Inicio = () => {
     () => (Array.isArray(categorias) ? categorias : []),
     [categorias],
   );
+  
   const itensArray = useMemo(
     () => (Array.isArray(itens) ? itens : []),
     [itens],
@@ -197,9 +169,7 @@ const Inicio = () => {
     }
   };
 
- 
   const handleCardDragStart = (e, index) => {
-
     setDraggedCardIndex(index);
     e.dataTransfer.setData("text/plain", index.toString());
     e.dataTransfer.effectAllowed = "move";
@@ -209,7 +179,6 @@ const Inicio = () => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
     if (draggedCardIndex !== null && index !== dragOverCardIndex) {
-
       setDragOverCardIndex(index);
     }
   };
@@ -219,19 +188,16 @@ const Inicio = () => {
     
     const sourceIndex = e.dataTransfer.getData("text/plain");
 
-
     if (sourceIndex === null || sourceIndex === targetIndex.toString()) {
       setDraggedCardIndex(null);
       setDragOverCardIndex(null);
       return;
     }
 
-  
     const newCategorias = [...categoriasArray];
     const [removed] = newCategorias.splice(parseInt(sourceIndex), 1);
     newCategorias.splice(targetIndex, 0, removed);
 
- 
     setCategorias(newCategorias);
     
     try {
@@ -246,7 +212,6 @@ const Inicio = () => {
     setDraggedCardIndex(null);
     setDragOverCardIndex(null);
   };
-
 
   const handleItemDragStart = (itemId) => {
     setDraggedItemId(itemId);
@@ -301,7 +266,6 @@ const Inicio = () => {
       console.error("Erro ao deletar categoria:", error);
     }
   };
-
 
   const handleAddItem = (categoriaId) => {
     setItemModal({
@@ -393,7 +357,7 @@ const Inicio = () => {
     });
   };
 
-  if (loading) {
+  if (loading || loadingResumo) {
     return (
       <InicioContainer theme={theme}>
         <LoadingContainer theme={theme}>
@@ -432,7 +396,27 @@ const Inicio = () => {
         </WelcomeSubtitle>
       </WelcomeSection>
 
-      <ResumoCards resumo={resumo} theme={theme} />
+      {/* 🔥 Banner de fallback (se necessário) */}
+      {usandoFallback && (
+        <div style={{ 
+          background: theme.warning + '20', 
+          color: theme.warning,
+          padding: '10px 20px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          textAlign: 'center',
+          fontSize: '0.9rem'
+        }}>
+          ⚠️ Usando resumo calculado localmente (back-end indisponível)
+        </div>
+      )}
+
+      {/* 🔥 ResumoCards com comparativo */}
+      <ResumoCards 
+        resumo={resumo} 
+        comparativo={comparativo}
+        theme={theme} 
+      />
 
       <Filtros
         filter={filter}

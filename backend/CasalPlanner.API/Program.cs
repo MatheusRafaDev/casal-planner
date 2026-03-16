@@ -153,10 +153,11 @@ builder.Services.AddCors(options =>
     });
 });
 
-// ========== 7. REGISTRAR SERVIÇOS ==========
+// ========== 7. REGISTRAR SERVIÇOS (TUDO AQUI ANTES DO BUILD) ==========
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IItemService, ItemService>();
+builder.Services.AddScoped<IResumoService, ResumoService>(); // ✅ Adicionado aqui
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -189,7 +190,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-var app = builder.Build();
+var app = builder.Build(); // ⚠️ NÃO ADICIONE MAIS NADA EM builder.Services DEPOIS DAQUI
 
 // ========== 8. MIDDLEWARE DE SEGURANÇA ==========
 app.Use(async (context, next) =>
