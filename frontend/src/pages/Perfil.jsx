@@ -57,6 +57,7 @@ import {
 
 const Perfil = () => {
   const { usuario, atualizarUsuario, logout } = useAuth();
+  
   const [editando, setEditando] = useState(false);
   const [editandoSenha, setEditandoSenha] = useState(false);
   const [mensagem, setMensagem] = useState("");
@@ -65,7 +66,6 @@ const Perfil = () => {
   const [carregandoDados, setCarregandoDados] = useState(true);
   const [mostrarModalExcluir, setMostrarModalExcluir] = useState(false);
   const [dadosOriginais, setDadosOriginais] = useState(null);
-
 
   const [dadosCasal, setDadosCasal] = useState({
     nomeCompletoPessoa1: "",
@@ -161,7 +161,6 @@ const Perfil = () => {
   const handleCancelar = () => {
     if (dadosOriginais) {
       const isCasal = usuario?.isCasal || usuario?.tipoConta === 1;
-
       if (isCasal) {
         setDadosCasal(dadosOriginais);
       } else {
@@ -394,80 +393,82 @@ const Perfil = () => {
     }
   };
 
-  
-useEffect(() => {
-  const carregarDados = async () => {
-    if (!usuario) {
-      setCarregandoDados(false);
-      return;
-    }
-
-    try {
-      setCarregandoDados(true);
-
-      if (usuario.isCasal || usuario.tipoConta === 1) {
-        const casalInfo = usuario.casalInfo || {};
-
-        const rendaPessoa1 = parseFloat(casalInfo.rendaMensalPessoa1 || 0);
-        const rendaPessoa2 = parseFloat(casalInfo.rendaMensalPessoa2 || 0);
-
-        const novosDadosCasal = {
-          nomeCompletoPessoa1: casalInfo.nomeCompletoPessoa1 || "",
-          emailPessoa1: casalInfo.emailPessoa1 || "",
-          cpfPessoa1: casalInfo.cpfPessoa1 ? formatarCPF(casalInfo.cpfPessoa1) : "",
-          dataNascimentoPessoa1: formatarDataExibicao(
-            casalInfo.dataNascimentoPessoa1,
-          ),
-          rendaMensalPessoa1: casalInfo.rendaMensalPessoa1
-            ? formatarMoeda(parseFloat(casalInfo.rendaMensalPessoa1))
-            : "",
-          rendaMensalPessoa1Valor: rendaPessoa1,
-          nomeCompletoPessoa2: casalInfo.nomeCompletoPessoa2 || "",
-          emailPessoa2: casalInfo.emailPessoa2 || "",
-          cpfPessoa2: casalInfo.cpfPessoa2 ? formatarCPF(casalInfo.cpfPessoa2) : "",
-          dataNascimentoPessoa2: formatarDataExibicao(
-            casalInfo.dataNascimentoPessoa2,
-          ),
-          rendaMensalPessoa2: casalInfo.rendaMensalPessoa2
-            ? formatarMoeda(parseFloat(casalInfo.rendaMensalPessoa2))
-            : "",
-          rendaMensalPessoa2Valor: rendaPessoa2,
-          RendaMensal: usuario.rendaMensal || 0,
-          createdAt: casalInfo.createdAt || "",
-        };
-
-        setDadosCasal(novosDadosCasal);
-        setDadosOriginais(novosDadosCasal);
-      } else {
-        const renda = parseFloat(usuario.rendaMensal || 0);
-
-
-        const novosDadosIndividual = {
-          nomeCompleto: usuario.nomeCompleto || "",
-          email: usuario.email || "",
-          cpf: usuario.cpf ? formatarCPF(usuario.cpf) : "",
-          dataNascimento: formatarDataExibicao(usuario.dataNascimento),
-          rendaMensal: usuario.rendaMensal
-            ? formatarMoeda(parseFloat(usuario.rendaMensal))
-            : "",
-          rendaMensalValor: renda,
-        };
-
-        setDadosIndividual(novosDadosIndividual);
-        setDadosOriginais(novosDadosIndividual);
+  useEffect(() => {
+    const carregarDados = async () => {
+      if (!usuario) {
+        setCarregandoDados(false);
+        return;
       }
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-      setErro("Erro ao carregar dados do perfil");
-    } finally {
-      setCarregandoDados(false);
-    }
-  };
 
-  carregarDados();
-}, [usuario]);
+      try {
+        setCarregandoDados(true);
 
+        const dadosCompletos = await authService.buscarDadosCompletos();
 
+        if (!dadosCompletos) {
+          throw new Error("Não foi possível carregar os dados");
+        }
+
+        const isCasal = dadosCompletos.isCasal || dadosCompletos.tipoConta === 1;
+
+        if (isCasal) {
+          const casalInfo = dadosCompletos.casalInfo || {};
+
+          const rendaPessoa1 = parseFloat(casalInfo.rendaMensalPessoa1 || 0);
+          const rendaPessoa2 = parseFloat(casalInfo.rendaMensalPessoa2 || 0);
+
+          const novosDadosCasal = {
+            nomeCompletoPessoa1: casalInfo.nomeCompletoPessoa1 || "",
+            emailPessoa1: casalInfo.emailPessoa1 || "",
+            cpfPessoa1: casalInfo.cpfPessoa1 ? formatarCPF(casalInfo.cpfPessoa1) : "",
+            dataNascimentoPessoa1: formatarDataExibicao(casalInfo.dataNascimentoPessoa1),
+            rendaMensalPessoa1: casalInfo.rendaMensalPessoa1
+              ? formatarMoeda(parseFloat(casalInfo.rendaMensalPessoa1))
+              : "",
+            rendaMensalPessoa1Valor: rendaPessoa1,
+            nomeCompletoPessoa2: casalInfo.nomeCompletoPessoa2 || "",
+            emailPessoa2: casalInfo.emailPessoa2 || "",
+            cpfPessoa2: casalInfo.cpfPessoa2 ? formatarCPF(casalInfo.cpfPessoa2) : "",
+            dataNascimentoPessoa2: formatarDataExibicao(casalInfo.dataNascimentoPessoa2),
+            rendaMensalPessoa2: casalInfo.rendaMensalPessoa2
+              ? formatarMoeda(parseFloat(casalInfo.rendaMensalPessoa2))
+              : "",
+            rendaMensalPessoa2Valor: rendaPessoa2,
+            RendaMensal: dadosCompletos.rendaMensal || 0,
+            createdAt: casalInfo.createdAt || "",
+          };
+
+          setDadosCasal(novosDadosCasal);
+          setDadosOriginais(novosDadosCasal);
+        } else {
+          const renda = parseFloat(dadosCompletos.rendaMensal || 0);
+
+          const novosDadosIndividual = {
+            nomeCompleto: dadosCompletos.nomeCompleto || "",
+            email: dadosCompletos.email || "",
+            cpf: dadosCompletos.cpf ? formatarCPF(dadosCompletos.cpf) : "",
+            dataNascimento: formatarDataExibicao(dadosCompletos.dataNascimento),
+            rendaMensal: dadosCompletos.rendaMensal
+              ? formatarMoeda(parseFloat(dadosCompletos.rendaMensal))
+              : "",
+            rendaMensalValor: renda,
+          };
+
+          setDadosIndividual(novosDadosIndividual);
+          setDadosOriginais(novosDadosIndividual);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        setErro("Erro ao carregar dados do perfil");
+      } finally {
+        setCarregandoDados(false);
+      }
+    };
+
+    carregarDados();
+  }, [usuario]);
+
+  // 🔥 LOADING ENQUANTO CARREGA
   if (carregandoDados) {
     return (
       <PerfilContainer>
@@ -479,6 +480,7 @@ useEffect(() => {
     );
   }
 
+  // 🔥 REDIRECIONA SE NÃO TIVER USUÁRIO
   if (!usuario) {
     return (
       <PerfilContainer>

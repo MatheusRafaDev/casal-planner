@@ -6,6 +6,7 @@ using CasalPlanner.API.Data;
 using MongoDB.Driver;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using CasalPlanner.API.Models.DTOs.CasalPlanner.API.Models.DTOs;
 
 namespace CasalPlanner.API.Controllers;
 
@@ -165,11 +166,15 @@ public class UsuarioController : ControllerBase
     [HttpPost("registrar-casal")]
     public async Task<ActionResult<UsuarioResponseDto>> RegistrarCasal([FromBody] RegistroCasalDto dto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var usuario = await _authService.RegistrarCasal(dto);
         if (usuario == null)
             return BadRequest(new { message = "Um dos emails já está cadastrado" });
 
-        // Criar categorias padrão para o novo casal
         await CriarCategoriasPadrao(usuario.Id!);
 
         var token = _authService.GerarTokenCasal(usuario, "pessoa1");
@@ -178,21 +183,27 @@ public class UsuarioController : ControllerBase
         {
             Id = usuario.Id!,
             TipoConta = "Casal",
+            IsCasal = true,
             CreatedAt = usuario.CreatedAt,
+            ModoEscuro = usuario.ModoEscuro,
+            RendaMensal = usuario.RendaMensal,
+            Token = token,
+
+            // Pessoa 1
             NomeCompletoPessoa1 = usuario.CasalInfo?.NomeCompletoPessoa1,
             EmailPessoa1 = usuario.CasalInfo?.EmailPessoa1,
             CPFPessoa1 = usuario.CasalInfo?.CPFPessoa1,
             DataNascimentoPessoa1 = usuario.CasalInfo?.DataNascimentoPessoa1,
             RendaMensalPessoa1 = usuario.CasalInfo?.RendaMensalPessoa1,
+
+            // Pessoa 2
             NomeCompletoPessoa2 = usuario.CasalInfo?.NomeCompletoPessoa2,
             EmailPessoa2 = usuario.CasalInfo?.EmailPessoa2,
             CPFPessoa2 = usuario.CasalInfo?.CPFPessoa2,
             DataNascimentoPessoa2 = usuario.CasalInfo?.DataNascimentoPessoa2,
             RendaMensalPessoa2 = usuario.CasalInfo?.RendaMensalPessoa2,
-            DataCasamento = usuario.CasalInfo?.DataCasamento,
-            ModoEscuro = usuario.ModoEscuro,
-            RendaMensal = usuario.RendaMensal,
-            Token = token
+
+            DataCasamento = usuario.CasalInfo?.DataCasamento
         };
 
         return Ok(response);
@@ -304,27 +315,34 @@ public class UsuarioController : ControllerBase
         var updates = new List<UpdateDefinition<Usuario>>();
         var renda = (dto.RendaMensalPessoa1 ?? 0) + (dto.RendaMensalPessoa2 ?? 0);
 
-        if (usuario.CasalInfo != null)
+
+        if (usuario.TipoConta == TipoConta.Casal)
         {
-            if (dto.NomeCompletoPessoa1 != null)
-                updates.Add(update.Set(u => u.CasalInfo.NomeCompletoPessoa1, dto.NomeCompletoPessoa1));
-            if (dto.DataNascimentoPessoa1.HasValue)
-                updates.Add(update.Set(u => u.CasalInfo.DataNascimentoPessoa1, dto.DataNascimentoPessoa1.Value));
-            if (dto.RendaMensalPessoa1.HasValue)
-                updates.Add(update.Set(u => u.CasalInfo.RendaMensalPessoa1, dto.RendaMensalPessoa1.Value));
-
-            if (dto.NomeCompletoPessoa2 != null)
-                updates.Add(update.Set(u => u.CasalInfo.NomeCompletoPessoa2, dto.NomeCompletoPessoa2));
-            if (dto.DataNascimentoPessoa2.HasValue)
-                updates.Add(update.Set(u => u.CasalInfo.DataNascimentoPessoa2, dto.DataNascimentoPessoa2.Value));
-            if (dto.RendaMensalPessoa2.HasValue)
-                updates.Add(update.Set(u => u.CasalInfo.RendaMensalPessoa2, dto.RendaMensalPessoa2.Value));
-
-            if (dto.DataCasamento.HasValue)
-                updates.Add(update.Set(u => u.CasalInfo.DataCasamento, dto.DataCasamento.Value));
-
-            updates.Add(update.Set(u => u.CasalInfo.UpdatedAt, DateTime.UtcNow));
-            updates.Add(update.Set(u => u.RendaMensal, renda));
+            return Ok(new
+            {
+                usuario.Id,
+                usuario.NomeCompleto,
+                usuario.Email,
+                usuario.TipoConta,
+                usuario.IsCasal,
+                usuario.ModoEscuro,
+                usuario.RendaMensal,
+                CasalInfo = new
+                {
+                    NomeCompletoPessoa1 = usuario.CasalInfo?.NomeCompletoPessoa1 ?? "",
+                    EmailPessoa1 = usuario.CasalInfo?.EmailPessoa1 ?? "",
+                    CPFPessoa1 = usuario.CasalInfo?.CPFPessoa1 ?? "",
+                    DataNascimentoPessoa1 = usuario.CasalInfo?.DataNascimentoPessoa1.ToString("yyyy-MM-dd"),
+                    RendaMensalPessoa1 = usuario.CasalInfo?.RendaMensalPessoa1 ?? 0,
+                    NomeCompletoPessoa2 = usuario.CasalInfo?.NomeCompletoPessoa2 ?? "",
+                    EmailPessoa2 = usuario.CasalInfo?.EmailPessoa2 ?? "",
+                    CPFPessoa2 = usuario.CasalInfo?.CPFPessoa2 ?? "",
+                    DataNascimentoPessoa2 = usuario.CasalInfo?.DataNascimentoPessoa2.ToString("yyyy-MM-dd"),
+                    RendaMensalPessoa2 = usuario.CasalInfo?.RendaMensalPessoa2 ?? 0,
+                    DataCasamento = usuario.CasalInfo?.DataCasamento?.ToString("yyyy-MM-dd"),
+                    CreatedAt = usuario.CasalInfo?.CreatedAt
+                }
+            });
         }
 
         if (updates.Any())

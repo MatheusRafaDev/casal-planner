@@ -1,5 +1,5 @@
 using CasalPlanner.API.Models;
-using CasalPlanner.API.Models.DTOs; 
+using CasalPlanner.API.Models.DTOs;
 using CasalPlanner.API.Data;
 using MongoDB.Driver;
 using Microsoft.IdentityModel.Tokens;
@@ -47,7 +47,7 @@ namespace CasalPlanner.API.Services
             {
                 NomeCompleto = dto.NomeCompleto,
                 Email = dto.Email,
- 
+
                 SenhaHash = BCrypt.Net.BCrypt.HashPassword(dto.Senha, workFactor: 12),
                 CPF = dto.CPF,
                 DataNascimento = dto.DataNascimento,
@@ -86,7 +86,7 @@ namespace CasalPlanner.API.Services
                 {
                     NomeCompleto = $"{dto.NomeCompletoPessoa1} & {dto.NomeCompletoPessoa2}",
                     RendaMensal = dto.RendaMensalPessoa1 + dto.RendaMensalPessoa2,
-                    Email = "", 
+                    Email = "",
                     TipoConta = TipoConta.Casal,
                     IsCasal = true,
                     CreatedAt = DateTime.UtcNow,
@@ -100,7 +100,7 @@ namespace CasalPlanner.API.Services
                         CPFPessoa1 = dto.CPFPessoa1,
                         DataNascimentoPessoa1 = dto.DataNascimentoPessoa1,
                         RendaMensalPessoa1 = dto.RendaMensalPessoa1,
-                        
+
                         NomeCompletoPessoa2 = dto.NomeCompletoPessoa2,
                         EmailPessoa2 = dto.EmailPessoa2,
                         SenhaHashPessoa2 = BCrypt.Net.BCrypt.HashPassword(dto.SenhaPessoa2, workFactor: 12),
@@ -146,7 +146,7 @@ namespace CasalPlanner.API.Services
                 return false;
             }
         }
-        
+
         public async Task<Usuario?> ObterUsuarioPorEmail(string email)
         {
             return await _context.Usuarios
@@ -172,16 +172,16 @@ namespace CasalPlanner.API.Services
         public string GerarToken(Usuario usuario)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            
-            var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") 
+
+            var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
                 ?? _configuration["Jwt:Key"];
-            
-            var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") 
-                ?? _configuration["Jwt:Issuer"] 
+
+            var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
+                ?? _configuration["Jwt:Issuer"]
                 ?? "CasalPlanner";
-            
-            var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") 
-                ?? _configuration["Jwt:Audience"] 
+
+            var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
+                ?? _configuration["Jwt:Audience"]
                 ?? "CasalPlannerUsers";
 
             var key = Encoding.UTF8.GetBytes(jwtKey!);
@@ -214,16 +214,16 @@ namespace CasalPlanner.API.Services
         public string GerarTokenCasal(Usuario usuario, string pessoa)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            
-            var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") 
+
+            var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
                 ?? _configuration["Jwt:Key"];
-            
-            var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") 
-                ?? _configuration["Jwt:Issuer"] 
+
+            var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
+                ?? _configuration["Jwt:Issuer"]
                 ?? "CasalPlanner";
-            
-            var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") 
-                ?? _configuration["Jwt:Audience"] 
+
+            var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
+                ?? _configuration["Jwt:Audience"]
                 ?? "CasalPlannerUsers";
 
             var key = Encoding.UTF8.GetBytes(jwtKey!);
@@ -263,6 +263,7 @@ namespace CasalPlanner.API.Services
             return tokenHandler.WriteToken(token);
         }
 
+
         public async Task<Usuario?> AtualizarPerfilCasal(string id, AtualizarCasalDto dto)
         {
             var usuario = await _context.Usuarios
@@ -275,7 +276,7 @@ namespace CasalPlanner.API.Services
             var update = Builders<Usuario>.Update;
             var updates = new List<UpdateDefinition<Usuario>>();
 
-            var renda = dto.RendaMensalPessoa1 + dto.RendaMensalPessoa2;
+            var renda = (dto.RendaMensalPessoa1 ?? 0) + (dto.RendaMensalPessoa2 ?? 0);
 
             if (usuario.CasalInfo != null)
             {

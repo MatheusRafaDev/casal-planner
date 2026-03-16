@@ -44,11 +44,6 @@ namespace CasalPlanner.API.Models.DTOs
         public string? Pagamento { get; set; }
     }
 
-    public class AtualizarCompradoDto
-    {
-        [Required(ErrorMessage = "Status de comprado é obrigatório")]
-        public bool Comprado { get; set; }
-    }
 
     public class ItemResponseDto
     {

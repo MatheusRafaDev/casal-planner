@@ -128,6 +128,7 @@ namespace CasalPlanner.API.Controllers
                     usuario.IsCasal,
                     usuario.ModoEscuro,
                     usuario.RendaMensal,
+                    usuario.CreatedAt,
                     CasalInfo = new
                     {
                         usuario.CasalInfo?.NomeCompletoPessoa1,

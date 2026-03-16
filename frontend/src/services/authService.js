@@ -58,7 +58,6 @@ class AuthService {
   async buscarDadosCompletos() {
     try {
       const response = await api.get('/auth/me');
-      console.log('Resposta de /auth/me:', response);
 
       return response.data;
     } catch (error) {
