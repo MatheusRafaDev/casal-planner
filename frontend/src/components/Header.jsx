@@ -75,7 +75,7 @@ const Header = () => {
       if (usuario) {
         await usuarioService.atualizarModoEscuro(usuario.id, novoModoEscuro);
         
-        // Atualiza o usuário no contexto
+
         const usuarioAtualizado = { 
           ...usuario, 
           modoEscuro: novoModoEscuro 
@@ -83,7 +83,7 @@ const Header = () => {
         
         atualizarUsuario(usuarioAtualizado);
       } else {
-        // Se não estiver logado, apenas salva no localStorage
+
         localStorage.setItem('darkMode', JSON.stringify(novoModoEscuro));
       }
       
