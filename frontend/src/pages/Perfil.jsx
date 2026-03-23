@@ -91,6 +91,7 @@ const Perfil = () => {
     dataNascimento: "",
     rendaMensal: "",
     rendaMensalValor: 0,
+    createdAt: "",
   });
 
   const [senha, setSenha] = useState({
@@ -453,7 +454,10 @@ const Perfil = () => {
               ? formatarMoeda(parseFloat(dadosCompletos.rendaMensal))
               : "",
             rendaMensalValor: renda,
+            createdAt: dadosCompletos.createdAt
           };
+
+          console.log(novosDadosIndividual)
 
           setDadosIndividual(novosDadosIndividual);
           setDadosOriginais(novosDadosIndividual);
@@ -782,7 +786,7 @@ const Perfil = () => {
 
               <DataCriacao>
                 Conta criada em{" "}
-                {formatarDataCriacao(usuario.createdAt || usuario.dataInclusao)}
+                {formatarDataCriacao(dadosIndividual.createdAt)}
               </DataCriacao>
             </>
           ) : (
