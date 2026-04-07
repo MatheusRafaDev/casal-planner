@@ -136,7 +136,7 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
-
+builder.Services.AddHttpClient();
 // ========== 6. CONFIGURAR CORS ==========
 builder.Services.AddCors(options =>
 {

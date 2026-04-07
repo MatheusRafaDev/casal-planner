@@ -216,15 +216,15 @@ const ItemFormModal = ({
         disabled={isSaving}
       />
 
-      {/* PriceResearchPanel integrado corretamente */}
+
       <PriceResearchPanel
         nome={externalFormData.nome}
         marca={externalFormData.marca}
         theme={theme}
         onSelectPrice={handleSelectSuggestedPrice}
-        groqApiKey={process.env.REACT_APP_GROQ_API_KEY}
+        allowCustomQuery={true} 
       />
-
+      
       <ValidatedInput
         label="Quantidade"
         name="quantidade"
