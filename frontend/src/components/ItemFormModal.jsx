@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
 import ValidatedInput from './Form/ValidatedInput';
 import Select from './Form/Select';
+import PriceResearchPanel from './PriceResearchPanel';
 import { useItemValidation } from '../hooks/useItemValidation';
 import { usePriceFormat } from '../hooks/usePriceFormat';
 import { showToast } from '../utils/toastUtils';
@@ -32,7 +33,6 @@ const ItemFormModal = ({
   theme,
 }) => {
   const [isSaving, setIsSaving] = useState(false);
-  
 
   const {
     errors,
@@ -60,7 +60,6 @@ const ItemFormModal = ({
     }
   }, [externalFormData?.preco, setPrecoRaw]);
 
-
   useEffect(() => {
     if (isOpen) {
       if (!isEditing) {
@@ -76,10 +75,9 @@ const ItemFormModal = ({
 
   const createFieldHandler = (fieldName) => ({
     onChange: (e) => {
-      const value = fieldName === 'quantidade' 
-        ? parseInt(e.target.value) || 1 
+      const value = fieldName === 'quantidade'
+        ? parseInt(e.target.value) || 1
         : e.target.value;
-      
       setExternalFormData((prev) => ({ ...prev, [fieldName]: value }));
       handleChange(fieldName, value, touched[fieldName]);
     },
@@ -90,13 +88,8 @@ const ItemFormModal = ({
 
   const handlePrecoChange = (e) => {
     const result = hookPriceChange(e);
-    
     if (result && result.raw !== undefined) {
-      setExternalFormData((prev) => ({ 
-        ...prev, 
-        preco: result.raw 
-      }));
-      
+      setExternalFormData((prev) => ({ ...prev, preco: result.raw }));
       handleChange('preco', result.raw, touched.preco);
     }
   };
@@ -106,13 +99,15 @@ const ItemFormModal = ({
     handleBlur('preco', externalFormData.preco);
   };
 
+  // Recebe o preço clicado no painel e preenche o campo
+  const handleSelectSuggestedPrice = (price) => {
+    setExternalFormData((prev) => ({ ...prev, preco: price }));
+    setPrecoRaw(price);
+    handleChange('preco', price, true);
+  };
+
   const handleSave = async () => {
-    const allTouched = {
-      nome: true,
-      marca: true,
-      preco: true,
-      quantidade: true
-    };
+    const allTouched = { nome: true, marca: true, preco: true, quantidade: true };
     setTouched(allTouched);
 
     const novosErros = validarFormulario(externalFormData, precoFormatado);
@@ -139,14 +134,14 @@ const ItemFormModal = ({
         };
 
         await onSave(dadosParaEnvio);
-        
+
         showToast.success(
-          isEditing 
-            ? `"${externalFormData.nome}" editado com sucesso!` 
+          isEditing
+            ? `"${externalFormData.nome}" editado com sucesso!`
             : `"${externalFormData.nome}" adicionado com sucesso!`,
           theme
         );
-        
+
         handleClose();
       } catch (error) {
         console.error('Erro:', error);
@@ -221,6 +216,15 @@ const ItemFormModal = ({
         disabled={isSaving}
       />
 
+      {/* PriceResearchPanel integrado corretamente */}
+      <PriceResearchPanel
+        nome={externalFormData.nome}
+        marca={externalFormData.marca}
+        theme={theme}
+        onSelectPrice={handleSelectSuggestedPrice}
+        groqApiKey={process.env.REACT_APP_GROQ_API_KEY}
+      />
+
       <ValidatedInput
         label="Quantidade"
         name="quantidade"
@@ -249,24 +253,24 @@ const ItemFormModal = ({
       </Select>
 
       <ModalButtons>
-        <CancelarButton 
-          onClick={handleClose} 
+        <CancelarButton
+          onClick={handleClose}
           theme={theme}
           disabled={isSaving}
           type="button"
         >
           Cancelar
         </CancelarButton>
-        <SalvarButton 
-          onClick={handleSave} 
+        <SalvarButton
+          onClick={handleSave}
           theme={theme}
           disabled={hasErrors() || isSaving}
           type="button"
         >
-          {isSaving 
-            ? 'Salvando...' 
-            : isEditing 
-              ? 'Salvar' 
+          {isSaving
+            ? 'Salvando...'
+            : isEditing
+              ? 'Salvar'
               : 'Adicionar'
           }
         </SalvarButton>
