@@ -23,6 +23,7 @@ const DEFAULT_FORM_DATA = {
   categoriaId: null
 };
 
+
 const ItemFormModal = ({
   isOpen,
   onClose,
@@ -45,6 +46,7 @@ const ItemFormModal = ({
     setTouched,
     hasErrors
   } = useItemValidation();
+
 
   const {
     formattedValue: precoFormatado,
@@ -73,6 +75,20 @@ const ItemFormModal = ({
     }
   }, [isOpen, isEditing, resetValidation, resetPrice, setExternalFormData]);
 
+      const handleSelectProductItem = (item) => {
+
+      setExternalFormData(prev => ({ 
+        ...prev, 
+        nome: item.nome,
+        marca: item.marca,
+        preco: item.preco
+      }));
+      
+      setPrecoRaw(item.preco);
+      handleChange('preco', item.preco, true);
+
+    };
+
   const createFieldHandler = (fieldName) => ({
     onChange: (e) => {
       const value = fieldName === 'quantidade'
@@ -97,13 +113,6 @@ const ItemFormModal = ({
   const handlePrecoBlur = () => {
     handlePriceBlur();
     handleBlur('preco', externalFormData.preco);
-  };
-
-  // Recebe o preço clicado no painel e preenche o campo
-  const handleSelectSuggestedPrice = (price) => {
-    setExternalFormData((prev) => ({ ...prev, preco: price }));
-    setPrecoRaw(price);
-    handleChange('preco', price, true);
   };
 
   const handleSave = async () => {
@@ -220,9 +229,11 @@ const ItemFormModal = ({
       <PriceResearchPanel
         nome={externalFormData.nome}
         marca={externalFormData.marca}
-        theme={theme}
-        onSelectPrice={handleSelectSuggestedPrice}
-        allowCustomQuery={true} 
+        onSelectItem={handleSelectProductItem}
+        onSelectPrice={(price) => {
+          setExternalFormData(prev => ({ ...prev, preco: price }));
+          setPrecoRaw(price);
+        }}
       />
       
       <ValidatedInput

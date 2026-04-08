@@ -1,141 +1,88 @@
 // components/PriceResearchPanel/index.js
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import * as S from '../styles/components/PriceResearchPanelStyles';
 import { formatarValorParaExibicao } from '../utils/mascaras';
-import Groq from 'groq-sdk';
+import api from '../services/api';
+import { 
+  identificarMarcaComIA, 
+  limparNomeProdutoComIA,
+  formatarMarca,
+  extrairPreco,
+  processarProdutosAPI,
+  extrairMarcaBasica
+} from '../services/priceResearchUtils';
 
-const groq = new Groq({
-  apiKey: process.env.REACT_APP_GROQ_API_KEY,
-  dangerouslyAllowBrowser: true
-});
+// ─── Ícones ──────────────────────────────────────────────────────────────────
+const IconSearch = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+);
 
-const Icons = {
-  Search: () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="11" cy="11" r="8"/>
-      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-    </svg>
-  ),
-  Refresh: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M23 4v6h-6M1 20v-6h6"/>
-      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-    </svg>
-  ),
-  External: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-      <polyline points="15 3 21 3 21 9"/>
-      <line x1="10" y1="14" x2="21" y2="3"/>
-    </svg>
-  ),
-  Check: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polyline points="20 6 9 17 4 12"/>
-    </svg>
-  )
-};
+const IconExternal = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    <polyline points="15 3 21 3 21 9" />
+    <line x1="10" y1="14" x2="21" y2="3" />
+  </svg>
+);
 
-// Corrigir texto com Groq AI
-async function corrigirTexto(nome, marca) {
-  if (!nome && !marca) return { nome: '', marca: '' };
-  
+// ─── API ────────────────────────────────────────────────────────────────────
+
+async function buscarPrecos(query) {
   try {
-    const completion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content: "Você é um assistente especializado em corrigir nomes de produtos. Corrija apenas erros de digitação e formatação, mantenha a essência do nome. Retorne APENAS o JSON no formato: {\"nome\": \"nome corrigido\", \"marca\": \"marca corrigida\"}"
-        },
-        {
-          role: "user",
-          content: `Corrija este produto: Nome: "${nome || ''}", Marca: "${marca || ''}"`
-        }
-      ],
-      model: "mixtral-8x7b-32768",
-      temperature: 0.1,
-      response_format: { type: "json_object" }
-    });
+    const { data } = await api.get(`/shopping?q=${encodeURIComponent(query)}`);
+    if (!data) throw new Error('Sem resposta da API');
 
-    const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
-    return {
-      nome: result.nome || nome,
-      marca: result.marca || marca
-    };
+    const sitesMenorPrioridade = ['olx', 'mercado livre', 'enjoei', 'facebook marketplace', 'shopee'];
+    const shoppingResults = data.shopping_results ?? [];
+    
+    const resultados = processarProdutosAPI(shoppingResults, sitesMenorPrioridade);
+    
+    console.log(`Produtos encontrados: ${resultados.length}`);
+    return resultados;
   } catch (error) {
-    console.error('Erro na correção:', error);
-    return { nome, marca };
+    console.error('Erro em buscarPrecos:', error);
+    throw error;
   }
 }
 
-// Buscar preços
-async function buscarPrecos(query) {
-  const response = await fetch(`http://localhost:5286/api/shopping?q=${encodeURIComponent(query)}`);
-  
-  if (!response.ok) throw new Error('Erro na busca');
-  
-  const data = await response.json();
-  const results = data?.shopping_results ?? [];
-  
-  return results
-    .filter(r => r.price)
-    .map(r => ({
-      nome: r.title,
-      loja: r.source,
-      preco: parseFloat(r.price.toString().replace(/[^\d,]/g, '').replace(',', '.')),
-      link: r.product_link || r.link,
-      imagem: r.thumbnail
-    }))
-    .filter(r => r.preco > 0)
-    .sort((a, b) => a.preco - b.preco);
-}
+// ─── Componente Principal ───────────────────────────────────────────────────
 
-const PriceResearchPanel = ({ nome: nomeOriginal, marca: marcaOriginal, onSelectPrice, onSave }) => {
+const PriceResearchPanel = ({ 
+  nome: nomeOriginal = '', 
+  marca: marcaOriginal = '', 
+  onSelectItem,
+  onSelectPrice 
+}) => {
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [correcting, setCorrecting] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
-  const [selectedPrice, setSelectedPrice] = useState(null);
-  
-  // Dados corrigidos
-  const [nomeCorrigido, setNomeCorrigido] = useState(nomeOriginal || '');
-  const [marcaCorrigida, setMarcaCorrigida] = useState(marcaOriginal || '');
-  const [useCorrigido, setUseCorrigido] = useState(false);
-  
-  // Query editável pelo usuário
-  const [customQuery, setCustomQuery] = useState('');
-  const [useCustomQuery, setUseCustomQuery] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState(null);
 
-  const defaultQuery = `${nomeOriginal || ''} ${marcaOriginal || ''}`.trim();
-  const correctedQuery = `${nomeCorrigido} ${marcaCorrigida}`.trim();
-  const currentQuery = useCustomQuery ? customQuery : (useCorrigido ? correctedQuery : defaultQuery);
+  const [queryMode, setQueryMode] = useState('original');
+  const [queryCustom, setQueryCustom] = useState('');
 
-  // Corrigir texto com IA
-  const handleCorrigirTexto = async () => {
-    if (!nomeOriginal && !marcaOriginal) return;
-    
-    setCorrecting(true);
-    const corrigido = await corrigirTexto(nomeOriginal, marcaOriginal);
-    setNomeCorrigido(corrigido.nome);
-    setMarcaCorrigida(corrigido.marca);
-    setUseCorrigido(true);
-    setUseCustomQuery(false);
-    setCorrecting(false);
-  };
+  const queryOriginal = `${nomeOriginal} ${marcaOriginal}`.trim();
+  const currentQuery = queryMode === 'custom' ? queryCustom : queryOriginal;
 
-  const handleBuscar = async () => {
-    if (!currentQuery) return;
-    
+  const handleBuscar = async (query = currentQuery) => {
+    if (!query) return;
     setLoading(true);
     setError(null);
     setResults(null);
-    
+    setSelectedItemId(null);
     try {
-      const data = await buscarPrecos(currentQuery);
+      const data = await buscarPrecos(query);
       setResults(data);
+      if (data.length === 0) {
+        setError('Nenhum produto encontrado com preço válido');
+      }
     } catch (err) {
-      setError(err.message);
+      console.error('Erro na busca:', err);
+      setError(err.message || 'Erro desconhecido');
     } finally {
       setLoading(false);
     }
@@ -143,30 +90,88 @@ const PriceResearchPanel = ({ nome: nomeOriginal, marca: marcaOriginal, onSelect
 
   const handleExpand = () => {
     setExpanded(true);
-    if (!results && !loading) {
-      handleBuscar();
+    if (!results && !loading) handleBuscar(queryOriginal);
+  };
+
+  const handleSelectItem = async (item) => {
+    if (selectedItemId === item.id) return;
+    
+    setSelectedItemId(item.id);
+    
+    try {
+      // Usa IA para identificar marca
+      let marcaDetectada = await identificarMarcaComIA(item.nome);
+      let nomeLimpo = item.nome;
+      
+      if (!marcaDetectada) {
+        marcaDetectada = extrairMarcaBasica(item.nome);
+      }
+      
+      // Usa IA para limpar o nome do produto
+      nomeLimpo = await limparNomeProdutoComIA(item.nome, marcaDetectada);
+      
+      const marcaFormatada = formatarMarca(marcaDetectada);
+      
+      const itemSelecionado = {
+        nome: nomeLimpo,
+        marca: marcaFormatada,
+        preco: item.preco,
+        loja: item.loja,
+        link: item.link,
+        imagem: item.imagem,
+        isTrusted: item.isTrusted
+      };
+      
+      if (onSelectItem) onSelectItem(itemSelecionado);
+      if (onSelectPrice) onSelectPrice(item.preco);
+    } catch (error) {
+      console.error('Erro ao processar item selecionado:', error);
+      // Fallback
+      const marcaBasica = extrairMarcaBasica(item.nome);
+      const itemSelecionado = {
+        nome: item.nome,
+        marca: marcaBasica,
+        preco: item.preco,
+        loja: item.loja,
+        link: item.link,
+        imagem: item.imagem,
+        isTrusted: item.isTrusted
+      };
+      if (onSelectItem) onSelectItem(itemSelecionado);
+      if (onSelectPrice) onSelectPrice(item.preco);
     }
   };
 
-  const handleSelectPrice = (price) => {
-    setSelectedPrice(price);
-    if (onSelectPrice) onSelectPrice(price);
+  const handleCustomChange = (e) => {
+    setQueryCustom(e.target.value);
+    setQueryMode('custom');
   };
 
-  const handleSave = () => {
-    if (selectedPrice && onSave) {
-      onSave(selectedPrice);
-    }
+  const handleResetQuery = () => {
+    setQueryCustom('');
+    setQueryMode('original');
   };
 
-  const precos = results?.map(r => r.preco) ?? [];
-  const menorPreco = precos.length ? Math.min(...precos) : null;
-  const mediaPreco = precos.length ? precos.reduce((a, b) => a + b, 0) / precos.length : null;
+  // Calcular estatísticas
+  const stats = useMemo(() => {
+    if (!results?.length) return null;
+    
+    const produtosPrioritarios = results.filter(r => !r.isLowPriority);
+    if (produtosPrioritarios.length === 0) return null;
+    
+    const menorPreco = Math.min(...produtosPrioritarios.map(r => r.preco));
+    const mediaPreco = produtosPrioritarios.reduce((a, b) => a + b.preco, 0) / produtosPrioritarios.length;
+    
+    return {
+      menor: menorPreco,
+      media: mediaPreco,
+    };
+  }, [results]);
 
   return (
     <S.Wrapper>
       <S.TriggerButton onClick={handleExpand}>
-        <Icons.Search />
+        <IconSearch />
         Pesquisar preços
       </S.TriggerButton>
 
@@ -178,144 +183,125 @@ const PriceResearchPanel = ({ nome: nomeOriginal, marca: marcaOriginal, onSelect
           </S.PanelHeader>
 
           <S.PanelBody>
-            {/* Sugestão de correção com IA */}
-            {(nomeOriginal || marcaOriginal) && !useCorrigido && nomeCorrigido !== nomeOriginal && (
-              <S.SuggestionBox>
-                <S.SuggestionText>
-                  <strong>Sugestão de correção:</strong> {nomeCorrigido} {marcaCorrigida}
-                </S.SuggestionText>
-                <S.CorrectButton onClick={handleCorrigirTexto} disabled={correcting}>
-                  {correcting ? 'Corrigindo...' : 'Usar sugestão'}
-                </S.CorrectButton>
-              </S.SuggestionBox>
-            )}
-
-            {/* Campo de busca editável */}
             <S.SearchSection>
-              <S.SearchLabel>O que você quer pesquisar?</S.SearchLabel>
+              <S.SearchLabel>Buscar preços na internet</S.SearchLabel>
               <S.SearchInputWrapper>
                 <S.SearchInput
                   type="text"
-                  value={useCustomQuery ? customQuery : currentQuery}
-                  onChange={(e) => {
-                    setCustomQuery(e.target.value);
-                    setUseCustomQuery(true);
-                    setUseCorrigido(false);
-                  }}
-                  placeholder="Ex: TV Samsung 55 polegadas 4K"
-                  onKeyPress={(e) => e.key === 'Enter' && handleBuscar()}
+                  value={queryMode === 'custom' ? queryCustom : currentQuery}
+                  onChange={handleCustomChange}
+                  placeholder="Exemplo: Smart TV 55 Samsung QLED 4K"
+                  onKeyDown={(e) => e.key === 'Enter' && handleBuscar()}
                 />
-                <S.SearchButton onClick={handleBuscar} disabled={loading || !currentQuery}>
+                <S.SearchButton onClick={() => handleBuscar()} disabled={loading || !currentQuery}>
                   {loading ? 'Buscando...' : 'Buscar'}
                 </S.SearchButton>
               </S.SearchInputWrapper>
-              {useCustomQuery && (
-                <S.ResetButton onClick={() => {
-                  setUseCustomQuery(false);
-                  setCustomQuery('');
-                }}>
-                  Voltar ao original
-                </S.ResetButton>
+
+              {queryMode !== 'original' && (
+                <S.SearchActions>
+                  <S.ResetButton onClick={handleResetQuery}>Voltar ao original</S.ResetButton>
+                </S.SearchActions>
               )}
             </S.SearchSection>
 
-            {/* Loading */}
             {loading && (
               <S.LoadingContainer>
                 <S.LoadingSpinner />
-                <span>Buscando preços...</span>
+                <span>Buscando preços em sites confiáveis...</span>
               </S.LoadingContainer>
             )}
 
-            {/* Erro */}
             {error && !loading && (
               <S.ErrorContainer>
                 <span>⚠️ {error}</span>
-                <S.RetryButton onClick={handleBuscar}>Tentar novamente</S.RetryButton>
+                <S.RetryButton onClick={() => handleBuscar()}>Tentar novamente</S.RetryButton>
               </S.ErrorContainer>
             )}
 
-            {/* Resultados */}
-            {results && !loading && results.length > 0 && (
+            {results && !loading && results.length > 0 && stats && (
               <>
-                {/* Cards de resumo */}
                 <S.StatsGrid>
-                  <S.StatCard 
-                    onClick={() => handleSelectPrice(menorPreco)}
-                    $selected={selectedPrice === menorPreco}
-                  >
-                    <S.StatValue $type="min">{formatarValorParaExibicao(menorPreco)}</S.StatValue>
+                  <S.StatCard onClick={() => {
+                    const item = results.find(r => r.preco === stats.menor && !r.isLowPriority);
+                    if (item) handleSelectItem(item);
+                  }}>
+                    <S.StatValue $type="min">{formatarValorParaExibicao(stats.menor)}</S.StatValue>
                     <S.StatLabel>Menor preço</S.StatLabel>
+                    <S.StatHint>Clique para aplicar</S.StatHint>
                   </S.StatCard>
-                  <S.StatCard 
-                    onClick={() => handleSelectPrice(mediaPreco)}
-                    $selected={selectedPrice === mediaPreco}
-                  >
-                    <S.StatValue $type="avg">{formatarValorParaExibicao(mediaPreco)}</S.StatValue>
+                  <S.StatCard onClick={() => {
+                    const item = results.reduce((prev, curr) => {
+                      if (curr.isLowPriority) return prev;
+                      return Math.abs(curr.preco - stats.media) < Math.abs(prev.preco - stats.media) ? curr : prev;
+                    });
+                    if (item) handleSelectItem(item);
+                  }}>
+                    <S.StatValue $type="avg">{formatarValorParaExibicao(stats.media)}</S.StatValue>
                     <S.StatLabel>Preço médio</S.StatLabel>
+                    <S.StatHint>Clique para aplicar</S.StatHint>
                   </S.StatCard>
                 </S.StatsGrid>
 
-                {/* Lista de produtos */}
                 <S.ProductsList>
-                  {results.map((item, idx) => (
-                    <S.ProductItem 
-                      key={idx}
-                      onClick={() => handleSelectPrice(item.preco)}
-                      $selected={selectedPrice === item.preco}
-                      $isBest={idx === 0}
-                    >
-                      <S.ProductImage>
-                        {item.imagem ? (
-                          <img src={item.imagem} alt={item.nome} />
-                        ) : (
-                          <span>🛒</span>
-                        )}
-                      </S.ProductImage>
-                      
-                      <S.ProductInfo>
-                        <S.ProductTitle>{item.nome}</S.ProductTitle>
-                        <S.StoreName>{item.loja}</S.StoreName>
-                      </S.ProductInfo>
-                      
-                      <S.ProductPrice>
-                        <S.PriceValue $isBest={idx === 0} $selected={selectedPrice === item.preco}>
-                          {formatarValorParaExibicao(item.preco)}
-                        </S.PriceValue>
-                        {idx === 0 && <S.BestBadge>Melhor</S.BestBadge>}
-                        {selectedPrice === item.preco && <S.SelectedBadge>✓</S.SelectedBadge>}
-                      </S.ProductPrice>
-
-                      <S.LinkButton 
-                        href={item.link} 
-                        target="_blank" 
-                        onClick={(e) => e.stopPropagation()}
-                        title="Ver na loja"
+                  {results.map((item, idx) => {
+                    const isSelected = selectedItemId === item.id;
+                    const isFirstPriority = !item.isLowPriority && idx === results.findIndex(r => !r.isLowPriority);
+                    
+                    return (
+                      <S.ProductItem
+                        key={item.id}
+                        onClick={() => handleSelectItem(item)}
+                        $selected={isSelected}
+                        $isBest={isFirstPriority}
+                        $isLowPriority={item.isLowPriority}
                       >
-                        <Icons.External />
-                      </S.LinkButton>
-                    </S.ProductItem>
-                  ))}
-                </S.ProductsList>
+                        <S.ProductImage>
+                          {item.imagem ? <img src={item.imagem} alt={item.nome} /> : <span>🛒</span>}
+                        </S.ProductImage>
 
-                {/* Botão salvar */}
-                <S.SaveArea>
-                  <S.SaveButton onClick={handleSave} disabled={!selectedPrice}>
-                    {selectedPrice 
-                      ? `Salvar preço de ${formatarValorParaExibicao(selectedPrice)}` 
-                      : 'Clique em um preço para salvar'}
-                  </S.SaveButton>
-                </S.SaveArea>
+                        <S.ProductInfo>
+                          <S.ProductTitle title={item.nome}>{item.nome}</S.ProductTitle>
+                          <S.StoreName>
+                            {item.loja}
+                            {item.isTrusted && <S.TrustBadge>✓ Site confiável</S.TrustBadge>}
+                            {item.isLowPriority && <S.MarketplaceBadge>Marketplace</S.MarketplaceBadge>}
+                          </S.StoreName>
+                          {isSelected && <S.SelectedProductBadge>✓ Produto selecionado</S.SelectedProductBadge>}
+                        </S.ProductInfo>
+
+                        <S.ProductMeta>
+                          <S.PriceValue $isBest={isFirstPriority} $selected={isSelected}>
+                            {formatarValorParaExibicao(item.preco)}
+                          </S.PriceValue>
+                          <S.Badges>
+                            {item.isTrusted && <S.BestBadge>Oficial</S.BestBadge>}
+                            {isFirstPriority && !item.isTrusted && <S.BestBadge>Melhor oferta</S.BestBadge>}
+                          </S.Badges>
+                        </S.ProductMeta>
+
+                        <S.LinkButton
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          title="Ver na loja"
+                        >
+                          <IconExternal />
+                        </S.LinkButton>
+                      </S.ProductItem>
+                    );
+                  })}
+                </S.ProductsList>
               </>
             )}
 
-            {/* Sem resultados */}
             {results && !loading && results.length === 0 && (
               <S.EmptyState>
                 <span>😕</span>
                 <h4>Nenhum resultado encontrado</h4>
-                <p>Tente usar termos mais genéricos</p>
-                <S.RetryButton onClick={handleBuscar}>Buscar novamente</S.RetryButton>
+                <p>Tente usar termos mais genéricos para a busca</p>
+                <S.RetryButton onClick={() => handleBuscar()}>Buscar novamente</S.RetryButton>
               </S.EmptyState>
             )}
           </S.PanelBody>
