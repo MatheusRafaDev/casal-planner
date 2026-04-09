@@ -137,6 +137,16 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 builder.Services.AddHttpClient();
+
+
+builder.Services.AddHttpClient("SerpApiClient", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("User-Agent", "CasalPlanner/1.0");
+});
+
+builder.Services.AddSingleton<GroqService>();
+
 // ========== 6. CONFIGURAR CORS ==========
 builder.Services.AddCors(options =>
 {

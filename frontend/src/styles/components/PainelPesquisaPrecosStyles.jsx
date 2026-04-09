@@ -1,4 +1,4 @@
-// styles/components/PriceResearchPanelStyles.js
+
 import styled, { keyframes } from 'styled-components';
 
 const spin = keyframes`to { transform: rotate(360deg); }`;
@@ -549,4 +549,47 @@ export const EmptyState = styled.div`
   span { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
   h4 { font-size: 0.875rem; margin: 0 0 0.25rem; color: ${p => p.theme.text}; }
   p  { font-size: 0.75rem; color: ${p => p.theme.textSoft}; margin-bottom: 1rem; }
+`;
+
+export const ValidationAlert = styled.div`
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background-color: ${props => {
+    switch(props.$confianca) {
+      case 'alta': return '#fef3c7';
+      case 'media': return '#ffedd5';
+      default: return '#fee2e2';
+    }
+  }};
+  border-left: 4px solid ${props => {
+    switch(props.$confianca) {
+      case 'alta': return '#f59e0b';
+      case 'media': return '#f97316';
+      default: return '#ef4444';
+    }
+  }};
+  
+  strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #78350f;
+  }
+  
+  ul {
+    margin: 0 0 8px 0;
+    padding-left: 20px;
+    
+    li {
+      font-size: 13px;
+      color: #78350f;
+      margin-bottom: 4px;
+    }
+  }
+  
+  small {
+    font-size: 12px;
+    color: #92400e;
+    opacity: 0.8;
+  }
 `;

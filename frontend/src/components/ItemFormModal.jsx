@@ -1,28 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import Modal from './Modal';
-import ValidatedInput from './Form/ValidatedInput';
-import Select from './Form/Select';
-import PriceResearchPanel from './PriceResearchPanel';
-import { useItemValidation } from '../hooks/useItemValidation';
-import { usePriceFormat } from '../hooks/usePriceFormat';
-import { showToast } from '../utils/toastUtils';
+import React, { useState, useEffect } from "react";
+import Modal from "./Modal";
+import ValidatedInput from "./Form/ValidatedInput";
+import Select from "./Form/Select";
+import PainelPesquisaPrecos from "./PainelPesquisaPrecos";
+import { useItemValidation } from "../hooks/useItemValidation";
+import { usePriceFormat } from "../hooks/usePriceFormat";
+import { showToast } from "../utils/toastUtils";
 import {
   ModalButtons,
   CancelarButton,
-  SalvarButton
-} from '../styles/components/ItemFormModalStyles';
+  SalvarButton,
+} from "../styles/components/ItemFormModalStyles";
 
 const DEFAULT_FORM_DATA = {
   id: null,
-  nome: '',
-  marca: '',
+  nome: "",
+  marca: "",
   preco: 0,
   quantidade: 1,
-  pagamento: 'normal',
+  pagamento: "normal",
   comprado: false,
-  categoriaId: null
+  categoriaId: null,
 };
-
 
 const ItemFormModal = ({
   isOpen,
@@ -44,16 +43,15 @@ const ItemFormModal = ({
     resetValidation,
     setErrors,
     setTouched,
-    hasErrors
+    hasErrors,
   } = useItemValidation();
-
 
   const {
     formattedValue: precoFormatado,
     handlePriceChange: hookPriceChange,
     handlePriceBlur,
     setPrice: setPrecoRaw,
-    resetPrice
+    resetPrice,
   } = usePriceFormat(externalFormData?.preco || 0);
 
   useEffect(() => {
@@ -67,67 +65,74 @@ const ItemFormModal = ({
       if (!isEditing) {
         resetValidation();
         resetPrice();
-        setExternalFormData(prev => ({
+        setExternalFormData((prev) => ({
           ...DEFAULT_FORM_DATA,
-          categoriaId: prev?.categoriaId || null
+          categoriaId: prev?.categoriaId || null,
         }));
       }
     }
   }, [isOpen, isEditing, resetValidation, resetPrice, setExternalFormData]);
 
-      const handleSelectProductItem = (item) => {
+  const handleSelectProductItem = (item) => {
+    setExternalFormData((prev) => ({
+      ...prev,
+      nome: item.nome,
+      marca: item.marca,
+      preco: item.preco,
+    }));
 
-      setExternalFormData(prev => ({ 
-        ...prev, 
-        nome: item.nome,
-        marca: item.marca,
-        preco: item.preco
-      }));
-      
-      setPrecoRaw(item.preco);
-      handleChange('preco', item.preco, true);
-
-    };
+    setPrecoRaw(item.preco);
+    handleChange("preco", item.preco, true);
+  };
 
   const createFieldHandler = (fieldName) => ({
     onChange: (e) => {
-      const value = fieldName === 'quantidade'
-        ? parseInt(e.target.value) || 1
-        : e.target.value;
+      const value =
+        fieldName === "quantidade"
+          ? parseInt(e.target.value) || 1
+          : e.target.value;
       setExternalFormData((prev) => ({ ...prev, [fieldName]: value }));
       handleChange(fieldName, value, touched[fieldName]);
     },
     onBlur: () => {
       handleBlur(fieldName, externalFormData[fieldName]);
-    }
+    },
   });
 
   const handlePrecoChange = (e) => {
     const result = hookPriceChange(e);
     if (result && result.raw !== undefined) {
       setExternalFormData((prev) => ({ ...prev, preco: result.raw }));
-      handleChange('preco', result.raw, touched.preco);
+      handleChange("preco", result.raw, touched.preco);
     }
   };
 
   const handlePrecoBlur = () => {
     handlePriceBlur();
-    handleBlur('preco', externalFormData.preco);
+    handleBlur("preco", externalFormData.preco);
   };
 
   const handleSave = async () => {
-    const allTouched = { nome: true, marca: true, preco: true, quantidade: true };
+    const allTouched = {
+      nome: true,
+      marca: true,
+      preco: true,
+      quantidade: true,
+    };
     setTouched(allTouched);
 
     const novosErros = validarFormulario(externalFormData, precoFormatado);
     setErrors(novosErros);
 
-    const ehValido = !Object.values(novosErros).some(erro => erro !== '');
+    const ehValido = !Object.values(novosErros).some((erro) => erro !== "");
 
     if (ehValido) {
       if (externalFormData.preco <= 0) {
-        setErrors(prev => ({ ...prev, preco: 'Preço deve ser maior que zero' }));
-        showToast.error('Preço deve ser maior que zero', theme);
+        setErrors((prev) => ({
+          ...prev,
+          preco: "Preço deve ser maior que zero",
+        }));
+        showToast.error("Preço deve ser maior que zero", theme);
         return;
       }
 
@@ -139,7 +144,7 @@ const ItemFormModal = ({
           marca: externalFormData.marca?.trim() || null,
           preco: Number(externalFormData.preco),
           quantidade: Number(externalFormData.quantidade),
-          categoriaId: Number(externalFormData.categoriaId)
+          categoriaId: Number(externalFormData.categoriaId),
         };
 
         await onSave(dadosParaEnvio);
@@ -148,19 +153,20 @@ const ItemFormModal = ({
           isEditing
             ? `"${externalFormData.nome}" editado com sucesso!`
             : `"${externalFormData.nome}" adicionado com sucesso!`,
-          theme
+          theme,
         );
 
         handleClose();
       } catch (error) {
-        console.error('Erro:', error);
-        const mensagemErro = error.response?.data?.message || 'Erro ao salvar item';
+        console.error("Erro:", error);
+        const mensagemErro =
+          error.response?.data?.message || "Erro ao salvar item";
         showToast.error(mensagemErro, theme);
       } finally {
         setIsSaving(false);
       }
     } else {
-      showToast.error('Por favor, corrija os erros no formulário', theme);
+      showToast.error("Por favor, corrija os erros no formulário", theme);
     }
   };
 
@@ -183,9 +189,9 @@ const ItemFormModal = ({
       <ValidatedInput
         label="Nome"
         name="nome"
-        value={externalFormData.nome || ''}
-        onChange={createFieldHandler('nome').onChange}
-        onBlur={createFieldHandler('nome').onBlur}
+        value={externalFormData.nome || ""}
+        onChange={createFieldHandler("nome").onChange}
+        onBlur={createFieldHandler("nome").onBlur}
         error={errors.nome}
         touched={touched.nome}
         theme={theme}
@@ -199,9 +205,9 @@ const ItemFormModal = ({
       <ValidatedInput
         label="Marca"
         name="marca"
-        value={externalFormData.marca || ''}
-        onChange={createFieldHandler('marca').onChange}
-        onBlur={createFieldHandler('marca').onBlur}
+        value={externalFormData.marca || ""}
+        onChange={createFieldHandler("marca").onChange}
+        onBlur={createFieldHandler("marca").onBlur}
         error={errors.marca}
         touched={touched.marca}
         theme={theme}
@@ -225,24 +231,24 @@ const ItemFormModal = ({
         disabled={isSaving}
       />
 
-
-      <PriceResearchPanel
+      <PainelPesquisaPrecos
         nome={externalFormData.nome}
         marca={externalFormData.marca}
+
         onSelectItem={handleSelectProductItem}
         onSelectPrice={(price) => {
-          setExternalFormData(prev => ({ ...prev, preco: price }));
+          setExternalFormData((prev) => ({ ...prev, preco: price }));
           setPrecoRaw(price);
         }}
       />
-      
+
       <ValidatedInput
         label="Quantidade"
         name="quantidade"
         type="number"
         value={externalFormData.quantidade || 1}
-        onChange={createFieldHandler('quantidade').onChange}
-        onBlur={createFieldHandler('quantidade').onBlur}
+        onChange={createFieldHandler("quantidade").onChange}
+        onBlur={createFieldHandler("quantidade").onBlur}
         error={errors.quantidade}
         touched={touched.quantidade}
         theme={theme}
@@ -254,8 +260,13 @@ const ItemFormModal = ({
 
       <Select
         label="Pagamento"
-        value={externalFormData.pagamento || 'normal'}
-        onChange={(e) => setExternalFormData((prev) => ({ ...prev, pagamento: e.target.value }))}
+        value={externalFormData.pagamento || "normal"}
+        onChange={(e) =>
+          setExternalFormData((prev) => ({
+            ...prev,
+            pagamento: e.target.value,
+          }))
+        }
         theme={theme}
         disabled={isSaving}
       >
@@ -278,12 +289,7 @@ const ItemFormModal = ({
           disabled={hasErrors() || isSaving}
           type="button"
         >
-          {isSaving
-            ? 'Salvando...'
-            : isEditing
-              ? 'Salvar'
-              : 'Adicionar'
-          }
+          {isSaving ? "Salvando..." : isEditing ? "Salvar" : "Adicionar"}
         </SalvarButton>
       </ModalButtons>
     </Modal>
