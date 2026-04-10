@@ -55,7 +55,7 @@ namespace CasalPlanner.API.Services
                 TipoConta = TipoConta.Individual,
                 IsCasal = false,
                 CreatedAt = DateTime.UtcNow,
-                ModoEscuro = false
+                ModoEscuro = true
             };
 
             await _context.Usuarios.InsertOneAsync(usuario);

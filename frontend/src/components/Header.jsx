@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Heart, Sun, Moon, LogOut, User, ChevronDown, Home } from 'lucide-react';
 import usuarioService from '../services/usuarioService';
-import authService from '../services/authService'; // 🔥 IMPORTAR authService
+import authService from '../services/authService'; 
 
 import {
   HeaderContainer,
@@ -35,7 +35,6 @@ const Header = () => {
 
   const isLogado = !!usuario;
 
-  // 🔥 Buscar dados completos do usuário
   useEffect(() => {
     const carregarDadosCompletos = async () => {
       if (usuario) {

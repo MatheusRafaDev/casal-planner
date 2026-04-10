@@ -158,7 +158,7 @@ public class UsuarioController : ControllerBase
             Token = token,
             IsCasal = usuario.IsCasal,
             TipoConta = usuario.TipoConta.ToString(),
-            ModoEscuro = usuario.ModoEscuro
+            ModoEscuro = true
         });
     }
 
@@ -188,7 +188,7 @@ public class UsuarioController : ControllerBase
             TipoConta = "Casal",
             IsCasal = true,
             CreatedAt = usuario.CreatedAt,
-            ModoEscuro = usuario.ModoEscuro,
+            ModoEscuro = true,
             RendaMensal = usuario.RendaMensal,
             Token = token,
 

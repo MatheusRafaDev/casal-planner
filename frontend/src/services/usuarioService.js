@@ -2,6 +2,9 @@ import api from './api';
 import authService from './authService';
 
 class UsuarioService {
+
+  #usuarioCache = null;
+
   async registrar(dados) {
     try {
       const dadosBackend = {
@@ -15,20 +18,8 @@ class UsuarioService {
 
       const response = await api.post('/usuario/registrar', dadosBackend);
       
-      if (response.data.usuario) {
-        const usuario = authService._padronizarUsuario(response.data.usuario);
-        authService._salvarUsuario(usuario);
-        return usuario;
-      }
-      
       return response.data;
     } catch (error) {
-
-      console.error('❌ ERRO COMPLETO:', error);
-      console.error('📦 RESPOSTA DO SERVIDOR:', error.response?.data);
-      console.error('📊 STATUS:', error.response?.status);
-      console.error('🔍 CABEÇALHOS:', error.response?.headers);
-
       console.error('Erro no registro:', error);
       throw error;
     }
@@ -52,13 +43,11 @@ class UsuarioService {
          dataCasamento: ''
       };
 
-      console.log('Enviando dados para registro casal:', dadosBackend);
+
       const response = await api.post('/usuario/registrar-casal', dadosBackend);
 
       if (response.data.usuario) {
-        const usuario = authService._padronizarUsuario(response.data.usuario);
-        authService._salvarUsuario(usuario);
-        return usuario;
+        this.#usuarioCache = response.data.usuario;
       }
       
       return response.data;
@@ -71,15 +60,13 @@ class UsuarioService {
   async getCurrentUser() {
     try {
       const response = await api.get('/usuario/me');
-      const usuario = authService._padronizarUsuario(response.data);
       
       const usuarioAtual = authService.getUsuario();
       if (usuarioAtual) {
-        const usuarioAtualizado = { ...usuarioAtual, ...usuario };
-        authService._salvarUsuario(usuarioAtualizado);
+        const usuarioAtualizado = { ...usuarioAtual, ...response.data };
       }
       
-      return usuario;
+      return response.data;
     } catch (error) {
       console.error('Erro ao buscar usuário:', error);
       throw error;
@@ -100,7 +87,7 @@ class UsuarioService {
       const usuarioAtual = authService.getUsuario();
       if (usuarioAtual && usuarioAtual.id === id) {
         const usuarioAtualizado = { ...usuarioAtual, ...response.data };
-        authService._salvarUsuario(usuarioAtualizado);
+
       }
       
       return response.data;
@@ -127,7 +114,7 @@ class UsuarioService {
       const usuarioAtual = authService.getUsuario();
       if (usuarioAtual && usuarioAtual.id === id) {
         const usuarioAtualizado = { ...usuarioAtual, ...response.data };
-        authService._salvarUsuario(usuarioAtualizado);
+  
       }
       
       return response.data;
@@ -150,7 +137,6 @@ class UsuarioService {
       const usuarioAtual = authService.getUsuario();
       if (usuarioAtual && usuarioAtual.id === id) {
         usuarioAtual.modoEscuro = modoEscuro;
-        authService._salvarUsuario(usuarioAtual);
       }
       
       return response.data;

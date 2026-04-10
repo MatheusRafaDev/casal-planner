@@ -1,52 +1,3 @@
-
-export const lightTheme = {
-
-  background: '#F9FAFB',
-  surface: '#FFFFFF',
-  card: '#FFFFFF',
-  hover: '#F3F4F6',
-
-
-  primary: '#A78BFA',
-  primaryDark: '#8B5CF6',
-  primaryLight: '#DDD6FE',
-
-  secondary: '#F9A8D4',
-  secondaryDark: '#EC4899',
-  secondaryLight: '#FCE7F3',
-
-  accent: '#EF4444',
-  accentDark: '#DC2626',
-  accentLight: '#FEE2E2',
-
-
-  text: '#111827',
-  textSoft: '#4B5563',
-  textLight: '#9CA3AF',
-  textDisabled: '#D1D5DB',
-
-
-  border: '#E5E7EB',
-  borderLight: '#F3F4F6',
-
-
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  info: '#3B82F6',
-
-
-
-  gradient: 'linear-gradient(135deg, #A78BFA 0%, #F9A8D4 100%)',
-  gradientSoft: 'linear-gradient(135deg, #27272A 0%, #18181B 100%)',
-  gradientAccent: 'linear-gradient(135deg, #FF6B6B 0%, #A78BFA 100%)',
-
-  shadowCard: '0 4px 12px rgba(0,0,0,0.05)',
-  radius: '8px',
-};
-
-
-
 export const darkTheme = {
 
   background: '#18181B',     
@@ -105,3 +56,52 @@ export const darkTheme = {
   radiusLg: '12px',
   radiusFull: '9999px',
 };
+
+export const lightTheme = {
+
+  background: '#F9FAFB',
+  surface: '#FFFFFF',
+  card: '#FFFFFF',
+  hover: '#F3F4F6',
+
+
+  primary: '#A78BFA',
+  primaryDark: '#8B5CF6',
+  primaryLight: '#DDD6FE',
+
+  secondary: '#F9A8D4',
+  secondaryDark: '#EC4899',
+  secondaryLight: '#FCE7F3',
+
+  accent: '#EF4444',
+  accentDark: '#DC2626',
+  accentLight: '#FEE2E2',
+
+
+  text: '#111827',
+  textSoft: '#4B5563',
+  textLight: '#9CA3AF',
+  textDisabled: '#D1D5DB',
+
+
+  border: '#E5E7EB',
+  borderLight: '#F3F4F6',
+
+
+  success: '#10B981',
+  warning: '#F59E0B',
+  error: '#EF4444',
+  info: '#3B82F6',
+
+
+
+  gradient: 'linear-gradient(135deg, #A78BFA 0%, #F9A8D4 100%)',
+  gradientSoft: 'linear-gradient(135deg, #27272A 0%, #18181B 100%)',
+  gradientAccent: 'linear-gradient(135deg, #FF6B6B 0%, #A78BFA 100%)',
+
+  shadowCard: '0 4px 12px rgba(0,0,0,0.05)',
+  radius: '8px',
+};
+
+
+

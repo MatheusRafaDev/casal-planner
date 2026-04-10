@@ -19,7 +19,9 @@ import {
   Eye,
   EyeOff,
   Hash,
-  User
+  User,
+  Check,
+  X
 } from 'lucide-react';
 
 import {
@@ -56,6 +58,39 @@ import {
   InfoMessage,
   BackLink
 } from "../styles/pages/LoginStyles";
+
+// Componente de validação de senha
+const PasswordStrengthIndicator = ({ password }) => {
+  const requirements = [
+    { regex: /.{8,}/, text: "Mínimo 8 caracteres", icon: "🔒" },
+    { regex: /[A-Z]/, text: "Letra maiúscula", icon: "⬆️" },
+    { regex: /[a-z]/, text: "Letra minúscula", icon: "⬇️" },
+    { regex: /[0-9]/, text: "Número", icon: "🔢" },
+    { regex: /[^A-Za-z0-9]/, text: "Caractere especial (!@#$%*)", icon: "✨" }
+  ];
+
+  return (
+    <div style={{ marginTop: '8px', fontSize: '12px' }}>
+      {requirements.map((req, index) => {
+        const isValid = req.regex.test(password);
+        return (
+          <div key={index} style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            marginBottom: '4px',
+            color: isValid ? '#4caf50' : '#999',
+            fontSize: '11px'
+          }}>
+            <span>{isValid ? '✅' : '❌'}</span>
+            <span>{req.icon}</span>
+            <span>{req.text}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 const Login = () => {
   const location = useLocation(); 
@@ -98,6 +133,10 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [senhaError, setSenhaError] = useState("");
+  const [passwordStrength, setPasswordStrength] = useState({
+    pessoa1: { isValid: false, errors: [] },
+    pessoa2: { isValid: false, errors: [] }
+  });
 
   const { login, registrar, registrarCasal, estaAutenticado } = useAuth();
   const { theme } = useTheme();
@@ -107,7 +146,54 @@ const Login = () => {
     if (estaAutenticado) {
       navigate("/inicio");
     }
+
+
+    
   }, [estaAutenticado, navigate]);
+
+  // Função para validar força da senha
+  const validatePasswordStrength = (password) => {
+    const errors = [];
+    
+    if (password.length < 8) {
+      errors.push("A senha deve ter no mínimo 8 caracteres");
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push("A senha deve conter pelo menos uma letra maiúscula");
+    }
+    if (!/[a-z]/.test(password)) {
+      errors.push("A senha deve conter pelo menos uma letra minúscula");
+    }
+    if (!/[0-9]/.test(password)) {
+      errors.push("A senha deve conter pelo menos um número");
+    }
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      errors.push("A senha deve conter pelo menos um caractere especial (!@#$%*)");
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors: errors
+    };
+  };
+
+  // Atualiza validação da senha quando ela muda
+  useEffect(() => {
+    if (isCasal) {
+      const validation1 = validatePasswordStrength(formData.pessoa1.senha);
+      const validation2 = validatePasswordStrength(formData.pessoa2.senha);
+      setPasswordStrength({
+        pessoa1: validation1,
+        pessoa2: validation2
+      });
+    } else {
+      const validation = validatePasswordStrength(formData.senha);
+      setPasswordStrength({
+        pessoa1: validation,
+        pessoa2: { isValid: false, errors: [] }
+      });
+    }
+  }, [formData.senha, formData.pessoa1.senha, formData.pessoa2.senha, isCasal]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -135,14 +221,26 @@ const Login = () => {
 
   const validarSenhasRegistro = () => {
     if (isCasal) {
+      // Valida senha da pessoa 1
+      const validation1 = validatePasswordStrength(formData.pessoa1.senha);
+      if (!validation1.isValid) {
+        const msg = validation1.errors[0];
+        setSenhaError(msg);
+        toast.error(msg, { duration: 4000 });
+        return false;
+      }
+      
       if (formData.pessoa1.senha !== formData.pessoa1.confirmarSenha) {
         const msg = "As senhas da primeira pessoa não coincidem";
         setSenhaError(msg);
         toast.error(msg, { duration: 4000 });
         return false;
       }
-      if (formData.pessoa1.senha.length < 6) {
-        const msg = "A senha da primeira pessoa deve ter no mínimo 6 caracteres";
+      
+      // Valida senha da pessoa 2
+      const validation2 = validatePasswordStrength(formData.pessoa2.senha);
+      if (!validation2.isValid) {
+        const msg = validation2.errors[0];
         setSenhaError(msg);
         toast.error(msg, { duration: 4000 });
         return false;
@@ -154,21 +252,18 @@ const Login = () => {
         toast.error(msg, { duration: 4000 });
         return false;
       }
-      if (formData.pessoa2.senha.length < 6) {
-        const msg = "A senha da segunda pessoa deve ter no mínimo 6 caracteres";
+    } else {
+      // Valida senha individual
+      const validation = validatePasswordStrength(formData.senha);
+      if (!validation.isValid) {
+        const msg = validation.errors[0];
         setSenhaError(msg);
         toast.error(msg, { duration: 4000 });
         return false;
       }
-    } else {
+      
       if (formData.senha !== formData.confirmarSenha) {
         const msg = "As senhas não coincidem";
-        setSenhaError(msg);
-        toast.error(msg, { duration: 4000 });
-        return false;
-      }
-      if (formData.senha.length < 6) {
-        const msg = "A senha deve ter no mínimo 6 caracteres";
         setSenhaError(msg);
         toast.error(msg, { duration: 4000 });
         return false;
@@ -256,8 +351,6 @@ const Login = () => {
           setLoading(false);
           return;
         }
-        
-        toast.success("Login realizado com sucesso!", { duration: 3000 });
       } else {
         if (isCasal) {
           if (
@@ -308,8 +401,6 @@ const Login = () => {
             
             dataCasamento: new Date().toISOString().split('T')[0]
           };
-
-          console.log('📤 Enviando dados do casal:', dadosCasal);
           
           toast.loading("Registrando casal...", { id: "registro" });
           result = await registrarCasal(dadosCasal);
@@ -361,8 +452,7 @@ const Login = () => {
             setLoading(false);
             return;
           }
-          
-          toast.success("Usuário registrado com sucesso! 🎉", { duration: 3000 });
+
         }
       }
     } catch (err) {
@@ -381,19 +471,6 @@ const Login = () => {
       setLoading(false);
     }
   };
-
-  // Estilos para o toast baseado no tema
-  const toastStyle = {
-    borderRadius: '12px',
-    background: theme === 'dark' ? '#1e1e1e' : '#fff',
-    color: theme === 'dark' ? '#e0e0e0' : '#333',
-    border: `1px solid ${theme === 'dark' ? '#333' : '#e0e0e0'}`
-  };
-
-  // Configurar toast global
-  React.useEffect(() => {
-    toast.custom((t) => t.visible ? <div style={toastStyle}>{t.message}</div> : null);
-  }, [theme]);
 
   return (
     <LoginContainer theme={theme}>
@@ -566,7 +643,6 @@ const Login = () => {
                           value={formData.senha}
                           onChange={handleChange}
                           placeholder="••••••"
-                          minLength={6}
                           theme={theme}
                         />
                         <PasswordToggle
@@ -577,6 +653,7 @@ const Login = () => {
                           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </PasswordToggle>
                       </InputWrapper>
+                      <PasswordStrengthIndicator password={formData.senha} />
                     </FormGroup>
 
                     <FormGroup $half>
@@ -591,7 +668,6 @@ const Login = () => {
                           value={formData.confirmarSenha}
                           onChange={handleChange}
                           placeholder="••••••"
-                          minLength={6}
                           theme={theme}
                         />
                         <PasswordToggle
@@ -712,7 +788,6 @@ const Login = () => {
                           value={formData.pessoa1.senha}
                           onChange={handleChange}
                           placeholder="••••••"
-                          minLength={6}
                           theme={theme}
                         />
                         <PasswordToggle
@@ -723,6 +798,7 @@ const Login = () => {
                           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </PasswordToggle>
                       </InputWrapper>
+                      <PasswordStrengthIndicator password={formData.pessoa1.senha} />
                     </FormGroup>
 
                     <FormGroup $half>
@@ -734,7 +810,6 @@ const Login = () => {
                           value={formData.pessoa1.confirmarSenha}
                           onChange={handleChange}
                           placeholder="••••••"
-                          minLength={6}
                           theme={theme}
                         />
                         <PasswordToggle
@@ -844,7 +919,6 @@ const Login = () => {
                           value={formData.pessoa2.senha}
                           onChange={handleChange}
                           placeholder="••••••"
-                          minLength={6}
                           theme={theme}
                         />
                         <PasswordToggle
@@ -855,6 +929,7 @@ const Login = () => {
                           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </PasswordToggle>
                       </InputWrapper>
+                      <PasswordStrengthIndicator password={formData.pessoa2.senha} />
                     </FormGroup>
 
                     <FormGroup $half>
@@ -866,7 +941,6 @@ const Login = () => {
                           value={formData.pessoa2.confirmarSenha}
                           onChange={handleChange}
                           placeholder="••••••"
-                          minLength={6}
                           theme={theme}
                         />
                         <PasswordToggle

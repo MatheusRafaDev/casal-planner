@@ -127,7 +127,6 @@ class ResumoService {
       const data = await this.getResumo();
       return this.formatarDados(data);
     } catch (error) {
-      console.warn('⚠️ Usando resumo manual (fallback)');
       return this.calcularResumoManual(itensFallback);
     }
   }

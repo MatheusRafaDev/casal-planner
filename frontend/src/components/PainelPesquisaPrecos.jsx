@@ -61,36 +61,83 @@ const GenericStoreIcon = ({ size = 'small', type = 'store' }) => {
 };
 
 // Função para identificar se é marketplace
-const isMarketplace = (storeName, storeType = '') => {
-  console.log('Identificando tipo de loja:', { storeName, storeType });
-  
+const isMarketplace = (storeName, storeType = '', productTitle = '') => {
   if (!storeName) return false;
 
-  // Lista de marketplaces conhecidos
-  const marketplaces = [
-    'olx', 'facebook', 'marketplace', 'enjoei', 'mercadolivre', 'mercadolibre',
-    'shopee', 'aliexpress', 'ebay', 'etsy', 'magazine luiza', 'magalu',
-    'americanas', 'submarino', 'shoptime', 'casas bahia', 'ponto frio', 'fast shop',
-    'bne store', 'br celulares', 'amazon'
+
+
+  const storeLower = storeName.toLowerCase();
+  const storeTypeLower = (storeType || '').toLowerCase();
+  const titleLower = (productTitle || '').toLowerCase();
+
+  // PALAVRAS-CHAVE que indicam produto usado/semi-novo (marketplace)
+  const usedKeywords = [
+    'usado', 'semi-novo', 'semi novo', 'seminovo', 'recondicionado', 
+    'refurbished', 'open box', 'como novo', 'bom estado', 'excelente estado',
+    'oportunidade', 'impecável', 'impecavel', 'barbada', 'precinho',
+    'leia o anúncio', 'leia o anuncio', 'bateria', 'garantia apple',
+    'vendo', 'no precinho', 'muito bom', 'excelente', 'outlet'
   ];
   
-  const storeLower = storeName.toLowerCase();
+  // Marketplaces claros
+  const marketplaces = [
+    'olx', 'enjoei', 'mercadolivre', 'mercadolibre', 'shopee', 
+    'aliexpress', 'ebay', 'etsy', 'facebook', 'marketplace'
+  ];
   
-  // Verifica pelo nome da loja
+  // Revendedores/lojas de usados
+  const resellers = [
+    'bne store', 'wireless source', 'trocafone', 'taqi', 'br celulares'
+  ];
+  
+  // Lojas oficiais (NÃO são marketplace a menos que seja produto usado)
+  const officialStores = [
+    'amazon', 'magazine luiza', 'magalu', 'casas bahia', 'extra',
+    'ponto frio', 'fast shop', 'americanas', 'submarino', 'shoptime',
+    'iplace', 'horizon play', 'lojas mel'
+  ];
+
+  // VERIFICA SE O TÍTULO TEM PALAVRAS DE USADO/MARKETPLACE
+  const hasUsedKeyword = usedKeywords.some(keyword => titleLower.includes(keyword));
+  
+  // Verifica se é marketplace pelo nome
   const isMarketplaceByName = marketplaces.some(mp => storeLower.includes(mp));
   
-  // Verifica pelo store_type da API
-  const storeTypeLower = (storeType || '').toLowerCase();
-  const isMarketplaceByType = storeTypeLower === 'olx' || 
-                              storeTypeLower === 'marketplace' ||
-                              (storeTypeLower === 'desconhecida' && storeLower.includes('usado')) ||
-                              (storeTypeLower === 'física' && storeLower.includes('usado'));
+  // Verifica se é revendedor
+  const isReseller = resellers.some(r => storeLower.includes(r));
   
-  return isMarketplaceByName || isMarketplaceByType;
+  // Verifica se é loja oficial
+  const isOfficial = officialStores.some(os => storeLower.includes(os));
+  
+  // Verifica pelo store_type
+  const isUnknownType = storeTypeLower === 'desconhecida';
+  const isOlxType = storeTypeLower === 'olx';
+  
+  // REGRA PRINCIPAL: Se o título tem palavra de usado, é marketplace
+  if (hasUsedKeyword) {
+    return true;
+  }
+  
+  // Se for loja oficial e não tiver palavra de usado, NÃO é marketplace
+  if (isOfficial) {
+    return false;
+  }
+  
+  // Se for marketplace ou revendedor
+  if (isMarketplaceByName || isReseller) {
+    return true;
+  }
+  
+  // Se store_type for desconhecida ou OLX
+  if (isUnknownType || isOlxType) {
+    return true;
+  }
+  
+  return false;
 };
 
 // Componente de logo automático com busca em tempo real
-const AutoStoreLogo = ({ storeName, size = 'small', storeType = '' }) => {
+const AutoStoreLogo = ({ storeName, size = 'small', storeType, productTitle }) => {
   const [logoUrl, setLogoUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -107,8 +154,8 @@ const AutoStoreLogo = ({ storeName, size = 'small', storeType = '' }) => {
         return;
       }
       
-      // Verifica se é marketplace
-      const mp = isMarketplace(storeName, storeType);
+      // Verifica se é marketplace (passando o título também)
+      const mp = isMarketplace(storeName, storeType, productTitle);
       setIsMp(mp);
       
       setLoading(true);
@@ -167,7 +214,7 @@ const AutoStoreLogo = ({ storeName, size = 'small', storeType = '' }) => {
         imageElement.onerror = null;
       }
     };
-  }, [storeName, size, storeType]);
+  }, [storeName, size, storeType, productTitle]);
 
   if (loading) {
     return <S.StoreLogoSkeleton />;
@@ -203,7 +250,7 @@ const PainelPesquisaPrecos = ({ nome = '', marca = '', onSelectItem, onSelectPri
   
   const warningTimer = useRef(null);
 
-  // 🔥 DECLARAR queryOriginal ANTES de usar nos useEffects 🔥
+  // DECLARAR queryOriginal ANTES de usar nos useEffects
   const queryOriginal = `${nome} ${marca}`.trim();
   const currentQuery = useCustomQuery ? customQuery : queryOriginal;
 
@@ -225,12 +272,12 @@ const PainelPesquisaPrecos = ({ nome = '', marca = '', onSelectItem, onSelectPri
     }
   }, [currentQuery]);
 
-  // 🔥 useEffect para limpar timer
+  // useEffect para limpar timer
   useEffect(() => {
     return () => clearTimeout(warningTimer.current);
   }, []);
 
-  // 🔥 useEffect para atalho Ctrl+K (AGORA queryOriginal já está declarada)
+  // useEffect para atalho Ctrl+K
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -265,7 +312,7 @@ const PainelPesquisaPrecos = ({ nome = '', marca = '', onSelectItem, onSelectPri
         link: item.link,
         imagem: item.imagem,
         isTrusted: item.isTrusted,
-        isMarketplace: isMarketplace(item.loja, item.store_type),
+        isMarketplace: isMarketplace(item.loja, item.store_type, item.nome),
       });
       onSelectPrice?.(item.preco);
     } catch {
@@ -278,7 +325,7 @@ const PainelPesquisaPrecos = ({ nome = '', marca = '', onSelectItem, onSelectPri
         link: item.link,
         imagem: item.imagem,
         isTrusted: item.isTrusted,
-        isMarketplace: isMarketplace(item.loja, item.store_type),
+        isMarketplace: isMarketplace(item.loja, item.store_type, item.nome),
       });
       onSelectPrice?.(item.preco);
     }
@@ -392,7 +439,7 @@ const PainelPesquisaPrecos = ({ nome = '', marca = '', onSelectItem, onSelectPri
                   const isSelected = selectedItem?.id === item.id;
                   const isBestOffer = !item.isLowPriority && 
                     item.preco === Math.min(...results.filter(r => !r.isLowPriority).map(r => r.preco));
-                  const isMp = isMarketplace(item.loja, item.store_type);
+                  const isMp = isMarketplace(item.loja, item.store_type, item.nome);
 
                   return (
                     <S.ProductItem
@@ -412,6 +459,7 @@ const PainelPesquisaPrecos = ({ nome = '', marca = '', onSelectItem, onSelectPri
                           <AutoStoreLogo 
                             storeName={item.loja}
                             storeType={item.store_type}
+                            productTitle={item.nome}
                             size="small" 
                           />
                           <S.StoreName title={item.loja}>

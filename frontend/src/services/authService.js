@@ -1,17 +1,17 @@
-import api from './api';
+import api from "./api";
 
 class AuthService {
   #usuarioCache = null;
 
   async login(dados) {
     try {
-      const response = await api.post('/auth/login', dados);
+      const response = await api.post("/auth/login", dados);
 
       if (response.data.usuario) {
         this.#usuarioCache = response.data.usuario;
         return response.data.usuario;
       }
-      
+
       return response.data;
     } catch (error) {
       throw error;
@@ -20,9 +20,9 @@ class AuthService {
 
   async logout() {
     try {
-      await api.post('/auth/logout');
+      await api.post("/auth/logout");
     } catch (error) {
-      console.error('Erro no logout:', error);
+      console.error("Erro no logout:", error);
     } finally {
       this.#usuarioCache = null;
     }
@@ -48,7 +48,7 @@ class AuthService {
 
   async estaAutenticado() {
     try {
-      const response = await api.get('/auth/me');
+      const response = await api.get("/auth/me");
       return response.status === 200;
     } catch (error) {
       return false;
@@ -57,11 +57,42 @@ class AuthService {
 
   async buscarDadosCompletos() {
     try {
-      const response = await api.get('/auth/me');
+      const response = await api.get("/auth/me");
+      const d = response.data;
 
-      return response.data;
+      // Normaliza PascalCase → camelCase
+      const normalizado = {
+        id: d.Id || d.id,
+        nomeCompleto: d.NomeCompleto || d.nomeCompleto,
+        email: d.Email || d.email,
+        tipoConta: d.TipoConta ?? d.tipoConta,
+        isCasal: d.IsCasal ?? d.isCasal,
+        modoEscuro: d.ModoEscuro ?? d.modoEscuro,
+        rendaMensal: d.RendaMensal ?? d.rendaMensal,
+        cpf: d.CPF || d.cpf,
+        dataNascimento: d.DataNascimento || d.dataNascimento,
+        createdAt: d.CreatedAt || d.createdAt,
+        casalInfo: d.CasalInfo
+          ? {
+              nomeCompletoPessoa1: d.CasalInfo.NomeCompletoPessoa1,
+              emailPessoa1: d.CasalInfo.EmailPessoa1,
+              cpfPessoa1: d.CasalInfo.CPFPessoa1,
+              dataNascimentoPessoa1: d.CasalInfo.DataNascimentoPessoa1,
+              rendaMensalPessoa1: d.CasalInfo.RendaMensalPessoa1,
+              nomeCompletoPessoa2: d.CasalInfo.NomeCompletoPessoa2,
+              emailPessoa2: d.CasalInfo.EmailPessoa2,
+              cpfPessoa2: d.CasalInfo.CPFPessoa2,
+              dataNascimentoPessoa2: d.CasalInfo.DataNascimentoPessoa2,
+              rendaMensalPessoa2: d.CasalInfo.RendaMensalPessoa2,
+              createdAt: d.CasalInfo.CreatedAt,
+            }
+          : d.casalInfo || null,
+      };
+
+      this.#usuarioCache = normalizado;
+      return normalizado;
     } catch (error) {
-      console.error('Erro ao buscar dados completos:', error);
+      console.error("Erro ao buscar dados completos:", error);
       return null;
     }
   }
