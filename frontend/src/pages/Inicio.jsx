@@ -70,6 +70,9 @@ const Inicio = () => {
     precoFormatado: "",
     quantidade: 1,
     pagamento: "normal",
+    loja: "",
+    linkProduto: "",
+    fotoUrl: "",
   });
 
   const scrollPositionRef = useRef(0);
@@ -86,6 +89,9 @@ const Inicio = () => {
       setLoading(false);
       setError("Usuário não autenticado");
     }
+
+    document.title = "Casal Planner - Minha Lista";
+    
   }, [usuario]);
 
   // 🔥 Atualizar resumo quando itens mudarem
@@ -278,6 +284,9 @@ const Inicio = () => {
       precoFormatado: "",
       quantidade: 1,
       pagamento: "normal",
+      loja: "",
+      linkProduto: "",
+      fotoUrl: "",
     });
   };
 
@@ -298,6 +307,9 @@ const Inicio = () => {
       precoFormatado: formatarValorParaExibicao(item.preco || 0),
       quantidade: item.quantidade || 1,
       pagamento: item.pagamento || "normal",
+      loja: item.loja || "",
+      linkProduto: item.linkProduto || "",
+        fotoUrl: item.fotoUrl || "",
     });
   };
 
@@ -316,19 +328,17 @@ const Inicio = () => {
       return;
     }
 
-    const precoNumerico = desformatarMoeda(formData.preco);
-    if (precoNumerico < 0 || isNaN(precoNumerico)) {
-      alert("Preço inválido");
-      return;
-    }
 
     const itemData = {
       nome: formData.nome.trim(),
       marca: formData.marca.trim() || "",
-      preco: precoNumerico,
+      preco: formData.preco,
       quantidade: parseInt(formData.quantidade) || 1,
       categoriaId: itemModal.categoriaId,
       pagamento: formData.pagamento,
+      loja: formData.loja.trim() || "", 
+      linkProduto: formData.linkProduto.trim() || "",
+      fotoUrl: formData.fotoUrl.trim() || "",
     };
 
     try {
@@ -422,7 +432,6 @@ const Inicio = () => {
               key={categoria?.id || index}
               $isDragging={draggedCardIndex === index}
               $isDragOver={dragOverCardIndex === index}
-              draggable
               onDragStart={(e) => handleCardDragStart(e, index)}
               onDragOver={(e) => handleCardDragOver(e, index)}
               onDragLeave={() => setDragOverCardIndex(null)}

@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import {
   ModalOverlay,
@@ -13,10 +12,8 @@ const Modal = ({
   onClose, 
   title, 
   children, 
-  disableOutsideClick, 
+  disableOutsideClick = false, 
   theme,
-  
-
   showToastOnClose = false,
   toastMessage = '',
   toastType = 'success'
@@ -29,14 +26,25 @@ const Modal = ({
     }
   };
 
-  const handleClose = () => {
+  // Atalho ESC para fechar modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
+  const handleClose = () => {
     if (showToastOnClose && toastMessage) {
       switch (toastType) {
         case 'success':
           toast.success(toastMessage, {
             duration: 3000,
-            icon: '',
+            icon: '✅',
             style: {
               borderRadius: '12px',
               background: theme === 'dark' ? '#1e1e1e' : '#4CAF50',
@@ -67,7 +75,14 @@ const Modal = ({
           });
           break;
         default:
-          toast.success(toastMessage);
+          toast.success(toastMessage, {
+            duration: 3000,
+            style: {
+              borderRadius: '12px',
+              background: theme === 'dark' ? '#1e1e1e' : '#4CAF50',
+              color: theme === 'dark' ? '#e0e0e0' : '#fff',
+            },
+          });
       }
     }
     
@@ -81,7 +96,9 @@ const Modal = ({
       <ModalContent theme={theme}>
         <ModalHeader>
           <h2>{title}</h2>
-          <CloseButton onClick={handleClose} theme={theme}>✕</CloseButton>
+          <CloseButton onClick={handleClose} theme={theme} title="Fechar (ESC)">
+            ✕
+          </CloseButton>
         </ModalHeader>
         {children}
       </ModalContent>

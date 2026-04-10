@@ -1,4 +1,3 @@
-// Services/GroqService.cs
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
@@ -23,7 +22,6 @@ namespace CasalPlanner.API.Services
         {
             var cacheKey = $"{storeName}-{storeUrl}".ToLowerInvariant();
 
-            // Cache simples sem expiração (pode ser limpo com reinício da app)
             if (_cache.TryGetValue(cacheKey, out var cached))
                 return cached;
 
@@ -55,7 +53,17 @@ namespace CasalPlanner.API.Services
                 response_format = new { type = "json_object" },
                 messages = new[]
                 {
-                    new { role = "system", content = "Retorne JSON com isTrusted, isMarketplace, confidence, storeType, reason" },
+                    new { 
+                        role = "system", 
+                        content = @"Responda APENAS com JSON. confidence deve ser string: 'alta', 'media' ou 'baixa'.
+{
+    ""isTrusted"": false,
+    ""isMarketplace"": false,
+    ""confidence"": ""media"",
+    ""storeType"": ""desconhecida"",
+    ""reason"": """"
+}"
+                    },
                     new { role = "user", content = $"Loja: {storeName}" }
                 }
             };
@@ -76,10 +84,47 @@ namespace CasalPlanner.API.Services
                 .GetProperty("content")
                 .GetString();
 
-            return string.IsNullOrWhiteSpace(resultContent) 
-                ? new StoreValidationResult()
-                : JsonSerializer.Deserialize<StoreValidationResult>(resultContent, 
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new StoreValidationResult();
+            if (string.IsNullOrWhiteSpace(resultContent))
+                return new StoreValidationResult();
+
+            // ⭐ Parse robusto que aceita número ou string
+            try
+            {
+                using var jsonDoc = JsonDocument.Parse(resultContent);
+                var root = jsonDoc.RootElement;
+                
+                return new StoreValidationResult
+                {
+                    IsTrusted = root.TryGetProperty("isTrusted", out var t) && t.GetBoolean(),
+                    IsMarketplace = root.TryGetProperty("isMarketplace", out var m) && m.GetBoolean(),
+                    Confidence = GetConfidenceAsString(root),
+                    StoreType = root.TryGetProperty("storeType", out var st) ? st.GetString() ?? "desconhecida" : "desconhecida",
+                    Reason = root.TryGetProperty("reason", out var r) ? r.GetString() ?? "" : ""
+                };
+            }
+            catch
+            {
+                return new StoreValidationResult();
+            }
+        }
+
+        private static string GetConfidenceAsString(JsonElement root)
+        {
+            if (!root.TryGetProperty("confidence", out var confidence))
+                return "media";
+                
+            return confidence.ValueKind switch
+            {
+                JsonValueKind.String => confidence.GetString() ?? "media",
+                JsonValueKind.Number => confidence.GetInt32() switch
+                {
+                    1 => "baixa",
+                    2 => "media",
+                    3 => "alta",
+                    _ => "media"
+                },
+                _ => "media"
+            };
         }
     }
 

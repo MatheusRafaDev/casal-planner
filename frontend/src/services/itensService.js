@@ -17,6 +17,7 @@ export const itensService = {
   },
 
   async create(data) {
+    console.log(data)
     const response = await api.post("/itens", data);
     return response.data;
   },

@@ -59,7 +59,9 @@ export const useItemValidation = () => {
       nome: validarCampo('nome', formData.nome),
       marca: validarCampo('marca', formData.marca),
       preco: validarCampo('preco', formData.preco),
-      quantidade: validarCampo('quantidade', formData.quantidade)
+      quantidade: validarCampo('quantidade', formData.quantidade),
+      Loja: validarCampo('loja', formData.loja),
+      urlFoto: validarCampo('fotoUrl', formData.fotoUrl),
     };
   }, [validarCampo]);
 

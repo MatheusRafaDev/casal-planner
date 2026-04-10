@@ -25,4 +25,8 @@ public class Item
     
     [BsonRepresentation(BsonType.ObjectId)]
     public string UsuarioId { get; set; } = string.Empty;
+
+    public string Loja { get; set; } = string.Empty;
+    public string LinkProduto { get; set; } = string.Empty;
+    public string FotoUrl { get; set; } = string.Empty;
 }

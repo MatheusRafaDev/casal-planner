@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Modal from "./Modal";
 import ValidatedInput from "./Form/ValidatedInput";
 import Select from "./Form/Select";
@@ -21,6 +21,9 @@ const DEFAULT_FORM_DATA = {
   pagamento: "normal",
   comprado: false,
   categoriaId: null,
+  loja: "",           
+  linkProduto: "",   
+  fotoUrl: "",       
 };
 
 const ItemFormModal = ({
@@ -54,11 +57,31 @@ const ItemFormModal = ({
     resetPrice,
   } = usePriceFormat(externalFormData?.preco || 0);
 
+  // Função handleClose memorizada com useCallback
+  const handleClose = useCallback(() => {
+    resetValidation();
+    resetPrice();
+    onClose();
+  }, [resetValidation, resetPrice, onClose]);
+
   useEffect(() => {
     if (externalFormData?.preco !== undefined) {
       setPrecoRaw(externalFormData.preco);
     }
   }, [externalFormData?.preco, setPrecoRaw]);
+
+  // Atalho ESC para fechar modal - CORRIGIDO
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        e.preventDefault();
+        handleClose();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, handleClose]); // Adicionado handleClose como dependência
 
   useEffect(() => {
     if (isOpen) {
@@ -79,6 +102,9 @@ const ItemFormModal = ({
       nome: item.nome,
       marca: item.marca,
       preco: item.preco,
+      loja: item.loja || "",           
+      linkProduto: item.link || "",    
+      fotoUrl: item.imagem || "",      
     }));
 
     setPrecoRaw(item.preco);
@@ -142,9 +168,12 @@ const ItemFormModal = ({
           ...externalFormData,
           nome: externalFormData.nome?.trim(),
           marca: externalFormData.marca?.trim() || null,
-          preco: Number(externalFormData.preco),
+          preco: externalFormData.preco,
           quantidade: Number(externalFormData.quantidade),
           categoriaId: Number(externalFormData.categoriaId),
+          loja: externalFormData.loja || null,          
+          linkProduto: externalFormData.linkProduto || null,
+          fotoUrl: externalFormData.fotoUrl || null,     
         };
 
         await onSave(dadosParaEnvio);
@@ -170,13 +199,23 @@ const ItemFormModal = ({
     }
   };
 
-  const handleClose = () => {
-    resetValidation();
-    resetPrice();
-    onClose();
+  if (!isOpen) return null;
+
+  // Estilos para a imagem
+  const imageContainerStyle = {
+    marginBottom: "20px",
+    textAlign: "center",
   };
 
-  if (!isOpen) return null;
+  const imageStyle = {
+    maxWidth: "100%",
+    maxHeight: "200px",
+    borderRadius: "8px",
+    objectFit: "contain",
+    border: `1px solid ${theme === 'dark' ? '#444' : '#ddd'}`,
+    padding: "4px",
+    backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f9f9f9',
+  };
 
   return (
     <Modal
@@ -186,6 +225,40 @@ const ItemFormModal = ({
       disableOutsideClick={true}
       theme={theme}
     >
+      {/* Exibir foto do item quando tiver URL da foto */}
+      {externalFormData.fotoUrl && (
+        <div style={imageContainerStyle}>
+          <img 
+            src={externalFormData.fotoUrl} 
+            alt={`Foto de ${externalFormData.nome || 'item'}`}
+            style={imageStyle}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.style.display = 'none';
+              const parent = e.target.parentElement;
+              const fallbackDiv = document.createElement('div');
+              fallbackDiv.style.cssText = `
+                max-width: 100%;
+                max-height: 200px;
+                border-radius: 8px;
+                object-fit: contain;
+                border: 1px solid ${theme === 'dark' ? '#444' : '#ddd'};
+                padding: 4px;
+                background-color: ${theme === 'dark' ? '#2a2a2a' : '#f9f9f9'};
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: ${theme === 'dark' ? '#999' : '#666'};
+                font-size: 14px;
+                padding: 20px;
+              `;
+              fallbackDiv.innerHTML = '🖼️ Imagem não disponível';
+              parent.appendChild(fallbackDiv);
+            }}
+          />
+        </div>
+      )}
+
       <ValidatedInput
         label="Nome"
         name="nome"
@@ -196,7 +269,7 @@ const ItemFormModal = ({
         touched={touched.nome}
         theme={theme}
         required
-        placeholder="Ex: Geladeira"
+        placeholder=""
         maxLength={100}
         disabled={isSaving}
         autoFocus
@@ -211,7 +284,7 @@ const ItemFormModal = ({
         error={errors.marca}
         touched={touched.marca}
         theme={theme}
-        placeholder="Ex: Consul"
+        placeholder=""
         maxLength={50}
         disabled={isSaving}
       />
@@ -231,15 +304,29 @@ const ItemFormModal = ({
         disabled={isSaving}
       />
 
+      <ValidatedInput
+        label="Loja"
+        name="loja"
+        value={externalFormData.loja || ""}
+        onChange={createFieldHandler("loja").onChange}
+        onBlur={createFieldHandler("loja").onBlur}
+        error={errors.loja}
+        touched={touched.loja}
+        theme={theme}
+        placeholder=""
+        maxLength={100}
+        disabled={isSaving}
+      />
+
       <PainelPesquisaPrecos
         nome={externalFormData.nome}
         marca={externalFormData.marca}
-
         onSelectItem={handleSelectProductItem}
         onSelectPrice={(price) => {
           setExternalFormData((prev) => ({ ...prev, preco: price }));
           setPrecoRaw(price);
         }}
+        theme={theme}
       />
 
       <ValidatedInput

@@ -23,6 +23,12 @@ class UsuarioService {
       
       return response.data;
     } catch (error) {
+
+      console.error('❌ ERRO COMPLETO:', error);
+      console.error('📦 RESPOSTA DO SERVIDOR:', error.response?.data);
+      console.error('📊 STATUS:', error.response?.status);
+      console.error('🔍 CABEÇALHOS:', error.response?.headers);
+
       console.error('Erro no registro:', error);
       throw error;
     }
@@ -43,9 +49,10 @@ class UsuarioService {
         cpfPessoa2: dados.cpfPessoa2,
         dataNascimentoPessoa2: dados.dataNascimentoPessoa2,
         rendaMensalPessoa2: dados.rendaMensalPessoa2 || 0,
-        dataCasamento: dados.dataCasamento
+         dataCasamento: ''
       };
 
+      console.log('Enviando dados para registro casal:', dadosBackend);
       const response = await api.post('/usuario/registrar-casal', dadosBackend);
 
       if (response.data.usuario) {
@@ -81,8 +88,6 @@ class UsuarioService {
 
   async atualizarPerfil(id, dados) {
     try {
-
-      console.log("Dados recebidos para atualização de perfil:", dados);
       const dadosBackend = {
         nomeCompleto: dados.nomeCompleto,
         dataNascimento: dados.dataNascimento,
@@ -115,7 +120,7 @@ class UsuarioService {
         nomeCompletoPessoa2: dados.nomeCompletoPessoa2,
         dataNascimentoPessoa2: dados.dataNascimentoPessoa2,
         rendaMensalPessoa2: dados.rendaMensalPessoa2,
-        dataCasamento: dados.dataCasamento
+        dataCasamento: ''
       };
       const response = await api.put(`/usuario/perfil-casal/${id}`, dadosBackend);
 
@@ -127,6 +132,12 @@ class UsuarioService {
       
       return response.data;
     } catch (error) {
+
+      console.error('❌ ERRO COMPLETO:', error);
+      console.error('📦 RESPOSTA DO SERVIDOR:', error.response?.data);
+      console.error('📊 STATUS:', error.response?.status);
+      console.error('🔍 CABEÇALHOS:', error.response?.headers);
+
       console.error('Erro ao atualizar perfil casal:', error);
       throw error;
     }

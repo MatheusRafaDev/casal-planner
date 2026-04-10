@@ -52,7 +52,10 @@ namespace CasalPlanner.API.Services
                 Pagamento = dto.Pagamento,
                 UsuarioId = usuarioId,
                 Comprado = false,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Loja = dto.Loja,
+                LinkProduto = dto.LinkProduto,
+                FotoUrl = dto.FotoUrl
             };
 
             await _context.Itens.InsertOneAsync(item);
@@ -88,6 +91,15 @@ namespace CasalPlanner.API.Services
 
             if (dto.Comprado.HasValue)
                 updates.Add(update.Set(i => i.Comprado, dto.Comprado.Value));
+
+            if (!string.IsNullOrEmpty(dto.Loja))
+                updates.Add(update.Set(i => i.Loja, dto.Loja));
+
+            if (!string.IsNullOrEmpty(dto.LinkProduto))
+                updates.Add(update.Set(i => i.LinkProduto, dto.LinkProduto));
+
+            if (!string.IsNullOrEmpty(dto.FotoUrl))
+                updates.Add(update.Set(i => i.FotoUrl, dto.FotoUrl));
 
             updates.Add(update.Set(i => i.UpdatedAt, DateTime.UtcNow));
 

@@ -34,7 +34,7 @@ const AppContainer = styled.div`
 `;
 
 const MainContent = styled.main`
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 2rem 20px;
 

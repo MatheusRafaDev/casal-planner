@@ -141,7 +141,6 @@ namespace CasalPlanner.API.Controllers
                         usuario.CasalInfo?.CPFPessoa2,
                         DataNascimentoPessoa2 = usuario.CasalInfo?.DataNascimentoPessoa2.ToString("yyyy-MM-dd"),
                         usuario.CasalInfo?.RendaMensalPessoa2,
-                        DataCasamento = usuario.CasalInfo?.DataCasamento?.ToString("yyyy-MM-dd"),
                         usuario.CasalInfo?.CreatedAt
                     }
                 });

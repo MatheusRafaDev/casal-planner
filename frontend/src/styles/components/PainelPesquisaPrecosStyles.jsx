@@ -593,3 +593,39 @@ export const ValidationAlert = styled.div`
     opacity: 0.8;
   }
 `;
+// PainelPesquisaPrecosStyles.js
+export const StoreInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+`;
+
+export const StoreLogo = styled.img`
+  width: ${props => props.$size === 'small' ? '16px' : '24px'};
+  height: ${props => props.$size === 'small' ? '16px' : '24px'};
+  object-fit: contain;
+  border-radius: 4px;
+  flex-shrink: 0;
+`;
+
+export const StoreLogoSkeleton = styled.div`
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  flex-shrink: 0;
+  
+  @keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+`;
+
+export const GenericStoreSvg = styled.svg`
+  flex-shrink: 0;
+  opacity: 0.7;
+  color: ${props => props.theme === 'dark' ? '#999' : '#666'};
+`;

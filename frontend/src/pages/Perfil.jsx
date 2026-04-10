@@ -457,7 +457,6 @@ const Perfil = () => {
             createdAt: dadosCompletos.createdAt
           };
 
-          console.log(novosDadosIndividual)
 
           setDadosIndividual(novosDadosIndividual);
           setDadosOriginais(novosDadosIndividual);

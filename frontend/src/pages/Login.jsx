@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import toast from 'react-hot-toast';
 
 import { 
   Heart, 
@@ -135,32 +136,50 @@ const Login = () => {
   const validarSenhasRegistro = () => {
     if (isCasal) {
       if (formData.pessoa1.senha !== formData.pessoa1.confirmarSenha) {
-        setSenhaError("As senhas da primeira pessoa não coincidem");
+        const msg = "As senhas da primeira pessoa não coincidem";
+        setSenhaError(msg);
+        toast.error(msg, { duration: 4000 });
         return false;
       }
       if (formData.pessoa1.senha.length < 6) {
-        setSenhaError("A senha da primeira pessoa deve ter no mínimo 6 caracteres");
+        const msg = "A senha da primeira pessoa deve ter no mínimo 6 caracteres";
+        setSenhaError(msg);
+        toast.error(msg, { duration: 4000 });
         return false;
       }
+      
       if (formData.pessoa2.senha !== formData.pessoa2.confirmarSenha) {
-        setSenhaError("As senhas da segunda pessoa não coincidem");
+        const msg = "As senhas da segunda pessoa não coincidem";
+        setSenhaError(msg);
+        toast.error(msg, { duration: 4000 });
         return false;
       }
       if (formData.pessoa2.senha.length < 6) {
-        setSenhaError("A senha da segunda pessoa deve ter no mínimo 6 caracteres");
+        const msg = "A senha da segunda pessoa deve ter no mínimo 6 caracteres";
+        setSenhaError(msg);
+        toast.error(msg, { duration: 4000 });
         return false;
       }
     } else {
       if (formData.senha !== formData.confirmarSenha) {
-        setSenhaError("As senhas não coincidem");
+        const msg = "As senhas não coincidem";
+        setSenhaError(msg);
+        toast.error(msg, { duration: 4000 });
         return false;
       }
       if (formData.senha.length < 6) {
-        setSenhaError("A senha deve ter no mínimo 6 caracteres");
+        const msg = "A senha deve ter no mínimo 6 caracteres";
+        setSenhaError(msg);
+        toast.error(msg, { duration: 4000 });
         return false;
       }
     }
     return true;
+  };
+
+  const limparCPF = (cpf) => {
+    if (!cpf) return null;
+    return cpf.replace(/[^\d]/g, '');
   };
 
   const handleSubmit = async (e) => {
@@ -170,7 +189,9 @@ const Login = () => {
 
     if (modo === "login") {
       if (!formData.email || !formData.senha) {
-        setError("Preencha email e senha");
+        const msg = "Preencha email e senha";
+        setError(msg);
+        toast.error(msg, { duration: 4000 });
         return;
       }
     } else {
@@ -178,30 +199,42 @@ const Login = () => {
 
       if (!isCasal) {
         if (!validarCPF(formData.cpf)) {
-          setError("CPF inválido. Deve conter 11 dígitos.");
+          const msg = "CPF inválido. Deve conter 11 dígitos.";
+          setError(msg);
+          toast.error(msg, { duration: 4000 });
           return;
         }
 
         if (!validarData(formData.dataNascimento)) {
-          setError("Data de nascimento inválida. Use o formato DD/MM/AAAA.");
+          const msg = "Data de nascimento inválida. Use o formato DD/MM/AAAA.";
+          setError(msg);
+          toast.error(msg, { duration: 4000 });
           return;
         }
       } else {
         if (!validarCPF(formData.pessoa1.cpf)) {
-          setError("CPF da primeira pessoa inválido. Deve conter 11 dígitos.");
+          const msg = "CPF da primeira pessoa inválido. Deve conter 11 dígitos.";
+          setError(msg);
+          toast.error(msg, { duration: 4000 });
           return;
         }
         if (!validarCPF(formData.pessoa2.cpf)) {
-          setError("CPF da segunda pessoa inválido. Deve conter 11 dígitos.");
+          const msg = "CPF da segunda pessoa inválido. Deve conter 11 dígitos.";
+          setError(msg);
+          toast.error(msg, { duration: 4000 });
           return;
         }
 
         if (!validarData(formData.pessoa1.dataNascimento)) {
-          setError("Data de nascimento da primeira pessoa inválida.");
+          const msg = "Data de nascimento da primeira pessoa inválida.";
+          setError(msg);
+          toast.error(msg, { duration: 4000 });
           return;
         }
         if (!validarData(formData.pessoa2.dataNascimento)) {
-          setError("Data de nascimento da segunda pessoa inválida.");
+          const msg = "Data de nascimento da segunda pessoa inválida.";
+          setError(msg);
+          toast.error(msg, { duration: 4000 });
           return;
         }
       }
@@ -213,7 +246,18 @@ const Login = () => {
       let result;
 
       if (modo === "login") {
+        toast.loading("Fazendo login...", { id: "login" });
         result = await login(formData.email, formData.senha);
+        toast.dismiss("login");
+        
+        if (result.success === false) {
+          toast.error(result.error || "Erro ao fazer login", { duration: 4000 });
+          setError(result.error || "Erro ao fazer login");
+          setLoading(false);
+          return;
+        }
+        
+        toast.success("Login realizado com sucesso!", { duration: 3000 });
       } else {
         if (isCasal) {
           if (
@@ -228,7 +272,9 @@ const Login = () => {
             !formData.pessoa2.cpf ||
             !formData.pessoa2.dataNascimento
           ) {
-            setError("Preencha todos os campos obrigatórios do casal");
+            const msg = "Preencha todos os campos obrigatórios do casal";
+            setError(msg);
+            toast.error(msg, { duration: 4000 });
             setLoading(false);
             return;
           }
@@ -237,7 +283,7 @@ const Login = () => {
             nomeCompletoPessoa1: formData.pessoa1.nomeCompleto,
             emailPessoa1: formData.pessoa1.email,
             senhaPessoa1: formData.pessoa1.senha,
-            cpfPessoa1: formData.pessoa1.cpf,
+            cpfPessoa1: limparCPF(formData.pessoa1.cpf),
             dataNascimentoPessoa1: converterDataBRparaISO(formData.pessoa1.dataNascimento),
             rendaMensalPessoa1: formData.pessoa1.rendaMensal
               ? parseFloat(
@@ -245,12 +291,12 @@ const Login = () => {
                     .replace(/\./g, "")
                     .replace(",", ".")
                 )
-              : null,
-
+              : 0,
+            
             nomeCompletoPessoa2: formData.pessoa2.nomeCompleto,
             emailPessoa2: formData.pessoa2.email,
             senhaPessoa2: formData.pessoa2.senha,
-            cpfPessoa2: formData.pessoa2.cpf,
+            cpfPessoa2: limparCPF(formData.pessoa2.cpf),
             dataNascimentoPessoa2: converterDataBRparaISO(formData.pessoa2.dataNascimento),
             rendaMensalPessoa2: formData.pessoa2.rendaMensal
               ? parseFloat(
@@ -258,11 +304,25 @@ const Login = () => {
                     .replace(/\./g, "")
                     .replace(",", ".")
                 )
-              : null,
-            dataInclusao: formData.dataInclusao,
+              : 0,
+            
+            dataCasamento: new Date().toISOString().split('T')[0]
           };
 
+          console.log('📤 Enviando dados do casal:', dadosCasal);
+          
+          toast.loading("Registrando casal...", { id: "registro" });
           result = await registrarCasal(dadosCasal);
+          toast.dismiss("registro");
+          
+          if (result && result.success === false) {
+            toast.error(result.error || "Erro ao registrar casal", { duration: 4000 });
+            setError(result.error || "Erro ao registrar casal");
+            setLoading(false);
+            return;
+          }
+          
+          toast.success("Casal registrado com sucesso! 🎉", { duration: 3000 });
         } else {
           if (
             !formData.nomeCompleto ||
@@ -271,7 +331,9 @@ const Login = () => {
             !formData.cpf ||
             !formData.dataNascimento
           ) {
-            setError("Preencha todos os campos obrigatórios");
+            const msg = "Preencha todos os campos obrigatórios";
+            setError(msg);
+            toast.error(msg, { duration: 4000 });
             setLoading(false);
             return;
           }
@@ -280,34 +342,58 @@ const Login = () => {
             nomeCompleto: formData.nomeCompleto,
             email: formData.email,
             senha: formData.senha,
-            cpf: formData.cpf,
+            cpf: limparCPF(formData.cpf),
             dataNascimento: converterDataBRparaISO(formData.dataNascimento),
             rendaMensal: formData.rendaMensal
               ? parseFloat(
                   formData.rendaMensal.replace(/\./g, "").replace(",", ".")
                 )
-              : null,
-            dataInclusao: formData.dataInclusao,
+              : 0,
           };
 
+          toast.loading("Registrando usuário...", { id: "registro" });
           result = await registrar(dadosIndividuais);
+          toast.dismiss("registro");
+          
+          if (result && result.success === false) {
+            toast.error(result.error || "Erro ao registrar usuário", { duration: 4000 });
+            setError(result.error || "Erro ao registrar usuário");
+            setLoading(false);
+            return;
+          }
+          
+          toast.success("Usuário registrado com sucesso! 🎉", { duration: 3000 });
         }
-      }
-
-      if (!result.success) {
-        setError(result.error || "Erro ao processar solicitação");
       }
     } catch (err) {
       console.error("Erro detalhado:", err);
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Erro ao processar solicitação"
-      );
+      
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.errors?.Senha?.[0] ||
+                          err.response?.data?.errors?.senhaPessoa1?.[0] ||
+                          err.response?.data?.errors?.senhaPessoa2?.[0] ||
+                          err.message ||
+                          "Erro ao processar solicitação";
+      
+      setError(errorMessage);
+      toast.error(errorMessage, { duration: 5000 });
     } finally {
       setLoading(false);
     }
   };
+
+  // Estilos para o toast baseado no tema
+  const toastStyle = {
+    borderRadius: '12px',
+    background: theme === 'dark' ? '#1e1e1e' : '#fff',
+    color: theme === 'dark' ? '#e0e0e0' : '#333',
+    border: `1px solid ${theme === 'dark' ? '#333' : '#e0e0e0'}`
+  };
+
+  // Configurar toast global
+  React.useEffect(() => {
+    toast.custom((t) => t.visible ? <div style={toastStyle}>{t.message}</div> : null);
+  }, [theme]);
 
   return (
     <LoginContainer theme={theme}>
@@ -483,6 +569,13 @@ const Login = () => {
                           minLength={6}
                           theme={theme}
                         />
+                        <PasswordToggle
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          theme={theme}
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </PasswordToggle>
                       </InputWrapper>
                     </FormGroup>
 
@@ -622,6 +715,13 @@ const Login = () => {
                           minLength={6}
                           theme={theme}
                         />
+                        <PasswordToggle
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          theme={theme}
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </PasswordToggle>
                       </InputWrapper>
                     </FormGroup>
 
@@ -637,6 +737,13 @@ const Login = () => {
                           minLength={6}
                           theme={theme}
                         />
+                        <PasswordToggle
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          theme={theme}
+                        >
+                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </PasswordToggle>
                       </InputWrapper>
                     </FormGroup>
                   </FormRow>
@@ -740,6 +847,13 @@ const Login = () => {
                           minLength={6}
                           theme={theme}
                         />
+                        <PasswordToggle
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          theme={theme}
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </PasswordToggle>
                       </InputWrapper>
                     </FormGroup>
 
@@ -755,6 +869,13 @@ const Login = () => {
                           minLength={6}
                           theme={theme}
                         />
+                        <PasswordToggle
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          theme={theme}
+                        >
+                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </PasswordToggle>
                       </InputWrapper>
                     </FormGroup>
                   </FormRow>
@@ -817,8 +938,6 @@ const Login = () => {
                   </FormRow>
                 </>
               )}
-
-              <input type="hidden" name="dataInclusao" value={formData.dataInclusao} />
 
               <LoginButton type="submit" disabled={loading} style={{ marginTop: '20px' }} theme={theme}>
                 {loading ? "Registrando..." : "Registrar"}
