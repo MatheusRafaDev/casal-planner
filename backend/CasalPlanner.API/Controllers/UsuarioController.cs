@@ -167,8 +167,6 @@ public class UsuarioController : ControllerBase
     public async Task<ActionResult<UsuarioResponseDto>> RegistrarCasal([FromBody] RegistroCasalDto dto)
     {
 
-        System.Console.WriteLine("Recebendo registro casal:");
-        System.Console.WriteLine($"Pessoa 1: {dto.NomeCompletoPessoa1}, {dto.EmailPessoa1}, {dto.CPFPessoa1}, {dto.DataNascimentoPessoa1}, {dto.RendaMensalPessoa1}");
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);

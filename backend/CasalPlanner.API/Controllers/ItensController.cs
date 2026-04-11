@@ -20,7 +20,7 @@ namespace CasalPlanner.API.Controllers
 
         private string GetUsuarioId()
         {
-            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                 ?? throw new UnauthorizedAccessException("Usuário não autenticado");
         }
 
@@ -52,7 +52,7 @@ namespace CasalPlanner.API.Controllers
                 var item = await _itemService.GetItemById(id, usuarioId);
 
                 if (item == null)
-                    return NotFound(); 
+                    return NotFound();
 
                 return Ok(item);
             }
@@ -115,7 +115,7 @@ namespace CasalPlanner.API.Controllers
             try
             {
                 var usuarioId = GetUsuarioId();
-                
+
                 var item = await _itemService.GetItemById(id, usuarioId);
                 if (item == null)
                     return NotFound();
@@ -126,7 +126,7 @@ namespace CasalPlanner.API.Controllers
                 };
 
                 var itemAtualizado = await _itemService.AtualizarItem(id, updateDto, usuarioId);
-                
+
                 if (itemAtualizado == null)
                     return NotFound();
 
@@ -183,5 +183,40 @@ namespace CasalPlanner.API.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        // 🔥 NOVA ROTA: Atualizar apenas a categoria do item
+        [HttpPut("{id}/categoria")]
+        public async Task<IActionResult> UpdateCategoria(string id, [FromBody] UpdateCategoriaDto dto)
+        {
+            try
+            {
+                var usuarioId = GetUsuarioId();
+
+                var item = await _itemService.GetItemById(id, usuarioId);
+                if (item == null)
+                    return NotFound();
+
+                var updateDto = new AtualizarItemDto
+                {
+                    CategoriaId = dto.CategoriaId
+                };
+
+                var itemAtualizado = await _itemService.AtualizarItem(id, updateDto, usuarioId);
+
+                if (itemAtualizado == null)
+                    return NotFound();
+
+                return Ok(itemAtualizado);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
     }
 }

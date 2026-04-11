@@ -37,18 +37,18 @@ namespace CasalPlanner.API.Models.DTOs
     {
         public string? Nome { get; set; }
         public string? Marca { get; set; }
-        
+
         [Range(0.01, double.MaxValue, ErrorMessage = "Preço deve ser maior que zero")]
         public decimal? Preco { get; set; }
-        
+
         [Range(1, int.MaxValue, ErrorMessage = "Quantidade deve ser maior que zero")]
         public int? Quantidade { get; set; }
-        
+
         public string? CategoriaId { get; set; }
         public bool? Comprado { get; set; }
         public string? Pagamento { get; set; }
 
-        public string Loja { get; set; } 
+        public string Loja { get; set; }
         public string LinkProduto { get; set; }
         public string FotoUrl { get; set; }
     }
@@ -73,8 +73,14 @@ namespace CasalPlanner.API.Models.DTOs
         public DateTime? UpdatedAt { get; set; }
 
         // Adicione no DTO de criação
-        public string Loja { get; set; } = string.Empty; 
+        public string Loja { get; set; } = string.Empty;
         public string LinkProduto { get; set; } = string.Empty;
-        public string FotoUrl { get; set; }= string.Empty;
-            }
+        public string FotoUrl { get; set; } = string.Empty;
+    }
+
+    public class UpdateCategoriaDto
+    {
+        public string CategoriaId { get; set; }
+    }
+
 }

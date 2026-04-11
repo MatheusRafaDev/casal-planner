@@ -30,6 +30,11 @@ export const itensService = {
     }
   },
 
+  async updateCategoria(id, categoriaId) {
+    const response = await api.put(`/itens/${id}/categoria`, { categoriaId });
+    return response.data;
+  },
+
   async updateComprado(id, comprado) {
     const response = await api.put(`/itens/${id}/comprado`, { comprado });
     return response.data;

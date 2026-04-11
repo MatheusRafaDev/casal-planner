@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import ResumoCards from "../components/ResumoCards";
@@ -8,7 +14,7 @@ import Filtros from "../components/Filtros";
 import ItemFormModal from "../components/ItemFormModal";
 import { categoriasService } from "../services/categoriasService";
 import { itensService } from "../services/itensService";
-import { useResumo } from '../hooks/useResumo';
+import { useResumo } from "../hooks/useResumo";
 
 import {
   formatarMoeda,
@@ -39,12 +45,12 @@ const Planejamento = () => {
   const [message, setMessage] = useState({ text: "", type: "" });
 
   // 🔥 Usar o hook de resumo
-  const { 
-    resumo, 
-    comparativo, 
+  const {
+    resumo,
+    comparativo,
     loading: loadingResumo,
     usandoFallback,
-    refetch: refetchResumo
+    refetch: refetchResumo,
   } = useResumo(itens);
 
   const [itemModal, setItemModal] = useState({
@@ -91,7 +97,6 @@ const Planejamento = () => {
     }
 
     document.title = "Casal Planner - Minha Lista";
-    
   }, [usuario]);
 
   // 🔥 Atualizar resumo quando itens mudarem
@@ -104,7 +109,7 @@ const Planejamento = () => {
   const loadData = async () => {
     try {
       scrollPositionRef.current = window.scrollY;
-      
+
       setLoading(true);
       setError(null);
 
@@ -115,7 +120,9 @@ const Planejamento = () => {
 
       if (results[0].status === "fulfilled") {
         let categoriasData = results[0].value;
-        categoriasData = categoriasData.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+        categoriasData = categoriasData.sort(
+          (a, b) => (a.ordem || 0) - (b.ordem || 0),
+        );
         setCategorias(Array.isArray(categoriasData) ? categoriasData : []);
       } else {
         console.error("❌ Erro ao carregar categorias:", results[0].reason);
@@ -130,18 +137,17 @@ const Planejamento = () => {
         setItens([]);
         showMessage("Erro ao carregar itens", "error");
       }
-      
     } catch (error) {
       console.error("❌ Erro ao carregar dados:", error);
       setError(error.message || "Erro ao carregar dados");
       showMessage("Erro ao carregar dados", "error");
     } finally {
       setLoading(false);
-      
+
       setTimeout(() => {
         window.scrollTo({
           top: scrollPositionRef.current,
-          behavior: 'auto'
+          behavior: "auto",
         });
       }, 0);
     }
@@ -151,7 +157,7 @@ const Planejamento = () => {
     () => (Array.isArray(categorias) ? categorias : []),
     [categorias],
   );
-  
+
   const itensArray = useMemo(
     () => (Array.isArray(itens) ? itens : []),
     [itens],
@@ -190,7 +196,7 @@ const Planejamento = () => {
 
   const handleCardDrop = async (e, targetIndex) => {
     e.preventDefault();
-    
+
     const sourceIndex = e.dataTransfer.getData("text/plain");
 
     if (sourceIndex === null || sourceIndex === targetIndex.toString()) {
@@ -204,9 +210,9 @@ const Planejamento = () => {
     newCategorias.splice(targetIndex, 0, removed);
 
     setCategorias(newCategorias);
-    
+
     try {
-      const categoriaIds = newCategorias.map(c => c.id);
+      const categoriaIds = newCategorias.map((c) => c.id);
       await categoriasService.reordenar(categoriaIds);
       showMessage("Categorias reordenadas");
     } catch (error) {
@@ -236,10 +242,13 @@ const Planejamento = () => {
     }
 
     try {
-      await itensService.update(draggedItemId, { categoriaId });
+      await itensService.updateCategoria(draggedItemId, categoriaId);
       await loadData();
     } catch (error) {
       console.error("Erro ao mover item:", error);
+      if (error.response) {
+        console.error("Detalhes:", error.response.data);
+      }
     } finally {
       setDraggedItemId(null);
     }
@@ -309,7 +318,7 @@ const Planejamento = () => {
       pagamento: item.pagamento || "normal",
       loja: item.loja || "",
       linkProduto: item.linkProduto || "",
-        fotoUrl: item.fotoUrl || "",
+      fotoUrl: item.fotoUrl || "",
     });
   };
 
@@ -328,7 +337,6 @@ const Planejamento = () => {
       return;
     }
 
-
     const itemData = {
       nome: formData.nome.trim(),
       marca: formData.marca.trim() || "",
@@ -336,7 +344,7 @@ const Planejamento = () => {
       quantidade: parseInt(formData.quantidade) || 1,
       categoriaId: itemModal.categoriaId,
       pagamento: formData.pagamento,
-      loja: formData.loja.trim() || "", 
+      loja: formData.loja.trim() || "",
       linkProduto: formData.linkProduto.trim() || "",
       fotoUrl: formData.fotoUrl.trim() || "",
     };
@@ -350,7 +358,6 @@ const Planejamento = () => {
 
       setItemModal({ isOpen: false, categoriaId: null, itemId: null });
       await loadData();
-
     } catch (error) {
       console.error("Erro ao salvar item:", error);
     }
@@ -403,13 +410,8 @@ const Planejamento = () => {
         </WelcomeSubtitle>
       </WelcomeSection>
 
-
       {/* 🔥 ResumoCards com comparativo */}
-      <ResumoCards 
-        resumo={resumo} 
-        comparativo={comparativo}
-        theme={theme} 
-      />
+      <ResumoCards resumo={resumo} comparativo={comparativo} theme={theme} />
 
       <Filtros
         filter={filter}
@@ -421,9 +423,7 @@ const Planejamento = () => {
       {categoriasArray.length === 0 ? (
         <LoadingContainer theme={theme}>
           <p>Nenhuma categoria encontrada.</p>
-          <button onClick={handleAddCategoria}>
-            + Adicionar Categoria
-          </button>
+          <button onClick={handleAddCategoria}>+ Adicionar Categoria</button>
         </LoadingContainer>
       ) : (
         <CategoriesGrid>
