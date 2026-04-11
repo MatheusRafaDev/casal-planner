@@ -1,4 +1,4 @@
-// CategoriaCard.jsx - VERSÃO COM SERVIÇO DE LOGO
+// CategoriaCard.jsx - VERSÃO CORRIGIDA
 
 import React, { useState, useMemo, useEffect } from "react";
 import {
@@ -11,12 +11,63 @@ import {
   Store,
   ExternalLink,
   GripVertical,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { useItemActions } from "../hooks/useItemActions";
 import { useCategoryActions } from "../hooks/useCategoryActions";
 import { formatarMoeda, getPaymentIcon } from "../utils/formatters";
 import storeLogoService from "../services/storeLogoService";
 import * as S from "../styles/components/CategoriaCardStyles";
+
+// Componente de Skeleton para loading dos itens
+const ItemSkeleton = ({ theme }) => (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "0.75rem",
+      padding: "0.75rem",
+      background: theme === "dark" ? "#2a2a2a" : "#f8f9fa",
+      borderRadius: "0.75rem",
+      marginBottom: "0.75rem",
+      animation: "pulse 1.5s ease-in-out infinite",
+    }}
+  >
+    <div
+      style={{
+        width: "30px",
+        height: "20px",
+        background: theme === "dark" ? "#444" : "#e0e0e0",
+        borderRadius: "4px",
+      }}
+    />
+    <div
+      style={{
+        width: "24px",
+        height: "24px",
+        background: theme === "dark" ? "#444" : "#e0e0e0",
+        borderRadius: "8px",
+      }}
+    />
+    <div
+      style={{
+        width: "60%",
+        height: "20px",
+        background: theme === "dark" ? "#444" : "#e0e0e0",
+        borderRadius: "4px",
+      }}
+    />
+    <div
+      style={{
+        width: "80px",
+        height: "28px",
+        background: theme === "dark" ? "#444" : "#e0e0e0",
+        borderRadius: "20px",
+      }}
+    />
+  </div>
+);
 
 const isAddedToday = (createdAt) => {
   if (!createdAt) return false;
@@ -112,10 +163,14 @@ const CategoriaCard = ({
   draggedItemId,
   theme,
   onToggleComprado,
+  isLoading = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isDragOver, setIsDragOver] = useState(false);
   const [hoveredItemId, setHoveredItemId] = useState(null);
+  const [sortBy, setSortBy] = useState("preco");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [isSaving, setIsSaving] = useState(false);
 
   const { handleToggleComprado, handleDeleteItem, handleEditItem } =
     useItemActions(theme, onToggleComprado, onUpdateItem, onDeleteItem);
@@ -126,6 +181,33 @@ const CategoriaCard = ({
     theme,
     onDeleteCategoria,
     onEditCategoria,
+  );
+
+  const sortItems = (items) => {
+    const sorted = [...items];
+
+    if (sortBy === "preco") {
+      sorted.sort((a, b) => {
+        const precoA = a.preco * a.quantidade;
+        const precoB = b.preco * b.quantidade;
+        return sortOrder === "asc" ? precoA - precoB : precoB - precoA;
+      });
+    } else if (sortBy === "nome") {
+      sorted.sort((a, b) => {
+        const nomeA = a.nome.toLowerCase();
+        const nomeB = b.nome.toLowerCase();
+        return sortOrder === "asc"
+          ? nomeA.localeCompare(nomeB)
+          : nomeB.localeCompare(nomeA);
+      });
+    }
+
+    return sorted;
+  };
+
+  const itensOrdenados = useMemo(
+    () => sortItems(itens),
+    [itens, sortBy, sortOrder],
   );
 
   const totalCategoria = useMemo(
@@ -146,6 +228,17 @@ const CategoriaCard = ({
     [itens],
   );
 
+  const handleSort = (field) => {
+    if (isLoading || isSaving) return;
+
+    if (sortBy === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  };
+
   const handleOpenProductLink = (e, linkProduto) => {
     e.stopPropagation();
     if (linkProduto) {
@@ -154,6 +247,7 @@ const CategoriaCard = ({
   };
 
   const handleItemDragStart = (e, itemId) => {
+    if (isLoading || isSaving) return;
     e.stopPropagation();
     onItemDragStart(itemId);
     e.dataTransfer.setData("text/plain", itemId);
@@ -183,6 +277,16 @@ const CategoriaCard = ({
     const itemId = e.dataTransfer.getData("text/plain");
     if (itemId) {
       onItemDrop(categoria.id);
+    }
+  };
+
+  const handleAddItem = async () => {
+    if (isLoading || isSaving) return;
+    setIsSaving(true);
+    try {
+      await onAddItem(categoria.id);
+    } finally {
+      setTimeout(() => setIsSaving(false), 500);
     }
   };
 
@@ -217,9 +321,10 @@ const CategoriaCard = ({
 
         <S.HeaderActions>
           <S.IconButton
-            onClick={() => onAddItem(categoria.id)}
+            onClick={handleAddItem}
             theme={theme}
             title="Adicionar item"
+            disabled={isLoading || isSaving}
           >
             <Plus size={18} />
           </S.IconButton>
@@ -227,6 +332,7 @@ const CategoriaCard = ({
             onClick={handleEditCategoria}
             theme={theme}
             title="Editar categoria"
+            disabled={isLoading || isSaving}
           >
             <Pencil size={16} />
           </S.IconButton>
@@ -236,6 +342,7 @@ const CategoriaCard = ({
               onClick={handleDeleteCategoria}
               theme={theme}
               title="Excluir categoria"
+              disabled={isLoading || isSaving}
             >
               <Trash2 size={16} />
             </S.IconButton>
@@ -249,27 +356,79 @@ const CategoriaCard = ({
         </S.HeaderActions>
       </S.CardHeader>
 
-      <S.CategoryProgress>
-        <S.ProgressBar theme={theme}>
-          <S.ProgressFill
-            theme={theme}
-            style={{ width: `${progresso}%` }}
-            color={categoria.bg}
-          />
-        </S.ProgressBar>
-      </S.CategoryProgress>
-
       <S.CardContent>
         {isExpanded && (
           <>
+            {/* Barra de ordenação */}
             {itens.length > 0 && (
+              <S.SortBar theme={theme}>
+                <S.SortLabel theme={theme}>Ordenar por:</S.SortLabel>
+                <S.SortButtonsGroup>
+                  <S.SortButton
+                    $active={sortBy === "preco"}
+                    onClick={() => handleSort("preco")}
+                    disabled={isLoading || isSaving}
+                    theme={theme}
+                  >
+                    <span>💰</span>
+                    Preço
+                    {sortBy === "preco" && (
+                      <S.SortIcon>
+                        {sortOrder === "asc" ? (
+                          <ArrowUp size={14} />
+                        ) : (
+                          <ArrowDown size={14} />
+                        )}
+                      </S.SortIcon>
+                    )}
+                  </S.SortButton>
+
+                  <S.SortButton
+                    $active={sortBy === "nome"}
+                    onClick={() => handleSort("nome")}
+                    disabled={isLoading || isSaving}
+                    theme={theme}
+                  >
+                    <span>📝</span>
+                    Nome
+                    {sortBy === "nome" && (
+                      <S.SortIcon>
+                        {sortOrder === "asc" ? (
+                          <ArrowUp size={14} />
+                        ) : (
+                          <ArrowDown size={14} />
+                        )}
+                      </S.SortIcon>
+                    )}
+                  </S.SortButton>
+                </S.SortButtonsGroup>
+              </S.SortBar>
+            )}
+
+            <S.CategoryProgress>
+              <S.ProgressBar theme={theme}>
+                <S.ProgressFill
+                  theme={theme}
+                  style={{ width: `${progresso}%` }}
+                  color={categoria.bg}
+                />
+              </S.ProgressBar>
+            </S.CategoryProgress>
+
+            {isLoading ? (
+              <>
+                <ItemSkeleton theme={theme} />
+                <ItemSkeleton theme={theme} />
+                <ItemSkeleton theme={theme} />
+              </>
+            ) : itensOrdenados.length > 0 ? (
               <S.ItemsList>
-                {itens.map((item) => (
+                {itensOrdenados.map((item) => (
                   <S.ItemRow
                     key={item.id}
                     $purchased={item.comprado}
                     theme={theme}
-                    draggable
+                    draggable={!isLoading && !isSaving}
                     onDragStart={(e) => handleItemDragStart(e, item.id)}
                     onDragEnd={handleItemDragEnd}
                     onMouseEnter={() => setHoveredItemId(item.id)}
@@ -292,6 +451,7 @@ const CategoriaCard = ({
                           handleToggleComprado(item.id, item.comprado);
                         }}
                         theme={theme}
+                        disabled={isLoading || isSaving}
                       >
                         {item.comprado && <S.CheckIcon />}
                       </S.CheckboxButton>
@@ -360,6 +520,7 @@ const CategoriaCard = ({
                             theme={theme}
                             variant="link"
                             title="Ver na loja"
+                            disabled={isLoading || isSaving}
                           >
                             <ExternalLink size={14} />
                           </S.ItemActionButton>
@@ -370,6 +531,7 @@ const CategoriaCard = ({
                           theme={theme}
                           variant="edit"
                           title="Editar item"
+                          disabled={isLoading || isSaving}
                         >
                           <Pencil size={14} />
                         </S.ItemActionButton>
@@ -379,6 +541,7 @@ const CategoriaCard = ({
                           onClick={() => handleDeleteItem(item)}
                           theme={theme}
                           title="Excluir item"
+                          disabled={isLoading || isSaving}
                         >
                           <Trash2 size={14} />
                         </S.ItemActionButton>
@@ -387,15 +550,14 @@ const CategoriaCard = ({
                   </S.ItemRow>
                 ))}
               </S.ItemsList>
-            )}
-
-            {itens.length === 0 && (
+            ) : (
               <S.EmptyState>
                 <S.EmptyIcon>📦</S.EmptyIcon>
                 <S.EmptyText theme={theme}>Nenhum item adicionado</S.EmptyText>
                 <S.AddButton
-                  onClick={() => onAddItem(categoria.id)}
+                  onClick={handleAddItem}
                   theme={theme}
+                  disabled={isLoading || isSaving}
                 >
                   <Plus size={18} />
                   Adicionar primeiro item
