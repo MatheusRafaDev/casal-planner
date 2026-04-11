@@ -1,12 +1,22 @@
+// src/setupProxy.js
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
 module.exports = function(app) {
+  // Pega a URL da API da variável de ambiente ou usa o padrão
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5286';
+  
+  // Extrai o host e a porta da URL
+  const targetUrl = apiUrl.replace('/api', '');
+  
+  console.log(`🔧 Proxy configurado para: ${targetUrl}`);
+
   app.use(
     '/api',
     createProxyMiddleware({
-      target: 'http://localhost:5286',
+      target: targetUrl,
       changeOrigin: true,
-      onProxyRes: function(proxyRes) {
+      onProxyRes: function(proxyRes, req, res) {
+        // Modifica os cookies para SameSite=Lax
         if (proxyRes.headers['set-cookie']) {
           proxyRes.headers['set-cookie'] = proxyRes.headers['set-cookie'].map(cookie =>
             cookie
@@ -15,6 +25,10 @@ module.exports = function(app) {
               .replace(/; samesite=none/gi, '; SameSite=Lax')
           );
         }
+      },
+      onError: function(err, req, res) {
+        console.error(`❌ Erro no proxy: ${err.message}`);
+        res.status(500).send('Proxy Error');
       }
     })
   );
