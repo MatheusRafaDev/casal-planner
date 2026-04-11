@@ -12,7 +12,7 @@ const Layout = ({ children }) => {
   const [menuAberto, setMenuAberto] = useState(false);
 
   const menuItems = [
-    { path: '/inicio', icon: '🏠', label: 'Início' },
+    { path: '/planejamento', icon: '🏠', label: 'planejamento' },
     { path: '/perfil', icon: '👤', label: 'Perfil' },
   ];
 

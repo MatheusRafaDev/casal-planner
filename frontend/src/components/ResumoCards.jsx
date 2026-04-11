@@ -95,20 +95,7 @@ const ResumoCards = ({ resumo = {}, comparativo = {}, theme }) => {
             </S.CardContent>
 
             <S.CardFooter>
-              <S.TrendIndicator
-                $trend={trend}
-                $stable={!trend}
-              >
-                {trend === 'up' && <ArrowUp size={14} />}
-                {trend === 'down' && <ArrowDown size={14} />}
-                <span>{Math.abs(trendValue)}%</span>
-              </S.TrendIndicator>
 
-              <S.CompareText>
-                {trend === 'up' && `${trendValue}% maior que mês passado`}
-                {trend === 'down' && `${Math.abs(trendValue)}% menor que mês passado`}
-                {!trend && 'Estável em relação ao mês passado'}
-              </S.CompareText>
             </S.CardFooter>
           </S.ResumoCard>
         );

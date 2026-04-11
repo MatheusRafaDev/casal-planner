@@ -11,7 +11,7 @@ import { ConfirmProvider } from './context/ConfirmContext';
 import ConfirmModal from './components/ConfirmModal';
 import Header from './components/Header';
 
-import Inicio from './pages/Inicio';
+import Planejamento from './pages/Planejamento';
 import Perfil from './pages/Perfil';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -60,7 +60,7 @@ function PublicRoute({ children }) {
     return <LoadingScreen>Carregando...</LoadingScreen>;
   }
   
-  return !estaAutenticado ? children : <Navigate to="/inicio" />;
+  return !estaAutenticado ? children : <Navigate to="/planejamento" />;
 }
 
 function AppRoutes() {
@@ -85,12 +85,12 @@ function AppRoutes() {
         </PublicRoute>
       } />
       
-      <Route path="/inicio" element={
+      <Route path="/planejamento" element={
         <PrivateRoute>
           <AppContainer>
             <Header />
             <MainContent>
-              <Inicio />
+              <Planejamento />
             </MainContent>
           </AppContainer>
         </PrivateRoute>

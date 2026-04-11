@@ -144,7 +144,7 @@ const Login = () => {
 
   useEffect(() => {
     if (estaAutenticado) {
-      navigate("/inicio");
+      navigate("/planejamento");
     }
 
 

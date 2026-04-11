@@ -17,7 +17,7 @@ import {
 } from "../utils/mascaras";
 
 import {
-  InicioContainer,
+  PlanejamentoContainer,
   WelcomeSection,
   WelcomeTitle,
   WelcomeSubtitle,
@@ -25,9 +25,9 @@ import {
   LoadingSpinner,
   CategoriesGrid,
   DragCardWrapper,
-} from "../styles/pages/InicioStyles";
+} from "../styles/pages/PlanejamentoStyles";
 
-const Inicio = () => {
+const Planejamento = () => {
   const { theme } = useTheme();
   const { usuario } = useAuth();
 
@@ -366,17 +366,17 @@ const Inicio = () => {
 
   if (loading || loadingResumo) {
     return (
-      <InicioContainer theme={theme}>
+      <PlanejamentoContainer theme={theme}>
         <LoadingContainer theme={theme}>
           <LoadingSpinner theme={theme} />
           <p>Carregando...</p>
         </LoadingContainer>
-      </InicioContainer>
+      </PlanejamentoContainer>
     );
   }
 
   return (
-    <InicioContainer theme={theme}>
+    <PlanejamentoContainer theme={theme}>
       {message.text && (
         <div
           style={{
@@ -483,8 +483,8 @@ const Inicio = () => {
         isEditing={!!itemModal.itemId}
         theme={theme}
       />
-    </InicioContainer>
+    </PlanejamentoContainer>
   );
 };
 
-export default Inicio;
+export default Planejamento;

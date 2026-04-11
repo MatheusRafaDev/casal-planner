@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Heart, Sun, Moon, LogOut, User, ChevronDown, Home } from 'lucide-react';
+import { Heart, Sun, Moon, LogOut, User, ChevronDown, Home, ClipboardList } from 'lucide-react';
 import usuarioService from '../services/usuarioService';
 import authService from '../services/authService'; 
 
@@ -19,7 +19,7 @@ import {
   UserName,
   DropdownMenu,
   DropdownItem,
-  Button
+  Button,
 } from '../styles/components/HeaderStyles';
 
 const Header = () => {
@@ -149,7 +149,7 @@ const Header = () => {
             <div className="icon">
               <Heart />
             </div>
-            <span>CasalPlanner</span>
+            <span>CasalPlanner</span> 
           </Logo>
           <UserSection>
             <ThemeButton onClick={handleToggleTheme} theme={theme}>
@@ -183,12 +183,12 @@ const Header = () => {
 
         <NavLinks>
           <NavButton 
-            onClick={() => navigate('/inicio')} 
-            active={location.pathname === '/inicio'}
+            onClick={() => navigate('/planejamento')} 
+            active={location.pathname === '/planejamento'}
             theme={theme}
           >
-            <Home size={18} />
-            <span>Início</span>
+            <ClipboardList size={18} />
+            <span>Planejamento</span>
           </NavButton>
         </NavLinks>
 
@@ -227,13 +227,13 @@ const Header = () => {
 
                 <DropdownItem 
                   onClick={() => {
-                    navigate('/inicio');
+                    navigate('/planejamento');
                     setMenuAberto(false);
                   }}
                   theme={theme}
                 >
-                  <Home size={16} />
-                  <span>Início</span>
+                  <ClipboardList size={16} />
+                  <span>Planejamento</span>
                 </DropdownItem>
 
                 <DropdownItem 

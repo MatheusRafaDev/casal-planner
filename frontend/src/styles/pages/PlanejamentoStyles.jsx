@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-export const InicioContainer = styled.div`
+export const PlanejamentoContainer = styled.div`
   min-height: 100vh;
   background: ${props => props.theme.background};
   padding: 2rem;
