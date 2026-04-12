@@ -22,6 +22,8 @@ namespace CasalPlanner.API.Models.DTOs
 
         public string Pagamento { get; set; } = "normal";
 
+        public string Prioridade { get; set; } = "normal";
+
         public string Loja { get; set; } = string.Empty;
         public string LinkProduto { get; set; } = string.Empty;
         public string FotoUrl { get; set; } = string.Empty;
@@ -47,6 +49,7 @@ namespace CasalPlanner.API.Models.DTOs
         public string? CategoriaId { get; set; }
         public bool? Comprado { get; set; }
         public string? Pagamento { get; set; }
+        public string? Prioridade { get; set; }
 
         public string Loja { get; set; }
         public string LinkProduto { get; set; }
@@ -68,6 +71,7 @@ namespace CasalPlanner.API.Models.DTOs
         public string CategoriaBg { get; set; } = string.Empty;
         public bool Comprado { get; set; }
         public string Pagamento { get; set; } = string.Empty;
+        public string Prioridade { get; set; } = "normal";
         public string UsuarioId { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

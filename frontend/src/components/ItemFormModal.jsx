@@ -19,6 +19,7 @@ const DEFAULT_FORM_DATA = {
   preco: 0,
   quantidade: 1,
   pagamento: "normal",
+  prioridade: "normal",
   comprado: false,
   categoriaId: null,
   loja: "",           
@@ -68,7 +69,7 @@ const ItemFormModal = ({
     if (externalFormData?.preco !== undefined) {
       setPrecoRaw(externalFormData.preco);
     }
-  }, [externalFormData?.preco, setPrecoRaw]);
+  }, [externalFormData?.preco, isOpen, setPrecoRaw]);
 
   // Atalho ESC para fechar modal - CORRIGIDO
   useEffect(() => {
@@ -92,6 +93,12 @@ const ItemFormModal = ({
           ...DEFAULT_FORM_DATA,
           categoriaId: prev?.categoriaId || null,
         }));
+      } else {
+        // Ao abrir em modo edição, força a sincronização do preço
+        const precoAtual = externalFormData?.preco;
+        if (precoAtual !== undefined && precoAtual !== null) {
+          setPrecoRaw(Number(precoAtual) || 0);
+        }
       }
     }
   }, [isOpen, isEditing, resetValidation, resetPrice, setExternalFormData]);
@@ -359,6 +366,23 @@ const ItemFormModal = ({
       >
         <option value="normal">💵 Normal</option>
         <option value="vr">🍽️ VR/VA</option>
+      </Select>
+
+      <Select
+        label="Prioridade"
+        value={externalFormData.prioridade || "normal"}
+        onChange={(e) =>
+          setExternalFormData((prev) => ({
+            ...prev,
+            prioridade: e.target.value,
+          }))
+        }
+        theme={theme}
+        disabled={isSaving}
+      >
+        <option value="urgente">🔴 Urgente</option>
+        <option value="normal">🟡 Normal</option>
+        <option value="pode_esperar">🟢 Pode esperar</option>
       </Select>
 
       <ModalButtons>

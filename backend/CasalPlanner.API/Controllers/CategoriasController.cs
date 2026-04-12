@@ -115,6 +115,7 @@ public class CategoriasController : ControllerBase
                 Bg = dto.Bg,
                 IsPadrao = false,
                 UsuarioId = usuarioId,
+                MetaOrcamento = dto.MetaOrcamento,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -176,6 +177,16 @@ public class CategoriasController : ControllerBase
             if (!string.IsNullOrEmpty(dto.Bg) && dto.Bg != categoriaExistente.Bg)
             {
                 updateDefinitions.Add(Builders<Categoria>.Update.Set(c => c.Bg, dto.Bg));
+            }
+
+            // Atualizar meta de orçamento
+            if (dto.RemoverMeta)
+            {
+                updateDefinitions.Add(Builders<Categoria>.Update.Unset(c => c.MetaOrcamento));
+            }
+            else if (dto.MetaOrcamento.HasValue)
+            {
+                updateDefinitions.Add(Builders<Categoria>.Update.Set(c => c.MetaOrcamento, dto.MetaOrcamento));
             }
 
             // Se não houver nada para atualizar

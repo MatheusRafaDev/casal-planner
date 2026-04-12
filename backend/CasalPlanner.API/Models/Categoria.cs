@@ -19,6 +19,8 @@ public class Categoria
 
     public int Ordem { get; set; } = 0;
 
+    public decimal? MetaOrcamento { get; set; } = null;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [BsonRepresentation(BsonType.ObjectId)]

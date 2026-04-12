@@ -50,6 +50,7 @@ namespace CasalPlanner.API.Services
                 Quantidade = dto.Quantidade,
                 CategoriaId = dto.CategoriaId,
                 Pagamento = dto.Pagamento,
+                Prioridade = dto.Prioridade ?? "normal",
                 UsuarioId = usuarioId,
                 Comprado = false,
                 CreatedAt = DateTime.UtcNow,
@@ -88,6 +89,9 @@ namespace CasalPlanner.API.Services
 
             if (!string.IsNullOrEmpty(dto.Pagamento))
                 updates.Add(update.Set(i => i.Pagamento, dto.Pagamento));
+
+            if (!string.IsNullOrEmpty(dto.Prioridade))
+                updates.Add(update.Set(i => i.Prioridade, dto.Prioridade));
 
             if (dto.Comprado.HasValue)
                 updates.Add(update.Set(i => i.Comprado, dto.Comprado.Value));

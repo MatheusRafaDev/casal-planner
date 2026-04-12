@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { categoriasService } from '../services/categoriasService';
 import { useCategoryValidation } from '../hooks/useCategoryValidation';
+import { usePriceFormat } from '../hooks/usePriceFormat';
 import { showToast } from '../utils/toastUtils';
 import { COLORS, ICONS, hexToHsl, hslToHex } from '../constants/categoryConstants';
 
@@ -46,31 +46,49 @@ const CategoriaFormModal = ({
   const [name, setName] = useState('');
   const [color, setColor] = useState(COLORS[0]);
   const [icon, setIcon] = useState('🏠');
+  const [metaOrcamento, setMetaOrcamento] = useState('');
   const [loading, setLoading] = useState(false);
   
   const { errors, touched, handleBlur, handleChange, resetValidation, setErrors } = 
     useCategoryValidation();
 
+  // Usar o hook de formatação de preço para a meta de orçamento
+  const {
+    formattedValue: metaFormatada,
+    handlePriceChange: handleMetaChange,
+    handlePriceBlur: handleMetaBlur,
+    setPrice: setMetaRaw,
+    resetPrice: resetMeta,
+  } = usePriceFormat(null);
 
+  // Sincronizar a meta quando o modal abrir em modo edição
   useEffect(() => {
     if (isOpen && isEditing && categoriaParaEditar) {
-
       setName(categoriaParaEditar.nome || '');
       setIcon(categoriaParaEditar.icon || '🏠');
+      
+      const metaValue = categoriaParaEditar.metaOrcamento != null ? categoriaParaEditar.metaOrcamento : '';
+      setMetaOrcamento(metaValue);
+      
+      if (metaValue !== '' && metaValue !== null && !isNaN(parseFloat(metaValue))) {
+        setMetaRaw(parseFloat(metaValue));
+      } else {
+        resetMeta();
+      }
 
       if (categoriaParaEditar.bg) {
         const hslColor = hexToHsl(categoriaParaEditar.bg);
         setColor(hslColor);
       }
     } else if (isOpen && !isEditing) {
-
       setName('');
       setColor(COLORS[0]);
       setIcon('🏠');
+      setMetaOrcamento('');
+      resetMeta();
       resetValidation();
     }
-  }, [isOpen, isEditing, categoriaParaEditar, resetValidation]);
-
+  }, [isOpen, isEditing, categoriaParaEditar, resetValidation, setMetaRaw, resetMeta]);
 
   useEffect(() => {
     if (isOpen) {
@@ -93,8 +111,48 @@ const CategoriaFormModal = ({
     handleBlur('nome', name);
   };
 
+  const handleMetaOrcamentoChange = (e) => {
+    const result = handleMetaChange(e);
+    
+    if (e.target.value === '') {
+      setMetaOrcamento('');
+      resetMeta();
+      handleChange('metaOrcamento', '', touched.metaOrcamento);
+      return;
+    }
+    
+    if (result && result.raw !== undefined && result.raw !== null && !isNaN(result.raw)) {
+      setMetaOrcamento(result.raw);
+      handleChange('metaOrcamento', result.raw, touched.metaOrcamento);
+    }
+  };
+
+  const handleMetaOrcamentoBlur = () => {
+    if (metaOrcamento === '' || metaOrcamento === null) {
+      handleMetaBlur();
+      handleBlur('metaOrcamento', '');
+      return;
+    }
+    
+    handleMetaBlur();
+    handleBlur('metaOrcamento', metaOrcamento);
+    
+    if (metaOrcamento !== '' && parseFloat(metaOrcamento) <= 0) {
+      setErrors(prev => ({
+        ...prev,
+        metaOrcamento: 'Meta deve ser maior que zero'
+      }));
+    } else {
+      setErrors(prev => ({
+        ...prev,
+        metaOrcamento: ''
+      }));
+    }
+  };
+
   const handleClose = () => {
     resetValidation();
+    resetMeta();
     onClose();
   };
 
@@ -109,24 +167,34 @@ const CategoriaFormModal = ({
       return;
     }
 
+    if (metaOrcamento !== '' && parseFloat(metaOrcamento) <= 0) {
+      showToast.error('Meta de orçamento deve ser maior que zero', theme);
+      return;
+    }
+
     setLoading(true);
     try {
       const [h, s, l] = color.split(' ');
       const hexColor = hslToHex(parseInt(h), parseInt(s), parseInt(l));
       
+      let metaValue = null;
+      if (metaOrcamento !== '' && metaOrcamento !== null && !isNaN(parseFloat(metaOrcamento))) {
+        metaValue = parseFloat(metaOrcamento);
+      }
 
       const categoriaData = {
         nome: name.trim(),
         icon: icon,
         bg: hexColor,
-        text: '#ffffff'
+        text: '#ffffff',
+        metaOrcamento: metaValue,
+        removerMeta: metaOrcamento === '' || metaOrcamento === null,
       };
 
       if (isEditing && categoriaParaEditar) {
         await categoriasService.update(categoriaParaEditar.id, categoriaData);
         showToast.success(`Categoria "${name}" atualizada com sucesso!`, theme);
       } else {
-
         await categoriasService.create(categoriaData);
         showToast.success(`Categoria "${name}" criada com sucesso!`, theme);
       }
@@ -155,7 +223,7 @@ const CategoriaFormModal = ({
   if (!isOpen) return null;
 
   return (
-    <Overlay onClick={handleClose} theme={theme}>
+    <Overlay theme={theme}>
       <ModalContainer onClick={(e) => e.stopPropagation()} theme={theme}>
         <Header theme={theme}>
           <h2>{isEditing ? '✏️ Editar Categoria' : '➕ Nova Categoria'}</h2>
@@ -224,6 +292,22 @@ const CategoriaFormModal = ({
                 );
               })}
             </ColorsGrid>
+          </FormGroup>
+
+          <FormGroup>
+            <Label theme={theme}>🎯 Meta de Orçamento (opcional)</Label>
+            <Input
+              type="text"
+              value={metaFormatada === 'R$ ' ? '' : metaFormatada}
+              onChange={handleMetaOrcamentoChange}
+              onBlur={handleMetaOrcamentoBlur}
+              placeholder="Ex: 500,00"
+              theme={theme}
+              disabled={loading}
+            />
+            {errors.metaOrcamento && touched.metaOrcamento && (
+              <ErrorMessage theme={theme}>{errors.metaOrcamento}</ErrorMessage>
+            )}
           </FormGroup>
 
           <ModalButtons>

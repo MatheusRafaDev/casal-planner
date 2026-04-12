@@ -102,7 +102,7 @@ const PainelPesquisaPrecos = ({ nome = '', marca = '', onSelectItem, onSelectPri
           if (results.length === 0 && !loading) handleSearch();
         }}>
           <IconSearch />
-          Pesquisar preços (Ctrl+K)
+          Pesquisar preços
         </S.TriggerButton>
       </S.Wrapper>
     );

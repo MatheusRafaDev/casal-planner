@@ -13,6 +13,8 @@ namespace CasalPlanner.API.Models.DTOs
 
         [Required(ErrorMessage = "Cor de fundo é obrigatória")]
         public string Bg { get; set; } = "#d6e9d6";
+
+        public decimal? MetaOrcamento { get; set; }
     }
 
     public class AtualizarCategoriaDto
@@ -20,6 +22,8 @@ namespace CasalPlanner.API.Models.DTOs
         public string? Nome { get; set; }
         public string? Icon { get; set; }
         public string? Bg { get; set; }
+        public decimal? MetaOrcamento { get; set; }
+        public bool RemoverMeta { get; set; } = false;
     }
 
     public class CategoriaResponseDto
@@ -31,6 +35,7 @@ namespace CasalPlanner.API.Models.DTOs
         public bool IsPadrao { get; set; }
         public string UsuarioId { get; set; } = string.Empty;
         public int Ordem { get; set; }
+        public decimal? MetaOrcamento { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
     }

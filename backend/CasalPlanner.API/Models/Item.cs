@@ -19,6 +19,7 @@ public class Item
     
     public bool Comprado { get; set; } = false;
     public string Pagamento { get; set; } = "normal";
+    public string Prioridade { get; set; } = "normal"; // urgente | normal | pode_esperar
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
