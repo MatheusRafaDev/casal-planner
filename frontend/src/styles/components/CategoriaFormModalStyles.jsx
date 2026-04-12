@@ -3,12 +3,15 @@ import styled from 'styled-components';
 export const Overlay = styled.div`
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(8px);
-  animation: fadeIn 0.2s ease;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: fadeIn 0.18s ease;
+  padding: 1rem;
 
   @keyframes fadeIn {
     from { opacity: 0; }
@@ -18,18 +21,32 @@ export const Overlay = styled.div`
 
 export const ModalContainer = styled.div`
   background: ${props => props.theme.surface};
-  border-radius: 1rem;
-  padding: 1.5rem;
+  border-radius: 1.5rem;
+  padding: 2rem;
   width: 100%;
-  max-width: 28rem;
-  margin: 0 1rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  max-width: 30rem;
+  max-height: 90dvh;
+  overflow-y: auto;
+  box-shadow:
+    0 4px 6px rgba(0,0,0,0.07),
+    0 20px 50px rgba(0,0,0,0.18),
+    0 0 0 1px rgba(255,255,255,0.05);
   border: 1px solid ${props => props.theme.border};
-  animation: slideIn 0.3s ease;
+  animation: slideUp 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
+  scrollbar-width: thin;
+  scrollbar-color: ${props => props.theme.border} transparent;
+  &::-webkit-scrollbar { width: 5px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: ${props => props.theme.border}; border-radius: 4px; }
 
-  @keyframes slideIn {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+  @keyframes slideUp {
+    from { transform: translateY(24px) scale(0.97); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+  }
+
+  @media (max-width: 480px) {
+    padding: 1.5rem;
+    border-radius: 1.25rem;
   }
 `;
 

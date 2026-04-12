@@ -117,7 +117,7 @@ const Planejamento = () => {
       setLoadingInicial(false);
       setError("Usuário não autenticado");
     }
-    document.title = "CasalPlanner - Meu Planejamento";
+    
   }, [usuario]);
 
   // Carrega categorias e itens em paralelo, chamado somente quando necessário

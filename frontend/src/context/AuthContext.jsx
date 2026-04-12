@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     authService.logout();
     setUsuario(null);
-    navigate("/login");
+    navigate("/");
   };
 
   const atualizarUsuario = (novosDados) => {

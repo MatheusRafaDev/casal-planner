@@ -10,6 +10,7 @@ import { Toaster } from 'react-hot-toast';
 import { ConfirmProvider } from './context/ConfirmContext';
 import ConfirmModal from './components/ConfirmModal';
 import Header from './components/Header';
+import usePageTitle from './hooks/usePageTitle';
 
 import Planejamento from './pages/Planejamento';
 import Perfil from './pages/Perfil';
@@ -65,6 +66,7 @@ function PublicRoute({ children }) {
 
 function AppRoutes() {
   const { loading } = useAuth();
+  usePageTitle();
 
 
   if (loading) {
