@@ -14,11 +14,9 @@ import Filtros from "../components/Filtros";
 import ItemFormModal from "../components/ItemFormModal";
 import { categoriasService } from "../services/categoriasService";
 import { itensService } from "../services/itensService";
-import { useResumo } from "../hooks/useResumo";
+import resumoService from "../services/resumoService";
 
 import {
-  formatarMoeda,
-  desformatarMoeda,
   formatarValorParaExibicao,
 } from "../utils/mascaras";
 
@@ -33,36 +31,40 @@ import {
   DragCardWrapper,
 } from "../styles/pages/PlanejamentoStyles";
 
+// Calcula o resumo localmente a partir dos itens — sem request de rede extra
+const calcularResumoLocal = (itens) => {
+  if (!Array.isArray(itens) || itens.length === 0) {
+    return {
+      atual: {
+        totalGeral: 0, totalVR: 0, totalNormal: 0,
+        totalComprados: 0, totalItens: 0,
+        porCategoria: {}, quantidadePorCategoria: {},
+      },
+      comparativo: {
+        totalGeral: 0, totalVR: 0, totalNormal: 0,
+        totalComprados: 0, percentualGeral: 0,
+      },
+    };
+  }
+  return resumoService.calcularResumoManual(itens);
+};
+
 const Planejamento = () => {
   const { theme } = useTheme();
   const { usuario } = useAuth();
 
   const [categorias, setCategorias] = useState([]);
   const [itens, setItens] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingInicial, setLoadingInicial] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState("all");
   const [message, setMessage] = useState({ text: "", type: "" });
 
-  // 🔥 Usar o hook de resumo
-  const {
-    resumo,
-    comparativo,
-    loading: loadingResumo,
-    usandoFallback,
-    refetch: refetchResumo,
-  } = useResumo(itens);
-
   const [itemModal, setItemModal] = useState({
-    isOpen: false,
-    categoriaId: null,
-    itemId: null,
+    isOpen: false, categoriaId: null, itemId: null,
   });
-
   const [categoriaModal, setCategoriaModal] = useState({
-    isOpen: false,
-    categoria: null,
-    isEditing: false,
+    isOpen: false, categoria: null, isEditing: false,
   });
 
   const [draggedCardIndex, setDraggedCardIndex] = useState(null);
@@ -70,18 +72,18 @@ const Planejamento = () => {
   const [draggedItemId, setDraggedItemId] = useState(null);
 
   const [formData, setFormData] = useState({
-    nome: "",
-    marca: "",
-    preco: "",
-    precoFormatado: "",
-    quantidade: 1,
-    pagamento: "normal",
-    loja: "",
-    linkProduto: "",
-    fotoUrl: "",
+    nome: "", marca: "", preco: "", precoFormatado: "",
+    quantidade: 1, pagamento: "normal",
+    loja: "", linkProduto: "", fotoUrl: "",
   });
 
   const scrollPositionRef = useRef(0);
+  const reordenarTimerRef = useRef(null);
+
+  // Resumo calculado localmente — zero requests extras de rede
+  const resumoCalculado = useMemo(() => calcularResumoLocal(itens), [itens]);
+  const resumo = resumoCalculado.atual;
+  const comparativo = resumoCalculado.comparativo;
 
   const showMessage = (text, type = "success") => {
     setMessage({ text, type });
@@ -92,94 +94,85 @@ const Planejamento = () => {
     if (usuario) {
       loadData();
     } else {
-      setLoading(false);
+      setLoadingInicial(false);
       setError("Usuário não autenticado");
     }
-
     document.title = "CasalPlanner - Meu Planejamento";
   }, [usuario]);
 
-  // 🔥 Atualizar resumo quando itens mudarem
-  useEffect(() => {
-    if (!loading) {
-      refetchResumo();
-    }
-  }, [itens, loading, refetchResumo]);
-
-  const loadData = async () => {
+  // Carrega categorias e itens em paralelo, chamado somente quando necessário
+  const loadData = useCallback(async () => {
     try {
       scrollPositionRef.current = window.scrollY;
-
-      setLoading(true);
+      setLoadingInicial(true);
       setError(null);
 
-      const results = await Promise.allSettled([
+      const [categoriasResult, itensResult] = await Promise.allSettled([
         categoriasService.listarDoUsuario(),
         itensService.getAll(),
       ]);
 
-      if (results[0].status === "fulfilled") {
-        let categoriasData = results[0].value;
-        categoriasData = categoriasData.sort(
-          (a, b) => (a.ordem || 0) - (b.ordem || 0),
+      if (categoriasResult.status === "fulfilled") {
+        const sorted = [...(categoriasResult.value || [])].sort(
+          (a, b) => (a.ordem || 0) - (b.ordem || 0)
         );
-        setCategorias(Array.isArray(categoriasData) ? categoriasData : []);
+        setCategorias(sorted);
       } else {
-        console.error("❌ Erro ao carregar categorias:", results[0].reason);
         setCategorias([]);
         showMessage("Erro ao carregar categorias", "error");
       }
 
-      if (results[1].status === "fulfilled") {
-        const itensData = results[1].value;
-        setItens(Array.isArray(itensData) ? itensData : []);
+      if (itensResult.status === "fulfilled") {
+        setItens(Array.isArray(itensResult.value) ? itensResult.value : []);
       } else {
         setItens([]);
         showMessage("Erro ao carregar itens", "error");
       }
-    } catch (error) {
-      console.error("❌ Erro ao carregar dados:", error);
-      setError(error.message || "Erro ao carregar dados");
+    } catch (err) {
+      setError(err.message || "Erro ao carregar dados");
       showMessage("Erro ao carregar dados", "error");
     } finally {
-      setLoading(false);
-
+      setLoadingInicial(false);
       setTimeout(() => {
-        window.scrollTo({
-          top: scrollPositionRef.current,
-          behavior: "auto",
-        });
+        window.scrollTo({ top: scrollPositionRef.current, behavior: "auto" });
       }, 0);
     }
-  };
+  }, []);
 
   const categoriasArray = useMemo(
     () => (Array.isArray(categorias) ? categorias : []),
-    [categorias],
+    [categorias]
   );
 
   const itensArray = useMemo(
     () => (Array.isArray(itens) ? itens : []),
-    [itens],
+    [itens]
   );
 
   const filteredItems = useMemo(() => {
-    if (!Array.isArray(itensArray)) return [];
     if (filter === "all") return itensArray;
     return itensArray.filter(
-      (i) => i?.pagamento === (filter === "vrva" ? "vr" : "normal"),
+      (i) => i?.pagamento === (filter === "vrva" ? "vr" : "normal")
     );
   }, [itensArray, filter]);
 
-  const handleToggleComprado = async (itemId, comprado) => {
+  // Toggle comprado com optimistic update — sem recarregar nada
+  const handleToggleComprado = useCallback(async (itemId, comprado) => {
+    setItens((prev) =>
+      prev.map((i) => (i.id === itemId ? { ...i, comprado } : i))
+    );
     try {
       await itensService.updateComprado(itemId, comprado);
-      await loadData();
     } catch (error) {
+      // Reverte se falhar
+      setItens((prev) =>
+        prev.map((i) => (i.id === itemId ? { ...i, comprado: !comprado } : i))
+      );
       showMessage("Erro ao atualizar item", "error");
     }
-  };
+  }, []);
 
+  // Drag & drop de cards de categoria
   const handleCardDragStart = (e, index) => {
     setDraggedCardIndex(index);
     e.dataTransfer.setData("text/plain", index.toString());
@@ -196,7 +189,6 @@ const Planejamento = () => {
 
   const handleCardDrop = async (e, targetIndex) => {
     e.preventDefault();
-
     const sourceIndex = e.dataTransfer.getData("text/plain");
 
     if (sourceIndex === null || sourceIndex === targetIndex.toString()) {
@@ -210,106 +202,100 @@ const Planejamento = () => {
     newCategorias.splice(targetIndex, 0, removed);
 
     setCategorias(newCategorias);
-
-    try {
-      const categoriaIds = newCategorias.map((c) => c.id);
-      await categoriasService.reordenar(categoriaIds);
-      showMessage("Categorias reordenadas");
-    } catch (error) {
-      console.error("Erro ao salvar ordem:", error);
-      await loadData();
-    }
-
     setDraggedCardIndex(null);
     setDragOverCardIndex(null);
-  };
 
-  const handleItemDragStart = (itemId) => {
-    setDraggedItemId(itemId);
-  };
-
-  const handleItemDragEnd = () => {
-    setDraggedItemId(null);
-  };
-
-  const handleItemDrop = async (categoriaId) => {
-    if (!draggedItemId) return;
-
-    const itemAtual = itensArray.find((i) => i.id === draggedItemId);
-    if (itemAtual?.categoriaId === categoriaId) {
-      setDraggedItemId(null);
-      return;
-    }
-
-    try {
-      await itensService.updateCategoria(draggedItemId, categoriaId);
-      await loadData();
-    } catch (error) {
-      console.error("Erro ao mover item:", error);
-      if (error.response) {
-        console.error("Detalhes:", error.response.data);
+    // Debounce: espera 400ms antes de salvar no backend
+    if (reordenarTimerRef.current) clearTimeout(reordenarTimerRef.current);
+    reordenarTimerRef.current = setTimeout(async () => {
+      try {
+        const categoriaIds = newCategorias.map((c) => c.id);
+        await categoriasService.reordenar(categoriaIds);
+      } catch (error) {
+        console.error("Erro ao salvar ordem:", error);
+        await loadData();
       }
-    } finally {
+    }, 400);
+  };
+
+  // Drag & drop de itens entre categorias com optimistic update
+  const handleItemDragStart = (itemId) => setDraggedItemId(itemId);
+  const handleItemDragEnd = () => setDraggedItemId(null);
+
+  const handleItemDrop = useCallback(
+    async (categoriaId) => {
+      if (!draggedItemId) return;
+
+      const itemAtual = itensArray.find((i) => i.id === draggedItemId);
+      if (itemAtual?.categoriaId === categoriaId) {
+        setDraggedItemId(null);
+        return;
+      }
+
+      setItens((prev) =>
+        prev.map((i) => (i.id === draggedItemId ? { ...i, categoriaId } : i))
+      );
       setDraggedItemId(null);
-    }
-  };
 
-  const handleAddCategoria = () => {
-    setCategoriaModal({
-      isOpen: true,
-      categoria: null,
-      isEditing: false,
-    });
-  };
+      try {
+        await itensService.updateCategoria(draggedItemId, categoriaId);
+      } catch (error) {
+        // Reverte
+        setItens((prev) =>
+          prev.map((i) =>
+            i.id === draggedItemId
+              ? { ...i, categoriaId: itemAtual.categoriaId }
+              : i
+          )
+        );
+        showMessage("Erro ao mover item", "error");
+      }
+    },
+    [draggedItemId, itensArray]
+  );
 
-  const handleEditCategoria = (categoria) => {
-    setCategoriaModal({
-      isOpen: true,
-      categoria,
-      isEditing: true,
-    });
-  };
+  // Categoria
+  const handleAddCategoria = () =>
+    setCategoriaModal({ isOpen: true, categoria: null, isEditing: false });
+
+  const handleEditCategoria = (categoria) =>
+    setCategoriaModal({ isOpen: true, categoria, isEditing: true });
 
   const handleDeleteCategoria = async (categoriaId) => {
+    const backupCategorias = [...categoriasArray];
+    const backupItens = [...itensArray];
+
+    // Optimistic: remove local
+    setCategorias((prev) => prev.filter((c) => c.id !== categoriaId));
+    setItens((prev) => prev.filter((i) => i.categoriaId !== categoriaId));
+
     try {
       await categoriasService.delete(categoriaId);
-      await loadData();
       showMessage("Categoria deletada");
     } catch (error) {
-      console.error("Erro ao deletar categoria:", error);
+      setCategorias(backupCategorias);
+      setItens(backupItens);
+      showMessage("Erro ao deletar categoria", "error");
     }
   };
 
+  const handleCloseCategoriaModal = () =>
+    setCategoriaModal({ isOpen: false, categoria: null, isEditing: false });
+
+  // Item
   const handleAddItem = (categoriaId) => {
-    setItemModal({
-      isOpen: true,
-      categoriaId,
-      itemId: null,
-    });
+    setItemModal({ isOpen: true, categoriaId, itemId: null });
     setFormData({
-      nome: "",
-      marca: "",
-      preco: "",
-      precoFormatado: "",
-      quantidade: 1,
-      pagamento: "normal",
-      prioridade: "normal",
-      loja: "",
-      linkProduto: "",
-      fotoUrl: "",
+      nome: "", marca: "", preco: "", precoFormatado: "",
+      quantidade: 1, pagamento: "normal", prioridade: "normal",
+      loja: "", linkProduto: "", fotoUrl: "",
     });
   };
 
   const handleEditItem = (itemId) => {
     const item = itensArray.find((i) => i.id === itemId);
     if (!item) return;
-
-    setItemModal({
-      isOpen: true,
-      categoriaId: item.categoriaId,
-      itemId: item.id,
-    });
-
+    setItemModal({ isOpen: true, categoriaId: item.categoriaId, itemId: item.id });
     setFormData({
       nome: item.nome || "",
       marca: item.marca || "",
@@ -324,14 +310,16 @@ const Planejamento = () => {
     });
   };
 
-  const handleDeleteItem = async (itemId) => {
+  const handleDeleteItem = useCallback(async (itemId) => {
+    const backup = [...itens];
+    setItens((prev) => prev.filter((i) => i.id !== itemId));
     try {
       await itensService.delete(itemId);
-      await loadData();
     } catch (error) {
-      console.error("Erro ao deletar item:", error);
+      setItens(backup);
+      showMessage("Erro ao deletar item", "error");
     }
-  };
+  }, [itens]);
 
   const handleSaveItem = async () => {
     if (!formData.nome?.trim()) {
@@ -341,40 +329,41 @@ const Planejamento = () => {
 
     const itemData = {
       nome: formData.nome.trim(),
-      marca: formData.marca.trim() || "",
+      marca: formData.marca?.trim() || "",
       preco: formData.preco,
       quantidade: parseInt(formData.quantidade) || 1,
       categoriaId: itemModal.categoriaId,
       pagamento: formData.pagamento,
       prioridade: formData.prioridade || "normal",
-      loja: formData.loja.trim() || "",
-      linkProduto: formData.linkProduto.trim() || "",
-      fotoUrl: formData.fotoUrl.trim() || "",
+      loja: formData.loja?.trim() || "",
+      linkProduto: formData.linkProduto?.trim() || "",
+      fotoUrl: formData.fotoUrl?.trim() || "",
     };
 
     try {
       if (itemModal.itemId) {
+        // Edição: atualiza local imediatamente
+        setItens((prev) =>
+          prev.map((i) =>
+            i.id === itemModal.itemId ? { ...i, ...itemData } : i
+          )
+        );
+        setItemModal({ isOpen: false, categoriaId: null, itemId: null });
         await itensService.update(itemModal.itemId, itemData);
       } else {
-        await itensService.create(itemData);
+        // Criação: fecha modal, cria no backend, adiciona na lista local
+        setItemModal({ isOpen: false, categoriaId: null, itemId: null });
+        const novoItem = await itensService.create(itemData);
+        setItens((prev) => [novoItem, ...prev]);
       }
-
-      setItemModal({ isOpen: false, categoriaId: null, itemId: null });
-      await loadData();
     } catch (error) {
       console.error("Erro ao salvar item:", error);
+      showMessage("Erro ao salvar item", "error");
+      await loadData();
     }
   };
 
-  const handleCloseCategoriaModal = () => {
-    setCategoriaModal({
-      isOpen: false,
-      categoria: null,
-      isEditing: false,
-    });
-  };
-
-  if (loading || loadingResumo) {
+  if (loadingInicial) {
     return (
       <PlanejamentoContainer theme={theme}>
         <LoadingContainer theme={theme}>
@@ -413,7 +402,6 @@ const Planejamento = () => {
         </WelcomeSubtitle>
       </WelcomeSection>
 
-      {/* 🔥 ResumoCards com comparativo */}
       <ResumoCards resumo={resumo} comparativo={comparativo} theme={theme} />
 
       <Filtros
@@ -447,7 +435,7 @@ const Planejamento = () => {
               <CategoriaCard
                 categoria={categoria || {}}
                 itens={filteredItems.filter(
-                  (i) => i?.categoriaId === categoria?.id,
+                  (i) => i?.categoriaId === categoria?.id
                 )}
                 onAddItem={handleAddItem}
                 onUpdateItem={handleEditItem}

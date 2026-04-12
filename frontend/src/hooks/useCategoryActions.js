@@ -6,11 +6,6 @@ export const useCategoryActions = (categoria, itens, theme, onDeleteCategoria, o
   const { showConfirm } = useConfirm();
 
   const handleDeleteCategoria = useCallback(() => {
-    if (categoria.isPadrao) {
-      showToast.warning('Esta categoria não pode ser excluída pois é padrão do sistema', theme);
-      return;
-    }
-
     const mensagem = itens.length > 0 
       ? `Esta categoria possui ${itens.length} item(ns). Deseja realmente excluí-la?`
       : 'Tem certeza que deseja excluir esta categoria?';
@@ -31,11 +26,6 @@ export const useCategoryActions = (categoria, itens, theme, onDeleteCategoria, o
   }, [categoria, itens, theme, onDeleteCategoria, showConfirm]);
 
   const handleEditCategoria = useCallback(() => {
-    if (categoria.isPadrao) {
-      showToast.warning('Esta categoria não pode ser editada pois é padrão do sistema', theme);
-      return;
-    }
-    
     if (onEditCategoria) {
       onEditCategoria(categoria);
     }

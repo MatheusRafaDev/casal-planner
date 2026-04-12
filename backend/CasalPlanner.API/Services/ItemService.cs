@@ -2,7 +2,6 @@ using CasalPlanner.API.Models;
 using CasalPlanner.API.Models.DTOs;
 using CasalPlanner.API.Data;
 using MongoDB.Driver;
-using Microsoft.AspNetCore.Authorization;
 
 namespace CasalPlanner.API.Services
 {
@@ -12,6 +11,7 @@ namespace CasalPlanner.API.Services
         Task<Item?> GetItemById(string id, string usuarioId);
         Task<Item> CriarItem(CriarItemDto dto, string usuarioId);
         Task<Item?> AtualizarItem(string id, AtualizarItemDto dto, string usuarioId);
+        Task<Item?> AtualizarComprado(string id, bool comprado, string usuarioId);
         Task<bool> DeletarItem(string id, string usuarioId);
         Task<List<Item>> GetItensByCategoria(string categoriaId, string usuarioId);
     }
@@ -65,17 +65,13 @@ namespace CasalPlanner.API.Services
 
         public async Task<Item?> AtualizarItem(string id, AtualizarItemDto dto, string usuarioId)
         {
-            var item = await GetItemById(id, usuarioId);
-            if (item == null)
-                return null;
-
             var update = Builders<Item>.Update;
             var updates = new List<UpdateDefinition<Item>>();
 
             if (!string.IsNullOrEmpty(dto.Nome))
                 updates.Add(update.Set(i => i.Nome, dto.Nome));
 
-            if (!string.IsNullOrEmpty(dto.Marca))
+            if (dto.Marca != null)
                 updates.Add(update.Set(i => i.Marca, dto.Marca));
 
             if (dto.Preco.HasValue)
@@ -96,23 +92,56 @@ namespace CasalPlanner.API.Services
             if (dto.Comprado.HasValue)
                 updates.Add(update.Set(i => i.Comprado, dto.Comprado.Value));
 
-            if (!string.IsNullOrEmpty(dto.Loja))
+            if (dto.Loja != null)
                 updates.Add(update.Set(i => i.Loja, dto.Loja));
 
-            if (!string.IsNullOrEmpty(dto.LinkProduto))
+            if (dto.LinkProduto != null)
                 updates.Add(update.Set(i => i.LinkProduto, dto.LinkProduto));
 
-            if (!string.IsNullOrEmpty(dto.FotoUrl))
+            if (dto.FotoUrl != null)
                 updates.Add(update.Set(i => i.FotoUrl, dto.FotoUrl));
+
+            if (updates.Count == 0)
+                return await GetItemById(id, usuarioId);
 
             updates.Add(update.Set(i => i.UpdatedAt, DateTime.UtcNow));
 
-            await _context.Itens.UpdateOneAsync(
-                i => i.Id == id,
-                update.Combine(updates)
+            // FindOneAndUpdate: atualiza e retorna o documento em UMA operação (evita double-fetch)
+            var options = new FindOneAndUpdateOptions<Item>
+            {
+                ReturnDocument = ReturnDocument.After
+            };
+
+            var filter = Builders<Item>.Filter.And(
+                Builders<Item>.Filter.Eq(i => i.Id, id),
+                Builders<Item>.Filter.Eq(i => i.UsuarioId, usuarioId)
             );
 
-            return await GetItemById(id, usuarioId);
+            return await _context.Itens.FindOneAndUpdateAsync(
+                filter,
+                update.Combine(updates),
+                options
+            );
+        }
+
+        // Endpoint dedicado para toggle comprado — sem busca prévia, sem double-fetch
+        public async Task<Item?> AtualizarComprado(string id, bool comprado, string usuarioId)
+        {
+            var filter = Builders<Item>.Filter.And(
+                Builders<Item>.Filter.Eq(i => i.Id, id),
+                Builders<Item>.Filter.Eq(i => i.UsuarioId, usuarioId)
+            );
+
+            var update = Builders<Item>.Update
+                .Set(i => i.Comprado, comprado)
+                .Set(i => i.UpdatedAt, DateTime.UtcNow);
+
+            var options = new FindOneAndUpdateOptions<Item>
+            {
+                ReturnDocument = ReturnDocument.After
+            };
+
+            return await _context.Itens.FindOneAndUpdateAsync(filter, update, options);
         }
 
         public async Task<bool> DeletarItem(string id, string usuarioId)
@@ -131,3 +160,4 @@ namespace CasalPlanner.API.Services
         }
     }
 }
+

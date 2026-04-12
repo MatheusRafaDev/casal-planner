@@ -2,9 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using MongoDB.Driver;
-using MongoDB.Bson;
 using CasalPlanner.API.Models;
-using CasalPlanner.API.Models.DTOs; 
+using CasalPlanner.API.Models.DTOs;
 using CasalPlanner.API.Data;
 
 namespace CasalPlanner.API.Controllers;
@@ -23,10 +22,8 @@ public class CategoriasController : ControllerBase
         _logger = logger;
     }
 
-    private string? GetUsuarioId()
-    {
-        return User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-    }
+    private string? GetUsuarioId() =>
+        User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Categoria>>> GetCategorias()
@@ -34,23 +31,18 @@ public class CategoriasController : ControllerBase
         try
         {
             var usuarioId = GetUsuarioId();
-
             if (string.IsNullOrEmpty(usuarioId))
-            {
                 return Unauthorized(new { message = "Usuário não autenticado" });
-            }
 
-            // Buscar categorias do usuário + categorias padrão (global)
             var filter = Builders<Categoria>.Filter.Or(
-                Builders<Categoria>.Filter.Eq(c => c.UsuarioId, null), // Categorias padrão
-                Builders<Categoria>.Filter.Eq(c => c.UsuarioId, usuarioId) // Categorias do usuário
+                Builders<Categoria>.Filter.Eq(c => c.UsuarioId, null),
+                Builders<Categoria>.Filter.Eq(c => c.UsuarioId, usuarioId)
             );
 
             var categorias = await _context.Categorias
                 .Find(filter)
                 .ToListAsync();
 
-            // Ordenação: primeiro as padrão, depois as do usuário
             var categoriasOrdenadas = categorias
                 .OrderBy(c => c.IsPadrao ? 0 : 1)
                 .ThenBy(c => c.Nome)
@@ -84,9 +76,7 @@ public class CategoriasController : ControllerBase
                 .Find(filter)
                 .FirstOrDefaultAsync();
 
-            if (categoria == null)
-                return NotFound();
-
+            if (categoria == null) return NotFound();
             return Ok(categoria);
         }
         catch (Exception ex)
@@ -102,11 +92,8 @@ public class CategoriasController : ControllerBase
         try
         {
             var usuarioId = GetUsuarioId();
-
             if (string.IsNullOrEmpty(usuarioId))
-            {
                 return Unauthorized(new { message = "Usuário não autenticado" });
-            }
 
             var categoria = new Categoria
             {
@@ -120,7 +107,6 @@ public class CategoriasController : ControllerBase
             };
 
             await _context.Categorias.InsertOneAsync(categoria);
-
             return CreatedAtAction(nameof(GetCategoria), new { id = categoria.Id }, categoria);
         }
         catch (Exception ex)
@@ -136,98 +122,74 @@ public class CategoriasController : ControllerBase
         try
         {
             var usuarioId = GetUsuarioId();
-
             if (string.IsNullOrEmpty(usuarioId))
-            {
                 return Unauthorized(new { message = "Usuário não autenticado" });
-            }
 
-            // Buscar a categoria existente (apenas do usuário logado)
+            var filterExistente = Builders<Categoria>.Filter.And(
+                Builders<Categoria>.Filter.Eq(c => c.Id, id),
+                Builders<Categoria>.Filter.Or(
+                    Builders<Categoria>.Filter.Eq(c => c.UsuarioId, usuarioId),
+                    Builders<Categoria>.Filter.Eq(c => c.IsPadrao, true)
+                )
+            );
+
             var categoriaExistente = await _context.Categorias
-                .Find(c => c.Id == id && c.UsuarioId == usuarioId)
+                .Find(filterExistente)
                 .FirstOrDefaultAsync();
 
             if (categoriaExistente == null)
-            {
                 return NotFound(new { message = "Categoria não encontrada ou não pertence a você" });
-            }
 
-            // Verificar se é categoria padrão (não pode editar)
-            if (categoriaExistente.IsPadrao)
-            {
-                return BadRequest(new { message = "Não é possível editar categorias padrão do sistema" });
-            }
-
-            // Preparar as atualizações
             var updateDefinitions = new List<UpdateDefinition<Categoria>>();
 
-            // Atualizar nome se fornecido
             if (!string.IsNullOrEmpty(dto.Nome))
-            {
                 updateDefinitions.Add(Builders<Categoria>.Update.Set(c => c.Nome, dto.Nome));
-            }
 
-            // Atualizar ícone se fornecido
             if (!string.IsNullOrEmpty(dto.Icon))
-            {
                 updateDefinitions.Add(Builders<Categoria>.Update.Set(c => c.Icon, dto.Icon));
-            }
 
-            // Atualizar cor de fundo se fornecida
             if (!string.IsNullOrEmpty(dto.Bg) && dto.Bg != categoriaExistente.Bg)
-            {
                 updateDefinitions.Add(Builders<Categoria>.Update.Set(c => c.Bg, dto.Bg));
-            }
 
-            // Atualizar meta de orçamento
             if (dto.RemoverMeta)
-            {
                 updateDefinitions.Add(Builders<Categoria>.Update.Unset(c => c.MetaOrcamento));
-            }
             else if (dto.MetaOrcamento.HasValue)
-            {
                 updateDefinitions.Add(Builders<Categoria>.Update.Set(c => c.MetaOrcamento, dto.MetaOrcamento));
-            }
 
-            // Se não houver nada para atualizar
             if (updateDefinitions.Count == 0)
-            {
-                return Ok(new
-                {
-                    message = "Nenhuma alteração necessária",
-                    categoria = categoriaExistente
-                });
-            }
+                return Ok(new { message = "Nenhuma alteração necessária", categoria = categoriaExistente });
 
-            // Combinar todas as atualizações
             var update = Builders<Categoria>.Update.Combine(updateDefinitions);
 
-            // Executar a atualização
-            var result = await _context.Categorias.UpdateOneAsync(
-                c => c.Id == id && c.UsuarioId == usuarioId,
-                update
+            // FindOneAndUpdate: atualiza e retorna em UMA operação
+            var options = new FindOneAndUpdateOptions<Categoria>
+            {
+                ReturnDocument = ReturnDocument.After
+            };
+
+            var filterUpdate = Builders<Categoria>.Filter.And(
+                Builders<Categoria>.Filter.Eq(c => c.Id, id),
+                Builders<Categoria>.Filter.Or(
+                    Builders<Categoria>.Filter.Eq(c => c.UsuarioId, usuarioId),
+                    Builders<Categoria>.Filter.Eq(c => c.IsPadrao, true)
+                )
             );
 
-            if (result.MatchedCount == 0)
-            {
+            var categoriaAtualizada = await _context.Categorias.FindOneAndUpdateAsync<Categoria>(
+                filterUpdate,
+                update,
+                options
+            );
+
+            if (categoriaAtualizada == null)
                 return NotFound(new { message = "Categoria não encontrada" });
-            }
 
-            // Buscar a categoria atualizada para retornar
-            var categoriaAtualizada = await _context.Categorias
-                .Find(c => c.Id == id)
-                .FirstOrDefaultAsync();
-
-            return Ok(new
-            {
-                message = "Categoria atualizada com sucesso",
-                categoria = categoriaAtualizada
-            });
+            return Ok(new { message = "Categoria atualizada com sucesso", categoria = categoriaAtualizada });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao atualizar categoria {Id}", id);
-            return StatusCode(500, new { error = ex.Message, message = "Erro interno ao atualizar categoria" });
+            return StatusCode(500, new { error = ex.Message });
         }
     }
 
@@ -237,30 +199,21 @@ public class CategoriasController : ControllerBase
         try
         {
             var usuarioId = GetUsuarioId();
-
             if (string.IsNullOrEmpty(usuarioId))
-            {
                 return Unauthorized(new { message = "Usuário não autenticado" });
-            }
 
-            // Buscar a categoria (apenas do usuário logado)
             var categoria = await _context.Categorias
-                .Find(c => c.Id == id && c.UsuarioId == usuarioId)
+                .Find(c => c.Id == id && (c.UsuarioId == usuarioId || c.IsPadrao))
                 .FirstOrDefaultAsync();
 
             if (categoria == null)
                 return NotFound(new { message = "Categoria não encontrada ou não pertence a você" });
 
-            if (categoria.IsPadrao)
-                return BadRequest("Não é possível remover categorias padrão");
-
-            // Remover todos os itens associados a esta categoria
-            await _context.Itens.DeleteManyAsync(
-                i => i.CategoriaId == id && i.UsuarioId == usuarioId
+            // Remove itens e categoria em paralelo
+            await Task.WhenAll(
+                _context.Itens.DeleteManyAsync(i => i.CategoriaId == id && i.UsuarioId == usuarioId),
+                _context.Categorias.DeleteOneAsync(c => c.Id == id)
             );
-
-            // Remover a categoria
-            await _context.Categorias.DeleteOneAsync(c => c.Id == id);
 
             return NoContent();
         }
@@ -271,18 +224,14 @@ public class CategoriasController : ControllerBase
         }
     }
 
-
     [HttpGet("usuario")]
     public async Task<ActionResult<IEnumerable<Categoria>>> GetCategoriasDoUsuario()
     {
         try
         {
             var usuarioId = GetUsuarioId();
-
             if (string.IsNullOrEmpty(usuarioId))
-            {
                 return Unauthorized(new { message = "Usuário não autenticado" });
-            }
 
             var categorias = await _context.Categorias
                 .Find(c => c.UsuarioId == usuarioId)
@@ -295,25 +244,40 @@ public class CategoriasController : ControllerBase
             _logger.LogError(ex, "Erro ao buscar categorias do usuário");
             return StatusCode(500, new { error = ex.Message });
         }
-
     }
 
+    // BulkWrite: salva a ordem de N categorias em UMA única operação no MongoDB
+    // (antes era N UpdateOneAsync em série, um por categoria)
     [HttpPut("reordenar")]
     public async Task<IActionResult> ReordenarCategorias([FromBody] ReordenarCategoriasDto dto)
     {
-        var usuarioId = GetUsuarioId();
-
-        for (int i = 0; i < dto.CategoriaIds.Count; i++)
+        try
         {
-            var update = Builders<Categoria>.Update
-                .Set(c => c.Ordem, i); // Adicione o campo Ordem no modelo
+            var usuarioId = GetUsuarioId();
+            if (string.IsNullOrEmpty(usuarioId))
+                return Unauthorized(new { message = "Usuário não autenticado" });
 
-            await _context.Categorias.UpdateOneAsync(
-                c => c.Id == dto.CategoriaIds[i] && c.UsuarioId == usuarioId,
-                update
-            );
+            if (dto.CategoriaIds == null || dto.CategoriaIds.Count == 0)
+                return BadRequest(new { message = "Lista de categorias vazia" });
+
+            var writes = dto.CategoriaIds.Select((categoriaId, index) =>
+                new UpdateOneModel<Categoria>(
+                    Builders<Categoria>.Filter.And(
+                        Builders<Categoria>.Filter.Eq(c => c.Id, categoriaId),
+                        Builders<Categoria>.Filter.Eq(c => c.UsuarioId, usuarioId)
+                    ),
+                    Builders<Categoria>.Update.Set(c => c.Ordem, index)
+                )
+            ).ToList<WriteModel<Categoria>>();
+
+            await _context.Categorias.BulkWriteAsync(writes, new BulkWriteOptions { IsOrdered = false });
+
+            return Ok();
         }
-
-        return Ok();
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao reordenar categorias");
+            return StatusCode(500, new { error = ex.Message });
+        }
     }
 }

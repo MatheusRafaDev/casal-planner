@@ -23,6 +23,8 @@ public class Categoria
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    public DateTime? UpdatedAt { get; set; }
+
     [BsonRepresentation(BsonType.ObjectId)]
     public string? UsuarioId { get; set; } 
 }

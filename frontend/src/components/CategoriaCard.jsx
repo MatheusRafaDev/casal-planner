@@ -238,11 +238,9 @@ const CategoriaCard = ({
           <S.IconButton onClick={handleEditCategoria} theme={theme} title="Editar categoria" disabled={isLoading || isSaving}>
             <Pencil size={16} />
           </S.IconButton>
-          {!categoria.isPadrao && (
-            <S.IconButton danger onClick={handleDeleteCategoria} theme={theme} title="Excluir categoria" disabled={isLoading || isSaving}>
-              <Trash2 size={16} />
-            </S.IconButton>
-          )}
+          <S.IconButton danger onClick={handleDeleteCategoria} theme={theme} title="Excluir categoria" disabled={isLoading || isSaving}>
+            <Trash2 size={16} />
+          </S.IconButton>
           <S.ExpandButton onClick={() => setIsExpanded(!isExpanded)} theme={theme}>
             {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </S.ExpandButton>

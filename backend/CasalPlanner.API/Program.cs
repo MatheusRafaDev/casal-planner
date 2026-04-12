@@ -6,13 +6,12 @@ using CasalPlanner.API.Models;
 using CasalPlanner.API.Data;
 using CasalPlanner.API.Services;
 using DotNetEnv;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using AspNetCoreRateLimit;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ========== 1. CARREGAR VARIÁVEIS DE AMBIENTE ==========
+// ========== 1. VARIÁVEIS DE AMBIENTE ==========
 if (builder.Environment.IsDevelopment())
 {
     var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
@@ -22,32 +21,25 @@ if (builder.Environment.IsDevelopment())
         Console.WriteLine("✅ Arquivo .env carregado!");
     }
 }
-
 builder.Configuration.AddEnvironmentVariables();
 
 // ========== 2. VALIDAR VARIÁVEIS CRÍTICAS ==========
-var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") 
+var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
     ?? builder.Configuration["Jwt:Key"];
-var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") 
-    ?? builder.Configuration["Jwt:Issuer"] 
-    ?? "CasalPlanner";
-var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") 
-    ?? builder.Configuration["Jwt:Audience"] 
-    ?? "CasalPlannerUsers";
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
+    ?? builder.Configuration["Jwt:Issuer"] ?? "CasalPlanner";
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
+    ?? builder.Configuration["Jwt:Audience"] ?? "CasalPlannerUsers";
 
 if (string.IsNullOrEmpty(jwtKey))
-{
     throw new InvalidOperationException("❌ JWT_SECRET_KEY não configurada!");
-}
 
-var mongoConnection = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING") 
+var mongoConnection = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING")
     ?? builder.Configuration.GetValue<string>("MongoDB:ConnectionString");
 if (string.IsNullOrEmpty(mongoConnection))
-{
     throw new InvalidOperationException("❌ MONGODB_CONNECTION_STRING não configurada!");
-}
 
-// ========== 3. CONFIGURAR RATE LIMITING ==========
+// ========== 3. RATE LIMITING ==========
 builder.Services.AddMemoryCache();
 builder.Services.Configure<IpRateLimitOptions>(options =>
 {
@@ -55,45 +47,27 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
     options.StackBlockedRequests = false;
     options.GeneralRules = new List<RateLimitRule>
     {
-        new() {
-            Endpoint = "POST:/api/auth/login",
-            Period = "5m",
-            Limit = 10
-        },
-        new() {
-            Endpoint = "POST:/api/auth/registrar",
-            Period = "1h",
-            Limit = 3
-        },
-        new() {
-            Endpoint = "POST:/api/auth/registrar-casal",
-            Period = "1h",
-            Limit = 3
-        },
-        new() {
-            Endpoint = "*",
-            Period = "1m",
-            Limit = 100
-        }
+        new() { Endpoint = "POST:/api/auth/login",            Period = "5m", Limit = 10 },
+        new() { Endpoint = "POST:/api/auth/registrar",        Period = "1h", Limit = 3  },
+        new() { Endpoint = "POST:/api/auth/registrar-casal",  Period = "1h", Limit = 3  },
+        new() { Endpoint = "*",                               Period = "1m", Limit = 100 },
     };
 });
 builder.Services.AddInMemoryRateLimiting();
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
-// ========== 4. CONFIGURAR MONGODB ==========
+// ========== 4. MONGODB ==========
 builder.Services.Configure<MongoDBSettings>(options =>
 {
     options.ConnectionString = mongoConnection;
-    options.DatabaseName = Environment.GetEnvironmentVariable("MONGODB_DATABASE") 
-        ?? builder.Configuration.GetValue<string>("MongoDB:DatabaseName") 
+    options.DatabaseName = Environment.GetEnvironmentVariable("MONGODB_DATABASE")
+        ?? builder.Configuration.GetValue<string>("MongoDB:DatabaseName")
         ?? "CasalPlannerDB";
 });
-
 builder.Services.AddSingleton<MongoDbContext>();
 
-// ========== 5. CONFIGURAR JWT ==========
+// ========== 5. JWT ==========
 var key = Encoding.UTF8.GetBytes(jwtKey);
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -115,66 +89,51 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.FromMinutes(5),
         RequireExpirationTime = true
     };
-
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
         {
             var token = context.Request.Cookies["auth_token"];
             if (string.IsNullOrEmpty(token))
-            {
                 token = context.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            }
-            
             if (!string.IsNullOrEmpty(token))
-            {
                 context.Token = token;
-            }
             return Task.CompletedTask;
         }
     };
 });
-
 builder.Services.AddAuthorization();
+
+// ========== 6. CORS ==========
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CasalPlannerPolicy", policy =>
+    {
+        var origins = builder.Environment.IsDevelopment()
+            ? new[] { "http://localhost:3000" }
+            : new[] { "https://seudominio.com" };
+        policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+    });
+});
+
+// ========== 7. SERVIÇOS ==========
 builder.Services.AddHttpClient();
-
-
 builder.Services.AddHttpClient("SerpApiClient", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(30);
     client.DefaultRequestHeaders.Add("User-Agent", "CasalPlanner/1.0");
 });
-
 builder.Services.AddSingleton<GroqService>();
-
-// ========== 6. CONFIGURAR CORS ==========
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("CasalPlannerPolicy", policy =>
-    {
-        var origins = builder.Environment.IsDevelopment() 
-            ? new[] { "http://localhost:3000" }
-            : new[] { "https://seudominio.com" };
-        
-        policy.WithOrigins(origins)
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
-    });
-});
-
-// ========== 7. REGISTRAR SERVIÇOS (TUDO AQUI ANTES DO BUILD) ==========
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IItemService, ItemService>();
-builder.Services.AddScoped<IResumoService, ResumoService>(); // ✅ Adicionado aqui
+builder.Services.AddScoped<IResumoService, ResumoService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "CasalPlanner API", Version = "v1" });
-    
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme.",
@@ -183,24 +142,19 @@ builder.Services.AddSwaggerGen(c =>
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             new string[] {}
         }
     });
 });
 
-var app = builder.Build(); // ⚠️ NÃO ADICIONE MAIS NADA EM builder.Services DEPOIS DAQUI
+var app = builder.Build();
 
 // ========== 8. MIDDLEWARE DE SEGURANÇA ==========
 app.Use(async (context, next) =>
@@ -209,21 +163,13 @@ app.Use(async (context, next) =>
     context.Response.Headers["X-Frame-Options"] = "DENY";
     context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
     context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-    
-    context.Response.Headers["Content-Security-Policy"] = 
-        "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-        "style-src 'self' 'unsafe-inline'; " +
-        "img-src 'self' data: https:; " +
-        "font-src 'self'; " +
-        "connect-src 'self' http://localhost:3000";
-    
-    context.Response.Headers["Permissions-Policy"] = 
-        "geolocation=(), microphone=(), camera=()";
-    
+    context.Response.Headers["Content-Security-Policy"] =
+        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+        "style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; " +
+        "font-src 'self'; connect-src 'self' http://localhost:3000";
+    context.Response.Headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()";
     context.Response.Headers.Remove("Server");
     context.Response.Headers.Remove("X-Powered-By");
-    
     await next();
 });
 
@@ -244,21 +190,51 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// ========== 9. SEED DATA ==========
+// ========== 9. SEED + ÍNDICES ==========
 try
 {
-    using (var scope = app.Services.CreateScope())
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<MongoDbContext>();
+
+    await dbContext.TestarConexaoAsync();
+    await dbContext.SeedDataAsync();
+    await dbContext.VerificarUsuarioCasal();
+
+    // Índices compostos para acelerar as queries mais frequentes
+    // Itens: busca por usuário (query principal) e por usuário+categoria (filtro de categoria)
+    await dbContext.Itens.Indexes.CreateManyAsync(new[]
     {
-        var dbContext = scope.ServiceProvider.GetRequiredService<MongoDbContext>();
-        await dbContext.TestarConexaoAsync();
-        await dbContext.SeedDataAsync();
-        await dbContext.VerificarUsuarioCasal();
-        Console.WriteLine("✅ Seed data executado com sucesso!");
-    }
+        new CreateIndexModel<Item>(
+            Builders<Item>.IndexKeys.Ascending(i => i.UsuarioId),
+            new CreateIndexOptions { Name = "idx_itens_usuarioId", Background = true }
+        ),
+        new CreateIndexModel<Item>(
+            Builders<Item>.IndexKeys
+                .Ascending(i => i.UsuarioId)
+                .Ascending(i => i.CategoriaId),
+            new CreateIndexOptions { Name = "idx_itens_usuarioId_categoriaId", Background = true }
+        ),
+    });
+
+    // Categorias: busca por usuário e por isPadrao (seed + listagem)
+    await dbContext.Categorias.Indexes.CreateManyAsync(new[]
+    {
+        new CreateIndexModel<Categoria>(
+            Builders<Categoria>.IndexKeys.Ascending(c => c.UsuarioId),
+            new CreateIndexOptions { Name = "idx_categorias_usuarioId", Background = true }
+        ),
+        new CreateIndexModel<Categoria>(
+            Builders<Categoria>.IndexKeys.Ascending(c => c.IsPadrao),
+            new CreateIndexOptions { Name = "idx_categorias_isPadrao", Background = true }
+        ),
+    });
+
+    Console.WriteLine("✅ Seed data e índices configurados com sucesso!");
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"❌ Erro ao executar seed data: {ex.Message}");
+    Console.WriteLine($"❌ Erro na inicialização: {ex.Message}");
 }
 
 app.Run();
+

@@ -33,14 +33,8 @@ namespace CasalPlanner.API.Controllers
                 var itens = await _itemService.GetItensByUsuarioId(usuarioId);
                 return Ok(itens);
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            catch (UnauthorizedAccessException) { return Unauthorized(); }
+            catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
         }
 
         [HttpGet("{id}")]
@@ -50,20 +44,11 @@ namespace CasalPlanner.API.Controllers
             {
                 var usuarioId = GetUsuarioId();
                 var item = await _itemService.GetItemById(id, usuarioId);
-
-                if (item == null)
-                    return NotFound();
-
+                if (item == null) return NotFound();
                 return Ok(item);
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            catch (UnauthorizedAccessException) { return Unauthorized(); }
+            catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
         }
 
         [HttpPost]
@@ -75,14 +60,8 @@ namespace CasalPlanner.API.Controllers
                 var item = await _itemService.CriarItem(dto, usuarioId);
                 return CreatedAtAction(nameof(GetItem), new { id = item.Id }, item);
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            catch (UnauthorizedAccessException) { return Unauthorized(); }
+            catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
         }
 
         [HttpPut("{id}")]
@@ -92,54 +71,43 @@ namespace CasalPlanner.API.Controllers
             {
                 var usuarioId = GetUsuarioId();
                 var item = await _itemService.AtualizarItem(id, dto, usuarioId);
-
-                if (item == null)
-                    return NotFound();
-
+                if (item == null) return NotFound();
                 return Ok(item);
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            catch (UnauthorizedAccessException) { return Unauthorized(); }
+            catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
         }
 
-        // 🔥 NOVA ROTA: Atualizar apenas o status "comprado"
+        // Endpoint dedicado para toggle comprado — operação única no MongoDB (FindOneAndUpdate)
+        // Não faz GetItemById antes, não recarrega nada no frontend
         [HttpPut("{id}/comprado")]
         public async Task<IActionResult> UpdateComprado(string id, [FromBody] UpdateCompradoDto dto)
         {
             try
             {
                 var usuarioId = GetUsuarioId();
-
-                var item = await _itemService.GetItemById(id, usuarioId);
-                if (item == null)
-                    return NotFound();
-
-                var updateDto = new AtualizarItemDto
-                {
-                    Comprado = dto.Comprado
-                };
-
-                var itemAtualizado = await _itemService.AtualizarItem(id, updateDto, usuarioId);
-
-                if (itemAtualizado == null)
-                    return NotFound();
-
-                return Ok(itemAtualizado);
+                var item = await _itemService.AtualizarComprado(id, dto.Comprado, usuarioId);
+                if (item == null) return NotFound();
+                return Ok(item);
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedAccessException) { return Unauthorized(); }
+            catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
+        }
+
+        // Endpoint dedicado para mover item de categoria
+        [HttpPut("{id}/categoria")]
+        public async Task<IActionResult> UpdateCategoria(string id, [FromBody] UpdateCategoriaDto dto)
+        {
+            try
             {
-                return Unauthorized();
+                var usuarioId = GetUsuarioId();
+                var updateDto = new AtualizarItemDto { CategoriaId = dto.CategoriaId };
+                var item = await _itemService.AtualizarItem(id, updateDto, usuarioId);
+                if (item == null) return NotFound();
+                return Ok(item);
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            catch (UnauthorizedAccessException) { return Unauthorized(); }
+            catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
         }
 
         [HttpDelete("{id}")]
@@ -149,20 +117,11 @@ namespace CasalPlanner.API.Controllers
             {
                 var usuarioId = GetUsuarioId();
                 var deletado = await _itemService.DeletarItem(id, usuarioId);
-
-                if (!deletado)
-                    return NotFound();
-
+                if (!deletado) return NotFound();
                 return NoContent();
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            catch (UnauthorizedAccessException) { return Unauthorized(); }
+            catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
         }
 
         [HttpGet("categoria/{categoriaId}")]
@@ -174,49 +133,9 @@ namespace CasalPlanner.API.Controllers
                 var itens = await _itemService.GetItensByCategoria(categoriaId, usuarioId);
                 return Ok(itens);
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            catch (UnauthorizedAccessException) { return Unauthorized(); }
+            catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
         }
-
-        // 🔥 NOVA ROTA: Atualizar apenas a categoria do item
-        [HttpPut("{id}/categoria")]
-        public async Task<IActionResult> UpdateCategoria(string id, [FromBody] UpdateCategoriaDto dto)
-        {
-            try
-            {
-                var usuarioId = GetUsuarioId();
-
-                var item = await _itemService.GetItemById(id, usuarioId);
-                if (item == null)
-                    return NotFound();
-
-                var updateDto = new AtualizarItemDto
-                {
-                    CategoriaId = dto.CategoriaId
-                };
-
-                var itemAtualizado = await _itemService.AtualizarItem(id, updateDto, usuarioId);
-
-                if (itemAtualizado == null)
-                    return NotFound();
-
-                return Ok(itemAtualizado);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
-        }
-
     }
 }
+
