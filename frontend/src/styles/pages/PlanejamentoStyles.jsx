@@ -112,3 +112,110 @@ export const DragCardWrapper = styled.div`
   }
 `;
 
+
+export const EmptyStateIcon = styled.div`
+  font-size: 5rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.7;
+  
+  @media (max-width: 768px) {
+    font-size: 4rem;
+  }
+`;
+
+export const EmptyStateTitle = styled.h3`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: ${props => props.theme.text};
+  margin: 0 0 0.75rem 0;
+  
+  @media (max-width: 768px) {
+    font-size: 1.25rem;
+  }
+`;
+
+export const EmptyStateDescription = styled.p`
+  font-size: 0.95rem;
+  color: ${props => props.theme.textSoft};
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+  max-width: 350px;
+`;
+
+
+
+export const EmptyStateTips = styled.div`
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid ${props => props.theme.border};
+  width: 100%;
+  
+  p {
+    font-size: 0.8rem;
+    color: ${props => props.theme.textSoft};
+    margin: 0 0 0.5rem 0;
+    opacity: 0.7;
+  }
+  
+  div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.75rem;
+      background: ${props => props.theme.background};
+      border-radius: 2rem;
+      color: ${props => props.theme.textSoft};
+    }
+  }
+`;
+
+// Adicione apenas estes 2 componentes ao seu arquivo de estilos
+
+export const EmptyStateContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 50vh;
+  padding: 2rem;
+  border-radius: 1.5rem;
+  margin: 2rem auto;
+  max-width: 450px;
+
+  @media (max-width: 768px) {
+    margin: 1rem;
+    min-height: 40vh;
+  }
+`;
+
+export const EmptyStateButton = styled.button`
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background: ${props => props.theme.primary};
+  color: white;
+  border: none;
+  border-radius: 2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+  }
+  
+  &::before {
+    content: '+ ';
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+`;

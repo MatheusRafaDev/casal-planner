@@ -32,7 +32,7 @@ const PainelPesquisaPrecos = ({ nome = '', marca = '', onSelectItem, onSelectPri
   const [error, setError] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
 
-  const queryOriginal = `${nome} ${marca}`.trim();
+  const queryOriginal = `${nome}`.trim();
 
   const handleSearch = useCallback(async () => {
     if (!queryOriginal) return;
@@ -197,7 +197,7 @@ const PainelPesquisaPrecos = ({ nome = '', marca = '', onSelectItem, onSelectPri
                           )}
                         </S.StoreInfo>
                         
-                        {/* 🔥 MARCA VALIDADA PELA IA */}
+
                         {item.marca && (
                           <S.BrandInfo>
                             🏷️ Marca: <strong>{item.marca}</strong> {item.nome_validado && `| ${item.nome_validado}`}
