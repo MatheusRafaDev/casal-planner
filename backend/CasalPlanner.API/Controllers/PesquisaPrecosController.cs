@@ -10,223 +10,237 @@ namespace CasalPlanner.API.Controllers
     public class PesquisaPrecosController : ControllerBase
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ILogger<PesquisaPrecosController> _logger;
         private readonly GroqService _groqService;
 
+        // Domínios confiáveis (lojas oficiais)
         private static readonly HashSet<string> TrustedDomains = new() 
         { 
             "magazineluiza", "americanas", "mercadolivre", "amazon", "casasbahia", 
-            "ponto", "extra", "submarino", "shoptime", "kabum", "pichau", "terabyte"
+            "ponto", "extra", "submarino", "shoptime", "kabum", "pichau", "terabyte",
+            "dell", "lenovo", "acer", "samsung", "lg", "apple", "xiaomi", "motorola",
+            "nokia", "sony", "philips", "hp", "asus", "positivo", "iplace"
+        };
+
+        // Marketplaces conhecidos
+        private static readonly HashSet<string> MarketplaceDomains = new()
+        {
+            "olx", "enjoei", "mercadolivre", "shopee", "aliexpress", "ebay", 
+            "etsy", "facebook", "marketplace", "trocafone", "bne store", 
+            "wireless source", "taqi", "br celulares"
+        };
+
+        // Palavras que indicam produto usado/recondicionado
+        private static readonly HashSet<string> UsedProductKeywords = new()
+        {
+            "usado", "semi-novo", "semi novo", "seminovo", "recondicionado", 
+            "refurbished", "open box", "como novo", "bom estado", "excelente estado"
         };
 
         public PesquisaPrecosController(
             IHttpClientFactory httpClientFactory,
-            ILogger<PesquisaPrecosController> logger,
             GroqService groqService)
         {
             _httpClientFactory = httpClientFactory;
-            _logger = logger;
             _groqService = groqService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] string q)
+        public async Task<IActionResult> Get(
+            [FromQuery] string q,
+            [FromQuery] string? marca = null,
+            [FromQuery] string? buscaUsuario = null)
         {
-            _logger.LogInformation("=== INÍCIO DA PESQUISA ===");
-            _logger.LogInformation($"Consulta recebida: {q}");
-            
-            if (string.IsNullOrWhiteSpace(q) || q.Length > 200)
-                return BadRequest(new { error = "Consulta inválida. Máximo 200 caracteres." });
-
-            var apiKey = Environment.GetEnvironmentVariable("SERPAPI_KEY");
-            if (string.IsNullOrEmpty(apiKey))
-            {
-                _logger.LogError("SERPAPI_KEY não configurada");
-                return StatusCode(500, new { error = "Configuração da API não encontrada." });
-            }
-
-            var url = $"https://serpapi.com/search?engine=google_shopping&q={Uri.EscapeDataString(q)}&gl=br&hl=pt&num=20&api_key={apiKey}";
-            _logger.LogInformation($"URL da requisição: {url}");
-
             try
             {
-                var client = _httpClientFactory.CreateClient("SerpApiClient");
+                if (string.IsNullOrWhiteSpace(q) || q.Length > 200)
+                    return BadRequest(new { error = "Consulta inválida" });
+
+                // IDENTIFICAR MARCA COM IA
+                string marcaIdentificada = marca ?? "";
+                string nomeValidado = q;
+                
+                if (string.IsNullOrEmpty(marca))
+                {
+                    try
+                    {
+                        var validacao = await _groqService.ValidateProductAsync(q, buscaUsuario ?? "");
+                        marcaIdentificada = validacao.Marca;
+                        nomeValidado = validacao.NomeValidado;
+                    }
+                    catch (Exception)
+                    {
+                        marcaIdentificada = "";
+                    }
+                }
+
+                string queryFinal = string.IsNullOrEmpty(marcaIdentificada) 
+                    ? nomeValidado 
+                    : $"{nomeValidado} {marcaIdentificada}";
+
+                var apiKey = Environment.GetEnvironmentVariable("SERPAPI_KEY");
+                if (string.IsNullOrEmpty(apiKey))
+                    return StatusCode(500, new { error = "API não configurada" });
+
+                var url = $"https://serpapi.com/search?engine=google_shopping&q={Uri.EscapeDataString(queryFinal)}&gl=br&hl=pt&num=20&api_key={apiKey}";
+
+                var client = _httpClientFactory.CreateClient();
                 var response = await client.GetAsync(url);
                 
-                _logger.LogInformation($"Status code da resposta: {response.StatusCode}");
-                
                 if (!response.IsSuccessStatusCode)
-                    return StatusCode(502, new { error = "Erro ao buscar produtos." });
+                    return StatusCode(502, new { error = "Erro ao buscar produtos" });
 
                 var content = await response.Content.ReadAsStringAsync();
                 
-                // 🔥 LOG DO JSON COMPLETO RECEBIDO 🔥
-                _logger.LogInformation("=== JSON COMPLETO DA RESPOSTA ===");
-                _logger.LogInformation(content);
+                if (string.IsNullOrEmpty(content))
+                    return StatusCode(500, new { error = "Resposta vazia da API" });
                 
-                // Salva em arquivo para análise
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "logs", $"serpapi_response_{DateTime.Now:yyyyMMdd_HHmmss}.json");
-                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-                await System.IO.File.WriteAllTextAsync(filePath, content);
-                _logger.LogInformation($"Resposta salva em: {filePath}");
+                var produtos = ProcessResults(content, marcaIdentificada, nomeValidado);
                 
-                var produtos = await ProcessResultsAsync(content);
-                
-                // 🔥 LOG DOS PRODUTOS PROCESSADOS 🔥
-                _logger.LogInformation("=== PRODUTOS PROCESSADOS ===");
-                _logger.LogInformation($"Total de produtos: {produtos.Count}");
-                
-                for (int i = 0; i < produtos.Count; i++)
-                {
-                    _logger.LogInformation($"Produto {i + 1}: {JsonSerializer.Serialize(produtos[i])}");
-                }
-                
-                return Ok(new { shopping_results = produtos });
+                return Ok(new 
+                { 
+                    produtos,
+                    marca_identificada = marcaIdentificada,
+                    nome_validado = nomeValidado,
+                    query_utilizada = queryFinal,
+                    total = produtos.Count
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao consultar SerpApi");
-                return StatusCode(500, new { error = "Erro interno." });
+                return StatusCode(500, new { error = "Erro interno", mensagem = ex.Message });
             }
         }
 
-        private async Task<List<object>> ProcessResultsAsync(string jsonContent)
+        private List<object> ProcessResults(string jsonContent, string marcaIdentificada, string nomeValidado)
         {
             try
             {
                 using var doc = JsonDocument.Parse(jsonContent);
                 
-                // 🔥 LOG DA ESTRUTURA DO JSON 🔥
-                _logger.LogInformation("=== ESTRUTURA DO JSON ===");
-                foreach (var property in doc.RootElement.EnumerateObject())
-                {
-                    _logger.LogInformation($"Propriedade raiz: {property.Name} - Tipo: {property.Value.ValueKind}");
-                }
-                
                 if (!doc.RootElement.TryGetProperty("shopping_results", out var results))
                 {
-                    _logger.LogWarning("Propriedade 'shopping_results' não encontrada no JSON");
-                    
-                    // Tenta encontrar outras propriedades com resultados
                     if (doc.RootElement.TryGetProperty("organic_results", out var organic))
-                    {
-                        _logger.LogInformation("Usando 'organic_results' como fallback");
                         results = organic;
-                    }
                     else if (doc.RootElement.TryGetProperty("products", out var products))
-                    {
-                        _logger.LogInformation("Usando 'products' como fallback");
                         results = products;
-                    }
                     else
-                    {
-                        _logger.LogWarning("Nenhum resultado encontrado");
                         return new List<object>();
-                    }
                 }
-                
-                _logger.LogInformation($"Quantidade de itens encontrados: {results.GetArrayLength()}");
-                
-                var produtos = new List<object>();
-                var iaCalls = 0;
 
-                int itemIndex = 0;
+                var produtos = new List<object>();
+
                 foreach (var item in results.EnumerateArray())
                 {
-                    itemIndex++;
-                    _logger.LogInformation($"--- Processando item {itemIndex} ---");
-                    
-                    // 🔥 LOG DO ITEM CRU 🔥
-                    var itemJson = JsonSerializer.Serialize(item);
-                    _logger.LogInformation($"Item cru: {itemJson}");
-                    
                     var price = ExtractPrice(item);
-                    _logger.LogInformation($"Preço extraído: {price}");
-                    
-                    if (price <= 0)
-                    {
-                        _logger.LogInformation("Preço inválido, pulando item");
-                        continue;
-                    }
+                    if (price <= 0) continue;
 
                     var source = item.TryGetProperty("source", out var s) ? s.GetString() ?? "" : "";
                     var title = item.TryGetProperty("title", out var t) ? t.GetString() ?? "" : "";
                     var link = ExtractLink(item);
                     
-                    _logger.LogInformation($"Fonte: {source}");
-                    _logger.LogInformation($"Título: {title}");
-                    _logger.LogInformation($"Link: {link}");
+                    if (string.IsNullOrEmpty(link)) continue;
+
+                    // 🔥 VALIDAÇÕES CORRIGIDAS
+                    var isUsed = IsUsedProduct(title);
+                    var isMarketplace = IsMarketplaceStore(source, title, isUsed);
+                    var isTrusted = IsTrustedStore(source) && !isMarketplace && !isUsed;
                     
-                    if (string.IsNullOrEmpty(link))
+                    // MARCA DO PRODUTO
+                    var marcaProduto = marcaIdentificada;
+                    if (string.IsNullOrEmpty(marcaProduto))
                     {
-                        _logger.LogInformation("Link vazio, pulando item");
-                        continue;
+                        marcaProduto = ExtractMarcaFromTitle(title);
                     }
-
-                    var (validation, newIaCalls) = await GetStoreValidation(source, link, iaCalls);
-                    iaCalls = newIaCalls;
-                    
-
-                    System.Console.WriteLine($"Validação da loja: IsTrusted={validation.IsTrusted}, StoreType={validation.StoreType}");
 
                     var produto = new
                     {
-                        title,
-                        source,
-                        price,
-                        product_link = link,
-                        thumbnail = item.TryGetProperty("thumbnail", out var thumb) ? thumb.GetString() ?? "" : "",
-                        is_trusted = validation.IsTrusted,
-                        store_type = validation.StoreType ?? "desconhecida"
+                        id = produtos.Count,
+                        nome = title,
+                        loja = source,
+                        preco = price,
+                        link = link,
+                        imagem = item.TryGetProperty("thumbnail", out var thumb) ? thumb.GetString() ?? "" : "",
+                        is_trusted = isTrusted,
+                        is_marketplace = isMarketplace,
+                        is_used = isUsed,
+                        marca = marcaProduto,
+                        nome_validado = nomeValidado
                     };
                     
-                    _logger.LogInformation($"Produto adicionado: {JsonSerializer.Serialize(produto)}");
                     produtos.Add(produto);
                 }
 
-                var resultado = produtos
+                // Ordena: primeiros confiáveis, depois por preço
+                return produtos
                     .OrderByDescending(p => ((dynamic)p).is_trusted)
-                    .ThenBy(p => ((dynamic)p).price)
+                    .ThenBy(p => ((dynamic)p).preco)
                     .Take(20)
                     .ToList();
-                    
-                _logger.LogInformation($"Total de produtos após ordenação: {resultado.Count}");
-                return resultado;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao processar resultados");
+                Console.WriteLine($"❌ ERRO: {ex.Message}");
                 return new List<object>();
             }
         }
 
-        private async Task<(StoreValidationResult Validation, int NewIaCalls)> GetStoreValidation(string source, string link, int currentIaCalls)
+        private bool IsTrustedStore(string storeName)
         {
-            _logger.LogInformation($"Validando loja: {source}, IA Calls restantes: {3 - currentIaCalls}");
-            
-            // Verifica domínios conhecidos primeiro
-            if (TrustedDomains.Any(d => source.Contains(d, StringComparison.OrdinalIgnoreCase)))
-            {
-                _logger.LogInformation($"Loja confiável por domínio conhecido: {source}");
-                return (new StoreValidationResult { IsTrusted = true, StoreType = "oficial" }, currentIaCalls);
-            }
-            
-            // Usa IA apenas para domínios desconhecidos (máx 3)
-            if (currentIaCalls < 3)
-            {
-                _logger.LogInformation($"Usando IA para validar: {source}");
-                var result = await _groqService.ValidateStoreAsync(source, link);
-                _logger.LogInformation($"Resultado IA: IsTrusted={result.IsTrusted}, StoreType={result.StoreType}");
-                return (result, currentIaCalls + 1);
-            }
+            if (string.IsNullOrEmpty(storeName)) return false;
+            var storeLower = storeName.ToLowerInvariant();
+            return TrustedDomains.Any(d => storeLower.Contains(d));
+        }
 
-            _logger.LogInformation($"Limite de IA atingido, marcando como desconhecida: {source}");
-            return (new StoreValidationResult { IsTrusted = false, StoreType = "desconhecida" }, currentIaCalls);
+        // 🔥 NOVA REGRA: Se é produto USADO, automaticamente é MARKETPLACE
+        private bool IsMarketplaceStore(string storeName, string productTitle, bool isUsed)
+        {
+            if (string.IsNullOrEmpty(storeName)) return false;
+            
+            var storeLower = storeName.ToLowerInvariant();
+            var titleLower = (productTitle ?? "").ToLowerInvariant();
+            
+            // 🔥 REGRA 1: Produto usado SEMPRE é marketplace
+            if (isUsed)
+                return true;
+            
+            // REGRA 2: Verifica se é marketplace conhecido
+            if (MarketplaceDomains.Any(m => storeLower.Contains(m)))
+                return true;
+            
+            // REGRA 3: Verifica palavras no título
+            if (UsedProductKeywords.Any(k => titleLower.Contains(k)))
+                return true;
+            
+            return false;
+        }
+
+        private bool IsUsedProduct(string productTitle)
+        {
+            if (string.IsNullOrEmpty(productTitle)) return false;
+            var titleLower = productTitle.ToLowerInvariant();
+            return UsedProductKeywords.Any(keyword => titleLower.Contains(keyword));
+        }
+
+        private string ExtractMarcaFromTitle(string title)
+        {
+            if (string.IsNullOrEmpty(title)) return "";
+            
+            var knownBrands = new[] { "Apple", "Samsung", "LG", "Xiaomi", "Motorola", "Nokia", 
+                                       "Sony", "Philips", "Dell", "HP", "Lenovo", "Acer" };
+            
+            foreach (var marca in knownBrands)
+            {
+                if (title.Contains(marca, StringComparison.OrdinalIgnoreCase))
+                    return marca;
+            }
+            
+            return "";
         }
 
         private static string ExtractLink(JsonElement item)
         {
-            if (item.TryGetProperty("link", out var link) && !link.GetString()?.Contains("google.com/shopping") == true)
+            if (item.TryGetProperty("link", out var link) && 
+                !link.GetString()?.Contains("google.com/shopping") == true)
                 return link.GetString() ?? "";
             
             if (item.TryGetProperty("product_link", out var productLink))
@@ -241,18 +255,27 @@ namespace CasalPlanner.API.Controllers
         private static decimal ExtractPrice(JsonElement item)
         {
             if (!item.TryGetProperty("price", out var priceElem))
-                return 0;
+            {
+                if (item.TryGetProperty("extracted_price", out var extracted))
+                    priceElem = extracted;
+                else
+                    return 0;
+            }
 
             var priceStr = priceElem.GetString();
             if (string.IsNullOrEmpty(priceStr)) return 0;
 
-            // Tenta diferentes formatos de preço
-            var cleaned = Regex.Replace(priceStr, @"[^\d,]", "").Replace(".", "").Replace(",", ".");
+            var cleaned = Regex.Replace(priceStr, @"[^\d,.]", "");
+            
+            if (cleaned.Contains(",") && cleaned.IndexOf(",") > cleaned.IndexOf("."))
+                cleaned = cleaned.Replace(".", "").Replace(",", ".");
+            else if (cleaned.Contains(",") && !cleaned.Contains("."))
+                cleaned = cleaned.Replace(",", "");
+            
             if (decimal.TryParse(cleaned, System.Globalization.NumberStyles.Any, 
                 System.Globalization.CultureInfo.InvariantCulture, out var price))
                 return price;
                 
-            // Tenta outro formato
             if (decimal.TryParse(priceStr, System.Globalization.NumberStyles.Currency, 
                 System.Globalization.CultureInfo.GetCultureInfo("pt-BR"), out price))
                 return price;

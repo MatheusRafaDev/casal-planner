@@ -1,11 +1,9 @@
-// PainelPesquisaPrecos.jsx - VERSÃO COMPLETA CORRIGIDA
+// PainelPesquisaPrecos.jsx
 
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import * as S from '../styles/components/PainelPesquisaPrecosStyles';
 import { formatarValorParaExibicao } from '../utils/mascaras';
 import api from '../services/api';
-import { validarEFormatarProdutoComIA, extrairMarcaBasica, processarProdutosAPI } from '../services/PainelPesquisaPrecosUtils';
-import storeLogoService from '../services/storeLogoService';
 
 const IconSearch = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -22,343 +20,89 @@ const IconExternal = () => (
   </svg>
 );
 
-// Componente de logo genérica (SVG inline)
-const GenericStoreIcon = ({ size = 'small', type = 'store' }) => {
-  // Ícone para marketplace
-  if (type === 'marketplace') {
-    return (
-      <S.GenericStoreSvg 
-        width={size === 'small' ? 16 : 24} 
-        height={size === 'small' ? 16 : 24} 
-        viewBox="0 0 24 24" 
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="M3 6H5L7 14H19L21 6H3Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M7 14V20H17V14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <circle cx="9" cy="17" r="1" fill="currentColor"/>
-        <circle cx="15" cy="17" r="1" fill="currentColor"/>
-        <path d="M12 6V14" stroke="currentColor" strokeWidth="1.5"/>
-      </S.GenericStoreSvg>
-    );
-  }
-  
-  // Ícone padrão de loja
-  return (
-    <S.GenericStoreSvg 
-      width={size === 'small' ? 16 : 24} 
-      height={size === 'small' ? 16 : 24} 
-      viewBox="0 0 24 24" 
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M3 9L5 5H19L21 9M3 9V19H21V9M3 9H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M9 9V13H15V9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="7" cy="15" r="1" fill="currentColor"/>
-      <circle cx="17" cy="15" r="1" fill="currentColor"/>
-    </S.GenericStoreSvg>
-  );
-};
-
-// Função para identificar se é marketplace
-const isMarketplace = (storeName, storeType = '', productTitle = '') => {
-  if (!storeName) return false;
-
-
-
-  const storeLower = storeName.toLowerCase();
-  const storeTypeLower = (storeType || '').toLowerCase();
-  const titleLower = (productTitle || '').toLowerCase();
-
-  // PALAVRAS-CHAVE que indicam produto usado/semi-novo (marketplace)
-  const usedKeywords = [
-    'usado', 'semi-novo', 'semi novo', 'seminovo', 'recondicionado', 
-    'refurbished', 'open box', 'como novo', 'bom estado', 'excelente estado',
-    'oportunidade', 'impecável', 'impecavel', 'barbada', 'precinho',
-    'leia o anúncio', 'leia o anuncio', 'bateria', 'garantia apple',
-    'vendo', 'no precinho', 'muito bom', 'excelente', 'outlet'
-  ];
-  
-  // Marketplaces claros
-  const marketplaces = [
-    'olx', 'enjoei', 'mercadolivre', 'mercadolibre', 'shopee', 
-    'aliexpress', 'ebay', 'etsy', 'facebook', 'marketplace'
-  ];
-  
-  // Revendedores/lojas de usados
-  const resellers = [
-    'bne store', 'wireless source', 'trocafone', 'taqi', 'br celulares'
-  ];
-  
-  // Lojas oficiais (NÃO são marketplace a menos que seja produto usado)
-  const officialStores = [
-    'amazon', 'magazine luiza', 'magalu', 'casas bahia', 'extra',
-    'ponto frio', 'fast shop', 'americanas', 'submarino', 'shoptime',
-    'iplace', 'horizon play', 'lojas mel'
-  ];
-
-  // VERIFICA SE O TÍTULO TEM PALAVRAS DE USADO/MARKETPLACE
-  const hasUsedKeyword = usedKeywords.some(keyword => titleLower.includes(keyword));
-  
-  // Verifica se é marketplace pelo nome
-  const isMarketplaceByName = marketplaces.some(mp => storeLower.includes(mp));
-  
-  // Verifica se é revendedor
-  const isReseller = resellers.some(r => storeLower.includes(r));
-  
-  // Verifica se é loja oficial
-  const isOfficial = officialStores.some(os => storeLower.includes(os));
-  
-  // Verifica pelo store_type
-  const isUnknownType = storeTypeLower === 'desconhecida';
-  const isOlxType = storeTypeLower === 'olx';
-  
-  // REGRA PRINCIPAL: Se o título tem palavra de usado, é marketplace
-  if (hasUsedKeyword) {
-    return true;
-  }
-  
-  // Se for loja oficial e não tiver palavra de usado, NÃO é marketplace
-  if (isOfficial) {
-    return false;
-  }
-  
-  // Se for marketplace ou revendedor
-  if (isMarketplaceByName || isReseller) {
-    return true;
-  }
-  
-  // Se store_type for desconhecida ou OLX
-  if (isUnknownType || isOlxType) {
-    return true;
-  }
-  
-  return false;
-};
-
-// Componente de logo automático com busca em tempo real
-const AutoStoreLogo = ({ storeName, size = 'small', storeType, productTitle }) => {
-  const [logoUrl, setLogoUrl] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [isMp, setIsMp] = useState(false);
-
-  useEffect(() => {
-    let isMounted = true;
-    let imageElement = null;
-    
-    const loadLogo = async () => {
-      if (!storeName) {
-        setLoading(false);
-        setError(true);
-        return;
-      }
-      
-      // Verifica se é marketplace (passando o título também)
-      const mp = isMarketplace(storeName, storeType, productTitle);
-      setIsMp(mp);
-      
-      setLoading(true);
-      setError(false);
-      
-      try {
-        // Busca logo usando o serviço
-        const url = await storeLogoService.getLogoUrl(storeName, size === 'small' ? 16 : 32);
-        
-        if (isMounted && url) {
-          // Testa a imagem de forma silenciosa
-          const img = new Image();
-          imageElement = img;
-          
-          const timeoutId = setTimeout(() => {
-            if (isMounted) {
-              setError(true);
-              setLoading(false);
-            }
-          }, 3000);
-          
-          img.onload = () => {
-            clearTimeout(timeoutId);
-            if (isMounted) {
-              setLogoUrl(url);
-              setLoading(false);
-            }
-          };
-          
-          img.onerror = () => {
-            clearTimeout(timeoutId);
-            if (isMounted) {
-              setError(true);
-              setLoading(false);
-            }
-          };
-          
-          img.src = url;
-        } else if (isMounted) {
-          setError(true);
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error('Erro ao carregar logo da loja:', err);
-        if (isMounted) setError(true);
-        setLoading(false);
-      }
-    };
-    
-    loadLogo();
-    
-    return () => {
-      isMounted = false;
-      if (imageElement) {
-        imageElement.onload = null;
-        imageElement.onerror = null;
-      }
-    };
-  }, [storeName, size, storeType, productTitle]);
-
-  if (loading) {
-    return <S.StoreLogoSkeleton />;
-  }
-
-  if (error || !logoUrl) {
-    return <GenericStoreIcon size={size} type={isMp ? 'marketplace' : 'store'} />;
-  }
-
-  return (
-    <S.StoreLogo 
-      src={logoUrl}
-      alt={storeName}
-      $size={size}
-      onError={() => setError(true)}
-    />
-  );
-};
-
 const buscarPrecos = async (query) => {
-  const { data } = await api.get(`/pesquisaprecos?q=${encodeURIComponent(query)}`);
-  return processarProdutosAPI(data.shopping_results ?? []);
+  const { data } = await api.get(`/PesquisaPrecos?q=${encodeURIComponent(query)}`);
+  return data.produtos || [];
 };
 
-const PainelPesquisaPrecos = ({ nome = '', marca = '', onSelectItem, onSelectPrice, buscaUsuario = '' }) => {
+const PainelPesquisaPrecos = ({ nome = '', marca = '', onSelectItem, onSelectPrice }) => {
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [customQuery, setCustomQuery] = useState('');
-  const [useCustomQuery, setUseCustomQuery] = useState(false);
-  
-  const warningTimer = useRef(null);
 
-  // DECLARAR queryOriginal ANTES de usar nos useEffects
   const queryOriginal = `${nome} ${marca}`.trim();
-  const currentQuery = useCustomQuery ? customQuery : queryOriginal;
 
-  const handleSearch = useCallback(async (query = currentQuery) => {
-    if (!query) return;
+  const handleSearch = useCallback(async () => {
+    if (!queryOriginal) return;
     setLoading(true);
     setError(null);
-    setResults([]);
-    setSelectedItem(null);
     
     try {
-      const data = await buscarPrecos(query);
+      const data = await buscarPrecos(queryOriginal);
+      console.log('Produtos com validações:', data);
       setResults(data);
       if (data.length === 0) setError('Nenhum produto encontrado');
     } catch (err) {
-      setError(err.message || 'Erro na busca');
+      setError('Erro na busca');
     } finally {
       setLoading(false);
     }
-  }, [currentQuery]);
+  }, [queryOriginal]);
 
-  // useEffect para limpar timer
-  useEffect(() => {
-    return () => clearTimeout(warningTimer.current);
-  }, []);
+  const handleSelect = useCallback((item) => {
+    if (selectedItem?.id === item.id) return;
+    setSelectedItem(item);
+    
+    onSelectItem?.({
+      nome: item.nome,
+      marca: item.marca,
+      preco: item.preco,
+      loja: item.loja,
+      link: item.link,
+      imagem: item.imagem,
+      isTrusted: item.is_trusted,
+      isMarketplace: item.is_marketplace,
+      isUsed: item.is_used
+    });
+    onSelectPrice?.(item.preco);
+  }, [selectedItem, onSelectItem, onSelectPrice]);
 
-  // useEffect para atalho Ctrl+K
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         setExpanded(true);
-        if (results.length === 0 && !loading) {
-          handleSearch(queryOriginal);
-        }
+        if (results.length === 0 && !loading) handleSearch();
       }
-      // ESC para fechar
-      if (e.key === 'Escape' && expanded) {
-        setExpanded(false);
-      }
+      if (e.key === 'Escape' && expanded) setExpanded(false);
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [expanded, results.length, loading, queryOriginal, handleSearch]);
-
-  const handleSelect = useCallback(async (item) => {
-    if (selectedItem?.id === item.id) return;
-    setSelectedItem(item);
-
-    try {
-      const validation = await validarEFormatarProdutoComIA(item.nome, buscaUsuario || currentQuery);
-      
-      onSelectItem?.({
-        nome: validation.nomeValidado,
-        marca: validation.marca,
-        preco: item.preco,
-        loja: item.loja,
-        link: item.link,
-        imagem: item.imagem,
-        isTrusted: item.isTrusted,
-        isMarketplace: isMarketplace(item.loja, item.store_type, item.nome),
-      });
-      onSelectPrice?.(item.preco);
-    } catch {
-      // Fallback sem IA
-      onSelectItem?.({
-        nome: item.nome.replace(/\b[A-Z0-9]{5,}\b/g, '').trim(),
-        marca: extrairMarcaBasica(item.nome),
-        preco: item.preco,
-        loja: item.loja,
-        link: item.link,
-        imagem: item.imagem,
-        isTrusted: item.isTrusted,
-        isMarketplace: isMarketplace(item.loja, item.store_type, item.nome),
-      });
-      onSelectPrice?.(item.preco);
-    }
-  }, [selectedItem, buscaUsuario, currentQuery, onSelectItem, onSelectPrice]);
+  }, [expanded, results.length, loading, handleSearch]);
 
   const stats = useMemo(() => {
-    const validItems = results.filter(r => !r.isLowPriority && r.preco > 0);
+    // Filtra apenas produtos confiáveis (não marketplace)
+    const validItems = results.filter(r => r.preco > 0 && r.is_trusted && !r.is_marketplace);
     if (validItems.length === 0) return null;
     const prices = validItems.map(r => r.preco);
     return {
       min: Math.min(...prices),
       avg: prices.reduce((a, b) => a + b, 0) / prices.length,
-      minItem: validItems.find(r => r.preco === Math.min(...prices)),
-      avgItem: validItems.reduce((prev, curr) => 
-        Math.abs(curr.preco - prices.reduce((a,b) => a+b,0)/prices.length) < 
-        Math.abs(prev.preco - prices.reduce((a,b) => a+b,0)/prices.length) ? curr : prev
-      )
     };
   }, [results]);
-
-  const handleExpand = () => {
-    setExpanded(true);
-    if (results.length === 0 && !loading) {
-      handleSearch(queryOriginal);
-    }
-  };
 
   if (!expanded) {
     return (
       <S.Wrapper>
-        <S.TriggerButton onClick={handleExpand} title="Pesquisar preços (Ctrl+K)">
+        <S.TriggerButton onClick={() => {
+          setExpanded(true);
+          if (results.length === 0 && !loading) handleSearch();
+        }}>
           <IconSearch />
-          Pesquisar preços
+          Pesquisar preços (Ctrl+K)
         </S.TriggerButton>
       </S.Wrapper>
     );
@@ -369,119 +113,110 @@ const PainelPesquisaPrecos = ({ nome = '', marca = '', onSelectItem, onSelectPri
       <S.Panel>
         <S.PanelHeader>
           <S.Title>🔍 Pesquisar preços</S.Title>
-          <S.CloseButton onClick={() => setExpanded(false)} title="Fechar (ESC)">
-            ✕
-          </S.CloseButton>
+          <S.CloseButton onClick={() => setExpanded(false)}>✕</S.CloseButton>
         </S.PanelHeader>
 
         <S.PanelBody>
           <S.SearchSection>
-            <S.SearchLabel>Buscar na internet</S.SearchLabel>
-            <S.SearchInputWrapper>
-              <S.SearchInput
-                value={currentQuery}
-                onChange={(e) => {
-                  setCustomQuery(e.target.value);
-                  setUseCustomQuery(true);
-                }}
-                placeholder="Digite o nome do produto... (Enter para buscar)"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleSearch();
-                  }
-                }}
-                autoFocus={expanded}
-              />
-              <S.SearchButton onClick={() => handleSearch()} disabled={loading || !currentQuery}>
-                {loading ? '...' : 'Buscar'}
-              </S.SearchButton>
-            </S.SearchInputWrapper>
-            {useCustomQuery && (
-              <S.ResetButton onClick={() => {
-                setCustomQuery('');
-                setUseCustomQuery(false);
-              }}>
-                Original
-              </S.ResetButton>
-            )}
+            <S.SearchInput
+              value={queryOriginal}
+              disabled
+              placeholder="Produto para busca"
+            />
+            <S.SearchButton onClick={handleSearch} disabled={loading}>
+              {loading ? 'Buscando...' : 'Buscar'}
+            </S.SearchButton>
           </S.SearchSection>
 
           {loading && (
             <S.LoadingContainer>
               <S.LoadingSpinner />
-              <span>Buscando...</span>
+              <span>Buscando produtos...</span>
             </S.LoadingContainer>
           )}
 
           {error && !loading && (
             <S.ErrorContainer>
               <span>⚠️ {error}</span>
-              <S.RetryButton onClick={() => handleSearch()}>Tentar</S.RetryButton>
+              <S.RetryButton onClick={handleSearch}>Tentar novamente</S.RetryButton>
             </S.ErrorContainer>
           )}
 
-          {results.length > 0 && !loading && stats && (
+          {results.length > 0 && stats && (
             <>
               <S.StatsGrid>
-                <S.StatCard onClick={() => stats.minItem && handleSelect(stats.minItem)}>
-                  <S.StatValue $type="min">{formatarValorParaExibicao(stats.min)}</S.StatValue>
-                  <S.StatLabel>Menor preço</S.StatLabel>
+                <S.StatCard>
+                  <S.StatValue>{formatarValorParaExibicao(stats.min)}</S.StatValue>
+                  <S.StatLabel>Menor preço (oficial)</S.StatLabel>
                 </S.StatCard>
-                <S.StatCard onClick={() => stats.avgItem && handleSelect(stats.avgItem)}>
-                  <S.StatValue $type="avg">{formatarValorParaExibicao(stats.avg)}</S.StatValue>
-                  <S.StatLabel>Preço médio</S.StatLabel>
+                <S.StatCard>
+                  <S.StatValue>{formatarValorParaExibicao(stats.avg)}</S.StatValue>
+                  <S.StatLabel>Preço médio (oficial)</S.StatLabel>
                 </S.StatCard>
               </S.StatsGrid>
 
               <S.ProductsList>
                 {results.map((item) => {
                   const isSelected = selectedItem?.id === item.id;
-                  const isBestOffer = !item.isLowPriority && 
-                    item.preco === Math.min(...results.filter(r => !r.isLowPriority).map(r => r.preco));
-                  const isMp = isMarketplace(item.loja, item.store_type, item.nome);
-
+                  const isMarketplaceItem = item.is_marketplace === true;
+                  
                   return (
                     <S.ProductItem
                       key={item.id}
                       onClick={() => handleSelect(item)}
                       $selected={isSelected}
-                      $isBest={isBestOffer}
-                      $isLowPriority={item.isLowPriority}
+                      $isMarketplace={isMarketplaceItem}
                     >
                       <S.ProductImage>
-                        {item.imagem ? <img src={item.imagem} alt={item.nome} /> : <span>🛒</span>}
+                        {item.imagem ? (
+                          <img src={item.imagem} alt={item.nome} />
+                        ) : (
+                          <span>🛒</span>
+                        )}
                       </S.ProductImage>
 
                       <S.ProductInfo>
                         <S.ProductTitle>{item.nome}</S.ProductTitle>
+                        
                         <S.StoreInfo>
-                          <AutoStoreLogo 
-                            storeName={item.loja}
-                            storeType={item.store_type}
-                            productTitle={item.nome}
-                            size="small" 
-                          />
-                          <S.StoreName title={item.loja}>
-                            {item.loja.length > 25 
-                              ? item.loja.substring(0, 25) + '...' 
-                              : item.loja}
-                            {isMp && <S.MarketplaceBadge>🏪 Marketplace</S.MarketplaceBadge>}
-                            {item.isTrusted && !isMp && <S.TrustBadge>✓ Confiável</S.TrustBadge>}
-                          </S.StoreName>
+                          <S.StoreName>{item.loja}</S.StoreName>
+                          
+                          {/* 🔥 MARKETPLACE EM AMARELO */}
+                          {isMarketplaceItem && (
+                            <S.MarketplaceBadge>🛍️ Marketplace</S.MarketplaceBadge>
+                          )}
+                          
+                          {/* Loja confiável (só mostra se não for marketplace) */}
+                          {item.is_trusted && !isMarketplaceItem && (
+                            <S.TrustBadge>✓ Loja oficial</S.TrustBadge>
+                          )}
+                          
+                          {/* Produto usado */}
+                          {item.is_used && (
+                            <S.UsedBadge>♻️ Usado/Recondicionado</S.UsedBadge>
+                          )}
                         </S.StoreInfo>
-                        {isSelected && <S.SelectedProductBadge>✓ Selecionado</S.SelectedProductBadge>}
+                        
+                        {/* 🔥 MARCA VALIDADA PELA IA */}
+                        {item.marca && (
+                          <S.BrandInfo>
+                            🏷️ Marca: <strong>{item.marca}</strong> {item.nome_validado && `| ${item.nome_validado}`}
+                          </S.BrandInfo>
+                        )}
                       </S.ProductInfo>
 
                       <S.ProductMeta>
-                        <S.PriceValue $isBest={isBestOffer} $selected={isSelected}>
+                        <S.PriceValue $selected={isSelected} $isMarketplace={isMarketplaceItem}>
                           {formatarValorParaExibicao(item.preco)}
                         </S.PriceValue>
-                        {item.isTrusted && !isMp && <S.BestBadge>Oficial</S.BestBadge>}
-                        {isMp && <S.MarketplaceBadge $small>Usado/Novo</S.MarketplaceBadge>}
                       </S.ProductMeta>
 
-                      <S.LinkButton href={item.link} target="_blank" onClick={(e) => e.stopPropagation()}>
+                      <S.LinkButton 
+                        href={item.link} 
+                        target="_blank" 
+                        onClick={(e) => e.stopPropagation()}
+                        title="Abrir na loja"
+                      >
                         <IconExternal />
                       </S.LinkButton>
                     </S.ProductItem>
