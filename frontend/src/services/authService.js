@@ -48,7 +48,7 @@ class AuthService {
 
   async estaAutenticado() {
     try {
-      const response = await api.get("/auth/me");
+      const response = await api.get("/Auth/me");
       return response.status === 200;
     } catch (error) {
       return false;
@@ -57,7 +57,7 @@ class AuthService {
 
   async buscarDadosCompletos() {
     try {
-      const response = await api.get("/auth/me");
+      const response = await api.get("/Auth/me");
       const d = response.data;
 
       // Normaliza PascalCase → camelCase

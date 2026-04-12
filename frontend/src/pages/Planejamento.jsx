@@ -96,7 +96,7 @@ const Planejamento = () => {
       setError("Usuário não autenticado");
     }
 
-    document.title = "Casal Planner - Minha Lista";
+    document.title = "CasalPlanner - Meu Planejamento";
   }, [usuario]);
 
   // 🔥 Atualizar resumo quando itens mudarem
