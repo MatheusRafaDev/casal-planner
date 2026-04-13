@@ -571,10 +571,6 @@ const Login = () => {
                 {loading ? "Entrando..." : "Entrar"}
               </LoginButton>
 
-              <InfoMessage theme={theme}>
-                <CheckCircle size={14} />
-                <span>Use joao@email.com / 123456 para testar</span>
-              </InfoMessage>
             </>
           )}
 

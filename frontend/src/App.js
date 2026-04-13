@@ -1,24 +1,26 @@
+// frontend/src/App.jsx (versão simplificada sem routes separado)
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { ThemeProvider, useTheme } from './context/ThemeContext';
-import { ThemeProvider as StyledThemeProvider } from 'styled-components';
-import styled from 'styled-components';
 import { StyleSheetManager } from 'styled-components';
 import isPropValid from '@emotion/is-prop-valid';
 import { Toaster } from 'react-hot-toast';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { ConfirmProvider } from './context/ConfirmContext';
 import ConfirmModal from './components/ConfirmModal';
 import Header from './components/Header';
-import usePageTitle from './hooks/usePageTitle';
+import GlobalStyle from './styles/GlobalStyle';
+import styled from 'styled-components';
 
+// Pages
 import Planejamento from './pages/Planejamento';
 import Perfil from './pages/Perfil';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import usePageTitle from './hooks/usePageTitle';
 
-import GlobalStyle from './styles/GlobalStyle';
-
+// Styled Components
 const LoadingScreen = styled.div`
   display: flex;
   justify-content: center;
@@ -44,34 +46,25 @@ const MainContent = styled.main`
   }
 `;
 
-function PrivateRoute({ children }) {
+// Componentes de rota
+const PrivateRoute = ({ children }) => {
   const { estaAutenticado, loading } = useAuth();
-  
-  if (loading) {
-    return <LoadingScreen>Carregando...</LoadingScreen>;
-  }
-  
+  if (loading) return <LoadingScreen>Carregando...</LoadingScreen>;
   return estaAutenticado ? children : <Navigate to="/login" />;
-}
+};
 
-function PublicRoute({ children }) {
+const PublicRoute = ({ children }) => {
   const { estaAutenticado, loading } = useAuth();
-  
-  if (loading) {
-    return <LoadingScreen>Carregando...</LoadingScreen>;
-  }
-  
+  if (loading) return <LoadingScreen>Carregando...</LoadingScreen>;
   return !estaAutenticado ? children : <Navigate to="/planejamento" />;
-}
+};
 
-function AppRoutes() {
+// Componente principal de rotas
+const AppRoutes = () => {
   const { loading } = useAuth();
   usePageTitle();
 
-
-  if (loading) {
-    return <LoadingScreen>Carregando...</LoadingScreen>;
-  }
+  if (loading) return <LoadingScreen>Carregando...</LoadingScreen>;
 
   return (
     <Routes>
@@ -80,13 +73,11 @@ function AppRoutes() {
           <Home />
         </PublicRoute>
       } />
-      
       <Route path="/login" element={
         <PublicRoute>
           <Login />
         </PublicRoute>
       } />
-      
       <Route path="/planejamento" element={
         <PrivateRoute>
           <AppContainer>
@@ -97,7 +88,6 @@ function AppRoutes() {
           </AppContainer>
         </PrivateRoute>
       } />
-      
       <Route path="/perfil" element={
         <PrivateRoute>
           <AppContainer>
@@ -108,15 +98,14 @@ function AppRoutes() {
           </AppContainer>
         </PrivateRoute>
       } />
-      
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
-}
+};
 
-function StyledThemeWrapper() {
+// Wrapper de tema
+const StyledThemeWrapper = () => {
   const { theme } = useTheme();
-
   return (
     <StyledThemeProvider theme={theme}>
       <GlobalStyle />
@@ -124,33 +113,16 @@ function StyledThemeWrapper() {
         <AppRoutes />
         <ConfirmModal theme={theme} />
       </ConfirmProvider>
-      <Toaster
-        position="top-right"
-        reverseOrder={false}
-        gutter={8}
-        toastOptions={{
-          duration: 4000,
-          style: {
-            borderRadius: '12px',
-            background: theme === 'dark' ? '#1e1e1e' : '#ffffff',
-            color: theme === 'dark' ? '#e0e0e0' : '#333333',
-            border: `1px solid ${theme === 'dark' ? '#333' : '#ddd'}`,
-          },
-        }}
-      />
+      <Toaster position="top-right" />
     </StyledThemeProvider>
   );
-}
+};
 
+// App principal
 function App() {
   return (
     <StyleSheetManager shouldForwardProp={isPropValid}>
-      <BrowserRouter
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true,
-        }}
-      >
+      <BrowserRouter>
         <AuthProvider>
           <ThemeProvider>
             <StyledThemeWrapper />
