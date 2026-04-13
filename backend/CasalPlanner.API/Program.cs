@@ -110,7 +110,8 @@ builder.Services.AddCors(options =>
         // Origens permitidas base
         var allowedOrigins = new List<string>
         {
-            "https://casal-planner-ebg7.vercel.app"
+            "https://casal-planner.vercel.app",
+            "http://localhost:3000" 
         };
 
         // Origens extras via variável de ambiente (ex: previews do Vercel)
@@ -151,18 +152,18 @@ app.Use(async (context, next) =>
 {
     context.Response.Headers["Content-Security-Policy"] =
         "default-src 'self'; " +
-        "connect-src 'self' https://casalplanner-api.onrender.com https://*.vercel.app; " +
+        "connect-src 'self' http://localhost:3000 http://localhost:5286 https://casalplanner-api.onrender.com https://*.vercel.app; " +
         "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
         "style-src 'self' 'unsafe-inline'; " +
         "img-src 'self' data: https:;";
 
-    // Segurança extra
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
     context.Response.Headers["X-Frame-Options"] = "DENY";
     context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
 
     await next();
 });
+
 
 // ===== PIPELINE =====
 app.UseHttpsRedirection();

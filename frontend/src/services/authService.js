@@ -1,9 +1,4 @@
 
- 
- 
-// ============================================================
-// authService.js — Serviço de autenticação
-// ============================================================
 import api from './api';
  
 class AuthService {
@@ -14,7 +9,6 @@ class AuthService {
       const response = await api.post('/auth/login', dados);
  
       if (response.data.usuario) {
-        // ✅ Armazena no cache em memória (cookie é gerenciado pelo browser)
         this.#usuarioCache = response.data.usuario;
         return response.data.usuario;
       }
@@ -31,12 +25,11 @@ class AuthService {
     } catch (error) {
       console.error('Erro no logout:', error);
     } finally {
-      // ✅ Limpa cache independente de sucesso/falha na API
       this.#usuarioCache = null;
     }
   }
  
-  // ✅ Unificado: uma única chamada ao invés de duas (/me duas vezes)
+
   async getUsuario() {
     if (this.#usuarioCache) {
       return this.#usuarioCache;
@@ -49,7 +42,6 @@ class AuthService {
     }
   }
  
-  // ✅ Reutiliza getUsuario em vez de chamar /auth/me separado
   async estaAutenticado() {
     const usuario = await this.getUsuario();
     return usuario !== null;
@@ -60,7 +52,6 @@ class AuthService {
       const response = await api.get('/auth/me');
       const d = response.data;
  
-      // Normaliza PascalCase (C#) → camelCase (JS)
       const normalizado = {
         id: d.Id || d.id,
         nomeCompleto: d.NomeCompleto || d.nomeCompleto,

@@ -32,12 +32,10 @@ namespace CasalPlanner.API.Controllers
         {
             try
             {
-                // Buscar usuário individual primeiro
                 var usuario = await _authService.ObterUsuarioPorEmail(dto.Email);
                 var isCasal = false;
                 string pessoa = "";
 
-                // Se não encontrou como individual, buscar como casal
                 if (usuario == null)
                 {
                     usuario = await _authService.ObterCasalPorEmail(dto.Email);
@@ -49,12 +47,12 @@ namespace CasalPlanner.API.Controllers
                 }
 
                 if (usuario == null)
-                    return Unauthorized(new { error = "Usuário não encontrado" });
+                    return Unauthorized(new { message = "Usuário não encontrado" });
 
                 var senhaValida = await _authService.VerificarSenha(usuario, dto.Senha, pessoa);
 
                 if (!senhaValida)
-                    return Unauthorized(new { error = "Senha inválida" });
+                    return Unauthorized(new { message = "Senha inválida" });
 
                 // Gerar token conforme tipo de conta
                 string token = isCasal
