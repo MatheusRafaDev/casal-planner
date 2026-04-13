@@ -38,7 +38,7 @@ const Modal = ({
           break;
         default:
           toast.success(toastMessage, {
-            duration: 3000, icon: '✅',
+            duration: 3000, icon: '',
             style: {
               ...baseStyle,
               background: theme === 'dark' ? '#1e1e1e' : '#4CAF50',

@@ -286,6 +286,7 @@ const Perfil = () => {
             createdAt: d.createdAt,
           };
           setDadosIndividual(d);
+        
           setDadosOriginais(nd);
         }
       } catch (error) {
@@ -499,7 +500,7 @@ const Perfil = () => {
                 <InfoField label="E-mail" value={dadosIndividual.email} theme={theme} />
                 <InfoField label="CPF" value={dadosIndividual.cpf} theme={theme} />
                 <InfoField label="Data de nascimento" value={dadosIndividual.dataNascimento} theme={theme} />
-                <InfoField label="Renda mensal" value={formatarMoeda(dadosIndividual.rendaMensalValor)} destaque theme={theme} />
+                <InfoField label="Renda mensal" value={formatarMoeda(dadosIndividual.rendaMensal)} destaque theme={theme} />
               </InfoGrid>
               <DataCriacao theme={theme}>
                 <Clock size={13} /> Conta criada em {formatarDataCriacao(dadosIndividual.createdAt)}

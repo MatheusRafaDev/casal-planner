@@ -214,6 +214,15 @@ export const Input = styled.input`
     background-color: ${props => props.theme.surface} !important;
     color: ${props => props.theme.text} !important;
   }
+
+  /* Estilo para campo com erro */
+  &[aria-invalid="true"] {
+    border-color: ${props => props.theme.error};
+    
+    &:focus {
+      box-shadow: 0 0 0 3px ${props => props.theme.error}20;
+    }
+  }
 `;
 
 export const PasswordToggle = styled.button`
@@ -298,6 +307,7 @@ export const LoginButton = styled.button`
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  margin-top: 0.5rem;
 
   &:hover:not(:disabled) {
     background: ${props => props.theme.primaryDark};
@@ -327,6 +337,20 @@ export const InfoMessage = styled.div`
   svg {
     color: ${props => props.theme.success};
   }
+
+  button {
+    background: none;
+    border: none;
+    color: ${props => props.theme.primary};
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0;
+    margin: 0;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 `;
 
 export const BackLink = styled.button`
@@ -354,5 +378,32 @@ export const BackLink = styled.button`
 
   &:hover svg {
     transform: translateX(-3px);
+  }
+`;
+
+// Export adicional para campos com erro
+export const FieldError = styled.span`
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: ${props => props.theme.error};
+  padding-left: 0.5rem;
+`;
+
+// Export para spinner no botão
+export const Spinner = styled.div`
+  width: 16px;
+  height: 16px;
+  border: 2px solid ${props => props.theme.surface};
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+  margin-right: 0.5rem;
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 `;
