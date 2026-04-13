@@ -72,12 +72,14 @@ namespace CasalPlanner.API.Controllers
                 {
                     HttpOnly = true,
                     Secure = true,
-                    SameSite = SameSiteMode.None, 
+                    SameSite = SameSiteMode.None,
                     Expires = DateTime.UtcNow.AddDays(7),
-                    Path = "/"
+                    Path = "/",
+                    Domain = ".onrender.com"
                 });
 
 
+    
                 return Ok(new
                 {
                     message = "Login realizado com sucesso",

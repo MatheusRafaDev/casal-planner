@@ -1,12 +1,12 @@
 import axios from 'axios';
 
 const baseURL =
-  process.env.REACT_APP_API_URL || 'http://localhost:5286/api';
+  process.env.REACT_APP_API_URL;
 
 const api = axios.create({
   baseURL,
-  timeout: 30000, // Aumentar timeout para 30 segundos
-  withCredentials: true, // ✅ Já está correto
+  timeout: 30000, 
+  withCredentials: true, 
   headers: {
     'Content-Type': 'application/json',
   }
@@ -15,12 +15,14 @@ const api = axios.create({
 // Interceptor para LOG (debug)
 api.interceptors.request.use(
   (config) => {
-    // Verificar se o cookie está sendo enviado
+   
     const hasCookie = document.cookie.includes('auth_token');
+
+    console.log(process.env.REACT_APP_API_URL);
+    
     console.log(`📤 ${config.method.toUpperCase()} ${config.url}`);
     console.log(`🍪 Cookie auth_token presente: ${hasCookie ? 'Sim ✅' : 'Não ❌'}`);
     
-    // Opcional: Se quiser enviar também no header Authorization
     const tokenMatch = document.cookie.match(/auth_token=([^;]+)/);
     if (tokenMatch && tokenMatch[1]) {
       config.headers.Authorization = `Bearer ${tokenMatch[1]}`;
