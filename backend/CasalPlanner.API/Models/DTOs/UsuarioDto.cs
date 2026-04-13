@@ -34,8 +34,6 @@ namespace CasalPlanner.API.Models.DTOs
             public string? CPFPessoa2 { get; set; }
             public DateTime? DataNascimentoPessoa2 { get; set; }
             public decimal? RendaMensalPessoa2 { get; set; }
-
-            public DateTime? DataCasamento { get; set; }
             public string? Token { get; set; }
         }
     }
@@ -56,7 +54,6 @@ namespace CasalPlanner.API.Models.DTOs
         public DateTime? DataNascimentoPessoa2 { get; set; }
         public decimal? RendaMensalPessoa2 { get; set; }
 
-        public DateTime? DataCasamento { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
     }
@@ -97,9 +94,6 @@ namespace CasalPlanner.API.Models.DTOs
 
         [Range(0, 999999.99)]
         public decimal? RendaMensalPessoa2 { get; set; }
-
-        [DataType(DataType.Date)]
-        public DateTime? DataCasamento { get; set; }
 
         public decimal? RendaMensal { get; set; }
     }

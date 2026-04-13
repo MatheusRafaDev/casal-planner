@@ -399,7 +399,6 @@ const Login = () => {
                 )
               : 0,
             
-            dataCasamento: new Date().toISOString().split('T')[0]
           };
           
           toast.loading("Registrando casal...", { id: "registro" });

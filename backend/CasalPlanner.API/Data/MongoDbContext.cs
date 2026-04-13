@@ -82,8 +82,6 @@ public class MongoDbContext
                 DataNascimentoPessoa2 = new DateTime(1992, 2, 2),
                 RendaMensalPessoa2 = 4500.00m,
 
-
-                DataCasamento = new DateTime(2020, 1, 1),
                 CreatedAt = DateTime.UtcNow
             },
             CreatedAt = DateTime.UtcNow
@@ -279,7 +277,6 @@ public class MongoDbContext
                 Console.WriteLine($"    CPF2: {u.CasalInfo.CPFPessoa2}");
                 Console.WriteLine($"    DataNasc2: {u.CasalInfo.DataNascimentoPessoa2:dd/MM/yyyy}");
                 Console.WriteLine($"    Renda2: {u.CasalInfo.RendaMensalPessoa2:C}");
-                Console.WriteLine($"    DataCasamento: {u.CasalInfo.DataCasamento:dd/MM/yyyy}");
             }
             else
             {

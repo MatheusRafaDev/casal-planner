@@ -95,7 +95,6 @@ namespace CasalPlanner.API.Services
                     {
                         NomeCompletoPessoa1 = dto.NomeCompletoPessoa1,
                         EmailPessoa1 = dto.EmailPessoa1,
-                        // 🔥 BCrypt para cada pessoa
                         SenhaHashPessoa1 = BCrypt.Net.BCrypt.HashPassword(dto.SenhaPessoa1, workFactor: 12),
                         CPFPessoa1 = dto.CPFPessoa1,
                         DataNascimentoPessoa1 = dto.DataNascimentoPessoa1,
@@ -107,8 +106,6 @@ namespace CasalPlanner.API.Services
                         CPFPessoa2 = dto.CPFPessoa2,
                         DataNascimentoPessoa2 = dto.DataNascimentoPessoa2,
                         RendaMensalPessoa2 = dto.RendaMensalPessoa2,
-
-                        DataCasamento = dto.DataCasamento,
                         CreatedAt = DateTime.UtcNow,
                     }
                 };
@@ -127,17 +124,27 @@ namespace CasalPlanner.API.Services
         {
             try
             {
+                if (usuario == null || string.IsNullOrEmpty(senha))
+                    return false;
+
                 if (usuario.IsCasal && usuario.CasalInfo != null)
                 {
                     if (pessoa == "pessoa1")
-                        return BCrypt.Net.BCrypt.Verify(senha, usuario.CasalInfo.SenhaHashPessoa1);
+                    {
+                        var hash1 = usuario.CasalInfo.SenhaHashPessoa1;
+                        return !string.IsNullOrEmpty(hash1) && BCrypt.Net.BCrypt.Verify(senha, hash1);
+                    }
                     else if (pessoa == "pessoa2")
-                        return BCrypt.Net.BCrypt.Verify(senha, usuario.CasalInfo.SenhaHashPessoa2);
+                    {
+                        var hash2 = usuario.CasalInfo.SenhaHashPessoa2;
+                        return !string.IsNullOrEmpty(hash2) && BCrypt.Net.BCrypt.Verify(senha, hash2);
+                    }
                     return false;
                 }
                 else
                 {
-                    return BCrypt.Net.BCrypt.Verify(senha, usuario.SenhaHash);
+                    var hash = usuario.SenhaHash;
+                    return !string.IsNullOrEmpty(hash) && BCrypt.Net.BCrypt.Verify(senha, hash);
                 }
             }
             catch (Exception ex)
@@ -149,6 +156,9 @@ namespace CasalPlanner.API.Services
 
         public async Task<Usuario?> ObterUsuarioPorEmail(string email)
         {
+            if (string.IsNullOrEmpty(email))
+                return null;
+
             return await _context.Usuarios
                 .Find(u => u.Email == email)
                 .FirstOrDefaultAsync();
@@ -156,6 +166,9 @@ namespace CasalPlanner.API.Services
 
         public async Task<Usuario?> ObterCasalPorEmail(string email)
         {
+            if (string.IsNullOrEmpty(email))
+                return null;
+
             return await _context.Usuarios
                 .Find(u => u.CasalInfo != null &&
                           (u.CasalInfo.EmailPessoa1 == email || u.CasalInfo.EmailPessoa2 == email))
@@ -164,6 +177,9 @@ namespace CasalPlanner.API.Services
 
         public async Task<Usuario?> ObterUsuarioPorId(string id)
         {
+            if (string.IsNullOrEmpty(id))
+                return null;
+
             return await _context.Usuarios
                 .Find(u => u.Id == id)
                 .FirstOrDefaultAsync();
@@ -171,6 +187,9 @@ namespace CasalPlanner.API.Services
 
         public string GerarToken(Usuario usuario)
         {
+            if (usuario == null)
+                throw new ArgumentNullException(nameof(usuario));
+
             var tokenHandler = new JwtSecurityTokenHandler();
 
             var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
@@ -184,7 +203,10 @@ namespace CasalPlanner.API.Services
                 ?? _configuration["Jwt:Audience"]
                 ?? "CasalPlannerUsers";
 
-            var key = Encoding.UTF8.GetBytes(jwtKey!);
+            if (string.IsNullOrEmpty(jwtKey))
+                throw new InvalidOperationException("JWT Key não configurada");
+
+            var key = Encoding.UTF8.GetBytes(jwtKey);
 
             var claims = new List<Claim>
             {
@@ -199,7 +221,7 @@ namespace CasalPlanner.API.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddDays(7), // 1 hora apenas!
+                Expires = DateTime.UtcNow.AddDays(7),
                 Issuer = jwtIssuer,
                 Audience = jwtAudience,
                 SigningCredentials = new SigningCredentials(
@@ -213,6 +235,9 @@ namespace CasalPlanner.API.Services
 
         public string GerarTokenCasal(Usuario usuario, string pessoa)
         {
+            if (usuario == null)
+                throw new ArgumentNullException(nameof(usuario));
+
             var tokenHandler = new JwtSecurityTokenHandler();
 
             var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
@@ -226,7 +251,10 @@ namespace CasalPlanner.API.Services
                 ?? _configuration["Jwt:Audience"]
                 ?? "CasalPlannerUsers";
 
-            var key = Encoding.UTF8.GetBytes(jwtKey!);
+            if (string.IsNullOrEmpty(jwtKey))
+                throw new InvalidOperationException("JWT Key não configurada");
+
+            var key = Encoding.UTF8.GetBytes(jwtKey);
 
             var claims = new List<Claim>
             {
@@ -239,19 +267,19 @@ namespace CasalPlanner.API.Services
 
             if (pessoa == "pessoa1" && usuario.CasalInfo != null)
             {
-                claims.Add(new Claim(JwtRegisteredClaimNames.Email, usuario.CasalInfo.EmailPessoa1));
-                claims.Add(new Claim(ClaimTypes.Name, usuario.CasalInfo.NomeCompletoPessoa1));
+                claims.Add(new Claim(JwtRegisteredClaimNames.Email, usuario.CasalInfo.EmailPessoa1 ?? string.Empty));
+                claims.Add(new Claim(ClaimTypes.Name, usuario.CasalInfo.NomeCompletoPessoa1 ?? string.Empty));
             }
             else if (pessoa == "pessoa2" && usuario.CasalInfo != null)
             {
-                claims.Add(new Claim(JwtRegisteredClaimNames.Email, usuario.CasalInfo.EmailPessoa2));
-                claims.Add(new Claim(ClaimTypes.Name, usuario.CasalInfo.NomeCompletoPessoa2));
+                claims.Add(new Claim(JwtRegisteredClaimNames.Email, usuario.CasalInfo.EmailPessoa2 ?? string.Empty));
+                claims.Add(new Claim(ClaimTypes.Name, usuario.CasalInfo.NomeCompletoPessoa2 ?? string.Empty));
             }
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(1), // 1 hora apenas!
+                Expires = DateTime.UtcNow.AddHours(1),
                 Issuer = jwtIssuer,
                 Audience = jwtAudience,
                 SigningCredentials = new SigningCredentials(
@@ -263,14 +291,16 @@ namespace CasalPlanner.API.Services
             return tokenHandler.WriteToken(token);
         }
 
-
         public async Task<Usuario?> AtualizarPerfilCasal(string id, AtualizarCasalDto dto)
         {
+            if (string.IsNullOrEmpty(id))
+                return null;
+
             var usuario = await _context.Usuarios
                 .Find(u => u.Id == id && u.TipoConta == TipoConta.Casal)
                 .FirstOrDefaultAsync();
 
-            if (usuario == null)
+            if (usuario == null || usuario.CasalInfo == null)
                 return null;
 
             var update = Builders<Usuario>.Update;
@@ -278,34 +308,29 @@ namespace CasalPlanner.API.Services
 
             var renda = (dto.RendaMensalPessoa1 ?? 0) + (dto.RendaMensalPessoa2 ?? 0);
 
-            if (usuario.CasalInfo != null)
-            {
-                if (dto.NomeCompletoPessoa1 != null)
-                    updates.Add(update.Set(u => u.CasalInfo.NomeCompletoPessoa1, dto.NomeCompletoPessoa1));
+            // Agora podemos acessar usuario.CasalInfo com segurança porque verificamos que não é null
+            if (dto.NomeCompletoPessoa1 != null)
+                updates.Add(update.Set(u => u.CasalInfo!.NomeCompletoPessoa1, dto.NomeCompletoPessoa1));
 
-                if (dto.DataNascimentoPessoa1.HasValue)
-                    updates.Add(update.Set(u => u.CasalInfo.DataNascimentoPessoa1, dto.DataNascimentoPessoa1.Value));
+            if (dto.DataNascimentoPessoa1.HasValue)
+                updates.Add(update.Set(u => u.CasalInfo!.DataNascimentoPessoa1, dto.DataNascimentoPessoa1.Value));
 
-                if (dto.RendaMensalPessoa1.HasValue)
-                    updates.Add(update.Set(u => u.CasalInfo.RendaMensalPessoa1, dto.RendaMensalPessoa1.Value));
+            if (dto.RendaMensalPessoa1.HasValue)
+                updates.Add(update.Set(u => u.CasalInfo!.RendaMensalPessoa1, dto.RendaMensalPessoa1.Value));
 
-                if (dto.NomeCompletoPessoa2 != null)
-                    updates.Add(update.Set(u => u.CasalInfo.NomeCompletoPessoa2, dto.NomeCompletoPessoa2));
+            if (dto.NomeCompletoPessoa2 != null)
+                updates.Add(update.Set(u => u.CasalInfo!.NomeCompletoPessoa2, dto.NomeCompletoPessoa2));
 
-                if (dto.DataNascimentoPessoa2.HasValue)
-                    updates.Add(update.Set(u => u.CasalInfo.DataNascimentoPessoa2, dto.DataNascimentoPessoa2.Value));
+            if (dto.DataNascimentoPessoa2.HasValue)
+                updates.Add(update.Set(u => u.CasalInfo!.DataNascimentoPessoa2, dto.DataNascimentoPessoa2.Value));
 
-                if (dto.RendaMensalPessoa2.HasValue)
-                    updates.Add(update.Set(u => u.CasalInfo.RendaMensalPessoa2, dto.RendaMensalPessoa2.Value));
+            if (dto.RendaMensalPessoa2.HasValue)
+                updates.Add(update.Set(u => u.CasalInfo!.RendaMensalPessoa2, dto.RendaMensalPessoa2.Value));
 
-                if (dto.RendaMensal.HasValue)
-                    updates.Add(update.Set(u => u.RendaMensal, renda));
+            if (dto.RendaMensal.HasValue)
+                updates.Add(update.Set(u => u.RendaMensal, renda));
 
-                if (dto.DataCasamento.HasValue)
-                    updates.Add(update.Set(u => u.CasalInfo.DataCasamento, dto.DataCasamento.Value));
-
-                updates.Add(update.Set(u => u.CasalInfo.UpdatedAt, DateTime.UtcNow));
-            }
+            updates.Add(update.Set(u => u.CasalInfo!.UpdatedAt, DateTime.UtcNow));
 
             if (updates.Any())
             {

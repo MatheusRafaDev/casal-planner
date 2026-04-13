@@ -302,6 +302,18 @@ const Planejamento = () => {
   const handleCloseCategoriaModal = () =>
     setCategoriaModal({ isOpen: false, categoria: null, isEditing: false });
 
+  // Atualização otimística: adiciona/edita categoria sem recarregar tudo
+  const handleCategoriaAdded = (categoriaResultado, isEditing) => {
+    if (!categoriaResultado) return;
+    if (isEditing) {
+      setCategorias(prev =>
+        prev.map(c => c.id === categoriaResultado.id ? { ...c, ...categoriaResultado } : c)
+      );
+    } else {
+      setCategorias(prev => [...prev, categoriaResultado]);
+    }
+  };
+
   // Item
   const handleAddItem = (categoriaId) => {
     setItemModal({ isOpen: true, categoriaId, itemId: null });
@@ -497,7 +509,7 @@ const Planejamento = () => {
       <CategoriaFormModal
         isOpen={categoriaModal.isOpen}
         onClose={handleCloseCategoriaModal}
-        onCategoryAdded={loadData}
+        onCategoryAdded={handleCategoriaAdded}
         categoriaParaEditar={categoriaModal.categoria}
         isEditing={categoriaModal.isEditing}
         theme={theme}

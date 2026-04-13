@@ -40,7 +40,6 @@ class UsuarioService {
         cpfPessoa2: dados.cpfPessoa2,
         dataNascimentoPessoa2: dados.dataNascimentoPessoa2,
         rendaMensalPessoa2: dados.rendaMensalPessoa2 || 0,
-         dataCasamento: ''
       };
 
 
@@ -107,8 +106,8 @@ class UsuarioService {
         nomeCompletoPessoa2: dados.nomeCompletoPessoa2,
         dataNascimentoPessoa2: dados.dataNascimentoPessoa2,
         rendaMensalPessoa2: dados.rendaMensalPessoa2,
-        dataCasamento: ''
       };
+
       const response = await api.put(`/usuario/perfil-casal/${id}`, dadosBackend);
 
       const usuarioAtual = authService.getUsuario();
@@ -120,10 +119,6 @@ class UsuarioService {
       return response.data;
     } catch (error) {
 
-      console.error('❌ ERRO COMPLETO:', error);
-      console.error('📦 RESPOSTA DO SERVIDOR:', error.response?.data);
-      console.error('📊 STATUS:', error.response?.status);
-      console.error('🔍 CABEÇALHOS:', error.response?.headers);
 
       console.error('Erro ao atualizar perfil casal:', error);
       throw error;

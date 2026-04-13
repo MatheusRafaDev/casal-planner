@@ -1,18 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#e91e8c"/>
-      <stop offset="100%" style="stop-color:#9c27b0"/>
-    </linearGradient>
-    <linearGradient id="heart" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1"/>
-      <stop offset="100%" style="stop-color:#ffe0f0;stop-opacity:1"/>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#F9A8D4"/>
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
-  <!-- Anel / aliança -->
-  <circle cx="32" cy="22" r="9" fill="none" stroke="url(#heart)" stroke-width="3" opacity="0.9"/>
-  <circle cx="32" cy="22" r="5" fill="none" stroke="url(#heart)" stroke-width="1.5" opacity="0.5"/>
-  <!-- Coração -->
-  <path d="M32 45 C32 45 16 36 16 26 C16 21 20 18 24 18 C27 18 29.5 19.5 32 22 C34.5 19.5 37 18 40 18 C44 18 48 21 48 26 C48 36 32 45 32 45Z" fill="url(#heart)"/>
+  <rect width="64" height="64" rx="14" fill="url(#g1)"/>
+  <!-- Ring -->
+  <circle cx="32" cy="20" r="8" fill="none" stroke="white" stroke-width="3" opacity="0.9"/>
+  <circle cx="32" cy="20" r="3.5" fill="white" opacity="0.35"/>
+  <!-- Heart -->
+  <path d="M32 47 C32 47 14 37 14 25.5 C14 20 18.5 17 22.5 17 C26 17 29 19 32 22.5 C35 19 38 17 41.5 17 C45.5 17 50 20 50 25.5 C50 37 32 47 32 47Z" fill="white"/>
 </svg>

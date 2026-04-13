@@ -59,7 +59,6 @@ namespace CasalPlanner.API.Models
         public decimal? RendaMensalPessoa2 { get; set; }
         public string? AvatarPessoa2 { get; set; }
         
-        public DateTime? DataCasamento { get; set; }
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }

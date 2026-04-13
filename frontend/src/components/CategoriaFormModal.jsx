@@ -29,16 +29,13 @@ const ErrorMessage = styled.span`
   font-size: 0.85rem;
   margin-top: 0.25rem;
   display: block;
-  
-  ${props => props.theme === 'dark' && `
-    color: #ff6b6b;
-  `}
+  ${props => props.theme === 'dark' && `color: #ff6b6b;`}
 `;
 
 const CategoriaFormModal = ({ 
   isOpen, 
   onClose, 
-  onCategoryAdded, 
+  onCategoryAdded,   // fn(categoria) para nova | fn(categoria) para edição
   theme,
   categoriaParaEditar = null,
   isEditing = false 
@@ -52,7 +49,6 @@ const CategoriaFormModal = ({
   const { errors, touched, handleBlur, handleChange, resetValidation, setErrors } = 
     useCategoryValidation();
 
-  // Usar o hook de formatação de preço para a meta de orçamento
   const {
     formattedValue: metaFormatada,
     handlePriceChange: handleMetaChange,
@@ -61,24 +57,19 @@ const CategoriaFormModal = ({
     resetPrice: resetMeta,
   } = usePriceFormat(null);
 
-  // Sincronizar a meta quando o modal abrir em modo edição
   useEffect(() => {
     if (isOpen && isEditing && categoriaParaEditar) {
       setName(categoriaParaEditar.nome || '');
       setIcon(categoriaParaEditar.icon || '🏠');
-      
       const metaValue = categoriaParaEditar.metaOrcamento != null ? categoriaParaEditar.metaOrcamento : '';
       setMetaOrcamento(metaValue);
-      
       if (metaValue !== '' && metaValue !== null && !isNaN(parseFloat(metaValue))) {
         setMetaRaw(parseFloat(metaValue));
       } else {
         resetMeta();
       }
-
       if (categoriaParaEditar.bg) {
-        const hslColor = hexToHsl(categoriaParaEditar.bg);
-        setColor(hslColor);
+        setColor(hexToHsl(categoriaParaEditar.bg));
       }
     } else if (isOpen && !isEditing) {
       setName('');
@@ -112,20 +103,14 @@ const CategoriaFormModal = ({
     handleChange('nome', valor, touched.nome);
   };
 
-  const handleNameBlur = () => {
-    handleBlur('nome', name);
-  };
-
   const handleMetaOrcamentoChange = (e) => {
     const result = handleMetaChange(e);
-    
     if (e.target.value === '') {
       setMetaOrcamento('');
       resetMeta();
       handleChange('metaOrcamento', '', touched.metaOrcamento);
       return;
     }
-    
     if (result && result.raw !== undefined && result.raw !== null && !isNaN(result.raw)) {
       setMetaOrcamento(result.raw);
       handleChange('metaOrcamento', result.raw, touched.metaOrcamento);
@@ -133,25 +118,12 @@ const CategoriaFormModal = ({
   };
 
   const handleMetaOrcamentoBlur = () => {
-    if (metaOrcamento === '' || metaOrcamento === null) {
-      handleMetaBlur();
-      handleBlur('metaOrcamento', '');
-      return;
-    }
-    
     handleMetaBlur();
     handleBlur('metaOrcamento', metaOrcamento);
-    
     if (metaOrcamento !== '' && parseFloat(metaOrcamento) <= 0) {
-      setErrors(prev => ({
-        ...prev,
-        metaOrcamento: 'Meta deve ser maior que zero'
-      }));
+      setErrors(prev => ({ ...prev, metaOrcamento: 'Meta deve ser maior que zero' }));
     } else {
-      setErrors(prev => ({
-        ...prev,
-        metaOrcamento: ''
-      }));
+      setErrors(prev => ({ ...prev, metaOrcamento: '' }));
     }
   };
 
@@ -163,15 +135,11 @@ const CategoriaFormModal = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     handleBlur('nome', name);
-    const erroNome = errors.nome;
-    
-    if (erroNome) {
+    if (errors.nome) {
       showToast.error('Por favor, corrija os erros no formulário', theme);
       return;
     }
-
     if (metaOrcamento !== '' && parseFloat(metaOrcamento) <= 0) {
       showToast.error('Meta de orçamento deve ser maior que zero', theme);
       return;
@@ -181,7 +149,6 @@ const CategoriaFormModal = ({
     try {
       const [h, s, l] = color.split(' ');
       const hexColor = hslToHex(parseInt(h), parseInt(s), parseInt(l));
-      
       let metaValue = null;
       if (metaOrcamento !== '' && metaOrcamento !== null && !isNaN(parseFloat(metaOrcamento))) {
         metaValue = parseFloat(metaOrcamento);
@@ -189,30 +156,33 @@ const CategoriaFormModal = ({
 
       const categoriaData = {
         nome: name.trim(),
-        icon: icon,
+        icon,
         bg: hexColor,
         text: '#ffffff',
         metaOrcamento: metaValue,
         removerMeta: metaOrcamento === '' || metaOrcamento === null,
       };
 
+      let categoriaResultado;
       if (isEditing && categoriaParaEditar) {
         await categoriasService.update(categoriaParaEditar.id, categoriaData);
-        showToast.success(`Categoria "${name}" atualizada com sucesso!`, theme);
+        // Monta objeto atualizado localmente (sem reload)
+        categoriaResultado = { ...categoriaParaEditar, ...categoriaData };
+        showToast.success(`Categoria "${name}" atualizada!`, theme);
       } else {
-        await categoriasService.create(categoriaData);
-        showToast.success(`Categoria "${name}" criada com sucesso!`, theme);
+        // Cria no backend e recebe o objeto com id
+        categoriaResultado = await categoriasService.create(categoriaData);
+        showToast.success(`Categoria "${name}" criada!`, theme);
       }
 
+      // Passa o objeto criado/atualizado de volta — sem reload geral
       if (onCategoryAdded) {
-        onCategoryAdded();
+        onCategoryAdded(categoriaResultado, isEditing);
       }
-      
+
       handleClose();
-      
     } catch (error) {
       console.error('Erro ao salvar categoria:', error);
-      
       if (error.response?.status === 400) {
         showToast.error('Dados inválidos. Verifique as informações.', theme);
       } else if (error.response?.status === 401) {
@@ -232,9 +202,7 @@ const CategoriaFormModal = ({
       <ModalContainer onClick={(e) => e.stopPropagation()} theme={theme}>
         <Header theme={theme}>
           <h2>{isEditing ? '✏️ Editar Categoria' : '➕ Nova Categoria'}</h2>
-          <CloseButton onClick={handleClose} theme={theme}>
-            ✕
-          </CloseButton>
+          <CloseButton onClick={handleClose} theme={theme}>✕</CloseButton>
         </Header>
 
         <Form onSubmit={handleSubmit}>
@@ -244,33 +212,22 @@ const CategoriaFormModal = ({
               type="text"
               value={name}
               onChange={handleNameChange}
-              onBlur={handleNameBlur}
-              placeholder="Ex: Escritório"
+              onBlur={() => handleBlur('nome', name)}
+              placeholder="Ex: Mercado"
               autoFocus
               theme={theme}
-              style={{
-                borderColor: errors.nome && touched.nome ? '#dc3545' : undefined
-              }}
+              style={{ borderColor: errors.nome && touched.nome ? '#dc3545' : undefined }}
               maxLength={30}
               disabled={loading}
             />
-            {errors.nome && touched.nome && (
-              <ErrorMessage theme={theme}>{errors.nome}</ErrorMessage>
-            )}
+            {errors.nome && touched.nome && <ErrorMessage theme={theme}>{errors.nome}</ErrorMessage>}
           </FormGroup>
 
           <FormGroup>
             <Label theme={theme}>Ícone</Label>
             <IconsGrid>
               {ICONS.map(ic => (
-                <IconButton
-                  key={ic}
-                  type="button"
-                  onClick={() => setIcon(ic)}
-                  $active={icon === ic}
-                  theme={theme}
-                  disabled={loading}
-                >
+                <IconButton key={ic} type="button" onClick={() => setIcon(ic)} $active={icon === ic} theme={theme} disabled={loading}>
                   {ic}
                 </IconButton>
               ))}
@@ -282,17 +239,12 @@ const CategoriaFormModal = ({
             <ColorsGrid>
               {COLORS.map(c => {
                 const [h, s, l] = c.split(' ');
-                const bgColor = `hsl(${h}, ${s}, ${l})`;
                 return (
                   <ColorButton
-                    key={c}
-                    type="button"
-                    onClick={() => setColor(c)}
+                    key={c} type="button" onClick={() => setColor(c)}
                     $active={color === c}
-                    style={{ backgroundColor: bgColor }}
-                    theme={theme}
-                    title={`Cor ${c}`}
-                    disabled={loading}
+                    style={{ backgroundColor: `hsl(${h}, ${s}, ${l})` }}
+                    theme={theme} title={`Cor ${c}`} disabled={loading}
                   />
                 );
               })}
@@ -316,23 +268,11 @@ const CategoriaFormModal = ({
           </FormGroup>
 
           <ModalButtons>
-            <CancelarButton 
-              type="button" 
-              onClick={handleClose} 
-              disabled={loading}
-              theme={theme}
-            >
+            <CancelarButton type="button" onClick={handleClose} disabled={loading} theme={theme}>
               Cancelar
             </CancelarButton>
-            <CriarButton 
-              type="submit" 
-              disabled={loading || !name.trim() || errors.nome}
-              theme={theme}
-            >
-              {loading 
-                ? (isEditing ? 'Salvando...' : 'Criando...') 
-                : (isEditing ? 'Salvar Alterações' : 'Criar Categoria')
-              }
+            <CriarButton type="submit" disabled={loading || !name.trim() || errors.nome} theme={theme}>
+              {loading ? (isEditing ? 'Salvando...' : 'Criando...') : (isEditing ? 'Salvar Alterações' : 'Criar Categoria')}
             </CriarButton>
           </ModalButtons>
         </Form>

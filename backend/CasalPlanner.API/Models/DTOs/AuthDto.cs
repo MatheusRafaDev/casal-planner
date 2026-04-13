@@ -98,9 +98,6 @@ namespace CasalPlanner.API.Models.DTOs
         [Range(0, 999999.99)]
         public decimal? RendaMensalPessoa2 { get; set; }
 
-        [DataType(DataType.Date)]
-        public DateTime? DataCasamento { get; set; }
-
         public DateTime DataInclusao { get; set; } = DateTime.UtcNow;
     }
 
@@ -144,6 +141,5 @@ namespace CasalPlanner.API.Models.DTOs
         public DateTime? DataNascimentoPessoa2 { get; set; }
         public decimal? RendaMensalPessoa2 { get; set; }
 
-        public DateTime? DataCasamento { get; set; }
     }
 }
