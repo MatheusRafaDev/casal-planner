@@ -1,51 +1,34 @@
 // ============================================================
-// api.js — Instância Axios otimizada com retry e cache de GETs
+// api.js — Axios com localStorage + Authorization Bearer
 // ============================================================
 import axios from 'axios';
 
-// Cache em memória para requisições GET (TTL de 30s)
-const _cache = new Map();
-const CACHE_TTL = 30_000;
+const TOKEN_KEY = 'casal_planner_token';
 
-const getCached = (key) => {
-  const entry = _cache.get(key);
-  if (!entry) return null;
-  if (Date.now() - entry.ts > CACHE_TTL) { _cache.delete(key); return null; }
-  return entry.data;
-};
-const setCached = (key, data) => _cache.set(key, { data, ts: Date.now() });
-export const invalidateCache = (pattern) => {
-  for (const key of _cache.keys()) {
-    if (!pattern || key.includes(pattern)) _cache.delete(key);
-  }
+// ─── Helpers de token ──────────────────────────────────────
+export const tokenStorage = {
+  get:    ()        => localStorage.getItem(TOKEN_KEY),
+  set:    (token)   => localStorage.setItem(TOKEN_KEY, token),
+  remove: ()        => localStorage.removeItem(TOKEN_KEY),
+  exists: ()        => !!localStorage.getItem(TOKEN_KEY),
 };
 
+// ─── Instância Axios ───────────────────────────────────────
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
-  // Timeout reduzido para mobile — fallback mais rápido
   timeout: 15000,
-  withCredentials: true,
+  // ❌ withCredentials removido — não usamos mais cookies
   headers: { 'Content-Type': 'application/json' },
 });
 
-// ─── Interceptor de REQUEST ────────────────────────────────
+// ─── REQUEST: injeta Bearer token em toda requisição ───────
 api.interceptors.request.use(
   (config) => {
-    // Cache de leitura para GETs — evita round-trips desnecessários
-    if (config.method === 'get' && config.useCache !== false) {
-      const cacheKey = (config.baseURL || '') + (config.url || '') + JSON.stringify(config.params || {});
-      const cached = getCached(cacheKey);
-      if (cached) {
-        config.adapter = () =>
-          Promise.resolve({
-            data: cached,
-            status: 200,
-            statusText: 'OK (cache)',
-            headers: {},
-            config,
-          });
-      }
+    const token = tokenStorage.get();
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
+
     if (process.env.NODE_ENV === 'development') {
       console.log(`📤 ${config.method?.toUpperCase()} ${config.url}`);
     }
@@ -54,30 +37,23 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ─── Interceptor de RESPONSE com retry automático ─────────
+// ─── RESPONSE: retry em 5xx + limpa token em 401 ──────────
 api.interceptors.response.use(
-  (response) => {
-    if (
-      response.config.method === 'get' &&
-      response.config.useCache !== false &&
-      response.status === 200
-    ) {
-      const cacheKey =
-        (response.config.baseURL || '') +
-        (response.config.url || '') +
-        JSON.stringify(response.config.params || {});
-      setCached(cacheKey, response.data);
-    }
-    // Invalida cache em mutações
-    if (['post', 'put', 'patch', 'delete'].includes(response.config.method)) {
-      invalidateCache();
-    }
-    return response;
-  },
+  (response) => response,
   async (error) => {
     const config = error.config;
 
-    // Retry em erro de rede ou 5xx (máx 2 tentativas, sem retry em 4xx)
+    // Token inválido/expirado — limpa e redireciona
+    if (error.response?.status === 401) {
+      tokenStorage.remove();
+      // Redireciona apenas se não estiver já na página de login
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+      return Promise.reject(error);
+    }
+
+    // Retry automático em erro de rede ou 5xx (máx 2 tentativas)
     if (!config || config._retryCount >= 2) return Promise.reject(error);
     if (error.response && error.response.status < 500) return Promise.reject(error);
 

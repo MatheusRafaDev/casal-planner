@@ -1,7 +1,6 @@
 // PainelPesquisaPrecos.jsx
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import useDebounce from '../hooks/useDebounce';
 import * as S from '../styles/components/PainelPesquisaPrecosStyles';
 import { formatarValorParaExibicao } from '../utils/mascaras';
 import api from '../services/api';
@@ -34,7 +33,6 @@ const PainelPesquisaPrecos = ({ nome = '', marca = '', onSelectItem, onSelectPri
   const [selectedItem, setSelectedItem] = useState(null);
 
   const queryOriginal = `${nome}`.trim();
-  const queryDebounced = useDebounce(queryOriginal, 500); // evita busca a cada letra
 
   const handleSearch = useCallback(async () => {
     if (!queryOriginal) return;

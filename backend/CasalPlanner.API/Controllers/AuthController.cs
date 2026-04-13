@@ -22,10 +22,8 @@ namespace CasalPlanner.API.Controllers
             _context = context;
         }
 
-        private string GetUsuarioId()
-        {
-            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
-        }
+        private string GetUsuarioId() =>
+            User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
@@ -54,18 +52,17 @@ namespace CasalPlanner.API.Controllers
                 if (!senhaValida)
                     return Unauthorized(new { message = "Senha inválida" });
 
-                // Gerar token conforme tipo de conta
+                // Gera JWT
                 string token = isCasal
                     ? _authService.GerarTokenCasal(usuario, pessoa)
                     : _authService.GerarToken(usuario);
 
-                // ✅ Seta cookie via método centralizado no AuthService
-                // HttpOnly=true, Secure=true, SameSite=None, sem Domain
-                _authService.SetAuthCookie(Response, token);
-
+                // ✅ Retorna token no body — frontend salva no localStorage
+                // ❌ Não usa mais cookie HttpOnly
                 return Ok(new
                 {
                     message = "Login realizado com sucesso",
+                    token,   // <-- bearer token para o frontend armazenar
                     usuario = new
                     {
                         usuario.Id,
@@ -87,9 +84,8 @@ namespace CasalPlanner.API.Controllers
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            // ✅ Remove cookie de forma compatível com cross-site
-            // (sobrescreve com data expirada pois Delete() não aceita SameSite)
-            _authService.RemoverAuthCookie(Response);
+            // Com Bearer token o logout é client-side (apagar do localStorage).
+            // Este endpoint existe apenas para compatibilidade / logs futuros.
             return Ok(new { message = "Logout realizado" });
         }
 
@@ -101,7 +97,10 @@ namespace CasalPlanner.API.Controllers
             if (string.IsNullOrEmpty(usuarioId))
                 return Unauthorized();
 
-            var usuario = await _context.Usuarios.Find(u => u.Id == usuarioId).FirstOrDefaultAsync();
+            var usuario = await _context.Usuarios
+                .Find(u => u.Id == usuarioId)
+                .FirstOrDefaultAsync();
+
             if (usuario == null)
                 return NotFound();
 

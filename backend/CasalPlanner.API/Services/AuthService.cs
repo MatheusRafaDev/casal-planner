@@ -21,10 +21,7 @@ namespace CasalPlanner.API.Services
         string GerarTokenCasal(Usuario usuario, string pessoa);
         Task<Usuario?> AtualizarPerfilCasal(string id, AtualizarCasalDto dto);
         Task<bool> VerificarSenha(Usuario usuario, string senha, string? pessoa = null);
-
-        // ✅ Métodos para gerenciar cookie de forma centralizada
-        void SetAuthCookie(HttpResponse response, string token);
-        void RemoverAuthCookie(HttpResponse response);
+        // ❌ SetAuthCookie e RemoverAuthCookie removidos — não usamos mais cookies
     }
 
     public class AuthService : IAuthService
@@ -38,56 +35,26 @@ namespace CasalPlanner.API.Services
             _configuration = configuration;
         }
 
-        // ✅ Seta o cookie com as opções corretas para funcionar cross-site (Vercel → Render)
-        public void SetAuthCookie(HttpResponse response, string token)
-        {
-            response.Cookies.Append("auth_token", token, new CookieOptions
-            {
-                HttpOnly = true,              // JS não consegue ler (proteção XSS)
-                Secure = true,               // Apenas HTTPS
-                SameSite = SameSiteMode.None, // ✅ obrigatório para cross-site
-                Expires = DateTimeOffset.UtcNow.AddDays(7),
-                Path = "/"
-                // ⚠️ Sem Domain — browser usa o domínio do servidor automaticamente
-                // Colocar Domain = ".onrender.com" quebra cookies cross-site
-            });
-        }
-
-        // ✅ Deleta cookie de forma compatível com cross-site
-        // Response.Cookies.Delete() não aceita SameSite, então sobrescrevemos com data expirada
-        public void RemoverAuthCookie(HttpResponse response)
-        {
-            response.Cookies.Append("auth_token", "", new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Expires = DateTimeOffset.UtcNow.AddDays(-1), // expirado = apagado
-                Path = "/"
-            });
-        }
-
         public async Task<Usuario?> Registrar(RegistroDto dto)
         {
             var usuarioExistente = await _context.Usuarios
                 .Find(u => u.Email == dto.Email)
                 .FirstOrDefaultAsync();
 
-            if (usuarioExistente != null)
-                return null;
+            if (usuarioExistente != null) return null;
 
             var usuario = new Usuario
             {
-                NomeCompleto = dto.NomeCompleto,
-                Email = dto.Email,
-                SenhaHash = BCrypt.Net.BCrypt.HashPassword(dto.Senha, workFactor: 12),
-                CPF = dto.CPF,
+                NomeCompleto  = dto.NomeCompleto,
+                Email         = dto.Email,
+                SenhaHash     = BCrypt.Net.BCrypt.HashPassword(dto.Senha, workFactor: 12),
+                CPF           = dto.CPF,
                 DataNascimento = dto.DataNascimento,
-                RendaMensal = dto.RendaMensal,
-                TipoConta = TipoConta.Individual,
-                IsCasal = false,
-                CreatedAt = DateTime.UtcNow,
-                ModoEscuro = true
+                RendaMensal   = dto.RendaMensal,
+                TipoConta     = TipoConta.Individual,
+                IsCasal       = false,
+                CreatedAt     = DateTime.UtcNow,
+                ModoEscuro    = true
             };
 
             await _context.Usuarios.InsertOneAsync(usuario);
@@ -98,46 +65,44 @@ namespace CasalPlanner.API.Services
         {
             try
             {
-                var usuarioExistente1 = await _context.Usuarios
+                var existe1 = await _context.Usuarios
                     .Find(u => u.Email == dto.EmailPessoa1 ||
                               (u.CasalInfo != null && u.CasalInfo.EmailPessoa1 == dto.EmailPessoa1) ||
                               (u.CasalInfo != null && u.CasalInfo.EmailPessoa2 == dto.EmailPessoa1))
                     .FirstOrDefaultAsync();
 
-                var usuarioExistente2 = await _context.Usuarios
+                var existe2 = await _context.Usuarios
                     .Find(u => u.Email == dto.EmailPessoa2 ||
                               (u.CasalInfo != null && u.CasalInfo.EmailPessoa1 == dto.EmailPessoa2) ||
                               (u.CasalInfo != null && u.CasalInfo.EmailPessoa2 == dto.EmailPessoa2))
                     .FirstOrDefaultAsync();
 
-                if (usuarioExistente1 != null || usuarioExistente2 != null)
-                    return null;
+                if (existe1 != null || existe2 != null) return null;
 
                 var usuario = new Usuario
                 {
                     NomeCompleto = $"{dto.NomeCompletoPessoa1} & {dto.NomeCompletoPessoa2}",
-                    RendaMensal = dto.RendaMensalPessoa1 + dto.RendaMensalPessoa2,
-                    Email = "",
-                    TipoConta = TipoConta.Casal,
-                    IsCasal = true,
-                    CreatedAt = DateTime.UtcNow,
-                    ModoEscuro = true,
-                    CasalInfo = new CasalInfo
+                    RendaMensal  = dto.RendaMensalPessoa1 + dto.RendaMensalPessoa2,
+                    Email        = "",
+                    TipoConta    = TipoConta.Casal,
+                    IsCasal      = true,
+                    CreatedAt    = DateTime.UtcNow,
+                    ModoEscuro   = true,
+                    CasalInfo    = new CasalInfo
                     {
-                        NomeCompletoPessoa1 = dto.NomeCompletoPessoa1,
-                        EmailPessoa1 = dto.EmailPessoa1,
-                        SenhaHashPessoa1 = BCrypt.Net.BCrypt.HashPassword(dto.SenhaPessoa1, workFactor: 12),
-                        CPFPessoa1 = dto.CPFPessoa1,
+                        NomeCompletoPessoa1  = dto.NomeCompletoPessoa1,
+                        EmailPessoa1         = dto.EmailPessoa1,
+                        SenhaHashPessoa1     = BCrypt.Net.BCrypt.HashPassword(dto.SenhaPessoa1, workFactor: 12),
+                        CPFPessoa1           = dto.CPFPessoa1,
                         DataNascimentoPessoa1 = dto.DataNascimentoPessoa1,
-                        RendaMensalPessoa1 = dto.RendaMensalPessoa1,
-
-                        NomeCompletoPessoa2 = dto.NomeCompletoPessoa2,
-                        EmailPessoa2 = dto.EmailPessoa2,
-                        SenhaHashPessoa2 = BCrypt.Net.BCrypt.HashPassword(dto.SenhaPessoa2, workFactor: 12),
-                        CPFPessoa2 = dto.CPFPessoa2,
+                        RendaMensalPessoa1   = dto.RendaMensalPessoa1,
+                        NomeCompletoPessoa2  = dto.NomeCompletoPessoa2,
+                        EmailPessoa2         = dto.EmailPessoa2,
+                        SenhaHashPessoa2     = BCrypt.Net.BCrypt.HashPassword(dto.SenhaPessoa2, workFactor: 12),
+                        CPFPessoa2           = dto.CPFPessoa2,
                         DataNascimentoPessoa2 = dto.DataNascimentoPessoa2,
-                        RendaMensalPessoa2 = dto.RendaMensalPessoa2,
-                        CreatedAt = DateTime.UtcNow,
+                        RendaMensalPessoa2   = dto.RendaMensalPessoa2,
+                        CreatedAt            = DateTime.UtcNow,
                     }
                 };
 
@@ -155,28 +120,25 @@ namespace CasalPlanner.API.Services
         {
             try
             {
-                if (usuario == null || string.IsNullOrEmpty(senha))
-                    return false;
+                if (usuario == null || string.IsNullOrEmpty(senha)) return false;
 
                 if (usuario.IsCasal && usuario.CasalInfo != null)
                 {
                     if (pessoa == "pessoa1")
                     {
-                        var hash1 = usuario.CasalInfo.SenhaHashPessoa1;
-                        return !string.IsNullOrEmpty(hash1) && BCrypt.Net.BCrypt.Verify(senha, hash1);
+                        var h1 = usuario.CasalInfo.SenhaHashPessoa1;
+                        return !string.IsNullOrEmpty(h1) && BCrypt.Net.BCrypt.Verify(senha, h1);
                     }
-                    else if (pessoa == "pessoa2")
+                    if (pessoa == "pessoa2")
                     {
-                        var hash2 = usuario.CasalInfo.SenhaHashPessoa2;
-                        return !string.IsNullOrEmpty(hash2) && BCrypt.Net.BCrypt.Verify(senha, hash2);
+                        var h2 = usuario.CasalInfo.SenhaHashPessoa2;
+                        return !string.IsNullOrEmpty(h2) && BCrypt.Net.BCrypt.Verify(senha, h2);
                     }
                     return false;
                 }
-                else
-                {
-                    var hash = usuario.SenhaHash;
-                    return !string.IsNullOrEmpty(hash) && BCrypt.Net.BCrypt.Verify(senha, hash);
-                }
+
+                var hash = usuario.SenhaHash;
+                return !string.IsNullOrEmpty(hash) && BCrypt.Net.BCrypt.Verify(senha, hash);
             }
             catch (Exception ex)
             {
@@ -187,19 +149,13 @@ namespace CasalPlanner.API.Services
 
         public async Task<Usuario?> ObterUsuarioPorEmail(string email)
         {
-            if (string.IsNullOrEmpty(email))
-                return null;
-
-            return await _context.Usuarios
-                .Find(u => u.Email == email)
-                .FirstOrDefaultAsync();
+            if (string.IsNullOrEmpty(email)) return null;
+            return await _context.Usuarios.Find(u => u.Email == email).FirstOrDefaultAsync();
         }
 
         public async Task<Usuario?> ObterCasalPorEmail(string email)
         {
-            if (string.IsNullOrEmpty(email))
-                return null;
-
+            if (string.IsNullOrEmpty(email)) return null;
             return await _context.Usuarios
                 .Find(u => u.CasalInfo != null &&
                           (u.CasalInfo.EmailPessoa1 == email || u.CasalInfo.EmailPessoa2 == email))
@@ -208,163 +164,118 @@ namespace CasalPlanner.API.Services
 
         public async Task<Usuario?> ObterUsuarioPorId(string id)
         {
-            if (string.IsNullOrEmpty(id))
-                return null;
-
-            return await _context.Usuarios
-                .Find(u => u.Id == id)
-                .FirstOrDefaultAsync();
+            if (string.IsNullOrEmpty(id)) return null;
+            return await _context.Usuarios.Find(u => u.Id == id).FirstOrDefaultAsync();
         }
 
         public string GerarToken(Usuario usuario)
         {
-            if (usuario == null)
-                throw new ArgumentNullException(nameof(usuario));
+            if (usuario == null) throw new ArgumentNullException(nameof(usuario));
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-
-            var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
-                ?? _configuration["Jwt:Key"];
-            var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
-                ?? _configuration["Jwt:Issuer"]
-                ?? "CasalPlanner";
-            var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
-                ?? _configuration["Jwt:Audience"]
-                ?? "CasalPlannerUsers";
-
-            if (string.IsNullOrEmpty(jwtKey))
-                throw new InvalidOperationException("JWT Key não configurada");
-
-            var key = Encoding.UTF8.GetBytes(jwtKey);
-
-            var claims = new List<Claim>
+            var (handler, descriptor) = CriarTokenDescriptor(usuario.Id ?? "", new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, usuario.Id ?? string.Empty),
-                new Claim(JwtRegisteredClaimNames.Email, usuario.Email ?? string.Empty),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Name, usuario.NomeCompleto ?? string.Empty),
-                new Claim("TipoConta", usuario.TipoConta.ToString()),
-                new Claim("IsCasal", usuario.IsCasal.ToString())
-            };
+                new(JwtRegisteredClaimNames.Sub,   usuario.Id ?? ""),
+                new(JwtRegisteredClaimNames.Email, usuario.Email ?? ""),
+                new(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()),
+                new(ClaimTypes.Name,               usuario.NomeCompleto ?? ""),
+                new("TipoConta",                   usuario.TipoConta.ToString()),
+                new("IsCasal",                     usuario.IsCasal.ToString()),
+            });
 
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddDays(7),
-                Issuer = jwtIssuer,
-                Audience = jwtAudience,
-                SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(key),
-                    SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            return handler.WriteToken(handler.CreateToken(descriptor));
         }
 
         public string GerarTokenCasal(Usuario usuario, string pessoa)
         {
-            if (usuario == null)
-                throw new ArgumentNullException(nameof(usuario));
+            if (usuario == null) throw new ArgumentNullException(nameof(usuario));
 
-            var tokenHandler = new JwtSecurityTokenHandler();
+            var claims = new List<Claim>
+            {
+                new(JwtRegisteredClaimNames.Sub, usuario.Id ?? ""),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new("TipoConta",   usuario.TipoConta.ToString()),
+                new("IsCasal",     "true"),
+                new("PessoaLogada", pessoa),
+            };
 
-            var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
-                ?? _configuration["Jwt:Key"];
-            var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
-                ?? _configuration["Jwt:Issuer"]
-                ?? "CasalPlanner";
-            var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
-                ?? _configuration["Jwt:Audience"]
-                ?? "CasalPlannerUsers";
+            if (pessoa == "pessoa1" && usuario.CasalInfo != null)
+            {
+                claims.Add(new(JwtRegisteredClaimNames.Email, usuario.CasalInfo.EmailPessoa1 ?? ""));
+                claims.Add(new(ClaimTypes.Name, usuario.CasalInfo.NomeCompletoPessoa1 ?? ""));
+            }
+            else if (pessoa == "pessoa2" && usuario.CasalInfo != null)
+            {
+                claims.Add(new(JwtRegisteredClaimNames.Email, usuario.CasalInfo.EmailPessoa2 ?? ""));
+                claims.Add(new(ClaimTypes.Name, usuario.CasalInfo.NomeCompletoPessoa2 ?? ""));
+            }
+
+            var (handler, descriptor) = CriarTokenDescriptor(usuario.Id ?? "", claims);
+            return handler.WriteToken(handler.CreateToken(descriptor));
+        }
+
+        // ─── Helper privado para criar descriptor JWT ──────────
+        private (JwtSecurityTokenHandler handler, SecurityTokenDescriptor descriptor) CriarTokenDescriptor(
+            string _, List<Claim> claims)
+        {
+            var jwtKey      = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? _configuration["Jwt:Key"];
+            var jwtIssuer   = Environment.GetEnvironmentVariable("JWT_ISSUER")     ?? _configuration["Jwt:Issuer"]   ?? "CasalPlanner";
+            var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")   ?? _configuration["Jwt:Audience"] ?? "CasalPlannerUsers";
 
             if (string.IsNullOrEmpty(jwtKey))
                 throw new InvalidOperationException("JWT Key não configurada");
 
             var key = Encoding.UTF8.GetBytes(jwtKey);
+            var handler = new JwtSecurityTokenHandler();
 
-            var claims = new List<Claim>
+            var descriptor = new SecurityTokenDescriptor
             {
-                new Claim(JwtRegisteredClaimNames.Sub, usuario.Id ?? string.Empty),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("TipoConta", usuario.TipoConta.ToString()),
-                new Claim("IsCasal", "true"),
-                new Claim("PessoaLogada", pessoa)
-            };
-
-            if (pessoa == "pessoa1" && usuario.CasalInfo != null)
-            {
-                claims.Add(new Claim(JwtRegisteredClaimNames.Email, usuario.CasalInfo.EmailPessoa1 ?? string.Empty));
-                claims.Add(new Claim(ClaimTypes.Name, usuario.CasalInfo.NomeCompletoPessoa1 ?? string.Empty));
-            }
-            else if (pessoa == "pessoa2" && usuario.CasalInfo != null)
-            {
-                claims.Add(new Claim(JwtRegisteredClaimNames.Email, usuario.CasalInfo.EmailPessoa2 ?? string.Empty));
-                claims.Add(new Claim(ClaimTypes.Name, usuario.CasalInfo.NomeCompletoPessoa2 ?? string.Empty));
-            }
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddDays(7), // ✅ era 1h, agora 7 dias
-                Issuer = jwtIssuer,
-                Audience = jwtAudience,
-                SigningCredentials = new SigningCredentials(
+                Subject            = new ClaimsIdentity(claims),
+                Expires            = DateTime.UtcNow.AddDays(7),
+                Issuer             = jwtIssuer,
+                Audience           = jwtAudience,
+                SigningCredentials  = new SigningCredentials(
                     new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature)
             };
 
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            return (handler, descriptor);
         }
 
         public async Task<Usuario?> AtualizarPerfilCasal(string id, AtualizarCasalDto dto)
         {
-            if (string.IsNullOrEmpty(id))
-                return null;
+            if (string.IsNullOrEmpty(id)) return null;
 
             var usuario = await _context.Usuarios
                 .Find(u => u.Id == id && u.TipoConta == TipoConta.Casal)
                 .FirstOrDefaultAsync();
 
-            if (usuario == null || usuario.CasalInfo == null)
-                return null;
+            if (usuario == null || usuario.CasalInfo == null) return null;
 
-            var update = Builders<Usuario>.Update;
+            var update  = Builders<Usuario>.Update;
             var updates = new List<UpdateDefinition<Usuario>>();
-
-            var renda = (dto.RendaMensalPessoa1 ?? 0) + (dto.RendaMensalPessoa2 ?? 0);
 
             if (dto.NomeCompletoPessoa1 != null)
                 updates.Add(update.Set(u => u.CasalInfo!.NomeCompletoPessoa1, dto.NomeCompletoPessoa1));
-
             if (dto.DataNascimentoPessoa1.HasValue)
                 updates.Add(update.Set(u => u.CasalInfo!.DataNascimentoPessoa1, dto.DataNascimentoPessoa1.Value));
-
             if (dto.RendaMensalPessoa1.HasValue)
                 updates.Add(update.Set(u => u.CasalInfo!.RendaMensalPessoa1, dto.RendaMensalPessoa1.Value));
-
             if (dto.NomeCompletoPessoa2 != null)
                 updates.Add(update.Set(u => u.CasalInfo!.NomeCompletoPessoa2, dto.NomeCompletoPessoa2));
-
             if (dto.DataNascimentoPessoa2.HasValue)
                 updates.Add(update.Set(u => u.CasalInfo!.DataNascimentoPessoa2, dto.DataNascimentoPessoa2.Value));
-
             if (dto.RendaMensalPessoa2.HasValue)
                 updates.Add(update.Set(u => u.CasalInfo!.RendaMensalPessoa2, dto.RendaMensalPessoa2.Value));
-
             if (dto.RendaMensal.HasValue)
+            {
+                var renda = (dto.RendaMensalPessoa1 ?? 0) + (dto.RendaMensalPessoa2 ?? 0);
                 updates.Add(update.Set(u => u.RendaMensal, renda));
+            }
 
             updates.Add(update.Set(u => u.CasalInfo!.UpdatedAt, DateTime.UtcNow));
 
             if (updates.Any())
-            {
-                await _context.Usuarios.UpdateOneAsync(
-                    u => u.Id == id,
-                    update.Combine(updates)
-                );
-            }
+                await _context.Usuarios.UpdateOneAsync(u => u.Id == id, update.Combine(updates));
 
             return await _context.Usuarios.Find(u => u.Id == id).FirstOrDefaultAsync();
         }

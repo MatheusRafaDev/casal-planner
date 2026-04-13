@@ -1,170 +1,165 @@
 import styled from 'styled-components';
 
 export const FormGroup = styled.div`
-  margin-bottom: 1.1rem;
+  margin-bottom: 1.2rem;
 `;
 
 export const Label = styled.label`
   display: block;
-  margin-bottom: 0.35rem;
-  color: ${(p) => p.theme.textSoft};
-  font-weight: 600;
-  font-size: 0.875rem;
-  letter-spacing: 0.01em;
+  margin-bottom: 0.3rem;
+  color: ${(props) => props.theme.textSoft};
+  font-weight: 500;
+  font-size: 0.9rem;
 `;
 
 export const Input = styled.input`
   width: 100%;
-  /* Padding maior em mobile para facilitar toque */
-  padding: 0.875rem 1rem;
-  border: 2px solid ${(p) => p.theme.border};
+  padding: 0.8rem 1rem;
+  border: 2px solid ${(props) => props.theme.border};
   border-radius: 12px;
-  font-size: 1rem; /* Mantém ≥16px para não acionar zoom iOS */
-  line-height: 1.5;
-  background: ${(p) => p.theme.surface};
-  color: ${(p) => p.theme.text};
-  transition: border-color 0.18s, box-shadow 0.18s;
-  /* Altura mínima de 48px para WCAG touch targets */
-  min-height: 48px;
-  /* Remove aparência nativa iOS/Android */
-  -webkit-appearance: none;
-  appearance: none;
+  font-size: 1rem;
+  background: ${(props) => props.theme.surface};
+  color: ${(props) => props.theme.text};
+  transition: 0.2s;
 
   &::placeholder {
-    color: ${(p) => p.theme.textLight};
+    color: ${(props) => props.theme.textLight};
     opacity: 0.7;
   }
 
-  /* Autofill com tema correto */
+  /* 🔥 CORREÇÃO: Autofill do navegador */
   &:-webkit-autofill,
   &:-webkit-autofill:hover,
-  &:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0 40px ${(p) => p.theme.surface} inset !important;
-    -webkit-text-fill-color: ${(p) => p.theme.text} !important;
-    transition: background-color 9999s ease-in-out 0s;
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px ${(props) => props.theme.surface} inset !important;
+    -webkit-text-fill-color: ${(props) => props.theme.text} !important;
+    box-shadow: 0 0 0 30px ${(props) => props.theme.surface} inset !important;
+    background-color: ${(props) => props.theme.surface} !important;
+    color: ${(props) => props.theme.text} !important;
+    border-color: ${(props) => props.theme.border};
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  /* Para Firefox */
+  &:-moz-autofill {
+    filter: none;
+    background-color: ${(props) => props.theme.surface} !important;
+    color: ${(props) => props.theme.text} !important;
   }
 
   &:focus {
     outline: none;
-    border-color: ${(p) => p.theme.primary};
-    box-shadow: 0 0 0 3px ${(p) => p.theme.primary}33;
+    border-color: ${(props) => props.theme.primary};
+    box-shadow: 0 0 0 2px ${(props) => props.theme.primary}33;
+    
+    /* Mantém a correção do autofill durante o focus */
+    &:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0 30px ${(props) => props.theme.surface} inset, 0 0 0 2px ${(props) => props.theme.primary}33 !important;
+    }
   }
 
   &.error {
-    border-color: ${(p) => p.theme.error || '#dc3545'};
-    &:focus { box-shadow: 0 0 0 3px ${(p) => p.theme.error || '#dc3545'}33; }
+    border-color: #dc3545 !important;
+    
+    &:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0 30px ${(props) => props.theme.surface} inset !important;
+      border-color: #dc3545 !important;
+    }
+    
+    &:focus {
+      box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
+      
+      &:-webkit-autofill {
+        -webkit-box-shadow: 0 0 0 30px ${(props) => props.theme.surface} inset, 0 0 0 2px rgba(220, 53, 69, 0.2) !important;
+      }
+    }
   }
 
   &:disabled {
-    opacity: 0.55;
+    opacity: 0.6;
     cursor: not-allowed;
-    background: ${(p) => p.theme.background};
-  }
-
-  /* Spinner de número — oculta no iOS/mobile pois o inputMode já cuida disso */
-  &[type="number"] {
-    -moz-appearance: textfield;
-    &::-webkit-outer-spin-button,
-    &::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    background: ${(props) => props.theme.background};
+    
+    &:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0 30px ${(props) => props.theme.background} inset !important;
+      -webkit-text-fill-color: ${(props) => props.theme.textLight} !important;
+    }
   }
 `;
 
 export const Select = styled.select`
   width: 100%;
-  padding: 0.875rem 2.5rem 0.875rem 1rem;
-  border: 2px solid ${(p) => p.theme.border};
+  padding: 0.8rem 1rem;
+  border: 2px solid ${(props) => props.theme.border};
   border-radius: 12px;
   font-size: 1rem;
-  min-height: 48px;
-  background: ${(p) => p.theme.surface};
-  color: ${(p) => p.theme.text};
+  background: ${(props) => props.theme.surface};
+  color: ${(props) => props.theme.text};
   cursor: pointer;
-  /* Seta customizada */
-  -webkit-appearance: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  transition: border-color 0.18s;
 
   &:focus {
     outline: none;
-    border-color: ${(p) => p.theme.primary};
-    box-shadow: 0 0 0 3px ${(p) => p.theme.primary}33;
+    border-color: ${(props) => props.theme.primary};
   }
 
   option {
-    background: ${(p) => p.theme.surface};
-    color: ${(p) => p.theme.text};
+    background: ${(props) => props.theme.surface};
+    color: ${(props) => props.theme.text};
   }
 `;
 
 export const ModalButtons = styled.div`
   display: flex;
-  gap: 0.75rem;
-  margin-top: 1.75rem;
+  gap: 1rem;
+  margin-top: 2rem;
 
-  /* Em telas pequenas: botão de salvar primeiro (mais importante) */
   @media (max-width: 480px) {
     flex-direction: column-reverse;
-    gap: 0.625rem;
+    gap: 0.75rem;
   }
 `;
 
-const BaseButton = styled.button`
+export const CancelarButton = styled.button`
   flex: 1;
-  padding: 0.9rem 1rem;
+  padding: 1rem;
+  background: ${(props) => props.theme.border};
+  color: ${(props) => props.theme.text};
   border: none;
   border-radius: 12px;
-  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.15s, transform 0.1s;
-  /* Touch target mínimo */
-  min-height: 52px;
+  transition: 0.2s;
+  min-height: 48px;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  user-select: none;
 
-  &:active:not(:disabled) {
-    transform: scale(0.97);
+  &:hover:not(:disabled) {
+    background: ${(props) => props.theme.textLight};
   }
 
   &:disabled {
-    opacity: 0.45;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 `;
 
-export const CancelarButton = styled(BaseButton)`
-  background: ${(p) => p.theme.border};
-  color: ${(p) => p.theme.text};
+export const SalvarButton = styled(CancelarButton)`
+  background: ${(props) => props.theme.primary};
+  color: ${({ theme }) => theme.name === 'dark' ? '#ffffff' : theme.text};
 
   &:hover:not(:disabled) {
-    opacity: 0.8;
-  }
-`;
-
-export const SalvarButton = styled(BaseButton)`
-  background: ${(p) => p.theme.primary};
-  color: white;
-
-  &:hover:not(:disabled) {
-    filter: brightness(1.06);
+    background: ${(props) => props.theme.primary}cc;
   }
 `;
 
 export const ErrorMessage = styled.span`
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  color: ${(p) => p.theme.error || '#dc3545'};
-  font-size: 0.8rem;
-  margin-top: 0.3rem;
-  font-weight: 500;
-
-  &::before {
-    content: '⚠';
-    font-size: 0.75rem;
-  }
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  display: block;
+  
+  ${props => props.theme.name === 'dark' && `
+    color: #ff6b6b;
+  `}
 `;

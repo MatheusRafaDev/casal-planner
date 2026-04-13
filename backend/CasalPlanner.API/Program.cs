@@ -12,38 +12,26 @@ using AspNetCoreRateLimit;
 var builder = WebApplication.CreateBuilder(args);
 
 // ===== 1. ENV =====
-// Carrega .env apenas em desenvolvimento LOCAL
 if (builder.Environment.IsDevelopment())
 {
     var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
-    if (File.Exists(envPath))
-    {
-        Env.Load(envPath);
-        Console.WriteLine("✅ .env carregado (local)");
-    }
+    if (File.Exists(envPath)) { Env.Load(envPath); Console.WriteLine("✅ .env carregado (local)"); }
 }
 else
 {
-    Console.WriteLine("🌐 Ambiente: Produção (Render/Vercel)");
+    Console.WriteLine("🌐 Ambiente: Produção");
 }
 
-// Configuração de variáveis de ambiente (funciona em todos os ambientes)
 builder.Configuration.AddEnvironmentVariables();
 
 // ===== 2. CONFIG =====
-var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
-var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "CasalPlanner";
+var jwtKey      = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+    ?? throw new Exception("JWT_SECRET_KEY não configurada");
+var jwtIssuer   = Environment.GetEnvironmentVariable("JWT_ISSUER")   ?? "CasalPlanner";
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "CasalPlannerUsers";
 
-if (string.IsNullOrEmpty(jwtKey))
-    throw new Exception("JWT_SECRET_KEY não configurada");
-
-var mongoConnection = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING");
-if (string.IsNullOrEmpty(mongoConnection))
-    throw new Exception("MONGODB_CONNECTION_STRING não configurada");
-
-// 🔥 Configuração da origem do frontend (dinâmica por ambiente)
-var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:3000";
+var mongoConnection = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING")
+    ?? throw new Exception("MONGODB_CONNECTION_STRING não configurada");
 
 // ===== 3. RATE LIMIT =====
 builder.Services.AddMemoryCache();
@@ -62,56 +50,43 @@ builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>()
 builder.Services.Configure<MongoDBSettings>(opt =>
 {
     opt.ConnectionString = mongoConnection;
-    opt.DatabaseName = "CasalPlannerDB";
+    opt.DatabaseName     = "CasalPlannerDB";
 });
 builder.Services.AddSingleton<MongoDbContext>();
 
-// ===== 5. JWT =====
+// ===== 5. JWT — lê APENAS do header Authorization: Bearer <token> =====
 var key = Encoding.UTF8.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // 🔥 Muda para false para funcionar em HTTP (Render/Vercel)
+    options.RequireHttpsMetadata = false;
     options.SaveToken = true;
 
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = true,
-        ValidIssuer = jwtIssuer,
-        ValidateAudience = true,
-        ValidAudience = jwtAudience,
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero // 🔥 Remove tolerância de tempo
+        IssuerSigningKey         = new SymmetricSecurityKey(key),
+        ValidateIssuer           = true,
+        ValidIssuer              = jwtIssuer,
+        ValidateAudience         = true,
+        ValidAudience            = jwtAudience,
+        ValidateLifetime         = true,
+        ClockSkew                = TimeSpan.Zero
     };
 
+    // ✅ Lê token APENAS do header Authorization — sem cookie, sem query string
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
         {
-            // ✅ Lê do cookie HttpOnly primeiro (mais seguro)
-            var token = context.Request.Cookies["auth_token"];
-
-            // ✅ Lê do header Authorization (Bearer token)
-            if (string.IsNullOrEmpty(token))
-            {
-                var authHeader = context.Request.Headers["Authorization"].ToString();
-                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
-                    token = authHeader.Substring("Bearer ".Length).Trim();
-            }
-
-            // ✅ Fallback: lê do query string (para WebSockets/Downloads)
-            if (string.IsNullOrEmpty(token) && context.Request.Query.TryGetValue("token", out var queryToken))
-                token = queryToken;
-
-            if (!string.IsNullOrEmpty(token))
-                context.Token = token;
+            var authHeader = context.Request.Headers["Authorization"].ToString();
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                context.Token = authHeader["Bearer ".Length..].Trim();
 
             return Task.CompletedTask;
         }
@@ -120,25 +95,20 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-
-// ===== 6. CORS =====
+// ===== 6. CORS — sem AllowCredentials (não usamos mais cookies) =====
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CasalPlannerPolicy", policy =>
     {
-        var allowedOrigins = new[]
-        {
-            "https://casalplanner.vercel.app",
-            "https://casal-planner.vercel.app",
-            "http://localhost:3000",
-            "https://*.vercel.app" 
-        };
-
         policy
-            .WithOrigins(allowedOrigins)
+            .WithOrigins(
+                "https://casalplanner.vercel.app",
+                "https://casal-planner.vercel.app",
+                "http://localhost:3000"
+            )
             .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+            .AllowAnyMethod();
+            // ❌ .AllowCredentials() removido — não necessário para Bearer token
     });
 });
 
@@ -157,10 +127,9 @@ builder.Services.AddSwaggerGen();
 // ===== BUILD =====
 var app = builder.Build();
 
-// ===== 8. HEADERS DE SEGURANÇA (CORRIGIDO PARA FUNCIONAR) =====
+// ===== 8. HEADERS DE SEGURANÇA =====
 app.Use(async (context, next) =>
 {
-    // 🔥 Só aplica CSP em produção (evita problemas em dev)
     if (!app.Environment.IsDevelopment())
     {
         context.Response.Headers["Content-Security-Policy"] =
@@ -172,23 +141,19 @@ app.Use(async (context, next) =>
     }
 
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-    context.Response.Headers["X-Frame-Options"] = "DENY";
-    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    context.Response.Headers["X-Frame-Options"]        = "DENY";
+    context.Response.Headers["Referrer-Policy"]        = "strict-origin-when-cross-origin";
 
     await next();
 });
 
 // ===== PIPELINE =====
 if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection(); // 🔥 Mantém HTTPS em produção
-}
+    app.UseHttpsRedirection();
 else
-{
     Console.WriteLine("🔧 Ambiente Dev: HTTP permitido");
-}
 
-app.UseCors("CasalPlannerPolicy"); // ✅ CORS ANTES de auth
+app.UseCors("CasalPlannerPolicy"); // CORS antes de auth
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -203,7 +168,6 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    // 🔥 Rota de health check para Render/Vercel
     app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 }
 
@@ -221,26 +185,20 @@ try
     {
         new CreateIndexModel<Item>(
             Builders<Item>.IndexKeys.Ascending(i => i.UsuarioId),
-            new CreateIndexOptions { Name = "idx_itens_usuarioId", Background = true }
-        ),
+            new CreateIndexOptions { Name = "idx_itens_usuarioId", Background = true }),
         new CreateIndexModel<Item>(
-            Builders<Item>.IndexKeys
-                .Ascending(i => i.UsuarioId)
-                .Ascending(i => i.CategoriaId),
-            new CreateIndexOptions { Name = "idx_itens_usuarioId_categoriaId", Background = true }
-        ),
+            Builders<Item>.IndexKeys.Ascending(i => i.UsuarioId).Ascending(i => i.CategoriaId),
+            new CreateIndexOptions { Name = "idx_itens_usuarioId_categoriaId", Background = true }),
     });
 
     await dbContext.Categorias.Indexes.CreateManyAsync(new[]
     {
         new CreateIndexModel<Categoria>(
             Builders<Categoria>.IndexKeys.Ascending(c => c.UsuarioId),
-            new CreateIndexOptions { Name = "idx_categorias_usuarioId", Background = true }
-        ),
+            new CreateIndexOptions { Name = "idx_categorias_usuarioId", Background = true }),
         new CreateIndexModel<Categoria>(
             Builders<Categoria>.IndexKeys.Ascending(c => c.IsPadrao),
-            new CreateIndexOptions { Name = "idx_categorias_isPadrao", Background = true }
-        ),
+            new CreateIndexOptions { Name = "idx_categorias_isPadrao", Background = true }),
     });
 
     Console.WriteLine("✅ Seed e índices criados com sucesso");
