@@ -157,6 +157,7 @@ namespace CasalPlanner.API.Controllers
                     usuario.ModoEscuro,
                     usuario.RendaMensal,
                     usuario.CPF,
+                    usuario.CreatedAt,
                     DataNascimento = usuario.DataNascimento?.ToString("yyyy-MM-dd")
                 });
             }

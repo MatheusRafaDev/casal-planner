@@ -15,7 +15,7 @@ export const PerfilContainer = styled.div`
   min-height: 100vh;
   background: ${p => p.theme.background};
   padding: 2rem 1.5rem 4rem;
-  max-width: 860px;
+  max-width: 1200px;
   margin: 0 auto;
   animation: ${fadeUp} 0.4s ease both;
 

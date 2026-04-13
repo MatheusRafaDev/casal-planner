@@ -41,7 +41,6 @@ const PainelPesquisaPrecos = ({ nome = '', marca = '', onSelectItem, onSelectPri
     
     try {
       const data = await buscarPrecos(queryOriginal);
-      console.log('Produtos com validações:', data);
       setResults(data);
       if (data.length === 0) setError('Nenhum produto encontrado');
     } catch (err) {

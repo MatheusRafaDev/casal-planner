@@ -145,6 +145,7 @@ const Perfil = () => {
       if (isCasal) setDadosCasal(dadosOriginais);
       else setDadosIndividual(dadosOriginais);
     }
+    
     setEditando(false);
     setErro("");
   };
@@ -247,6 +248,8 @@ const Perfil = () => {
       try {
         setCarregandoDados(true);
         const d = await authService.buscarDadosCompletos();
+
+
         if (!d) throw new Error("Sem dados");
 
         if (d.isCasal || d.tipoConta === 1) {
@@ -267,7 +270,7 @@ const Perfil = () => {
             rendaMensalPessoa2: c.rendaMensalPessoa2 ? formatarMoeda(r2) : "",
             rendaMensalPessoa2Valor: r2,
             RendaMensal: d.rendaMensal || 0,
-            createdAt: c.createdAt || "",
+            createdAt: d.createdAt || "",
           };
           setDadosCasal(nd);
           setDadosOriginais(nd);
@@ -282,7 +285,7 @@ const Perfil = () => {
             rendaMensalValor: r,
             createdAt: d.createdAt,
           };
-          setDadosIndividual(nd);
+          setDadosIndividual(d);
           setDadosOriginais(nd);
         }
       } catch (error) {

@@ -59,7 +59,6 @@ class AuthService {
     try {
       const response = await api.get("/auth/me");
       const d = response.data;
-
       // Normaliza PascalCase → camelCase
       const normalizado = {
         id: d.Id || d.id,
