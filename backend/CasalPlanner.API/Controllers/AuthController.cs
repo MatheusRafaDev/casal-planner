@@ -70,12 +70,13 @@ namespace CasalPlanner.API.Controllers
 
                 Response.Cookies.Append("auth_token", token, new CookieOptions
                 {
-                    HttpOnly = true,      
-                    Secure = false,        
-                    SameSite = SameSiteMode.Lax, 
-                    Expires = DateTime.UtcNow.AddDays(7), 
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None, 
+                    Expires = DateTime.UtcNow.AddDays(7),
                     Path = "/"
                 });
+
 
                 return Ok(new
                 {
