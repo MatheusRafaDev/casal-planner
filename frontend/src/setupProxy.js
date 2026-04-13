@@ -5,6 +5,8 @@ module.exports = function(app) {
   // Pega a URL da API da variável de ambiente ou usa o padrão
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5286';
   
+  console.log(`🔧 Configurando proxy para: ${apiUrl}`)
+  ;
   // Extrai o host e a porta da URL
   const targetUrl = apiUrl.replace('/api', '');
   

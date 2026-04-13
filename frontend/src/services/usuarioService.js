@@ -17,8 +17,8 @@ class UsuarioService {
       };
 
       const response = await api.post('/usuario/registrar', dadosBackend);
-      
       return response.data;
+
     } catch (error) {
       console.error('Erro no registro:', error);
       throw error;
@@ -42,14 +42,14 @@ class UsuarioService {
         rendaMensalPessoa2: dados.rendaMensalPessoa2 || 0,
       };
 
-
       const response = await api.post('/usuario/registrar-casal', dadosBackend);
 
       if (response.data.usuario) {
         this.#usuarioCache = response.data.usuario;
       }
-      
+
       return response.data;
+
     } catch (error) {
       console.error('Erro no registro casal:', error);
       throw error;
@@ -59,13 +59,14 @@ class UsuarioService {
   async getCurrentUser() {
     try {
       const response = await api.get('/usuario/me');
-      
+
       const usuarioAtual = authService.getUsuario();
       if (usuarioAtual) {
-        const usuarioAtualizado = { ...usuarioAtual, ...response.data };
+        authService.setUsuario({ ...usuarioAtual, ...response.data }); // ✅ agora usa
       }
-      
+
       return response.data;
+
     } catch (error) {
       console.error('Erro ao buscar usuário:', error);
       throw error;
@@ -78,18 +79,18 @@ class UsuarioService {
         nomeCompleto: dados.nomeCompleto,
         dataNascimento: dados.dataNascimento,
         rendaMensal: dados.rendaMensal,
-        cpf: dados.cpf 
+        cpf: dados.cpf
       };
 
       const response = await api.put(`/usuario/perfil/${id}`, dadosBackend);
 
       const usuarioAtual = authService.getUsuario();
       if (usuarioAtual && usuarioAtual.id === id) {
-        const usuarioAtualizado = { ...usuarioAtual, ...response.data };
-
+        authService.setUsuario({ ...usuarioAtual, ...response.data }); // ✅ corrigido
       }
-      
+
       return response.data;
+
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
       throw error;
@@ -98,7 +99,6 @@ class UsuarioService {
 
   async atualizarPerfilCasal(id, dados) {
     try {
-
       const dadosBackend = {
         nomeCompletoPessoa1: dados.nomeCompletoPessoa1,
         dataNascimentoPessoa1: dados.dataNascimentoPessoa1,
@@ -112,14 +112,12 @@ class UsuarioService {
 
       const usuarioAtual = authService.getUsuario();
       if (usuarioAtual && usuarioAtual.id === id) {
-        const usuarioAtualizado = { ...usuarioAtual, ...response.data };
-  
+        authService.setUsuario({ ...usuarioAtual, ...response.data }); // ✅ corrigido
       }
-      
+
       return response.data;
+
     } catch (error) {
-
-
       console.error('Erro ao atualizar perfil casal:', error);
       throw error;
     }
@@ -132,9 +130,11 @@ class UsuarioService {
       const usuarioAtual = authService.getUsuario();
       if (usuarioAtual && usuarioAtual.id === id) {
         usuarioAtual.modoEscuro = modoEscuro;
+        authService.setUsuario(usuarioAtual); // ✅ garante atualização
       }
-      
+
       return response.data;
+
     } catch (error) {
       console.error('Erro ao atualizar modo escuro:', error);
       throw error;
@@ -145,6 +145,7 @@ class UsuarioService {
     try {
       const response = await api.post('/usuario/alterar-senha', dados);
       return response.data;
+
     } catch (error) {
       console.error('Erro ao alterar senha:', error);
       throw error;
@@ -156,6 +157,7 @@ class UsuarioService {
       const response = await api.delete(`/usuario/usuario/${id}`);
       authService._logoutLocal();
       return response.data;
+
     } catch (error) {
       console.error('Erro ao excluir conta:', error);
       throw error;
@@ -163,4 +165,6 @@ class UsuarioService {
   }
 }
 
-export default new UsuarioService();
+
+const usuarioService = new UsuarioService();
+export default usuarioService;

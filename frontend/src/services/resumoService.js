@@ -153,5 +153,5 @@ class ResumoService {
   }
 }
 
-// Exporta uma instância única
-export default new ResumoService();
+const resumoService = new ResumoService();
+export default resumoService;
