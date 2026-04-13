@@ -105,54 +105,16 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CasalPlannerPolicy", policy =>
     {
-        // 🔥 Ler a URL do frontend da variável de ambiente
-        var meuFrontendUrl = Environment.GetEnvironmentVariable("MEU_FRONTEND_URL");
-        
-        // URLs padrão para desenvolvimento
-        var defaultOrigins = new[] 
-        { 
-            "http://localhost:3000", 
-            "http://localhost:5173",
-            "http://localhost:5000"
-        };
-        
-        // Lista de origens permitidas
-        var allowedOrigins = new List<string>();
-        
-        // Adicionar URL do ENV se existir
-        if (!string.IsNullOrEmpty(meuFrontendUrl))
-        {
-            allowedOrigins.Add(meuFrontendUrl);
-            Console.WriteLine($"✅ CORS: URL do frontend carregada do ENV: {meuFrontendUrl}");
-        }
-        
-        // Adicionar URLs de fallback (Vercel)
-        allowedOrigins.AddRange(new[]
-        {
-            "https://casal-planner-ebg7-git-main-matheusrafadevs-projects.vercel.app",
-            "https://casal-planner-ebg7-ksltt626o-matheusrafadevs-projects.vercel.app",
-            "https://casal-planner-ebg7.vercel.app",
-            "https://casal-planner-amber.vercel.app"
-        });
-        
-        // Adicionar desenvolvimento se for ambiente local
-        if (builder.Environment.IsDevelopment())
-        {
-            allowedOrigins.AddRange(defaultOrigins);
-            Console.WriteLine($"✅ CORS: Adicionando origens de desenvolvimento");
-        }
-        
-        // Remover duplicatas
-        allowedOrigins = allowedOrigins.Distinct().ToList();
-        
-        Console.WriteLine($"✅ CORS permitindo origens: {string.Join(", ", allowedOrigins)}");
-        
-        policy.WithOrigins(allowedOrigins.ToArray())
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials(); // 🔥 ESSENCIAL para cookies
+        policy
+            .WithOrigins(
+                "https://casal-planner-ebg7.vercel.app"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
+
 
 // ===== 7. SERVICES =====
 builder.Services.AddHttpClient();
@@ -182,28 +144,18 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// ===== 🔥 PREFLIGHT =====
-app.Use(async (context, next) =>
-{
-    if (context.Request.Method == "OPTIONS")
-    {
-        context.Response.StatusCode = 200;
-        return;
-    }
-    await next();
-});
+
 
 // ===== PIPELINE =====
 app.UseHttpsRedirection();
 
-app.UseIpRateLimiting();
-
-app.UseCors("CasalPlannerPolicy");
+app.UseCors("CasalPlannerPolicy"); 
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
 
 // ===== 9. SEED (MANTIDO) =====
 try
