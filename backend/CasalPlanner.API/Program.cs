@@ -12,15 +12,22 @@ using AspNetCoreRateLimit;
 var builder = WebApplication.CreateBuilder(args);
 
 // ===== 1. ENV =====
+// Carrega .env apenas em desenvolvimento LOCAL
 if (builder.Environment.IsDevelopment())
 {
     var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
     if (File.Exists(envPath))
     {
         Env.Load(envPath);
-        Console.WriteLine("✅ .env carregado");
+        Console.WriteLine("✅ .env carregado (local)");
     }
 }
+else
+{
+    Console.WriteLine("🌐 Ambiente: Produção (Render/Vercel)");
+}
+
+// Configuração de variáveis de ambiente (funciona em todos os ambientes)
 builder.Configuration.AddEnvironmentVariables();
 
 // ===== 2. CONFIG =====
@@ -33,7 +40,10 @@ if (string.IsNullOrEmpty(jwtKey))
 
 var mongoConnection = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING");
 if (string.IsNullOrEmpty(mongoConnection))
-    throw new Exception("MONGO não configurado");
+    throw new Exception("MONGODB_CONNECTION_STRING não configurada");
+
+// 🔥 Configuração da origem do frontend (dinâmica por ambiente)
+var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:3000";
 
 // ===== 3. RATE LIMIT =====
 builder.Services.AddMemoryCache();
@@ -66,7 +76,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = true;
+    options.RequireHttpsMetadata = false; // 🔥 Muda para false para funcionar em HTTP (Render/Vercel)
     options.SaveToken = true;
 
     options.TokenValidationParameters = new TokenValidationParameters
@@ -77,7 +87,8 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtIssuer,
         ValidateAudience = true,
         ValidAudience = jwtAudience,
-        ValidateLifetime = true
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero // 🔥 Remove tolerância de tempo
     };
 
     options.Events = new JwtBearerEvents
@@ -87,10 +98,17 @@ builder.Services.AddAuthentication(options =>
             // ✅ Lê do cookie HttpOnly primeiro (mais seguro)
             var token = context.Request.Cookies["auth_token"];
 
-            // Fallback: lê do header Authorization (para clientes sem cookie)
+            // ✅ Lê do header Authorization (Bearer token)
             if (string.IsNullOrEmpty(token))
-                token = context.Request.Headers["Authorization"]
-                    .ToString().Replace("Bearer ", "");
+            {
+                var authHeader = context.Request.Headers["Authorization"].ToString();
+                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                    token = authHeader.Substring("Bearer ".Length).Trim();
+            }
+
+            // ✅ Fallback: lê do query string (para WebSockets/Downloads)
+            if (string.IsNullOrEmpty(token) && context.Request.Query.TryGetValue("token", out var queryToken))
+                token = queryToken;
 
             if (!string.IsNullOrEmpty(token))
                 context.Token = token;
@@ -102,33 +120,42 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// ===== 6. CORS =====
+// ===== 6. CORS (CORRIGIDO) =====
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CasalPlannerPolicy", policy =>
     {
-        // Origens permitidas base
+        // 🔥 Lista dinâmica de origens permitidas
         var allowedOrigins = new List<string>
         {
-            "https://casal-planner.vercel.app",
-            "http://localhost:3000" 
+            "http://localhost:3000",           // Local React
+            "http://localhost:5286",            // Local API
+            "https://casal-planner.vercel.app", // Vercel produção
+            "https://casalplanner.onrender.com", // Render (se tiver)
         };
 
-        // Origens extras via variável de ambiente (ex: previews do Vercel)
-        // No Render, configure: ALLOWED_ORIGINS=https://outro.vercel.app,https://custom.com
+        // 🔥 Adiciona URL do frontend via variável de ambiente
+        var envFrontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+        if (!string.IsNullOrEmpty(envFrontendUrl) && !allowedOrigins.Contains(envFrontendUrl))
+            allowedOrigins.Add(envFrontendUrl);
+
+        // 🔥 Adiciona origens extras (previews do Vercel)
         var extraOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS");
         if (!string.IsNullOrEmpty(extraOrigins))
         {
             allowedOrigins.AddRange(
                 extraOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(o => o.Trim())
             );
         }
+
+        Console.WriteLine($"🌐 CORS Origens permitidas: {string.Join(", ", allowedOrigins)}");
 
         policy
             .WithOrigins(allowedOrigins.ToArray())
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials(); // ✅ obrigatório para cookies cross-site
+            .AllowCredentials(); // ✅ Obrigatório para cookies
     });
 });
 
@@ -147,15 +174,19 @@ builder.Services.AddSwaggerGen();
 // ===== BUILD =====
 var app = builder.Build();
 
-// ===== 8. HEADERS DE SEGURANÇA =====
+// ===== 8. HEADERS DE SEGURANÇA (CORRIGIDO PARA FUNCIONAR) =====
 app.Use(async (context, next) =>
 {
-    context.Response.Headers["Content-Security-Policy"] =
-        "default-src 'self'; " +
-        "connect-src 'self' http://localhost:3000 http://localhost:5286 https://casalplanner-api.onrender.com https://*.vercel.app; " +
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-        "style-src 'self' 'unsafe-inline'; " +
-        "img-src 'self' data: https:;";
+    // 🔥 Só aplica CSP em produção (evita problemas em dev)
+    if (!app.Environment.IsDevelopment())
+    {
+        context.Response.Headers["Content-Security-Policy"] =
+            "default-src 'self'; " +
+            "connect-src 'self' https://*.vercel.app https://*.onrender.com; " +
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+            "style-src 'self' 'unsafe-inline'; " +
+            "img-src 'self' data: https:;";
+    }
 
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
     context.Response.Headers["X-Frame-Options"] = "DENY";
@@ -164,22 +195,33 @@ app.Use(async (context, next) =>
     await next();
 });
 
-
 // ===== PIPELINE =====
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection(); // 🔥 Mantém HTTPS em produção
+}
+else
+{
+    Console.WriteLine("🔧 Ambiente Dev: HTTP permitido");
+}
 
-app.UseCors("CasalPlannerPolicy"); // ✅ CORS antes de Auth
+app.UseCors("CasalPlannerPolicy"); // ✅ CORS ANTES de auth
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-// ===== 9. SWAGGER (só em dev) =====
+// ===== 9. SWAGGER =====
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+else
+{
+    // 🔥 Rota de health check para Render/Vercel
+    app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 }
 
 // ===== 10. SEED =====
@@ -218,11 +260,13 @@ try
         ),
     });
 
-    Console.WriteLine("✅ Seed OK");
+    Console.WriteLine("✅ Seed e índices criados com sucesso");
 }
 catch (Exception ex)
 {
     Console.WriteLine($"❌ Erro no seed: {ex.Message}");
 }
 
-app.Run();
+// ===== 11. INICIAR =====
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5286";
+app.Run($"http://0.0.0.0:{port}");
