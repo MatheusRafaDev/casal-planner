@@ -120,42 +120,25 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// ===== 6. CORS (CORRIGIDO) =====
+
+// ===== 6. CORS =====
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CasalPlannerPolicy", policy =>
     {
-        // 🔥 Lista dinâmica de origens permitidas
-        var allowedOrigins = new List<string>
+        var allowedOrigins = new[]
         {
-            "http://localhost:3000",           // Local React
-            "http://localhost:5286",            // Local API
-            "https://casal-planner.vercel.app", // Vercel produção
-            "https://casalplanner.onrender.com", // Render (se tiver)
+            "https://casalplanner.vercel.app",
+            "https://casal-planner.vercel.app",
+            "http://localhost:3000",
+            "https://*.vercel.app" 
         };
 
-        // 🔥 Adiciona URL do frontend via variável de ambiente
-        var envFrontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
-        if (!string.IsNullOrEmpty(envFrontendUrl) && !allowedOrigins.Contains(envFrontendUrl))
-            allowedOrigins.Add(envFrontendUrl);
-
-        // 🔥 Adiciona origens extras (previews do Vercel)
-        var extraOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS");
-        if (!string.IsNullOrEmpty(extraOrigins))
-        {
-            allowedOrigins.AddRange(
-                extraOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(o => o.Trim())
-            );
-        }
-
-        Console.WriteLine($"🌐 CORS Origens permitidas: {string.Join(", ", allowedOrigins)}");
-
         policy
-            .WithOrigins(allowedOrigins.ToArray())
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials(); // ✅ Obrigatório para cookies
+            .AllowCredentials();
     });
 });
 
