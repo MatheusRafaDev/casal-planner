@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, { createContext, useState, useContext, useEffect, useCallback } from "react";
 import authService from "../services/authService";
 import usuarioService from "../services/usuarioService";
 import { useNavigate } from "react-router-dom";
@@ -7,9 +7,7 @@ const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-
-  if (!context)
-    throw new Error("useAuth deve ser usado dentro de AuthProvider");
+  if (!context) throw new Error("useAuth deve ser usado dentro de AuthProvider");
   return context;
 };
 
@@ -19,51 +17,45 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let cancelled = false;
+
     const carregarUsuario = async () => {
       try {
-        const autenticado = await authService.estaAutenticado();
-
-        if (autenticado) {
-          const dadosUsuario = await authService.buscarDadosCompletos();
-          setUsuario(dadosUsuario);
-        } else {
-          setUsuario(null);
-        }
-      } catch (error) {
-        console.error("Erro ao carregar usuário:", error);
-        setUsuario(null);
+        // Uma única chamada — estaAutenticado() já usa cache interno do authService
+        const dadosUsuario = await authService.getUsuario();
+        if (!cancelled) setUsuario(dadosUsuario || null);
+      } catch {
+        if (!cancelled) setUsuario(null);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     carregarUsuario();
+    return () => { cancelled = true; };
   }, []);
 
-  const login = async (email, senha) => {
+  const login = useCallback(async (email, senha) => {
     try {
-      const usuario = await authService.login({ email, senha });
-      if (usuario) {
-        setUsuario(usuario);
+      const usuarioLogado = await authService.login({ email, senha });
+      if (usuarioLogado) {
+        setUsuario(usuarioLogado);
         return { success: true };
       }
       return { success: false, error: "Resposta inválida" };
     } catch (error) {
-      console.error("❌ Erro no login:", error);
       return {
         success: false,
         error: error.response?.data?.message || "Erro ao fazer login",
       };
     }
-  };
+  }, []);
 
-  const registrar = async (dados) => {
+  const registrar = useCallback(async (dados) => {
     try {
-      const usuario = await usuarioService.registrar(dados);
-      if (usuario) {
-        // Faz login automático para gerar o cookie
-        const resultadoLogin = await login(dados.email, dados.senha);
-        return resultadoLogin;
+      const usuarioNovo = await usuarioService.registrar(dados);
+      if (usuarioNovo) {
+        return login(dados.email, dados.senha);
       }
       return { success: false, error: "Resposta inválida" };
     } catch (error) {
@@ -72,18 +64,13 @@ export const AuthProvider = ({ children }) => {
         error: error.response?.data?.message || "Erro ao registrar",
       };
     }
-  };
+  }, [login]);
 
-  const registrarCasal = async (dados) => {
+  const registrarCasal = useCallback(async (dados) => {
     try {
-      const usuario = await usuarioService.registrarCasal(dados);
-      if (usuario) {
-        // Faz login com a pessoa 1
-        const resultadoLogin = await login(
-          dados.emailPessoa1,
-          dados.senhaPessoa1,
-        );
-        return resultadoLogin;
+      const usuarioNovo = await usuarioService.registrarCasal(dados);
+      if (usuarioNovo) {
+        return login(dados.emailPessoa1, dados.senhaPessoa1);
       }
       return { success: false, error: "Resposta inválida" };
     } catch (error) {
@@ -92,90 +79,68 @@ export const AuthProvider = ({ children }) => {
         error: error.response?.data?.message || "Erro ao registrar casal",
       };
     }
-  };
+  }, [login]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     authService.logout();
     setUsuario(null);
     navigate("/");
-  };
+  }, [navigate]);
 
-  const atualizarUsuario = (novosDados) => {
+  const atualizarUsuario = useCallback((novosDados) => {
     setUsuario(novosDados);
-  };
+  }, []);
 
-  const atualizarPerfil = async (id, dados) => {
+  const atualizarPerfil = useCallback(async (id, dados) => {
     try {
-      const response = await usuarioService.atualizarPerfil(id, dados);
-
+      await usuarioService.atualizarPerfil(id, dados);
       const dadosAtualizados = await authService.buscarDadosCompletos();
       setUsuario(dadosAtualizados);
-
-      return { success: true, data: response };
+      return { success: true };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || "Erro ao atualizar perfil",
-      };
+      return { success: false, error: error.response?.data?.message || "Erro ao atualizar perfil" };
     }
-  };
+  }, []);
 
-  const atualizarPerfilCasal = async (id, dados) => {
+  const atualizarPerfilCasal = useCallback(async (id, dados) => {
     try {
-      const response = await usuarioService.atualizarPerfilCasal(id, dados);
-
+      await usuarioService.atualizarPerfilCasal(id, dados);
       const dadosAtualizados = await authService.buscarDadosCompletos();
       setUsuario(dadosAtualizados);
-
-      return { success: true, data: response };
+      return { success: true };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || "Erro ao atualizar perfil",
-      };
+      return { success: false, error: error.response?.data?.message || "Erro ao atualizar perfil" };
     }
-  };
+  }, []);
 
-  const atualizarModoEscuro = async (id, modoEscuro) => {
+  const atualizarModoEscuro = useCallback(async (id, modoEscuro) => {
     try {
-      const response = await usuarioService.atualizarModoEscuro(id, modoEscuro);
-
-      const usuarioAtualizado = { ...usuario, modoEscuro };
-      setUsuario(usuarioAtualizado);
-
-      return { success: true, data: response };
+      await usuarioService.atualizarModoEscuro(id, modoEscuro);
+      setUsuario((prev) => prev ? { ...prev, modoEscuro } : prev);
+      return { success: true };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || "Erro ao atualizar modo escuro",
-      };
+      return { success: false, error: error.response?.data?.message || "Erro ao atualizar modo escuro" };
     }
-  };
+  }, []);
 
-  const alterarSenha = async (dados) => {
+  const alterarSenha = useCallback(async (dados) => {
     try {
       const response = await usuarioService.alterarSenha(dados);
       return { success: true, data: response };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || "Erro ao alterar senha",
-      };
+      return { success: false, error: error.response?.data?.message || "Erro ao alterar senha" };
     }
-  };
+  }, []);
 
-  const excluirConta = async (id) => {
+  const excluirConta = useCallback(async (id) => {
     try {
       const response = await usuarioService.excluirConta(id);
       logout();
       return { success: true, data: response };
     } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || "Erro ao excluir conta",
-      };
+      return { success: false, error: error.response?.data?.message || "Erro ao excluir conta" };
     }
-  };
+  }, [logout]);
 
   const value = {
     usuario,
@@ -183,12 +148,10 @@ export const AuthProvider = ({ children }) => {
     estaAutenticado: !!usuario,
     isCasal: usuario?.isCasal || usuario?.tipoConta === "1",
     pessoaLogada: usuario?.pessoaQueLogou || null,
-
     login,
     registrar,
     registrarCasal,
     logout,
-
     atualizarUsuario,
     atualizarPerfil,
     atualizarPerfilCasal,

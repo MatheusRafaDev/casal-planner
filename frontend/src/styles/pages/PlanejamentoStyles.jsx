@@ -219,3 +219,11 @@ export const EmptyStateButton = styled.button`
     font-weight: 700;
   }
 `;
+// ── Melhorias mobile adicionadas ──────────────────────────
+
+// Feedback visual de toque nos cards
+export const TouchFeedback = styled.div`
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+`;

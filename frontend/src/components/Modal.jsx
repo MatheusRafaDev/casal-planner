@@ -3,22 +3,25 @@ import toast from 'react-hot-toast';
 import {
   ModalOverlay,
   ModalContent,
+  SheetHandle,
   ModalHeader,
-  CloseButton
+  CloseButton,
 } from '../styles/components/ModalStyles';
 
-const Modal = ({ 
-  isOpen, 
-  onClose, 
-  title, 
-  children, 
-  disableOutsideClick = false, 
+const Modal = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  disableOutsideClick = false,
   theme,
   showToastOnClose = false,
   toastMessage = '',
-  toastType = 'success'
+  toastType = 'success',
 }) => {
   const contentRef = useRef(null);
+  // Guarda a posição de scroll ANTES de abrir (restaura depois)
+  const scrollYRef = useRef(0);
 
   const handleClose = useCallback(() => {
     if (showToastOnClose && toastMessage) {
@@ -38,7 +41,7 @@ const Modal = ({
           break;
         default:
           toast.success(toastMessage, {
-            duration: 3000, icon: '',
+            duration: 3000, icon: '✅',
             style: {
               ...baseStyle,
               background: theme === 'dark' ? '#1e1e1e' : '#4CAF50',
@@ -50,31 +53,29 @@ const Modal = ({
     onClose();
   }, [showToastOnClose, toastMessage, toastType, theme, onClose]);
 
-  // Trava scroll do body quando modal está aberto
+  // Trava scroll do body — método robusto que preserva posição
   useEffect(() => {
     if (!isOpen) return;
-    const scrollY = window.scrollY;
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
+    scrollYRef.current = window.scrollY;
+    // Usa CSS var para que o body saiba onde estava
+    document.documentElement.style.setProperty('--scroll-y', `-${scrollYRef.current}px`);
+    document.body.classList.add('modal-open');
     return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      window.scrollTo(0, scrollY);
+      document.body.classList.remove('modal-open');
+      document.documentElement.style.removeProperty('--scroll-y');
+      // Restaura posição silenciosamente
+      window.scrollTo({ top: scrollYRef.current, behavior: 'instant' });
     };
   }, [isOpen]);
 
-  // ESC + focus trap
+  // ESC + focus trap acessível
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') { e.preventDefault(); handleClose(); return; }
       if (e.key === 'Tab' && contentRef.current) {
         const focusable = contentRef.current.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          'button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
         );
         if (!focusable.length) return;
         const first = focusable[0];
@@ -87,8 +88,12 @@ const Modal = ({
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    setTimeout(() => contentRef.current?.focus(), 50);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    // Foca no modal com pequeno delay para deixar a animação de entrada terminar
+    const focusTimer = setTimeout(() => contentRef.current?.focus(), 80);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      clearTimeout(focusTimer);
+    };
   }, [isOpen, handleClose]);
 
   const handleOverlayClick = (e) => {
@@ -99,11 +104,23 @@ const Modal = ({
   if (!isOpen) return null;
 
   return (
-    <ModalOverlay onClick={handleOverlayClick} role="dialog" aria-modal="true" aria-label={title}>
+    <ModalOverlay
+      onClick={handleOverlayClick}
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+    >
       <ModalContent theme={theme} ref={contentRef} tabIndex={-1}>
-        <ModalHeader>
+        {/* Handle de arraste visível apenas em mobile */}
+        <SheetHandle theme={theme} />
+        <ModalHeader theme={theme}>
           <h2>{title}</h2>
-          <CloseButton onClick={handleClose} theme={theme} title="Fechar (ESC)" aria-label="Fechar modal">
+          <CloseButton
+            onClick={handleClose}
+            theme={theme}
+            title="Fechar (ESC)"
+            aria-label="Fechar modal"
+          >
             ✕
           </CloseButton>
         </ModalHeader>

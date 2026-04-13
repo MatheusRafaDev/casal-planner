@@ -4,12 +4,44 @@
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/favicon.svg" />
     <link rel="icon" type="image/x-icon" href="%PUBLIC_URL%/favicon.ico" />
+
+    <!-- Viewport com suporte a safe-area (notch/barra de gesto) -->
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#A78BFA" />
-    <meta name="description" content="CasalPlanner — Organize as compras e finanças do casal em um só lugar." />
+
+    <!-- Tema da barra de status do celular -->
+    <meta name="theme-color" content="#A78BFA" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#18181B" media="(prefers-color-scheme: dark)" />
+
+    <!-- PWA / Mobile -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="CasalPlanner" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+
+    <!-- SEO -->
+    <meta name="description" content="CasalPlanner — Organize as compras e finanças do casal em um só lugar." />
+
+    <!-- Preconnect à API para reduzir latência de DNS+TLS na primeira requisição -->
+    <link rel="preconnect" href="https://casalplanner-api.onrender.com" crossorigin />
+    <!-- Preconnect a CDN de logos de lojas (usada pelo storeLogoService) -->
+    <link rel="preconnect" href="https://logo.clearbit.com" crossorigin />
+
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
     <title>CasalPlanner 💍</title>
+
+    <!-- CSS crítico inline: garante que o fundo já aparece certo antes do JS carregar -->
+    <style>
+      html, body, #root {
+        margin: 0; padding: 0;
+        background: #F9FAFB;
+        min-height: 100vh;
+      }
+      @media (prefers-color-scheme: dark) {
+        html, body, #root { background: #18181B; }
+      }
+    </style>
   </head>
   <body>
     <noscript>Você precisa habilitar o JavaScript para usar o CasalPlanner.</noscript>
