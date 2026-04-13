@@ -1,23 +1,29 @@
-# Etapa 1: Build (compila o código)
+# Estágio 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copia o arquivo do projeto e restaura as dependências
-COPY ["CasalPlanner.API.csproj", "."]
-RUN dotnet restore
+# O contexto de build é 'backend', então o csproj está em 'CasalPlanner.API/'
+COPY ["CasalPlanner.API/CasalPlanner.API.csproj", "CasalPlanner.API/"]
+RUN dotnet restore "CasalPlanner.API/CasalPlanner.API.csproj"
 
-# Copia todo o resto do código e publica o build final
+# Copiar todo o código
 COPY . .
+
+# Publicar a aplicação
+WORKDIR "/src/CasalPlanner.API"
 RUN dotnet publish "CasalPlanner.API.csproj" -c Release -o /app/publish
 
-# Etapa 2: Runtime (só o necessário para rodar)
+# Estágio 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Expõe a porta que sua API vai usar
-EXPOSE 80
-EXPOSE 443
+# Configurar variáveis de ambiente
+ENV ASPNETCORE_URLS=http://+:80
+ENV ASPNETCORE_ENVIRONMENT=Production
 
-# Define o comando para iniciar a aplicação
+# Expor porta
+EXPOSE 80
+
+# Iniciar aplicação
 ENTRYPOINT ["dotnet", "CasalPlanner.API.dll"]
