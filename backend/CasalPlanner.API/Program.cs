@@ -105,14 +105,42 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 // ========== 6. CORS ==========
+// ========== 6. CORS ==========
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CasalPlannerPolicy", policy =>
     {
-        var origins = builder.Environment.IsDevelopment()
-            ? new[] { "http://localhost:3000" }
-            : new[] { "https://seudominio.com" };
-        policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+        // URL do seu frontend (vinda do ENV)
+        var frontendUrl = Environment.GetEnvironmentVariable("MEU_FRONTEND_URL");
+        
+        // Lista de origens permitidas
+        var allowedOrigins = new List<string>();
+        
+        if (!string.IsNullOrEmpty(frontendUrl))
+        {
+            allowedOrigins.Add(frontendUrl);
+            Console.WriteLine($"✅ CORS permitindo: {frontendUrl}");
+        }
+        
+        // Adicionar localhost para desenvolvimento
+        if (builder.Environment.IsDevelopment())
+        {
+            allowedOrigins.Add("http://localhost:3000");
+            allowedOrigins.Add("http://localhost:5173");
+            Console.WriteLine($"✅ CORS adicionando localhost para desenvolvimento");
+        }
+        
+        // Fallback seguro
+        if (allowedOrigins.Count == 0)
+        {
+            allowedOrigins.Add("https://casal-planner-ebg7-ksltt626o-matheusrafadevs-projects.vercel.app");
+            Console.WriteLine($"⚠️ CORS usando fallback padrão");
+        }
+        
+        policy.WithOrigins(allowedOrigins.ToArray())
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
