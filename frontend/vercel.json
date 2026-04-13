@@ -1,7 +1,7 @@
 {
-  "framework": "vite",
+  "framework": "create-react-app",
   "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "outputDirectory": "build",
   "installCommand": "npm install",
-  "devCommand": "npm run dev"
+  "devCommand": "npm start"
 }
