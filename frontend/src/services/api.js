@@ -1,60 +1,60 @@
+// ============================================================
+// api.js — Instância Axios configurada para Vercel → Render
+// ============================================================
 import axios from 'axios';
-
-const baseURL =
-  process.env.REACT_APP_API_URL;
-
+ 
+// ⚠️ No Vercel, configure a variável de ambiente:
+// REACT_APP_API_URL = https://casalplanner-api.onrender.com/api
+//
+// O /api no final é obrigatório pois suas rotas são /api/auth/login etc.
 const api = axios.create({
-  baseURL,
-  timeout: 30000, 
-  withCredentials: true, 
+  baseURL: process.env.REACT_APP_API_URL,
+  timeout: 30000,
+  withCredentials: true, // ✅ envia cookies HttpOnly automaticamente em cross-site
   headers: {
     'Content-Type': 'application/json',
-  }
+  },
 });
-
-// Interceptor para LOG (debug)
+ 
+// ─── Interceptor de REQUEST ────────────────────────────────
 api.interceptors.request.use(
   (config) => {
-   
-    const hasCookie = document.cookie.includes('auth_token');
-
-    console.log(process.env.REACT_APP_API_URL);
-    
-    console.log(`📤 ${config.method.toUpperCase()} ${config.url}`);
-    console.log(`🍪 Cookie auth_token presente: ${hasCookie ? 'Sim ✅' : 'Não ❌'}`);
-    
-    const tokenMatch = document.cookie.match(/auth_token=([^;]+)/);
-    if (tokenMatch && tokenMatch[1]) {
-      config.headers.Authorization = `Bearer ${tokenMatch[1]}`;
-      console.log(`🔑 Token adicionado ao header Authorization`);
+    // ✅ Log de debug simples
+    // ⚠️ NÃO tentamos ler document.cookie pois auth_token é HttpOnly
+    // (cookies HttpOnly são invisíveis para JS por design de segurança)
+    // O browser envia o cookie automaticamente graças ao withCredentials: true
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`📤 ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
     }
-    
+ 
     return config;
   },
   (error) => Promise.reject(error)
 );
-
-// Interceptor para respostas
+ 
+// ─── Interceptor de RESPONSE ───────────────────────────────
 api.interceptors.response.use(
   (response) => {
-    console.log(`✅ ${response.config.url} - Status: ${response.status}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`✅ ${response.config.url} - Status: ${response.status}`);
+    }
     return response;
   },
   (error) => {
     if (error.response?.status === 401) {
       console.error(`🔒 Erro 401 em: ${error.config?.url}`);
-      
-      // Se não estiver na página de login, redirecionar
+ 
+      // Redireciona para login se não estiver nela
       if (!window.location.pathname.includes('/login')) {
         console.log('🔄 Redirecionando para login...');
-        // window.location.href = '/login';
+        window.location.href = '/login'; // ✅ descomentado para produção
       }
     } else if (error.code === 'ECONNABORTED') {
-      console.error('⏰ Timeout na requisição');
+      console.error('⏰ Timeout na requisição — API pode estar iniciando (Render free tier)');
     } else if (!error.response) {
-      console.error('🌐 Erro de rede - API pode estar offline');
+      console.error('🌐 Erro de rede — API pode estar offline');
     }
-    
+ 
     return Promise.reject(error);
   }
 );

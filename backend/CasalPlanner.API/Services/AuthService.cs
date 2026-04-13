@@ -21,6 +21,10 @@ namespace CasalPlanner.API.Services
         string GerarTokenCasal(Usuario usuario, string pessoa);
         Task<Usuario?> AtualizarPerfilCasal(string id, AtualizarCasalDto dto);
         Task<bool> VerificarSenha(Usuario usuario, string senha, string? pessoa = null);
+
+        // ✅ Métodos para gerenciar cookie de forma centralizada
+        void SetAuthCookie(HttpResponse response, string token);
+        void RemoverAuthCookie(HttpResponse response);
     }
 
     public class AuthService : IAuthService
@@ -32,6 +36,35 @@ namespace CasalPlanner.API.Services
         {
             _context = context;
             _configuration = configuration;
+        }
+
+        // ✅ Seta o cookie com as opções corretas para funcionar cross-site (Vercel → Render)
+        public void SetAuthCookie(HttpResponse response, string token)
+        {
+            response.Cookies.Append("auth_token", token, new CookieOptions
+            {
+                HttpOnly = true,              // JS não consegue ler (proteção XSS)
+                Secure = true,               // Apenas HTTPS
+                SameSite = SameSiteMode.None, // ✅ obrigatório para cross-site
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                Path = "/"
+                // ⚠️ Sem Domain — browser usa o domínio do servidor automaticamente
+                // Colocar Domain = ".onrender.com" quebra cookies cross-site
+            });
+        }
+
+        // ✅ Deleta cookie de forma compatível com cross-site
+        // Response.Cookies.Delete() não aceita SameSite, então sobrescrevemos com data expirada
+        public void RemoverAuthCookie(HttpResponse response)
+        {
+            response.Cookies.Append("auth_token", "", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddDays(-1), // expirado = apagado
+                Path = "/"
+            });
         }
 
         public async Task<Usuario?> Registrar(RegistroDto dto)
@@ -47,7 +80,6 @@ namespace CasalPlanner.API.Services
             {
                 NomeCompleto = dto.NomeCompleto,
                 Email = dto.Email,
-
                 SenhaHash = BCrypt.Net.BCrypt.HashPassword(dto.Senha, workFactor: 12),
                 CPF = dto.CPF,
                 DataNascimento = dto.DataNascimento,
@@ -66,7 +98,6 @@ namespace CasalPlanner.API.Services
         {
             try
             {
-                // Verificar se emails já existem
                 var usuarioExistente1 = await _context.Usuarios
                     .Find(u => u.Email == dto.EmailPessoa1 ||
                               (u.CasalInfo != null && u.CasalInfo.EmailPessoa1 == dto.EmailPessoa1) ||
@@ -194,11 +225,9 @@ namespace CasalPlanner.API.Services
 
             var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
                 ?? _configuration["Jwt:Key"];
-
             var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
                 ?? _configuration["Jwt:Issuer"]
                 ?? "CasalPlanner";
-
             var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
                 ?? _configuration["Jwt:Audience"]
                 ?? "CasalPlannerUsers";
@@ -242,11 +271,9 @@ namespace CasalPlanner.API.Services
 
             var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
                 ?? _configuration["Jwt:Key"];
-
             var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
                 ?? _configuration["Jwt:Issuer"]
                 ?? "CasalPlanner";
-
             var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
                 ?? _configuration["Jwt:Audience"]
                 ?? "CasalPlannerUsers";
@@ -279,7 +306,7 @@ namespace CasalPlanner.API.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(1),
+                Expires = DateTime.UtcNow.AddDays(7), // ✅ era 1h, agora 7 dias
                 Issuer = jwtIssuer,
                 Audience = jwtAudience,
                 SigningCredentials = new SigningCredentials(
@@ -308,7 +335,6 @@ namespace CasalPlanner.API.Services
 
             var renda = (dto.RendaMensalPessoa1 ?? 0) + (dto.RendaMensalPessoa2 ?? 0);
 
-            // Agora podemos acessar usuario.CasalInfo com segurança porque verificamos que não é null
             if (dto.NomeCompletoPessoa1 != null)
                 updates.Add(update.Set(u => u.CasalInfo!.NomeCompletoPessoa1, dto.NomeCompletoPessoa1));
 

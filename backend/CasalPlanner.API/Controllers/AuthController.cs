@@ -14,15 +14,15 @@ namespace CasalPlanner.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly MongoDbContext _context; // 🔥 Adicionar context
+        private readonly MongoDbContext _context;
 
         public AuthController(IAuthService authService, MongoDbContext context)
         {
             _authService = authService;
-            _context = context; // 🔥 Inicializar context
+            _context = context;
         }
 
-        private string GetUsuarioId() // 🔥 Adicionar método GetUsuarioId
+        private string GetUsuarioId()
         {
             return User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
         }
@@ -32,12 +32,12 @@ namespace CasalPlanner.API.Controllers
         {
             try
             {
-                // Buscar usuário individual
+                // Buscar usuário individual primeiro
                 var usuario = await _authService.ObterUsuarioPorEmail(dto.Email);
                 var isCasal = false;
                 string pessoa = "";
 
-                // Se não for individual, buscar como casal
+                // Se não encontrou como individual, buscar como casal
                 if (usuario == null)
                 {
                     usuario = await _authService.ObterCasalPorEmail(dto.Email);
@@ -51,35 +51,20 @@ namespace CasalPlanner.API.Controllers
                 if (usuario == null)
                     return Unauthorized(new { error = "Usuário não encontrado" });
 
-                // Verificar senha usando BCrypt
                 var senhaValida = await _authService.VerificarSenha(usuario, dto.Senha, pessoa);
 
                 if (!senhaValida)
                     return Unauthorized(new { error = "Senha inválida" });
 
-                // Gerar token
-                string token;
-                if (isCasal)
-                {
-                    token = _authService.GerarTokenCasal(usuario, pessoa);
-                }
-                else
-                {
-                    token = _authService.GerarToken(usuario);
-                }
+                // Gerar token conforme tipo de conta
+                string token = isCasal
+                    ? _authService.GerarTokenCasal(usuario, pessoa)
+                    : _authService.GerarToken(usuario);
 
-                Response.Cookies.Append("auth_token", token, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.None,
-                    Expires = DateTime.UtcNow.AddDays(7),
-                    Path = "/",
-                    Domain = ".onrender.com"
-                });
+                // ✅ Seta cookie via método centralizado no AuthService
+                // HttpOnly=true, Secure=true, SameSite=None, sem Domain
+                _authService.SetAuthCookie(Response, token);
 
-
-    
                 return Ok(new
                 {
                     message = "Login realizado com sucesso",
@@ -97,14 +82,16 @@ namespace CasalPlanner.API.Controllers
             }
             catch (Exception ex)
             {
-                return Unauthorized(new { error = ex.Message });
+                return StatusCode(500, new { error = ex.Message });
             }
         }
 
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            Response.Cookies.Delete("auth_token");
+            // ✅ Remove cookie de forma compatível com cross-site
+            // (sobrescreve com data expirada pois Delete() não aceita SameSite)
+            _authService.RemoverAuthCookie(Response);
             return Ok(new { message = "Logout realizado" });
         }
 

@@ -84,8 +84,10 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
+            // ✅ Lê do cookie HttpOnly primeiro (mais seguro)
             var token = context.Request.Cookies["auth_token"];
 
+            // Fallback: lê do header Authorization (para clientes sem cookie)
             if (string.IsNullOrEmpty(token))
                 token = context.Request.Headers["Authorization"]
                     .ToString().Replace("Bearer ", "");
@@ -100,21 +102,34 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// ========== 6. CORS - VERSÃO CORRETA PARA PRODUÇÃO ==========
+// ===== 6. CORS =====
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CasalPlannerPolicy", policy =>
     {
+        // Origens permitidas base
+        var allowedOrigins = new List<string>
+        {
+            "https://casal-planner-ebg7.vercel.app"
+        };
+
+        // Origens extras via variável de ambiente (ex: previews do Vercel)
+        // No Render, configure: ALLOWED_ORIGINS=https://outro.vercel.app,https://custom.com
+        var extraOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS");
+        if (!string.IsNullOrEmpty(extraOrigins))
+        {
+            allowedOrigins.AddRange(
+                extraOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            );
+        }
+
         policy
-            .WithOrigins(
-                "https://casal-planner-ebg7.vercel.app"
-            )
+            .WithOrigins(allowedOrigins.ToArray())
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials();
+            .AllowCredentials(); // ✅ obrigatório para cookies cross-site
     });
 });
-
 
 // ===== 7. SERVICES =====
 builder.Services.AddHttpClient();
@@ -131,7 +146,7 @@ builder.Services.AddSwaggerGen();
 // ===== BUILD =====
 var app = builder.Build();
 
-// ===== 8. HEADERS (CSP CORRIGIDO) =====
+// ===== 8. HEADERS DE SEGURANÇA =====
 app.Use(async (context, next) =>
 {
     context.Response.Headers["Content-Security-Policy"] =
@@ -141,23 +156,32 @@ app.Use(async (context, next) =>
         "style-src 'self' 'unsafe-inline'; " +
         "img-src 'self' data: https:;";
 
+    // Segurança extra
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+
     await next();
 });
-
-
 
 // ===== PIPELINE =====
 app.UseHttpsRedirection();
 
-app.UseCors("CasalPlannerPolicy"); 
+app.UseCors("CasalPlannerPolicy"); // ✅ CORS antes de Auth
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
+// ===== 9. SWAGGER (só em dev) =====
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-// ===== 9. SEED (MANTIDO) =====
+// ===== 10. SEED =====
 try
 {
     using var scope = app.Services.CreateScope();
@@ -197,7 +221,7 @@ try
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"❌ Erro: {ex.Message}");
+    Console.WriteLine($"❌ Erro no seed: {ex.Message}");
 }
 
 app.Run();

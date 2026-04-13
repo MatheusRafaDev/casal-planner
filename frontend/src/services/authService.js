@@ -1,65 +1,66 @@
-import api from "./api";
 
+ 
+ 
+// ============================================================
+// authService.js — Serviço de autenticação
+// ============================================================
+import api from './api';
+ 
 class AuthService {
   #usuarioCache = null;
-
+ 
   async login(dados) {
     try {
-      const response = await api.post("/auth/login", dados);
-
+      const response = await api.post('/auth/login', dados);
+ 
       if (response.data.usuario) {
+        // ✅ Armazena no cache em memória (cookie é gerenciado pelo browser)
         this.#usuarioCache = response.data.usuario;
         return response.data.usuario;
       }
-
+ 
       return response.data;
     } catch (error) {
       throw error;
     }
   }
-
+ 
   async logout() {
     try {
-      await api.post("/auth/logout");
+      await api.post('/auth/logout');
     } catch (error) {
-      console.error("Erro no logout:", error);
+      console.error('Erro no logout:', error);
     } finally {
+      // ✅ Limpa cache independente de sucesso/falha na API
       this.#usuarioCache = null;
     }
   }
-
+ 
+  // ✅ Unificado: uma única chamada ao invés de duas (/me duas vezes)
   async getUsuario() {
     if (this.#usuarioCache) {
       return this.#usuarioCache;
     }
-
+ 
     try {
-      const autenticado = await this.estaAutenticado();
-      if (autenticado) {
-        const usuario = await this.buscarDadosCompletos();
-        this.#usuarioCache = usuario;
-        return usuario;
-      }
-      return null;
-    } catch (error) {
+      return await this.buscarDadosCompletos();
+    } catch {
       return null;
     }
   }
-
+ 
+  // ✅ Reutiliza getUsuario em vez de chamar /auth/me separado
   async estaAutenticado() {
-    try {
-      const response = await api.get("/auth/me");
-      return response.status === 200;
-    } catch (error) {
-      return false;
-    }
+    const usuario = await this.getUsuario();
+    return usuario !== null;
   }
-
+ 
   async buscarDadosCompletos() {
     try {
-      const response = await api.get("/auth/me");
+      const response = await api.get('/auth/me');
       const d = response.data;
-      // Normaliza PascalCase → camelCase
+ 
+      // Normaliza PascalCase (C#) → camelCase (JS)
       const normalizado = {
         id: d.Id || d.id,
         nomeCompleto: d.NomeCompleto || d.nomeCompleto,
@@ -87,22 +88,23 @@ class AuthService {
             }
           : d.casalInfo || null,
       };
-
+ 
       this.#usuarioCache = normalizado;
       return normalizado;
     } catch (error) {
-      console.error("Erro ao buscar dados completos:", error);
+      console.error('Erro ao buscar dados completos:', error);
       return null;
     }
   }
-
+ 
   setUsuarioCache(usuario) {
     this.#usuarioCache = usuario;
   }
-
+ 
   clearCache() {
     this.#usuarioCache = null;
   }
 }
-
+ 
 export default new AuthService();
+ 
