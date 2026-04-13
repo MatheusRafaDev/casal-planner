@@ -100,15 +100,15 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// ===== 6. CORS =====
+// ===== 6. CORS (VERSÃO DEFINITIVA) =====
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CasalPlannerPolicy", policy =>
     {
-        policy.WithOrigins(
-                "https://casal-planner-ebg7-jgzoddqy9-matheusrafadevs-projects.vercel.app",
-                "http://localhost:3000",
-                "http://localhost:5173"
+        policy
+            .SetIsOriginAllowed(origin =>
+                origin.Contains("vercel.app") ||
+                origin.Contains("localhost")
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -118,6 +118,8 @@ builder.Services.AddCors(options =>
 
 // ===== 7. SERVICES =====
 builder.Services.AddHttpClient();
+builder.Services.AddSingleton<GroqService>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IResumoService, ResumoService>();
@@ -129,7 +131,7 @@ builder.Services.AddSwaggerGen();
 // ===== BUILD =====
 var app = builder.Build();
 
-// ===== 8. SECURITY HEADERS (CORRIGIDO) =====
+// ===== 8. HEADERS (CSP CORRIGIDO) =====
 app.Use(async (context, next) =>
 {
     context.Response.Headers["Content-Security-Policy"] =
@@ -142,7 +144,7 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// ===== 🔥 LIBERAR PREFLIGHT =====
+// ===== 🔥 PREFLIGHT =====
 app.Use(async (context, next) =>
 {
     if (context.Request.Method == "OPTIONS")
@@ -153,8 +155,10 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// ===== PIPELINE CORRETO =====
+// ===== PIPELINE =====
 app.UseHttpsRedirection();
+
+app.UseIpRateLimiting();
 
 app.UseCors("CasalPlannerPolicy");
 
@@ -162,5 +166,48 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// ===== 9. SEED (MANTIDO) =====
+try
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<MongoDbContext>();
+
+    await dbContext.TestarConexaoAsync();
+    await dbContext.SeedDataAsync();
+    await dbContext.VerificarUsuarioCasal();
+
+    await dbContext.Itens.Indexes.CreateManyAsync(new[]
+    {
+        new CreateIndexModel<Item>(
+            Builders<Item>.IndexKeys.Ascending(i => i.UsuarioId),
+            new CreateIndexOptions { Name = "idx_itens_usuarioId", Background = true }
+        ),
+        new CreateIndexModel<Item>(
+            Builders<Item>.IndexKeys
+                .Ascending(i => i.UsuarioId)
+                .Ascending(i => i.CategoriaId),
+            new CreateIndexOptions { Name = "idx_itens_usuarioId_categoriaId", Background = true }
+        ),
+    });
+
+    await dbContext.Categorias.Indexes.CreateManyAsync(new[]
+    {
+        new CreateIndexModel<Categoria>(
+            Builders<Categoria>.IndexKeys.Ascending(c => c.UsuarioId),
+            new CreateIndexOptions { Name = "idx_categorias_usuarioId", Background = true }
+        ),
+        new CreateIndexModel<Categoria>(
+            Builders<Categoria>.IndexKeys.Ascending(c => c.IsPadrao),
+            new CreateIndexOptions { Name = "idx_categorias_isPadrao", Background = true }
+        ),
+    });
+
+    Console.WriteLine("✅ Seed OK");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"❌ Erro: {ex.Message}");
+}
 
 app.Run();
