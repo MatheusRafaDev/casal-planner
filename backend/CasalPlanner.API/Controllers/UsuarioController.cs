@@ -428,6 +428,64 @@ public class UsuarioController : ControllerBase
     }
 
     [Authorize]
+    [HttpPut("perfil")]
+    public async Task<ActionResult<object>> AtualizarPerfil([FromBody] AtualizarPerfilDto dto)
+    {
+        var usuarioId = GetUsuarioId();
+        if (string.IsNullOrEmpty(usuarioId))
+            return Unauthorized();
+
+        var usuario = await _context.Usuarios
+            .Find(u => u.Id == usuarioId && u.TipoConta == TipoConta.Individual)
+            .FirstOrDefaultAsync();
+
+        if (usuario == null)
+            return NotFound(new { message = "Usuário não encontrado ou não é conta individual" });
+
+        var update = Builders<Usuario>.Update;
+        var updates = new List<UpdateDefinition<Usuario>>();
+
+        // Atualiza apenas os campos que vieram no DTO
+        if (!string.IsNullOrWhiteSpace(dto.NomeCompleto))
+            updates.Add(update.Set(u => u.NomeCompleto, dto.NomeCompleto));
+
+        if (!string.IsNullOrWhiteSpace(dto.CPF))
+            updates.Add(update.Set(u => u.CPF, dto.CPF));
+
+        if (dto.DataNascimento.HasValue)
+            updates.Add(update.Set(u => u.DataNascimento, dto.DataNascimento.Value));
+
+        if (dto.RendaMensal.HasValue)
+            updates.Add(update.Set(u => u.RendaMensal, dto.RendaMensal.Value));
+
+        if (!updates.Any())
+            return Ok(new { message = "Nenhum campo para atualizar", usuario });
+
+        await _context.Usuarios.UpdateOneAsync(
+            u => u.Id == usuarioId,
+            update.Combine(updates)
+        );
+
+        var usuarioAtualizado = await _context.Usuarios
+            .Find(u => u.Id == usuarioId)
+            .FirstOrDefaultAsync();
+
+        return Ok(new
+        {
+            usuarioAtualizado?.Id,
+            usuarioAtualizado?.NomeCompleto,
+            usuarioAtualizado?.Email,
+            usuarioAtualizado?.CPF,
+            DataNascimento = usuarioAtualizado?.DataNascimento?.ToString("yyyy-MM-dd"),
+            usuarioAtualizado?.RendaMensal,
+            usuarioAtualizado?.ModoEscuro,
+            usuarioAtualizado?.TipoConta,
+            usuarioAtualizado?.IsCasal
+        });
+    }
+
+
+    [Authorize]
     [HttpDelete("usuario/{id}")]
     public async Task<IActionResult> ExcluirConta(string id)
     {

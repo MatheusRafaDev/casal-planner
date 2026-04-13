@@ -81,12 +81,11 @@ class UsuarioService {
         rendaMensal: dados.rendaMensal,
         cpf: dados.cpf
       };
-
-      const response = await api.put(`/usuario/perfil/${id}`, dadosBackend);
+      const response = await api.put(`/usuario/perfil`, dadosBackend);
 
       const usuarioAtual = authService.getUsuario();
       if (usuarioAtual && usuarioAtual.id === id) {
-        authService.setUsuario({ ...usuarioAtual, ...response.data }); // ✅ corrigido
+        authService.setUsuario({ ...usuarioAtual, ...response.data }); 
       }
 
       return response.data;

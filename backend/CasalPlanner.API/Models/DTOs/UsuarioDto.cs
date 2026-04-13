@@ -72,7 +72,11 @@ namespace CasalPlanner.API.Models.DTOs
 
         [RegularExpression(@"^\d{3}\.\d{3}\.\d{3}-\d{2}$|^\d{11}$")]
         public string? CPF { get; set; }
+
+
     }
+  
+
 
     public class AtualizarCasalDto
     {

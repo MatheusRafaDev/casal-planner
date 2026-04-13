@@ -187,7 +187,7 @@ const Perfil = () => {
         const dados = {
           nomeCompleto: dadosIndividual.nomeCompleto,
           dataNascimento: dadosIndividual.dataNascimento ? converterDataBRparaISO(dadosIndividual.dataNascimento) : null,
-          rendaMensal: dadosIndividual.rendaMensalValor || 0,
+          rendaMensal: dadosIndividual.rendaMensal || 0,
           cpf: dadosIndividual.cpf.replace(/\D/g, ""),
         };
         await usuarioService.atualizarPerfil(usuario.id, dados);
