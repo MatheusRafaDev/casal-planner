@@ -1,29 +1,26 @@
-# Estágio 1: Build
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# Estágio 1: Build com .NET 10.0 Preview
+FROM mcr.microsoft.com/dotnet/nightly/sdk:10.0-preview AS build
 WORKDIR /src
 
-# O contexto de build é 'backend', então o csproj está em 'CasalPlanner.API/'
+# Copiar csproj e restaurar
 COPY ["CasalPlanner.API/CasalPlanner.API.csproj", "CasalPlanner.API/"]
-RUN dotnet restore "CasalPlanner.API/CasalPlanner.API.csproj"
+RUN dotnet restore "CasalPlanner.API/CasalPlanner.API.csproj" --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json --source https://api.nuget.org/v3/index.json
 
-# Copiar todo o código
+# Copiar todo código
 COPY . .
 
-# Publicar a aplicação
+# Publicar
 WORKDIR "/src/CasalPlanner.API"
 RUN dotnet publish "CasalPlanner.API.csproj" -c Release -o /app/publish
 
-# Estágio 2: Runtime
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+# Estágio 2: Runtime com .NET 10.0 Preview
+FROM mcr.microsoft.com/dotnet/nightly/aspnet:10.0-preview AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Configurar variáveis de ambiente
 ENV ASPNETCORE_URLS=http://+:80
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-# Expor porta
 EXPOSE 80
 
-# Iniciar aplicação
 ENTRYPOINT ["dotnet", "CasalPlanner.API.dll"]
