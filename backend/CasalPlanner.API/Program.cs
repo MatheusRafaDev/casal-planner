@@ -100,19 +100,57 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// ===== 6. CORS (VERSÃO DEFINITIVA) =====
+// ========== 6. CORS - VERSÃO CORRETA PARA PRODUÇÃO ==========
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CasalPlannerPolicy", policy =>
     {
-        policy
-            .SetIsOriginAllowed(origin =>
-                origin.Contains("vercel.app") ||
-                origin.Contains("localhost")
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+        // 🔥 Ler a URL do frontend da variável de ambiente
+        var meuFrontendUrl = Environment.GetEnvironmentVariable("MEU_FRONTEND_URL");
+        
+        // URLs padrão para desenvolvimento
+        var defaultOrigins = new[] 
+        { 
+            "http://localhost:3000", 
+            "http://localhost:5173",
+            "http://localhost:5000"
+        };
+        
+        // Lista de origens permitidas
+        var allowedOrigins = new List<string>();
+        
+        // Adicionar URL do ENV se existir
+        if (!string.IsNullOrEmpty(meuFrontendUrl))
+        {
+            allowedOrigins.Add(meuFrontendUrl);
+            Console.WriteLine($"✅ CORS: URL do frontend carregada do ENV: {meuFrontendUrl}");
+        }
+        
+        // Adicionar URLs de fallback (Vercel)
+        allowedOrigins.AddRange(new[]
+        {
+            "https://casal-planner-ebg7-git-main-matheusrafadevs-projects.vercel.app",
+            "https://casal-planner-ebg7-ksltt626o-matheusrafadevs-projects.vercel.app",
+            "https://casal-planner-ebg7.vercel.app",
+            "https://casal-planner-amber.vercel.app"
+        });
+        
+        // Adicionar desenvolvimento se for ambiente local
+        if (builder.Environment.IsDevelopment())
+        {
+            allowedOrigins.AddRange(defaultOrigins);
+            Console.WriteLine($"✅ CORS: Adicionando origens de desenvolvimento");
+        }
+        
+        // Remover duplicatas
+        allowedOrigins = allowedOrigins.Distinct().ToList();
+        
+        Console.WriteLine($"✅ CORS permitindo origens: {string.Join(", ", allowedOrigins)}");
+        
+        policy.WithOrigins(allowedOrigins.ToArray())
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // 🔥 ESSENCIAL para cookies
     });
 });
 
