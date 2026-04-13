@@ -11,7 +11,13 @@ export const ResumoGrid = styled.div`
   }
 
   @media (max-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  @media (max-width: 380px) {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
 `;
 
@@ -24,6 +30,11 @@ export const ResumoCard = styled.div`
   position: relative;
   overflow: hidden;
   color:  ${({ theme }) => theme.text};
+
+  @media (max-width: 640px) {
+    padding: 1rem;
+    border-radius: 14px;
+  }
 
   &::before {
     content: '';
@@ -112,6 +123,10 @@ export const CardValue = styled.div`
   font-weight: 700;
   color: ${({ $color }) => $color};
   letter-spacing: -0.5px;
+
+  @media (max-width: 640px) {
+    font-size: 1.35rem;
+  }
 `;
 
 export const CardFooter = styled.div`

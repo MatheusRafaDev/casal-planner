@@ -5,12 +5,23 @@ export const FilterSection = styled.div`
   align-items: center;
   justify-content: space-between;
   margin: 1.5rem 0;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+
+  @media (max-width: 480px) {
+    margin: 1rem 0;
+    gap: 0.75rem;
+  }
 `;
 
 export const FilterGroup = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
+
+  @media (max-width: 480px) {
+    gap: 0.375rem;
+  }
 `;
 
 export const FilterButtons = styled.div`
@@ -26,6 +37,15 @@ export const FilterButton = styled.button`
   transition: all 0.2s;
   border: none;
   cursor: pointer;
+  min-height: 32px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+
+  @media (max-width: 480px) {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.7rem;
+    min-height: 36px;
+  }
 
   ${(props) => {
     if (props.$active) {
@@ -69,10 +89,20 @@ export const AddCategoryButton = styled.button`
   color: ${(props) => props.theme.text};
   cursor: pointer;
   transition: all 0.2s;
+  min-height: 36px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
 
   &:hover {
     background: ${(props) => props.theme.borderLight};
     border-color: ${(props) => props.theme.primary};
     color: ${(props) => props.theme.primary};
+  }
+
+  @media (max-width: 480px) {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    min-height: 40px;
   }
 `;

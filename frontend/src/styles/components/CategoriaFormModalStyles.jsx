@@ -175,6 +175,11 @@ export const ModalButtons = styled.div`
   display: flex;
   gap: 1rem;
   margin-top: 2rem;
+
+  @media (max-width: 480px) {
+    flex-direction: column-reverse;
+    gap: 0.75rem;
+  }
 `;
 
 export const CancelarButton = styled.button`
@@ -187,6 +192,9 @@ export const CancelarButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s;
+  min-height: 48px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 
   &:hover {
     background: ${(props) => props.theme.textLight};

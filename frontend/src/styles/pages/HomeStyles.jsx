@@ -13,6 +13,15 @@ export const Hero = styled.section`
   margin: 60px auto;
   padding: 0 20px;
   text-align: center;
+
+  @media (max-width: 768px) {
+    margin: 40px auto;
+    padding: 0 16px;
+  }
+
+  @media (max-width: 480px) {
+    margin: 28px auto;
+  }
 `;
 
 export const Badge = styled.div`
@@ -47,7 +56,11 @@ export const Title = styled.h1`
   }
 
   @media (max-width: 768px) {
-    font-size: 36px;
+    font-size: 34px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 28px;
   }
 `;
 
@@ -57,6 +70,10 @@ export const Description = styled.p`
   max-width: 600px;
   margin: 0 auto 30px;
   line-height: 1.6;
+
+  @media (max-width: 480px) {
+    font-size: 15px;
+  }
 `;
 
 export const HeroButtonGroup = styled.div`
@@ -64,6 +81,12 @@ export const HeroButtonGroup = styled.div`
   gap: 12px;
   justify-content: center;
   flex-wrap: wrap;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
 `;
 
 export const HeroButton = styled.button`
@@ -77,6 +100,9 @@ export const HeroButton = styled.button`
   align-items: center;
   gap: 8px;
   border: 1px solid ${props => props.theme.border};
+  min-height: 48px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   
   ${props => props.primary ? `
     background: ${props.theme.primary};
@@ -99,6 +125,13 @@ export const HeroButton = styled.button`
   svg {
     width: 16px;
     height: 16px;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+    justify-content: center;
+    font-size: 15px;
+    padding: 14px 20px;
   }
 `;
 
@@ -178,6 +211,12 @@ export const FooterContent = styled.div`
   justify-content: space-between;
   font-size: 14px;
   color: ${props => props.theme.textSoft};
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
 
   div {
     display: flex;

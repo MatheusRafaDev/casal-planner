@@ -19,7 +19,8 @@ export const PerfilContainer = styled.div`
   margin: 0 auto;
   animation: ${fadeUp} 0.4s ease both;
 
-  @media (max-width: 640px) { padding: 1.25rem 1rem 3rem; }
+  @media (max-width: 768px) { padding: 1.25rem 1rem 5.5rem; }
+  @media (max-width: 640px) { padding: 1rem 0.875rem 5.5rem; }
 `;
 
 export const Header = styled.div`

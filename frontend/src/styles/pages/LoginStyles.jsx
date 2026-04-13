@@ -308,6 +308,9 @@ export const LoginButton = styled.button`
   cursor: pointer;
   transition: all 0.2s;
   margin-top: 0.5rem;
+  min-height: 48px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 
   &:hover:not(:disabled) {
     background: ${props => props.theme.primaryDark};

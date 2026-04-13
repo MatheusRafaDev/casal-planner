@@ -62,6 +62,10 @@ export const UserSection = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
+
+  @media (max-width: 480px) {
+    gap: 6px;
+  }
 `;
 
 export const ThemeButton = styled.button`
@@ -96,6 +100,9 @@ export const Button = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
   
   ${props => props.primary ? `
     background: ${props.theme.primary};
@@ -114,6 +121,12 @@ export const Button = styled.button`
       background: ${props.theme.border};
     }
   `}
+
+  @media (max-width: 480px) {
+    padding: 8px 12px;
+    font-size: 13px;
+    height: 38px;
+  }
 `;
 
 export const UserMenu = styled.button`
@@ -216,8 +229,7 @@ export const NavLinks = styled.div`
   margin-left: 2rem;
 
   @media (max-width: 768px) {
-    margin-left: 0.5rem;
-    gap: 0.25rem;
+    display: none;
   }
 `;
 

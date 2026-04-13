@@ -22,6 +22,11 @@ export const ModalOverlay = styled.div`
   z-index: 1000;
   animation: ${fadeIn} 0.18s ease;
   padding: 1rem;
+
+  @media (max-width: 480px) {
+    align-items: flex-end;
+    padding: 0;
+  }
 `;
 
 export const ModalContent = styled.div`
@@ -51,8 +56,22 @@ export const ModalContent = styled.div`
   }
 
   @media (max-width: 480px) {
-    padding: 1.5rem;
-    border-radius: 1.25rem;
+    padding: 1.25rem 1.25rem 2rem;
+    border-radius: 1.5rem 1.5rem 0 0;
+    max-height: 92dvh;
+    width: 100%;
+    max-width: 100%;
+    
+    /* Handle bar indicator */
+    &::before {
+      content: '';
+      display: block;
+      width: 36px;
+      height: 4px;
+      background: ${props => props.theme?.border || '#ddd'};
+      border-radius: 2px;
+      margin: 0 auto 1.25rem;
+    }
   }
 `;
 
@@ -88,6 +107,13 @@ export const CloseButton = styled.button`
   justify-content: center;
   border-radius: 50%;
   transition: all 0.18s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+
+  @media (max-width: 480px) {
+    width: 40px;
+    height: 40px;
+  }
 
   &:hover {
     background: ${props => props.theme?.error || '#ef4444'}18;

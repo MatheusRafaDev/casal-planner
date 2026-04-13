@@ -8,8 +8,10 @@ const GlobalStyle = createGlobalStyle`
   }
 
   html {
-  scroll-behavior: smooth;
-}
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -20,6 +22,28 @@ const GlobalStyle = createGlobalStyle`
     background-color: ${({ theme }) => theme?.background || '#fafafa'};
     color: ${({ theme }) => theme?.text || '#333'};
     transition: background-color 0.3s, color 0.3s;
+    overflow-x: hidden;
+    /* iOS safe area support */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Improve tap targets & remove tap flash on mobile */
+  button, a, [role="button"], select, input[type="submit"], input[type="button"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Better input experience on iOS - prevent zoom on focus */
+  input, select, textarea {
+    font-size: 16px !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent iOS bounce/overscroll on modals */
+  .modal-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
   }
 
   .loading {
@@ -31,10 +55,17 @@ const GlobalStyle = createGlobalStyle`
     color: ${({ theme }) => theme?.textSoft || '#666'};
   }
 
-  /* Scrollbar personalizada */
+  /* Scrollbar personalizada - hidden on mobile */
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
+  }
+
+  @media (max-width: 768px) {
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
   }
 
   ::-webkit-scrollbar-track {
@@ -59,6 +90,11 @@ const GlobalStyle = createGlobalStyle`
 
   @keyframes slideUp {
     from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes slideInFromBottom {
+    from { transform: translateY(100%); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
   }
 

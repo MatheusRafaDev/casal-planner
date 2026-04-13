@@ -10,6 +10,7 @@ import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { ConfirmProvider } from './context/ConfirmContext';
 import ConfirmModal from './components/ConfirmModal';
 import Header from './components/Header';
+import BottomNav from './components/BottomNav';
 import GlobalStyle from './styles/GlobalStyle';
 import styled from 'styled-components';
 
@@ -42,7 +43,7 @@ const MainContent = styled.main`
   padding: 2rem 20px;
 
   @media (max-width: 768px) {
-    padding: 1rem 15px;
+    padding: 1rem 15px 5rem;
   }
 `;
 
@@ -85,6 +86,7 @@ const AppRoutes = () => {
             <MainContent>
               <Planejamento />
             </MainContent>
+            <BottomNav />
           </AppContainer>
         </PrivateRoute>
       } />
@@ -95,6 +97,7 @@ const AppRoutes = () => {
             <MainContent>
               <Perfil />
             </MainContent>
+            <BottomNav />
           </AppContainer>
         </PrivateRoute>
       } />

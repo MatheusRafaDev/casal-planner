@@ -43,7 +43,7 @@ const Header = () => {
           setDadosUsuario(dados);
         } catch (error) {
           console.error('Erro ao buscar dados completos:', error);
-          setDadosUsuario(null); 
+          setDadosUsuario(usuario); // Fallback para dados do contexto
         }
       }
     };
