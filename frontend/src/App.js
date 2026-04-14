@@ -1,4 +1,3 @@
-// frontend/src/App.jsx (versão simplificada sem routes separado)
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { StyleSheetManager } from 'styled-components';
@@ -18,17 +17,17 @@ import styled from 'styled-components';
 import Planejamento from './pages/Planejamento';
 import Perfil from './pages/Perfil';
 import Home from './pages/Home';
+import Inicio from './pages/Inicio';
 import Login from './pages/Login';
 import usePageTitle from './hooks/usePageTitle';
 
-// Styled Components
 const LoadingScreen = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: ${props => props.theme.background};
-  color: ${props => props.theme.primary};
+  background: ${props => props.theme?.background || '#18181B'};
+  color: ${props => props.theme?.primary || '#A78BFA'};
   font-size: 1.2rem;
 `;
 
@@ -47,28 +46,30 @@ const MainContent = styled.main`
   }
 `;
 
-// Componentes de rota
 const PrivateRoute = ({ children }) => {
   const { estaAutenticado, loading } = useAuth();
-  if (loading) return <LoadingScreen>Carregando...</LoadingScreen>;
+  const { theme } = useTheme();
+  if (loading) return <LoadingScreen theme={theme}>Carregando...</LoadingScreen>;
   return estaAutenticado ? children : <Navigate to="/login" />;
 };
 
 const PublicRoute = ({ children }) => {
   const { estaAutenticado, loading } = useAuth();
-  if (loading) return <LoadingScreen>Carregando...</LoadingScreen>;
-  return !estaAutenticado ? children : <Navigate to="/planejamento" />;
+  const { theme } = useTheme();
+  if (loading) return <LoadingScreen theme={theme}>Carregando...</LoadingScreen>;
+  return !estaAutenticado ? children : <Navigate to="/inicio" />;
 };
 
-// Componente principal de rotas
 const AppRoutes = () => {
   const { loading } = useAuth();
+  const { theme } = useTheme();
   usePageTitle();
 
-  if (loading) return <LoadingScreen>Carregando...</LoadingScreen>;
+  if (loading) return <LoadingScreen theme={theme}>Carregando...</LoadingScreen>;
 
   return (
     <Routes>
+      {/* Página pública de landing */}
       <Route path="/" element={
         <PublicRoute>
           <Home />
@@ -79,6 +80,20 @@ const AppRoutes = () => {
           <Login />
         </PublicRoute>
       } />
+
+      {/* Página de Início (logado) */}
+      <Route path="/inicio" element={
+        <PrivateRoute>
+          <AppContainer>
+            <Header />
+            <MainContent>
+              <Inicio />
+            </MainContent>
+            <BottomNav />
+          </AppContainer>
+        </PrivateRoute>
+      } />
+
       <Route path="/planejamento" element={
         <PrivateRoute>
           <AppContainer>
@@ -106,7 +121,16 @@ const AppRoutes = () => {
   );
 };
 
-// Wrapper de tema
+// Wrapper que conecta ThemeProvider com isLogado do AuthContext
+const ThemeWrapper = ({ children }) => {
+  const { estaAutenticado } = useAuth();
+  return (
+    <ThemeProvider isLogado={estaAutenticado}>
+      {children}
+    </ThemeProvider>
+  );
+};
+
 const StyledThemeWrapper = () => {
   const { theme } = useTheme();
   return (
@@ -121,15 +145,14 @@ const StyledThemeWrapper = () => {
   );
 };
 
-// App principal
 function App() {
   return (
     <StyleSheetManager shouldForwardProp={isPropValid}>
       <BrowserRouter>
         <AuthProvider>
-          <ThemeProvider>
+          <ThemeWrapper>
             <StyledThemeWrapper />
-          </ThemeProvider>
+          </ThemeWrapper>
         </AuthProvider>
       </BrowserRouter>
     </StyleSheetManager>

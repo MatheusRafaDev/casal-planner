@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
+import { Sun, Moon } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import usuarioService from "../services/usuarioService";
 import authService from "../services/authService";
@@ -73,7 +74,7 @@ const SenhaInput = ({ value, name, onChange, placeholder, theme }) => {
 // ─── Componente Principal ─────────────────────────────────────────────────────
 
 const Perfil = () => {
-  const { theme } = useTheme();
+  const { theme, isDarkMode, toggleTheme } = useTheme();
   const { usuario, atualizarUsuario, logout } = useAuth();
 
   const [editando, setEditando] = useState(false);
@@ -541,6 +542,19 @@ const Perfil = () => {
           )}
         </InfoContainer>
       </PerfilCard>
+
+
+      {/* ── Aparência ── */}
+      {!editando && !editandoSenha && (
+        <PerfilCard theme={theme}>
+          <SectionTitle theme={theme}>{isDarkMode ? <Moon size={16} /> : <Sun size={16} />} Aparência</SectionTitle>
+          <AlterarSenhaButton onClick={toggleTheme} theme={theme}>
+            {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+            {isDarkMode ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
+            <ChevronRight size={16} style={{ marginLeft: 'auto' }} />
+          </AlterarSenhaButton>
+        </PerfilCard>
+      )}
 
       {/* ── Segurança ── */}
       {!editando && (

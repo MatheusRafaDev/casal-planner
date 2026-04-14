@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Heart, Sun, Moon, LogOut, User, ChevronDown, Home, ClipboardList } from 'lucide-react';
-import usuarioService from '../services/usuarioService';
-import authService from '../services/authService'; 
+import { Heart, LogOut, User, ChevronDown, Home, ClipboardList, Sun, Moon } from 'lucide-react';
+import authService from '../services/authService';
 
 import {
   HeaderContainer,
@@ -13,7 +12,6 @@ import {
   NavLinks,
   NavButton,
   UserSection,
-  ThemeButton,
   UserMenu,
   UserAvatar,
   UserName,
@@ -25,13 +23,11 @@ import {
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { usuario, atualizarUsuario, logout } = useAuth();
-  const { isDarkMode, toggleTheme, theme } = useTheme();
+  const { usuario, logout } = useAuth();
+  const { theme, isDarkMode, toggleTheme } = useTheme();
   const [menuAberto, setMenuAberto] = useState(false);
   const [nomeExibicao, setNomeExibicao] = useState('');
-  const [atualizandoTema, setAtualizandoTema] = useState(false);
-  const [dadosUsuario, setDadosUsuario] = useState(null); // 🔥 Estado para dados completos
-  const sincronizacaoFeita = useRef(false);
+  const [dadosUsuario, setDadosUsuario] = useState(null);
 
   const isLogado = !!usuario;
 
@@ -41,83 +37,29 @@ const Header = () => {
         try {
           const dados = await authService.buscarDadosCompletos();
           setDadosUsuario(dados);
-        } catch (error) {
-          console.error('Erro ao buscar dados completos:', error);
-          setDadosUsuario(usuario); // Fallback para dados do contexto
+        } catch {
+          setDadosUsuario(usuario);
         }
       }
     };
-
     carregarDadosCompletos();
   }, [usuario]);
 
-  // Atualizar nome de exibição quando dadosUsuario mudar
   useEffect(() => {
-    const usuarioParaExibir = dadosUsuario || usuario;
-    
-    if (usuarioParaExibir) {
-      if (usuarioParaExibir.isCasal || usuarioParaExibir.tipoConta === 'Casal' || usuarioParaExibir.tipoConta === 1) {
-        const pessoaLogada = usuarioParaExibir.pessoaQueLogou || 'pessoa1';
-        const casalInfo = usuarioParaExibir.casalInfo || {};
-        
-        const nome = pessoaLogada === 'pessoa1' 
-          ? casalInfo?.nomeCompletoPessoa1 
-          : casalInfo?.nomeCompletoPessoa2;
-        
+    const u = dadosUsuario || usuario;
+    if (u) {
+      if (u.isCasal || u.tipoConta === 'Casal' || u.tipoConta === 1) {
+        const pessoaLogada = u.pessoaQueLogou || 'pessoa1';
+        const c = u.casalInfo || {};
+        const nome = pessoaLogada === 'pessoa1' ? c?.nomeCompletoPessoa1 : c?.nomeCompletoPessoa2;
         setNomeExibicao(nome || 'Usuário');
       } else {
-        setNomeExibicao(usuarioParaExibir.nomeCompleto || 'Usuário');
+        setNomeExibicao(u.nomeCompleto || 'Usuário');
       }
     } else {
       setNomeExibicao('');
     }
   }, [dadosUsuario, usuario]);
-
-  // Sincroniza o tema sem recarregar a página
-  useEffect(() => {
-    if (usuario && usuario.modoEscuro !== undefined && !sincronizacaoFeita.current) {
-      if (usuario.modoEscuro !== isDarkMode) {
-        sincronizacaoFeita.current = true;
-        if (usuario.modoEscuro !== isDarkMode) {
-          toggleTheme();
-        }
-      }
-    }
-  }, [usuario, isDarkMode, toggleTheme]);
-
-  const handleToggleTheme = async () => {
-    if (atualizandoTema) return;
-    
-    setAtualizandoTema(true);
-    const novoModoEscuro = !isDarkMode;
-    
-    try {
-      toggleTheme();
-      
-      if (usuario) {
-        await usuarioService.atualizarModoEscuro(usuario.id, novoModoEscuro);
-        
-        const usuarioAtualizado = { 
-          ...usuario, 
-          modoEscuro: novoModoEscuro 
-        };
-        
-        atualizarUsuario(usuarioAtualizado);
-        
-        // Atualizar também os dados completos
-        setDadosUsuario(prev => prev ? { ...prev, modoEscuro: novoModoEscuro } : null);
-      } else {
-        localStorage.setItem('darkMode', JSON.stringify(novoModoEscuro));
-      }
-      
-    } catch (error) {
-      console.error('Erro ao salvar preferência de tema:', error);
-      toggleTheme();
-    } finally {
-      setAtualizandoTema(false);
-      sincronizacaoFeita.current = false;
-    }
-  };
 
   const getInitials = () => {
     if (!nomeExibicao || nomeExibicao === 'Usuário') return 'U';
@@ -129,40 +71,28 @@ const Header = () => {
     return nomeExibicao.split(' ')[0];
   };
 
-  // Fechar menu ao clicar fora
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuAberto && !event.target.closest('.user-menu-container')) {
+    const handleClickOutside = (e) => {
+      if (menuAberto && !e.target.closest('.user-menu-container')) {
         setMenuAberto(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [menuAberto]);
 
+  // Header deslogado — sem toggle de tema
   if (!isLogado) {
     return (
       <HeaderContainer theme={theme}>
         <HeaderContent>
           <Logo onClick={() => navigate('/')} theme={theme}>
-            <div className="icon">
-              <Heart />
-            </div>
-            <span>CasalPlanner</span> 
+            <div className="icon"><Heart /></div>
+            <span>CasalPlanner</span>
           </Logo>
           <UserSection>
-            <ThemeButton onClick={handleToggleTheme} theme={theme}>
-              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-            </ThemeButton>
-            <Button onClick={() => navigate('/login')} theme={theme}>
-              Entrar
-            </Button>
-            <Button 
-              primary 
-              onClick={() => navigate('/login', { state: { modo: 'registro' } })} 
-              theme={theme}
-            >
+            <Button onClick={() => navigate('/login')} theme={theme}>Entrar</Button>
+            <Button primary onClick={() => navigate('/login', { state: { modo: 'registro' } })} theme={theme}>
               Criar conta
             </Button>
           </UserSection>
@@ -174,78 +104,53 @@ const Header = () => {
   return (
     <HeaderContainer theme={theme}>
       <HeaderContent>
-        <Logo onClick={() => navigate('/')} theme={theme}>
-          <div className="icon">
-            <Heart />
-          </div>
+        <Logo onClick={() => navigate('/inicio')} theme={theme}>
+          <div className="icon"><Heart /></div>
           <span>CasalPlanner</span>
         </Logo>
 
         <NavLinks>
-          <NavButton 
-            onClick={() => navigate('/planejamento')} 
-            active={location.pathname === '/planejamento'}
-            theme={theme}
-          >
-            <ClipboardList size={18} />
-            <span>Planejamento</span>
+          <NavButton onClick={() => navigate('/inicio')} active={location.pathname === '/inicio'} theme={theme}>
+            <Home size={18} /><span>Início</span>
+          </NavButton>
+          <NavButton onClick={() => navigate('/planejamento')} active={location.pathname === '/planejamento'} theme={theme}>
+            <ClipboardList size={18} /><span>Planejamento</span>
           </NavButton>
         </NavLinks>
 
         <UserSection>
-          <ThemeButton 
-            onClick={handleToggleTheme} 
-            theme={theme}
-            disabled={atualizandoTema}
-          >
-            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </ThemeButton>
-
           <div style={{ position: 'relative' }} className="user-menu-container">
             <UserMenu onClick={() => setMenuAberto(!menuAberto)} theme={theme}>
-              <UserAvatar theme={theme}>
-                {getInitials()}
-              </UserAvatar>
-              <UserName theme={theme}>
-                {getPrimeiroNome()}
-              </UserName>
+              <UserAvatar theme={theme}>{getInitials()}</UserAvatar>
+              <UserName theme={theme}>{getPrimeiroNome()}</UserName>
               <ChevronDown size={16} />
             </UserMenu>
 
             {menuAberto && (
               <DropdownMenu theme={theme}>
-                <DropdownItem 
-                  onClick={() => {
-                    navigate('/perfil');
-                    setMenuAberto(false);
-                  }}
-                  theme={theme}
-                >
-                  <User size={16} />
-                  <span>Perfil</span>
+                <DropdownItem onClick={() => { navigate('/inicio'); setMenuAberto(false); }} theme={theme}>
+                  <Home size={16} /><span>Início</span>
                 </DropdownItem>
 
-                <DropdownItem 
-                  onClick={() => {
-                    navigate('/planejamento');
-                    setMenuAberto(false);
-                  }}
-                  theme={theme}
-                >
-                  <ClipboardList size={16} />
-                  <span>Planejamento</span>
+                <DropdownItem onClick={() => { navigate('/perfil'); setMenuAberto(false); }} theme={theme}>
+                  <User size={16} /><span>Perfil</span>
                 </DropdownItem>
 
-                <DropdownItem 
-                  onClick={() => {
-                    logout();
-                    setMenuAberto(false);
-                  }}
+                <DropdownItem onClick={() => { navigate('/planejamento'); setMenuAberto(false); }} theme={theme}>
+                  <ClipboardList size={16} /><span>Planejamento</span>
+                </DropdownItem>
+
+                {/* Toggle de tema no dropdown */}
+                <DropdownItem
+                  onClick={() => { toggleTheme(); setMenuAberto(false); }}
                   theme={theme}
-                  danger
                 >
-                  <LogOut size={16} />
-                  <span>Sair</span>
+                  {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+                  <span>{isDarkMode ? 'Modo claro' : 'Modo escuro'}</span>
+                </DropdownItem>
+
+                <DropdownItem onClick={() => { logout(); setMenuAberto(false); }} theme={theme} danger>
+                  <LogOut size={16} /><span>Sair</span>
                 </DropdownItem>
               </DropdownMenu>
             )}

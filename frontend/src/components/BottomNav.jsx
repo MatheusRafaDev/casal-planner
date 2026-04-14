@@ -14,7 +14,7 @@ const BottomNav = () => {
   if (!usuario) return null;
 
   const items = [
-    { path: '/', icon: Home, label: 'Início' },
+    { path: '/inicio', icon: Home, label: 'Início' },
     { path: '/planejamento', icon: ClipboardList, label: 'Planejamento' },
     { path: '/perfil', icon: User, label: 'Perfil' },
   ];
@@ -37,11 +37,7 @@ const BottomNav = () => {
           </NavItem>
         );
       })}
-      <NavItem
-        onClick={logout}
-        theme={theme}
-        $active={false}
-      >
+      <NavItem onClick={logout} theme={theme} $active={false}>
         <NavIcon $active={false} theme={theme}>
           <LogOut size={22} />
         </NavIcon>
@@ -98,9 +94,7 @@ const NavItem = styled.button`
     transition: width 0.25s ease;
   }
 
-  &:active {
-    transform: scale(0.92);
-  }
+  &:active { transform: scale(0.92); }
 `;
 
 const NavIcon = styled.span`

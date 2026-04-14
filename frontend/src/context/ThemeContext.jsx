@@ -5,24 +5,36 @@ const ThemeContext = createContext();
 
 export const useTheme = () => useContext(ThemeContext);
 
-export const ThemeProvider = ({ children }) => {
+// ThemeProvider recebe isLogado como prop para evitar dependência circular
+export const ThemeProvider = ({ children, isLogado }) => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (!isLogado) return true; // deslogado: sempre dark
     const saved = localStorage.getItem('darkMode');
-    return saved ? JSON.parse(saved) : false;
+    return saved !== null ? JSON.parse(saved) : true; // padrão dark
   });
+
+  // Se deslogou, força dark mode
+  useEffect(() => {
+    if (!isLogado) {
+      setIsDarkMode(true);
+    }
+  }, [isLogado]);
 
   const theme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
-  }, [isDarkMode]);
+    if (isLogado) {
+      localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
+    }
+  }, [isDarkMode, isLogado]);
 
   const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
+    if (!isLogado) return; // bloqueado para deslogados
+    setIsDarkMode(prev => !prev);
   };
 
   return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleTheme, theme }}>
+    <ThemeContext.Provider value={{ isDarkMode, toggleTheme, theme, canToggleTheme: isLogado }}>
       {children}
     </ThemeContext.Provider>
   );
