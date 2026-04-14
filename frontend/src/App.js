@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { StyleSheetManager } from 'styled-components';
 import isPropValid from '@emotion/is-prop-valid';
 import { Toaster } from 'react-hot-toast';
@@ -11,7 +11,7 @@ import ConfirmModal from './components/ConfirmModal';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 import GlobalStyle from './styles/GlobalStyle';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 // Pages
 import Planejamento from './pages/Planejamento';
@@ -20,6 +20,11 @@ import Home from './pages/Home';
 import Inicio from './pages/Inicio';
 import Login from './pages/Login';
 import usePageTitle from './hooks/usePageTitle';
+
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
 
 const LoadingScreen = styled.div`
   display: flex;
@@ -46,6 +51,10 @@ const MainContent = styled.main`
   }
 `;
 
+const PageWrapper = styled.div`
+  animation: ${fadeUp} 0.4s ease both;
+`;
+
 const PrivateRoute = ({ children }) => {
   const { estaAutenticado, loading } = useAuth();
   const { theme } = useTheme();
@@ -58,6 +67,21 @@ const PublicRoute = ({ children }) => {
   const { theme } = useTheme();
   if (loading) return <LoadingScreen theme={theme}>Carregando...</LoadingScreen>;
   return !estaAutenticado ? children : <Navigate to="/inicio" />;
+};
+
+const PrivatePage = ({ children }) => {
+  const location = useLocation();
+  return (
+    <AppContainer>
+      <Header />
+      <MainContent>
+        <PageWrapper key={location.pathname}>
+          {children}
+        </PageWrapper>
+      </MainContent>
+      <BottomNav />
+    </AppContainer>
+  );
 };
 
 const AppRoutes = () => {
@@ -84,36 +108,24 @@ const AppRoutes = () => {
       {/* Página de Início (logado) */}
       <Route path="/inicio" element={
         <PrivateRoute>
-          <AppContainer>
-            <Header />
-            <MainContent>
-              <Inicio />
-            </MainContent>
-            <BottomNav />
-          </AppContainer>
+          <PrivatePage>
+            <Inicio />
+          </PrivatePage>
         </PrivateRoute>
       } />
 
       <Route path="/planejamento" element={
         <PrivateRoute>
-          <AppContainer>
-            <Header />
-            <MainContent>
-              <Planejamento />
-            </MainContent>
-            <BottomNav />
-          </AppContainer>
+          <PrivatePage>
+            <Planejamento />
+          </PrivatePage>
         </PrivateRoute>
       } />
       <Route path="/perfil" element={
         <PrivateRoute>
-          <AppContainer>
-            <Header />
-            <MainContent>
-              <Perfil />
-            </MainContent>
-            <BottomNav />
-          </AppContainer>
+          <PrivatePage>
+            <Perfil />
+          </PrivatePage>
         </PrivateRoute>
       } />
       <Route path="*" element={<Navigate to="/" replace />} />

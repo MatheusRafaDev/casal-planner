@@ -21,14 +21,9 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const carregarUsuario = async () => {
       try {
-        const autenticado = await authService.estaAutenticado();
-
-        if (autenticado) {
-          const dadosUsuario = await authService.buscarDadosCompletos();
-          setUsuario(dadosUsuario);
-        } else {
-          setUsuario(null);
-        }
+        // getUsuario() já chama buscarDadosCompletos se não houver cache
+        const dadosUsuario = await authService.getUsuario();
+        setUsuario(dadosUsuario || null);
       } catch (error) {
         console.error("Erro ao carregar usuário:", error);
         setUsuario(null);

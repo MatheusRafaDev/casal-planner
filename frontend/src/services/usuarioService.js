@@ -1,9 +1,8 @@
 import api from './api';
 import authService from './authService';
+import { tokenStorage } from './api';
 
 class UsuarioService {
-
-  #usuarioCache = null;
 
   async registrar(dados) {
     try {
@@ -15,10 +14,12 @@ class UsuarioService {
         dataNascimento: dados.dataNascimento,
         rendaMensal: dados.rendaMensal || 0
       };
-
       const response = await api.post('/usuario/registrar', dadosBackend);
+      // Salva token se vier na resposta de registro
+      if (response.data?.token) {
+        tokenStorage.set(response.data.token);
+      }
       return response.data;
-
     } catch (error) {
       console.error('Erro no registro:', error);
       throw error;
@@ -41,34 +42,13 @@ class UsuarioService {
         dataNascimentoPessoa2: dados.dataNascimentoPessoa2,
         rendaMensalPessoa2: dados.rendaMensalPessoa2 || 0,
       };
-
       const response = await api.post('/usuario/registrar-casal', dadosBackend);
-
-      if (response.data.usuario) {
-        this.#usuarioCache = response.data.usuario;
+      if (response.data?.token) {
+        tokenStorage.set(response.data.token);
       }
-
       return response.data;
-
     } catch (error) {
       console.error('Erro no registro casal:', error);
-      throw error;
-    }
-  }
-
-  async getCurrentUser() {
-    try {
-      const response = await api.get('/usuario/me');
-
-      const usuarioAtual = authService.getUsuario();
-      if (usuarioAtual) {
-        authService.setUsuario({ ...usuarioAtual, ...response.data }); // ✅ agora usa
-      }
-
-      return response.data;
-
-    } catch (error) {
-      console.error('Erro ao buscar usuário:', error);
       throw error;
     }
   }
@@ -82,14 +62,10 @@ class UsuarioService {
         cpf: dados.cpf
       };
       const response = await api.put(`/usuario/perfil`, dadosBackend);
-
-      const usuarioAtual = authService.getUsuario();
-      if (usuarioAtual && usuarioAtual.id === id) {
-        authService.setUsuario({ ...usuarioAtual, ...response.data }); 
-      }
-
+      // Atualiza o cache local do authService
+      // Invalida cache para forçar re-fetch na próxima chamada
+      authService.clearCache();
       return response.data;
-
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
       throw error;
@@ -106,16 +82,8 @@ class UsuarioService {
         dataNascimentoPessoa2: dados.dataNascimentoPessoa2,
         rendaMensalPessoa2: dados.rendaMensalPessoa2,
       };
-
       const response = await api.put(`/usuario/perfil-casal/${id}`, dadosBackend);
-
-      const usuarioAtual = authService.getUsuario();
-      if (usuarioAtual && usuarioAtual.id === id) {
-        authService.setUsuario({ ...usuarioAtual, ...response.data }); // ✅ corrigido
-      }
-
       return response.data;
-
     } catch (error) {
       console.error('Erro ao atualizar perfil casal:', error);
       throw error;
@@ -125,15 +93,7 @@ class UsuarioService {
   async atualizarModoEscuro(id, modoEscuro) {
     try {
       const response = await api.put(`/usuario/modo-escuro/${id}`, { modoEscuro });
-
-      const usuarioAtual = authService.getUsuario();
-      if (usuarioAtual && usuarioAtual.id === id) {
-        usuarioAtual.modoEscuro = modoEscuro;
-        authService.setUsuario(usuarioAtual); // ✅ garante atualização
-      }
-
       return response.data;
-
     } catch (error) {
       console.error('Erro ao atualizar modo escuro:', error);
       throw error;
@@ -144,7 +104,6 @@ class UsuarioService {
     try {
       const response = await api.post('/usuario/alterar-senha', dados);
       return response.data;
-
     } catch (error) {
       console.error('Erro ao alterar senha:', error);
       throw error;
@@ -154,16 +113,16 @@ class UsuarioService {
   async excluirConta(id) {
     try {
       const response = await api.delete(`/usuario/usuario/${id}`);
-      authService._logoutLocal();
+      // Limpa token e cache após exclusão
+      tokenStorage.remove();
+      authService.clearCache();
       return response.data;
-
     } catch (error) {
       console.error('Erro ao excluir conta:', error);
       throw error;
     }
   }
 }
-
 
 const usuarioService = new UsuarioService();
 export default usuarioService;
