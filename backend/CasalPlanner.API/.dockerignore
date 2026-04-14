@@ -1,10 +1,32 @@
+# Artefatos de build
 bin/
 obj/
+publish/
+
+# Dependências Node (não pertencem ao backend .NET)
+node_modules/
+package.json
+package-lock.json
+
+# Ambiente local — NUNCA enviar ao container
+.env
+.env.*
+!.env.example
+
+# Ferramentas de dev
+.vs/
+.vscode/
 *.user
 *.suo
-.vs/
-.git/
-.gitignore
-README.md
+
+# Testes
+*Tests/
+*Test/
+
+# Docs e assets desnecessários
 *.md
-.DS_Store
+*.http
+
+# Logs
+logs/
+*.log

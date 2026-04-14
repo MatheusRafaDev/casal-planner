@@ -1,26 +1,34 @@
-# Estágio 1: Build com .NET 10.0 Preview
+# ── Estágio 1: Build ──────────────────────────────────────────────
 FROM mcr.microsoft.com/dotnet/nightly/sdk:10.0-preview AS build
 WORKDIR /src
 
-# Copiar csproj e restaurar
+# Restaurar dependências primeiro (melhor cache de camadas)
 COPY ["CasalPlanner.API/CasalPlanner.API.csproj", "CasalPlanner.API/"]
-RUN dotnet restore "CasalPlanner.API/CasalPlanner.API.csproj" --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json --source https://api.nuget.org/v3/index.json
+RUN dotnet restore "CasalPlanner.API/CasalPlanner.API.csproj"
 
-# Copiar todo código
+# Copiar código-fonte e publicar
 COPY . .
-
-# Publicar
 WORKDIR "/src/CasalPlanner.API"
-RUN dotnet publish "CasalPlanner.API.csproj" -c Release -o /app/publish
+RUN dotnet publish "CasalPlanner.API.csproj" \
+    -c Release \
+    -o /app/publish \
+    --no-restore \
+    -p:UseAppHost=false
 
-# Estágio 2: Runtime com .NET 10.0 Preview
+# ── Estágio 2: Runtime ────────────────────────────────────────────
 FROM mcr.microsoft.com/dotnet/nightly/aspnet:10.0-preview AS runtime
 WORKDIR /app
+
+# Usuário não-root para segurança
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+USER appuser
+
 COPY --from=build /app/publish .
 
-ENV ASPNETCORE_URLS=http://+:80
+ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV DOTNET_RUNNING_IN_CONTAINER=true
 
-EXPOSE 80
+EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "CasalPlanner.API.dll"]

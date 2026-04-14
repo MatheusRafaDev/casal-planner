@@ -41,3 +41,7 @@ packages/
 # Publish
 publish/
 Published/
+# Node (não pertencem ao backend .NET — remover do repositório)
+node_modules/
+package.json
+package-lock.json

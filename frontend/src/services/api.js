@@ -5,6 +5,10 @@ import axios from 'axios';
 
 const TOKEN_KEY = 'casal_planner_token';
 
+if (!process.env.REACT_APP_API_URL) {
+  console.error('❌ REACT_APP_API_URL não está definida. Configure a variável de ambiente.');
+}
+
 // ─── Helpers de token ──────────────────────────────────────
 export const tokenStorage = {
   get:    ()        => localStorage.getItem(TOKEN_KEY),
@@ -17,7 +21,6 @@ export const tokenStorage = {
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
   timeout: 15000,
-  // ❌ withCredentials removido — não usamos mais cookies
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -46,12 +49,14 @@ api.interceptors.response.use(
     // Token inválido/expirado — limpa e redireciona
     if (error.response?.status === 401) {
       tokenStorage.remove();
-      // Redireciona apenas se não estiver já na página de login
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }
       return Promise.reject(error);
     }
+
+    // Sem baseURL configurada — falha imediata, sem retry
+    if (!process.env.REACT_APP_API_URL) return Promise.reject(error);
 
     // Retry automático em erro de rede ou 5xx (máx 2 tentativas)
     if (!config || config._retryCount >= 2) return Promise.reject(error);

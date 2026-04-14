@@ -30,6 +30,9 @@ var jwtKey      = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
 var jwtIssuer   = Environment.GetEnvironmentVariable("JWT_ISSUER")   ?? "CasalPlanner";
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "CasalPlannerUsers";
 
+if (jwtKey.Length < 32)
+    throw new Exception("JWT_SECRET_KEY deve ter no mínimo 32 caracteres");
+
 var mongoConnection = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING")
     ?? throw new Exception("MONGODB_CONNECTION_STRING não configurada");
 
@@ -38,9 +41,13 @@ builder.Services.AddMemoryCache();
 builder.Services.Configure<IpRateLimitOptions>(options =>
 {
     options.EnableEndpointRateLimiting = true;
+    // Usa IP real quando atrás de proxy/load balancer (Render, Railway, etc.)
+    options.RealIpHeader = "X-Forwarded-For";
+    options.ClientIdHeader = "X-ClientId";
     options.GeneralRules = new List<RateLimitRule>
     {
-        new() { Endpoint = "*", Period = "1m", Limit = 100 }
+        new() { Endpoint = "*",                Period = "1m",  Limit = 100 },
+        new() { Endpoint = "POST:/api/auth/*", Period = "10m", Limit = 10  }, // Proteção brute-force login
     };
 });
 builder.Services.AddInMemoryRateLimiting();
@@ -54,7 +61,7 @@ builder.Services.Configure<MongoDBSettings>(opt =>
 });
 builder.Services.AddSingleton<MongoDbContext>();
 
-// ===== 5. JWT — lê APENAS do header Authorization: Bearer <token> =====
+// ===== 5. JWT =====
 var key = Encoding.UTF8.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(options =>
@@ -64,7 +71,8 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false;
+    // Em produção, exige HTTPS; em dev, permite HTTP
+    options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
     options.SaveToken = true;
 
     options.TokenValidationParameters = new TokenValidationParameters
@@ -79,7 +87,6 @@ builder.Services.AddAuthentication(options =>
         ClockSkew                = TimeSpan.Zero
     };
 
-    // ✅ Lê token APENAS do header Authorization — sem cookie, sem query string
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
@@ -95,20 +102,26 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// ===== 6. CORS — sem AllowCredentials (não usamos mais cookies) =====
+// ===== 6. CORS =====
+var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "https://casalplanner.vercel.app";
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CasalPlannerPolicy", policy =>
     {
+        var origins = new List<string> { frontendUrl };
+
+        // URLs adicionais do Vercel
+        origins.Add("https://casalplanner.vercel.app");
+        origins.Add("https://casal-planner.vercel.app");
+
+        if (builder.Environment.IsDevelopment())
+            origins.Add("http://localhost:3000");
+
         policy
-            .WithOrigins(
-                "https://casalplanner.vercel.app",
-                "https://casal-planner.vercel.app",
-                "http://localhost:3000"
-            )
+            .WithOrigins(origins.Distinct().ToArray())
             .AllowAnyHeader()
             .AllowAnyMethod();
-            // ❌ .AllowCredentials() removido — não necessário para Bearer token
     });
 });
 
@@ -122,7 +135,23 @@ builder.Services.AddScoped<IResumoService, ResumoService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// Swagger apenas em desenvolvimento
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "Casal Planner API", Version = "v1" });
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "JWT Authorization header. Ex: Bearer {token}",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey,
+            Scheme = "Bearer"
+        });
+    });
+}
 
 // ===== BUILD =====
 var app = builder.Build();
@@ -134,53 +163,71 @@ app.Use(async (context, next) =>
     {
         context.Response.Headers["Content-Security-Policy"] =
             "default-src 'self'; " +
-            "connect-src 'self' https://*.vercel.app https://*.onrender.com; " +
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+            "connect-src 'self' https://*.vercel.app https://*.onrender.com https://*.railway.app; " +
+            "script-src 'self'; " +
             "style-src 'self' 'unsafe-inline'; " +
-            "img-src 'self' data: https:;";
+            "img-src 'self' data: https:; " +
+            "frame-ancestors 'none';";
+        context.Response.Headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
     }
 
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
     context.Response.Headers["X-Frame-Options"]        = "DENY";
     context.Response.Headers["Referrer-Policy"]        = "strict-origin-when-cross-origin";
+    context.Response.Headers["X-XSS-Protection"]       = "1; mode=block";
 
     await next();
 });
 
 // ===== PIPELINE =====
+app.UseIpRateLimiting();
+
 if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 else
     Console.WriteLine("🔧 Ambiente Dev: HTTP permitido");
 
-app.UseCors("CasalPlannerPolicy"); // CORS antes de auth
+app.UseCors("CasalPlannerPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-// ===== 9. SWAGGER =====
+// ===== 9. SWAGGER (apenas dev) =====
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-else
-{
-    app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
-}
 
-// ===== 10. SEED =====
+// Health check sempre disponível
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "healthy",
+    timestamp = DateTime.UtcNow,
+    environment = app.Environment.EnvironmentName,
+    version = "1.0.0"
+}));
+
+// ===== 10. SEED — apenas em desenvolvimento =====
 try
 {
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<MongoDbContext>();
 
     await dbContext.TestarConexaoAsync();
-    await dbContext.SeedDataAsync();
+
+    // Seed de dados de exemplo APENAS em desenvolvimento
+    if (app.Environment.IsDevelopment())
+    {
+        await dbContext.SeedDataAsync();
+        Console.WriteLine("🌱 Seed executado (dev)");
+    }
+
     await dbContext.VerificarUsuarioCasal();
 
+    // Índices sempre criados (idempotente)
     await dbContext.Itens.Indexes.CreateManyAsync(new[]
     {
         new CreateIndexModel<Item>(
@@ -201,13 +248,19 @@ try
             new CreateIndexOptions { Name = "idx_categorias_isPadrao", Background = true }),
     });
 
-    Console.WriteLine("✅ Seed e índices criados com sucesso");
+    Console.WriteLine("✅ Índices verificados com sucesso");
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"❌ Erro no seed: {ex.Message}");
+    Console.WriteLine($"❌ Erro na inicialização: {ex.Message}");
+    // Não derruba o app — permite que o health check responda
 }
 
 // ===== 11. INICIAR =====
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5286";
-app.Run($"http://0.0.0.0:{port}");
+// Em dev: launchSettings.json controla a URL via ASPNETCORE_URLS automaticamente.
+// Em prod (Render/Railway): PORT é injetada via variável de ambiente.
+var portEnv = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(portEnv))
+    app.Run($"http://0.0.0.0:{portEnv}");
+else
+    app.Run(); // usa ASPNETCORE_URLS do launchSettings (dev) ou padrão :5000

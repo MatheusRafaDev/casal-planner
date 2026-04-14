@@ -1,13 +1,11 @@
 {
   "name": "frontend",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "dependencies": {
     "@emotion/is-prop-valid": "^1.4.0",
     "@heroicons/react": "^2.2.0",
     "axios": "^1.6.0",
-    "express": "^5.2.1",
-    "http-proxy-middleware": "^2.0.6",
     "lucide-react": "^0.575.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -17,10 +15,14 @@
     "react-scripts": "5.0.1",
     "styled-components": "^6.3.11"
   },
+  "devDependencies": {
+    "http-proxy-middleware": "^2.0.6"
+  },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
+    "test:ci": "CI=true react-scripts test --watchAll=false --passWithNoTests",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
