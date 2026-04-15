@@ -3,16 +3,9 @@ import { useLocation } from 'react-router-dom';
 
 const PAGE_TITLES = {
   '/': 'CasalPlanner - Planeje sua vida a dois',
-  '/login': 'Entrar - CasalPlanner',
-  '/register': 'Cadastro - CasalPlanner',
-  '/planejamento': 'Planejamento - CasalPlanner',
-  '/perfil': 'Meu Perfil - CasalPlanner',
-  '/tarefas': 'Tarefas - CasalPlanner',
-  '/financas': 'Finanças - CasalPlanner',
-  '/calendario': 'Calendário - CasalPlanner',
-  '/configuracoes': 'Configurações - CasalPlanner',
-  '/ajuda': 'Ajuda - CasalPlanner',
-  '/sobre': 'Sobre - CasalPlanner',
+  '/login': 'Entrar',
+  '/planejamento': 'Planejamento ',
+  '/perfil': 'Meu Perfil',
 };
 
 const DEFAULT_TITLE = 'CasalPlanner - Organize sua vida a dois';
