@@ -85,8 +85,7 @@ const StoreLogo = memo(({ storeName, size = "small" }) => {
   );
 });
 
-// Item individual memoizado — só re-renderiza se o item mudar
-// Item individual memoizado — só re-renderiza se o item mudar
+// Item individual memoizado
 const ItemRow = memo(
   ({
     item,
@@ -103,7 +102,6 @@ const ItemRow = memo(
     const [isHovered, setIsHovered] = useState(false);
     const prioridadeConfig =
       PRIORIDADE_CONFIG[item.prioridade] || PRIORIDADE_CONFIG.normal;
-    const PriorityIcon = prioridadeConfig.icon;
     const disabled = isLoading || isSaving;
 
     const handleOpenLink = useCallback(
@@ -115,7 +113,6 @@ const ItemRow = memo(
       [item.linkProduto],
     );
 
-    // ✅ Drag apenas no ícone
     const handleDragStart = useCallback(
       (e) => {
         if (disabled) {
@@ -123,20 +120,23 @@ const ItemRow = memo(
           return;
         }
         e.stopPropagation();
-        // Define o efeito e os dados do drag
-        e.dataTransfer.setData("text/plain", item.id);
+
+        const itemId = String(item.id);
+
+        e.dataTransfer.setData("text/plain", itemId);
         e.dataTransfer.effectAllowed = "move";
-        // Opcional: adiciona um ícone personalizado durante o drag
+
         if (e.dataTransfer.setDragImage) {
-          const dragIcon = document.createElement('div');
-          dragIcon.textContent = '📦';
-          dragIcon.style.position = 'absolute';
-          dragIcon.style.top = '-1000px';
+          const dragIcon = document.createElement("div");
+          dragIcon.textContent = "📦";
+          dragIcon.style.position = "absolute";
+          dragIcon.style.top = "-1000px";
           document.body.appendChild(dragIcon);
           e.dataTransfer.setDragImage(dragIcon, 0, 0);
           setTimeout(() => document.body.removeChild(dragIcon), 0);
         }
-        onDragStart(item.id);
+
+        onDragStart(itemId);
       },
       [disabled, item.id, onDragStart],
     );
@@ -156,13 +156,12 @@ const ItemRow = memo(
         theme={theme}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        $isDragging={draggedItemId === item.id}
+        $isDragging={draggedItemId === String(item.id)}
         $isHovered={isHovered}
       >
         <S.ItemMainRow>
-          {/* ✅ Apenas o ícone de arrastar é draggable */}
-          <S.DragHandleItem 
-            className="item-drag-handle" 
+          <S.DragHandleItem
+            className="item-drag-handle"
             theme={theme}
             draggable={!disabled}
             onDragStart={handleDragStart}
@@ -378,25 +377,34 @@ const CategoriaCard = ({
     }
   }, [isLoading, isSaving, onAddItem, categoria.id]);
 
-  const handleDragOver = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(true);
-  }, []);
+  const handleDragOver = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(true);
+    },
+    [categoria.nome],
+  );
+
   const handleDragLeave = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
   }, []);
+
   const handleDrop = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
       setIsDragOver(false);
+
       const itemId = e.dataTransfer.getData("text/plain");
-      if (itemId) onItemDrop(categoria.id);
+      
+      if (itemId) {
+        onItemDrop(categoria.id);
+      }
     },
-    [onItemDrop, categoria.id],
+    [onItemDrop, categoria.id, categoria.nome],
   );
 
   const disabled = isLoading || isSaving;

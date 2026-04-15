@@ -384,8 +384,11 @@ export const DragHandleItem = styled.span`
   display: inline-flex;
   align-items: center;
   
+  /* ✅ Força o draggable */
   &[draggable="true"] {
     cursor: grab;
+    user-select: none;
+    -webkit-user-drag: element;
     
     &:active {
       cursor: grabbing;

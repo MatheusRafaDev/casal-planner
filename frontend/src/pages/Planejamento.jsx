@@ -159,7 +159,7 @@ const Planejamento = () => {
   const handleAddItem = useCallback((categoriaId) => {
     setFormData({
       ...FORM_DATA_VAZIO,
-      categoriaId: categoriaId, // 🔥 Mantém como string, não converte
+      categoriaId: categoriaId,
     });
     setItemModal({ isOpen: true, categoriaId, itemId: null });
   }, []);
@@ -167,12 +167,9 @@ const Planejamento = () => {
   const handleEditItem = useCallback(
     (itemId) => {
       const item = itens.find((i) => i.id === itemId);
-
       if (!item) return;
 
       setItemModal({ isOpen: true, categoriaId: item.categoriaId, itemId });
-
-      // 🔥 CORREÇÃO: Espalhar o item corretamente
       setFormData({
         nome: item.nome || "",
         marca: item.marca || "",
@@ -183,7 +180,7 @@ const Planejamento = () => {
         loja: item.loja || "",
         linkProduto: item.linkProduto || "",
         fotoUrl: item.fotoUrl || "",
-        categoriaId: item.categoriaId, // Mantém como string
+        categoriaId: item.categoriaId,
       });
     },
     [itens],
@@ -198,7 +195,6 @@ const Planejamento = () => {
       } catch {
         setItens(backup);
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
     [itens],
   );
@@ -220,34 +216,43 @@ const Planejamento = () => {
 
   // ---------- Drag & Drop de itens entre categorias ----------
   const handleItemDragStart = useCallback((itemId) => {
-    draggedItemIdRef.current = itemId;
+    draggedItemIdRef.current = String(itemId);
   }, []);
 
   const handleItemDragEnd = useCallback(() => {
+    console.log("🎯 Drag end");
     draggedItemIdRef.current = null;
   }, []);
 
   const handleItemDrop = useCallback(
     async (novaCategoriaId) => {
       const itemId = draggedItemIdRef.current;
+      
       if (!itemId) return;
-
-      const item = itens.find((i) => i.id === Number(itemId));
-      if (!item || item.categoriaId === novaCategoriaId) return;
-
+      const item = itens.find((i) => String(i.id) === String(itemId));
+      if (!item) {
+        return;
+      }
+      
+      if (String(item.categoriaId) === String(novaCategoriaId)) {
+        return;
+      }
       const categoriaAnterior = item.categoriaId;
+      
       setItens((prev) =>
         prev.map((i) =>
-          i.id === Number(itemId) ? { ...i, categoriaId: novaCategoriaId } : i,
+          String(i.id) === String(itemId) 
+            ? { ...i, categoriaId: novaCategoriaId } 
+            : i,
         ),
       );
 
       try {
-        await itensService.updateCategoria(Number(itemId), novaCategoriaId);
-      } catch {
+        await itensService.updateCategoria(String(itemId), novaCategoriaId);
+      } catch (error) {
         setItens((prev) =>
           prev.map((i) =>
-            i.id === Number(itemId)
+            String(i.id) === String(itemId)
               ? { ...i, categoriaId: categoriaAnterior }
               : i,
           ),
@@ -289,7 +294,6 @@ const Planejamento = () => {
         await categoriasService.delete(id);
       } catch {
         setCategorias(backup);
-        // Recarrega itens para restaurar estado
         const its = await itensService.getAll().catch(() => itens);
         setItens(Array.isArray(its) ? its : itens);
       }
@@ -353,7 +357,7 @@ const Planejamento = () => {
               onItemDragStart={handleItemDragStart}
               onItemDragEnd={handleItemDragEnd}
               onItemDrop={handleItemDrop}
-              draggedItemId={draggedItemIdRef.current}
+              draggedItemId={draggedItemIdRef.current ? String(draggedItemIdRef.current) : null}
               theme={theme}
             />
           ))}
@@ -361,14 +365,14 @@ const Planejamento = () => {
       )}
 
       <ItemFormModal
-          isOpen={itemModal.isOpen}
-          onClose={handleCloseItemModal}
-          onSave={handleSaveItem}
-          isEditing={!!itemModal.itemId}
-          theme={theme}
-          categoriaId={itemModal.categoriaId}  
-          itemParaEditar={itemModal.itemId ? itens.find(i => i.id === itemModal.itemId) : null}
-        />
+        isOpen={itemModal.isOpen}
+        onClose={handleCloseItemModal}
+        onSave={handleSaveItem}
+        isEditing={!!itemModal.itemId}
+        theme={theme}
+        categoriaId={itemModal.categoriaId}
+        itemParaEditar={itemModal.itemId ? itens.find(i => i.id === itemModal.itemId) : null}
+      />
 
       <CategoriaFormModal
         isOpen={categoriaModal.isOpen}
