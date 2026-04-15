@@ -653,19 +653,6 @@ const Home = () => {
             </BtnSecondary>
           </HeroCTA>
 
-          <HeroStats>
-            {[
-              { val: '100%', label: 'Gratuito' },
-              { val: '8+', label: 'Funcionalidades' },
-              { val: '2x', label: 'Mais organização' },
-              { val: '0', label: 'Estresse' },
-            ].map(({ val, label }) => (
-              <StatPill key={label} theme={theme}>
-                <strong>{val}</strong>
-                <span>{label}</span>
-              </StatPill>
-            ))}
-          </HeroStats>
         </HeroInner>
 
         <ScrollHint theme={theme}>
@@ -738,57 +725,6 @@ const Home = () => {
         </StepsRow>
       </Section>
 
-      {/* ── DEPOIMENTOS ── */}
-      <Section ref={testRef} style={{ paddingTop: '2rem' }}>
-        <AnimatedBlock $visible={testVisible}>
-          <SectionLabel theme={theme}><Star size={13} /> Depoimentos</SectionLabel>
-          <SectionTitle theme={theme}>O que dizem <em>nossos casais</em></SectionTitle>
-          <SectionDesc theme={theme}>
-            Casais reais que já organizam a vida doméstica com o CasalPlanner.
-          </SectionDesc>
-        </AnimatedBlock>
-        <TestGrid>
-          {TESTIMONIALS.map((t, i) => (
-            <AnimatedBlock key={t.name} $visible={testVisible} $delay={`${i * 0.13}s`}>
-              <TestCard theme={theme}>
-                <Stars>{[...Array(5)].map((_, j) => <Star key={j} size={14} fill="#f59e0b" />)}</Stars>
-                <QuoteIcon theme={theme}><Quote size={28} /></QuoteIcon>
-                <TestText theme={theme}>"{t.text}"</TestText>
-                <TestAuthor>
-                  <TestAvatar $bg={t.bg}>{t.avatar}</TestAvatar>
-                  <div>
-                    <TestName theme={theme}>{t.name}</TestName>
-                    <TestRole theme={theme}>{t.role}</TestRole>
-                  </div>
-                </TestAuthor>
-              </TestCard>
-            </AnimatedBlock>
-          ))}
-        </TestGrid>
-      </Section>
-
-      {/* ── CTA FINAL ── */}
-      <CTASection ref={ctaRef}>
-        <CTABg theme={theme} />
-        <CTAInner>
-          <AnimatedBlock $visible={ctaVisible}>
-            <CTATitle theme={theme}>
-              Prontos para planejar <HeartAnim>💍</HeartAnim> juntos?
-            </CTATitle>
-            <CTADesc theme={theme}>
-              Crie sua conta gratuita agora e comece a organizar a vida a dois de um jeito mais fácil, transparente e sem estresse.
-            </CTADesc>
-            <HeroCTA style={{ justifyContent: 'center' }}>
-              <BtnPrimary theme={theme} onClick={() => go('registro')}>
-                Criar conta grátis <ArrowRight size={18} />
-              </BtnPrimary>
-              <BtnSecondary theme={theme} onClick={() => go('login')}>
-                Entrar na minha conta
-              </BtnSecondary>
-            </HeroCTA>
-          </AnimatedBlock>
-        </CTAInner>
-      </CTASection>
 
       <Footer theme={theme} />
     </Page>

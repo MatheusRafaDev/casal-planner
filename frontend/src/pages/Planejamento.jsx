@@ -220,7 +220,6 @@ const Planejamento = () => {
   }, []);
 
   const handleItemDragEnd = useCallback(() => {
-    console.log("🎯 Drag end");
     draggedItemIdRef.current = null;
   }, []);
 
