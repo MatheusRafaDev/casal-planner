@@ -199,20 +199,28 @@ const Planejamento = () => {
     [itens],
   );
 
-  const handleToggleComprado = useCallback(async (itemId, novoEstado) => {
+  const handleToggleComprado = useCallback(async (itemId) => {
+  const itemAtual = itens.find(i => i.id === itemId);
+  if (!itemAtual) return;
+  
+  const novoEstado = !itemAtual.comprado;
+  
+  
+  setItens((prev) =>
+    prev.map((i) => (i.id === itemId ? { ...i, comprado: novoEstado } : i)),
+  );
+  
+  try {
+    await itensService.updateComprado(itemId, novoEstado);
+  } catch (error) {
+    console.error("Erro:", error);
     setItens((prev) =>
-      prev.map((i) => (i.id === itemId ? { ...i, comprado: novoEstado } : i)),
+      prev.map((i) =>
+        i.id === itemId ? { ...i, comprado: itemAtual.comprado } : i,
+      ),
     );
-    try {
-      await itensService.updateComprado(itemId, novoEstado);
-    } catch {
-      setItens((prev) =>
-        prev.map((i) =>
-          i.id === itemId ? { ...i, comprado: !novoEstado } : i,
-        ),
-      );
-    }
-  }, []);
+  }
+}, [itens]);
 
   // ---------- Drag & Drop de itens entre categorias ----------
   const handleItemDragStart = useCallback((itemId) => {

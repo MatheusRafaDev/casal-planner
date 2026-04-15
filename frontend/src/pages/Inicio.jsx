@@ -137,7 +137,7 @@ const Inicio = () => {
       {/* Boas-vindas */}
       <WelcomeCard theme={theme}>
         <WelcomeTitle>
-          {getHora()}, {getNome()}! <HeartAnim><Heart size={20} fill="currentColor" /></HeartAnim>
+          {getHora()}! <HeartAnim><Heart size={20} fill="currentColor" /></HeartAnim>
         </WelcomeTitle>
         <WelcomeSub>
           {isCasal ? 'Planejando o lar juntos, passo a passo 🏠' : 'Seu organizador pessoal de compras domésticas 🛒'}

@@ -3,7 +3,6 @@ import { useTheme } from "../context/ThemeContext";
 import { Sun, Moon } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import usuarioService from "../services/usuarioService";
-import authService from "../services/authService";
 import {
   User, Heart, Lock, Trash2, Edit3, X, CheckCircle,
   AlertCircle, Calendar, DollarSign, Mail, CreditCard,
@@ -26,20 +25,14 @@ import {
   ModalBody, ModalFooter, FecharButton, ConfirmarButton, DataCriacao, Divider,
 } from "../styles/pages/PerfilStyles";
 
-// ─── Sub-componentes de Display ───────────────────────────────────────────────
-
 const InfoField = ({ label, value, icon: Icon, destaque, theme }) => (
   <InfoGroup>
-    <Label theme={theme}>
-      {label}
-    </Label>
+    <Label theme={theme}>{label}</Label>
     <Valor theme={theme} className={destaque ? "destaque" : ""}>
       {value || <span style={{ opacity: 0.4, fontSize: "0.85rem" }}>—</span>}
     </Valor>
   </InfoGroup>
 );
-
-// ─── Campo de senha com toggle ─────────────────────────────────────────────
 
 const SenhaInput = ({ value, name, onChange, placeholder, theme }) => {
   const [show, setShow] = useState(false);
@@ -71,8 +64,6 @@ const SenhaInput = ({ value, name, onChange, placeholder, theme }) => {
   );
 };
 
-// ─── Componente Principal ─────────────────────────────────────────────────────
-
 const Perfil = () => {
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const { usuario, atualizarUsuario, logout } = useAuth();
@@ -82,122 +73,216 @@ const Perfil = () => {
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
   const [loading, setLoading] = useState(false);
-  const [carregandoDados, setCarregandoDados] = useState(true);
   const [mostrarModalExcluir, setMostrarModalExcluir] = useState(false);
-  const [dadosOriginais, setDadosOriginais] = useState(null);
 
-  const [dadosCasal, setDadosCasal] = useState({
-    nomeCompletoPessoa1: "", emailPessoa1: "", cpfPessoa1: "",
-    dataNascimentoPessoa1: "", rendaMensalPessoa1: "", rendaMensalPessoa1Valor: 0,
-    nomeCompletoPessoa2: "", emailPessoa2: "", cpfPessoa2: "",
-    dataNascimentoPessoa2: "", rendaMensalPessoa2: "", rendaMensalPessoa2Valor: 0,
-    RendaMensal: 0, createdAt: "",
+  // Dados do usuário logado (a pessoa que está usando o sistema)
+  const [meusDados, setMeusDados] = useState({
+    nomeCompleto: "",
+    email: "",
+    cpf: "",
+    dataNascimento: "",
+    rendaMensal: "",
+    rendaMensalValor: 0,
   });
 
-  const [dadosIndividual, setDadosIndividual] = useState({
-    nomeCompleto: "", email: "", cpf: "", dataNascimento: "",
-    rendaMensal: "", rendaMensalValor: 0, createdAt: "",
-  });
-
+  // Para contas casal, armazenar dados do parceiro (apenas leitura)
+  const [dadosParceiro, setDadosParceiro] = useState(null);
   const [senha, setSenha] = useState({ atual: "", nova: "", confirmar: "" });
+
+  const isCasal = usuario?.isCasal || usuario?.tipoConta === 1;
+  const pessoaLogada = usuario?.pessoaQueLogou || "pessoa1";
+  const isPessoa1 = pessoaLogada === "pessoa1";
 
   const showMsg = (msg, isErro = false) => {
     if (isErro) { setErro(msg); setTimeout(() => setErro(""), 4000); }
     else { setMensagem(msg); setTimeout(() => setMensagem(""), 4000); }
   };
 
-  const handleChangeCasal = (e) => {
-    const { name, value } = e.target;
-    if (name.includes("cpf")) {
-      setDadosCasal(prev => ({ ...prev, [name]: formatarCPF(value) }));
-    } else if (name.includes("rendaMensal")) {
-      const fmt = formatarValorInput(value);
-      const num = converterValorParaNumero(fmt);
-      setDadosCasal(prev => {
-        const n = { ...prev, [name]: fmt };
-        if (name === "rendaMensalPessoa1") n.rendaMensalPessoa1Valor = num;
-        if (name === "rendaMensalPessoa2") n.rendaMensalPessoa2Valor = num;
-        n.RendaMensal = n.rendaMensalPessoa1Valor + n.rendaMensalPessoa2Valor;
-        return n;
-      });
-    } else if (name.includes("dataNascimento")) {
-      setDadosCasal(prev => ({ ...prev, [name]: formatarDataInput(value) }));
-    } else {
-      setDadosCasal(prev => ({ ...prev, [name]: value }));
-    }
-  };
+  // Carregar dados do usuário logado
+  useEffect(() => {
+    if (!usuario) return;
 
-  const handleChangeIndividual = (e) => {
+    if (isCasal) {
+      const casalInfo = usuario.casalInfo || {};
+      
+      // Dados da pessoa logada (pode editar)
+      if (isPessoa1) {
+        setMeusDados({
+          nomeCompleto: casalInfo.nomeCompletoPessoa1 || "",
+          email: casalInfo.emailPessoa1 || usuario.email || "",
+          cpf: casalInfo.cpfPessoa1 ? formatarCPF(casalInfo.cpfPessoa1) : "",
+          dataNascimento: formatarDataExibicao(casalInfo.dataNascimentoPessoa1),
+          rendaMensal: casalInfo.rendaMensalPessoa1 ? formatarMoeda(casalInfo.rendaMensalPessoa1) : "",
+          rendaMensalValor: parseFloat(casalInfo.rendaMensalPessoa1 || 0),
+        });
+        
+        // Dados do parceiro (apenas leitura)
+        setDadosParceiro({
+          nomeCompleto: casalInfo.nomeCompletoPessoa2 || "",
+          email: casalInfo.emailPessoa2 || "",
+          cpf: casalInfo.cpfPessoa2 ? formatarCPF(casalInfo.cpfPessoa2) : "",
+          dataNascimento: formatarDataExibicao(casalInfo.dataNascimentoPessoa2),
+          rendaMensal: casalInfo.rendaMensalPessoa2 ? formatarMoeda(casalInfo.rendaMensalPessoa2) : "",
+          rendaMensalValor: parseFloat(casalInfo.rendaMensalPessoa2 || 0),
+        });
+      } else {
+        // Pessoa 2 logada
+        setMeusDados({
+          nomeCompleto: casalInfo.nomeCompletoPessoa2 || "",
+          email: casalInfo.emailPessoa2 || usuario.email || "",
+          cpf: casalInfo.cpfPessoa2 ? formatarCPF(casalInfo.cpfPessoa2) : "",
+          dataNascimento: formatarDataExibicao(casalInfo.dataNascimentoPessoa2),
+          rendaMensal: casalInfo.rendaMensalPessoa2 ? formatarMoeda(casalInfo.rendaMensalPessoa2) : "",
+          rendaMensalValor: parseFloat(casalInfo.rendaMensalPessoa2 || 0),
+        });
+        
+        // Dados do parceiro (apenas leitura)
+        setDadosParceiro({
+          nomeCompleto: casalInfo.nomeCompletoPessoa1 || "",
+          email: casalInfo.emailPessoa1 || "",
+          cpf: casalInfo.cpfPessoa1 ? formatarCPF(casalInfo.cpfPessoa1) : "",
+          dataNascimento: formatarDataExibicao(casalInfo.dataNascimentoPessoa1),
+          rendaMensal: casalInfo.rendaMensalPessoa1 ? formatarMoeda(casalInfo.rendaMensalPessoa1) : "",
+          rendaMensalValor: parseFloat(casalInfo.rendaMensalPessoa1 || 0),
+        });
+      }
+    } else {
+      // Conta individual
+      setMeusDados({
+        nomeCompleto: usuario.nomeCompleto || "",
+        email: usuario.email || "",
+        cpf: usuario.cpf ? formatarCPF(usuario.cpf) : "",
+        dataNascimento: formatarDataExibicao(usuario.dataNascimento),
+        rendaMensal: usuario.rendaMensal ? formatarMoeda(usuario.rendaMensal) : "",
+        rendaMensalValor: parseFloat(usuario.rendaMensal || 0),
+      });
+      setDadosParceiro(null);
+    }
+  }, [usuario, isCasal, isPessoa1]);
+
+  const handleChange = (e) => {
     const { name, value } = e.target;
+    
     if (name === "cpf") {
-      setDadosIndividual(prev => ({ ...prev, cpf: formatarCPF(value) }));
+      setMeusDados(prev => ({ ...prev, cpf: formatarCPF(value) }));
     } else if (name === "rendaMensal") {
       const fmt = formatarValorInput(value);
-      setDadosIndividual(prev => ({ ...prev, rendaMensal: fmt, rendaMensalValor: converterValorParaNumero(fmt) }));
+      setMeusDados(prev => ({ 
+        ...prev, 
+        rendaMensal: fmt, 
+        rendaMensalValor: converterValorParaNumero(fmt) 
+      }));
     } else if (name === "dataNascimento") {
-      setDadosIndividual(prev => ({ ...prev, dataNascimento: formatarDataInput(value) }));
+      setMeusDados(prev => ({ ...prev, dataNascimento: formatarDataInput(value) }));
     } else {
-      setDadosIndividual(prev => ({ ...prev, [name]: value }));
+      setMeusDados(prev => ({ ...prev, [name]: value }));
     }
   };
 
   const handleCancelar = () => {
-    if (dadosOriginais) {
-      if (isCasal) setDadosCasal(dadosOriginais);
-      else setDadosIndividual(dadosOriginais);
+    // Recarregar dados originais
+    if (isCasal) {
+      const casalInfo = usuario.casalInfo || {};
+      if (isPessoa1) {
+        setMeusDados({
+          nomeCompleto: casalInfo.nomeCompletoPessoa1 || "",
+          email: casalInfo.emailPessoa1 || usuario.email || "",
+          cpf: casalInfo.cpfPessoa1 ? formatarCPF(casalInfo.cpfPessoa1) : "",
+          dataNascimento: formatarDataExibicao(casalInfo.dataNascimentoPessoa1),
+          rendaMensal: casalInfo.rendaMensalPessoa1 ? formatarMoeda(casalInfo.rendaMensalPessoa1) : "",
+          rendaMensalValor: parseFloat(casalInfo.rendaMensalPessoa1 || 0),
+        });
+      } else {
+        setMeusDados({
+          nomeCompleto: casalInfo.nomeCompletoPessoa2 || "",
+          email: casalInfo.emailPessoa2 || usuario.email || "",
+          cpf: casalInfo.cpfPessoa2 ? formatarCPF(casalInfo.cpfPessoa2) : "",
+          dataNascimento: formatarDataExibicao(casalInfo.dataNascimentoPessoa2),
+          rendaMensal: casalInfo.rendaMensalPessoa2 ? formatarMoeda(casalInfo.rendaMensalPessoa2) : "",
+          rendaMensalValor: parseFloat(casalInfo.rendaMensalPessoa2 || 0),
+        });
+      }
+    } else {
+      setMeusDados({
+        nomeCompleto: usuario.nomeCompleto || "",
+        email: usuario.email || "",
+        cpf: usuario.cpf ? formatarCPF(usuario.cpf) : "",
+        dataNascimento: formatarDataExibicao(usuario.dataNascimento),
+        rendaMensal: usuario.rendaMensal ? formatarMoeda(usuario.rendaMensal) : "",
+        rendaMensalValor: parseFloat(usuario.rendaMensal || 0),
+      });
     }
     
     setEditando(false);
     setErro("");
   };
 
-  const validarCasal = () => {
-    if (!dadosCasal.nomeCompletoPessoa1) { showMsg("Nome da Pessoa 1 é obrigatório", true); return false; }
-    if (!dadosCasal.nomeCompletoPessoa2) { showMsg("Nome da Pessoa 2 é obrigatório", true); return false; }
-    if (dadosCasal.cpfPessoa1 && !validarCPF(dadosCasal.cpfPessoa1)) { showMsg("CPF da Pessoa 1 inválido", true); return false; }
-    if (dadosCasal.cpfPessoa2 && !validarCPF(dadosCasal.cpfPessoa2)) { showMsg("CPF da Pessoa 2 inválido", true); return false; }
-    if (dadosCasal.dataNascimentoPessoa1 && !validarData(dadosCasal.dataNascimentoPessoa1)) { showMsg("Data de nascimento da Pessoa 1 inválida", true); return false; }
-    if (dadosCasal.dataNascimentoPessoa2 && !validarData(dadosCasal.dataNascimentoPessoa2)) { showMsg("Data de nascimento da Pessoa 2 inválida", true); return false; }
-    return true;
-  };
-
-  const validarIndividual = () => {
-    if (!dadosIndividual.nomeCompleto) { showMsg("Nome completo é obrigatório", true); return false; }
-    if (dadosIndividual.cpf && !validarCPF(dadosIndividual.cpf)) { showMsg("CPF inválido", true); return false; }
-    if (dadosIndividual.dataNascimento && !validarData(dadosIndividual.dataNascimento)) { showMsg("Data de nascimento inválida", true); return false; }
+  const validarDados = () => {
+    if (!meusDados.nomeCompleto) { 
+      showMsg("Nome completo é obrigatório", true); 
+      return false; 
+    }
+    if (meusDados.cpf && !validarCPF(meusDados.cpf)) { 
+      showMsg("CPF inválido", true); 
+      return false; 
+    }
+    if (meusDados.dataNascimento && !validarData(meusDados.dataNascimento)) { 
+      showMsg("Data de nascimento inválida", true); 
+      return false; 
+    }
     return true;
   };
 
   const handleSalvarPerfil = async () => {
+    if (!validarDados()) return;
+    
     setLoading(true);
     try {
       if (isCasal) {
-        if (!validarCasal()) { setLoading(false); return; }
-        const dados = {
-          nomeCompletoPessoa1: dadosCasal.nomeCompletoPessoa1,
-          dataNascimentoPessoa1: dadosCasal.dataNascimentoPessoa1 ? converterDataBRparaISO(dadosCasal.dataNascimentoPessoa1) : null,
-          rendaMensalPessoa1: dadosCasal.rendaMensalPessoa1Valor || 0,
-          nomeCompletoPessoa2: dadosCasal.nomeCompletoPessoa2,
-          dataNascimentoPessoa2: dadosCasal.dataNascimentoPessoa2 ? converterDataBRparaISO(dadosCasal.dataNascimentoPessoa2) : null,
-          rendaMensalPessoa2: dadosCasal.rendaMensalPessoa2Valor || 0,
+        // Atualizar apenas os dados da pessoa logada
+        const dados = isPessoa1 ? {
+          nomeCompletoPessoa1: meusDados.nomeCompleto,
+          dataNascimentoPessoa1: meusDados.dataNascimento ? converterDataBRparaISO(meusDados.dataNascimento) : null,
+          rendaMensalPessoa1: meusDados.rendaMensalValor || 0,
+          cpfPessoa1: meusDados.cpf.replace(/\D/g, ""),
+        } : {
+          nomeCompletoPessoa2: meusDados.nomeCompleto,
+          dataNascimentoPessoa2: meusDados.dataNascimento ? converterDataBRparaISO(meusDados.dataNascimento) : null,
+          rendaMensalPessoa2: meusDados.rendaMensalValor || 0,
+          cpfPessoa2: meusDados.cpf.replace(/\D/g, ""),
         };
+        
         await usuarioService.atualizarPerfilCasal(usuario.id, dados);
-        atualizarUsuario({ ...usuario, rendaMensal: dadosCasal.RendaMensal, casalInfo: { ...usuario.casalInfo, ...dados } });
-      } else {
-        if (!validarIndividual()) { setLoading(false); return; }
-        const dados = {
-          nomeCompleto: dadosIndividual.nomeCompleto,
-          dataNascimento: dadosIndividual.dataNascimento ? converterDataBRparaISO(dadosIndividual.dataNascimento) : null,
-          rendaMensal: dadosIndividual.rendaMensal || 0,
-          cpf: dadosIndividual.cpf.replace(/\D/g, ""),
+        
+        // Atualizar contexto
+        const novoCasalInfo = { ...usuario.casalInfo, ...dados };
+        const novaRendaTotal = (novoCasalInfo.rendaMensalPessoa1 || 0) + (novoCasalInfo.rendaMensalPessoa2 || 0);
+        
+        const usuarioAtualizado = {
+          ...usuario,
+          casalInfo: novoCasalInfo,
+          rendaMensal: novaRendaTotal,
+          nomeCompleto: meusDados.nomeCompleto, // Atualizar nome da pessoa logada
         };
+        
+        atualizarUsuario(usuarioAtualizado);
+      } else {
+        // Conta individual
+        const dados = {
+          nomeCompleto: meusDados.nomeCompleto,
+          dataNascimento: meusDados.dataNascimento ? converterDataBRparaISO(meusDados.dataNascimento) : null,
+          rendaMensal: meusDados.rendaMensalValor || 0,
+          cpf: meusDados.cpf.replace(/\D/g, ""),
+        };
+        
         await usuarioService.atualizarPerfil(usuario.id, dados);
-        atualizarUsuario({ ...usuario, ...dados, nomeCompleto: dadosIndividual.nomeCompleto });
+        atualizarUsuario({ ...usuario, ...dados });
       }
+      
       showMsg("Perfil atualizado com sucesso! ✓");
       setEditando(false);
     } catch (error) {
-      showMsg(error.response?.data?.message || error.message || "Erro ao atualizar perfil", true);
+      showMsg(error.response?.data?.message || "Erro ao atualizar perfil", true);
     } finally {
       setLoading(false);
     }
@@ -207,12 +292,14 @@ const Perfil = () => {
     if (!senha.atual) { showMsg("Digite a senha atual", true); return; }
     if (senha.nova.length < 6) { showMsg("A nova senha deve ter no mínimo 6 caracteres", true); return; }
     if (senha.nova !== senha.confirmar) { showMsg("As senhas não coincidem", true); return; }
+    
     setLoading(true);
     try {
-      let email = isCasal
-        ? (usuario.pessoaQueLogou === "pessoa1" ? usuario.casalInfo?.emailPessoa1 : usuario.casalInfo?.emailPessoa2)
-        : usuario?.email;
-      await usuarioService.alterarSenha({ email, senhaAtual: senha.atual, novaSenha: senha.nova });
+      await usuarioService.alterarSenha({ 
+        email: meusDados.email, 
+        senhaAtual: senha.atual, 
+        novaSenha: senha.nova 
+      });
       showMsg("Senha alterada com sucesso! ✓");
       setEditandoSenha(false);
       setSenha({ atual: "", nova: "", confirmar: "" });
@@ -243,73 +330,12 @@ const Perfil = () => {
     } catch { return "—"; }
   };
 
-  useEffect(() => {
-    const carregar = async () => {
-      if (!usuario) { setCarregandoDados(false); return; }
-      try {
-        setCarregandoDados(true);
-        const d = await authService.buscarDadosCompletos();
-
-
-        if (!d) throw new Error("Sem dados");
-
-        if (d.isCasal || d.tipoConta === 1) {
-          const c = d.casalInfo || {};
-          const r1 = parseFloat(c.rendaMensalPessoa1 || 0);
-          const r2 = parseFloat(c.rendaMensalPessoa2 || 0);
-          const nd = {
-            nomeCompletoPessoa1: c.nomeCompletoPessoa1 || "",
-            emailPessoa1: c.emailPessoa1 || "",
-            cpfPessoa1: c.cpfPessoa1 ? formatarCPF(c.cpfPessoa1) : "",
-            dataNascimentoPessoa1: formatarDataExibicao(c.dataNascimentoPessoa1),
-            rendaMensalPessoa1: c.rendaMensalPessoa1 ? formatarMoeda(r1) : "",
-            rendaMensalPessoa1Valor: r1,
-            nomeCompletoPessoa2: c.nomeCompletoPessoa2 || "",
-            emailPessoa2: c.emailPessoa2 || "",
-            cpfPessoa2: c.cpfPessoa2 ? formatarCPF(c.cpfPessoa2) : "",
-            dataNascimentoPessoa2: formatarDataExibicao(c.dataNascimentoPessoa2),
-            rendaMensalPessoa2: c.rendaMensalPessoa2 ? formatarMoeda(r2) : "",
-            rendaMensalPessoa2Valor: r2,
-            RendaMensal: d.rendaMensal || 0,
-            createdAt: d.createdAt || "",
-          };
-          setDadosCasal(nd);
-          setDadosOriginais(nd);
-        } else {
-          const r = parseFloat(d.rendaMensal || 0);
-          const nd = {
-            nomeCompleto: d.nomeCompleto || "",
-            email: d.email || "",
-            cpf: d.cpf ? formatarCPF(d.cpf) : "",
-            dataNascimento: formatarDataExibicao(d.dataNascimento),
-            rendaMensal: d.rendaMensal ? formatarMoeda(r) : "",
-            rendaMensalValor: r,
-            createdAt: d.createdAt,
-          };
-          setDadosIndividual(d);
-        
-          setDadosOriginais(nd);
-        }
-      } catch (error) {
-        console.error("Erro ao carregar dados:", error);
-        showMsg("Erro ao carregar dados do perfil", true);
-      } finally {
-        setCarregandoDados(false);
-      }
-    };
-    carregar();
-  }, [usuario]);
-
-  if (carregandoDados) {
-    return (
-      <PerfilContainer theme={theme}>
-        <LoadingContainer theme={theme}>
-          <LoadingSpinner theme={theme} />
-          <p>Carregando perfil...</p>
-        </LoadingContainer>
-      </PerfilContainer>
-    );
-  }
+  const getInitials = () => {
+    if (!meusDados.nomeCompleto) return "?";
+    const parts = meusDados.nomeCompleto.trim().split(' ');
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
 
   if (!usuario) {
     return (
@@ -321,26 +347,8 @@ const Perfil = () => {
     );
   }
 
-  const isCasal = usuario.isCasal || usuario.tipoConta === 1;
-
-  const getInitials = () => {
-    const nome = isCasal
-      ? (usuario.pessoaQueLogou === "pessoa1" ? dadosCasal.nomeCompletoPessoa1 : dadosCasal.nomeCompletoPessoa2)
-      : dadosIndividual.nomeCompleto;
-    if (!nome) return "?";
-    return nome.split(" ").slice(0, 2).map(n => n[0]).join("").toUpperCase();
-  };
-
-  const getNomeDisplay = () => {
-    if (isCasal) {
-      return usuario.pessoaQueLogou === "pessoa1" ? dadosCasal.nomeCompletoPessoa1 : dadosCasal.nomeCompletoPessoa2;
-    }
-    return dadosIndividual.nomeCompleto;
-  };
-
   return (
     <PerfilContainer theme={theme}>
-      {/* Header */}
       <Header theme={theme}>
         <h1>Meu Perfil</h1>
         {!editando && !editandoSenha && (
@@ -350,7 +358,6 @@ const Perfil = () => {
         )}
       </Header>
 
-      {/* Mensagens */}
       {mensagem && (
         <MensagemSucesso theme={theme}>
           <CheckCircle size={16} /> {mensagem}
@@ -362,17 +369,17 @@ const Perfil = () => {
         </MensagemErro>
       )}
 
-      {/* ── Card Principal: Avatar + Info ── */}
+      {/* Card Principal */}
       <PerfilCard theme={theme}>
         <AvatarSection theme={theme}>
           <Avatar>
             <AvatarPlaceholder theme={theme}>{getInitials()}</AvatarPlaceholder>
           </Avatar>
           <UserInfo theme={theme}>
-            <h2>{getNomeDisplay() || "Usuário"}</h2>
+            <h2>{meusDados.nomeCompleto || "Usuário"}</h2>
             <p>
               {isCasal
-                ? `Conta Casal${usuario.pessoaQueLogou ? ` · ${usuario.pessoaQueLogou === "pessoa1" ? "Pessoa 1" : "Pessoa 2"}` : ""}`
+                ? `Conta Casal · ${isPessoa1 ? "Pessoa 1" : "Pessoa 2"}`
                 : "Conta Individual"}
             </p>
             <TypeBadge theme={theme}>
@@ -381,159 +388,121 @@ const Perfil = () => {
           </UserInfo>
         </AvatarSection>
 
-        {/* ── Visualização ── */}
         <InfoContainer theme={theme}>
-          {isCasal ? (
-            !editando ? (
-              <>
-                {/* Pessoa 1 */}
-                <InfoMembro theme={theme}>
-                  <h3>
-                    <User size={16} />
-                    Pessoa 1 {usuario.pessoaQueLogou === "pessoa1" && <TypeBadge theme={theme} style={{ fontSize: "0.65rem", padding: "0.15rem 0.5rem" }}>Você</TypeBadge>}
-                  </h3>
-                  <InfoGrid>
-                    <InfoField label="Nome completo" value={dadosCasal.nomeCompletoPessoa1} theme={theme} />
-                    <InfoField label="E-mail" value={dadosCasal.emailPessoa1} theme={theme} />
-                    <InfoField label="CPF" value={dadosCasal.cpfPessoa1} theme={theme} />
-                    <InfoField label="Data de nascimento" value={dadosCasal.dataNascimentoPessoa1} theme={theme} />
-                    <InfoField label="Renda mensal" value={formatarMoeda(dadosCasal.rendaMensalPessoa1Valor)} destaque theme={theme} />
-                  </InfoGrid>
-                </InfoMembro>
-
-                {/* Pessoa 2 */}
-                <InfoMembro theme={theme}>
-                  <h3>
-                    <User size={16} />
-                    Pessoa 2 {usuario.pessoaQueLogou === "pessoa2" && <TypeBadge theme={theme} style={{ fontSize: "0.65rem", padding: "0.15rem 0.5rem" }}>Você</TypeBadge>}
-                  </h3>
-                  <InfoGrid>
-                    <InfoField label="Nome completo" value={dadosCasal.nomeCompletoPessoa2} theme={theme} />
-                    <InfoField label="E-mail" value={dadosCasal.emailPessoa2} theme={theme} />
-                    <InfoField label="CPF" value={dadosCasal.cpfPessoa2} theme={theme} />
-                    <InfoField label="Data de nascimento" value={dadosCasal.dataNascimentoPessoa2} theme={theme} />
-                    <InfoField label="Renda mensal" value={formatarMoeda(dadosCasal.rendaMensalPessoa2Valor)} destaque theme={theme} />
-                  </InfoGrid>
-                </InfoMembro>
-
-                <RendaTotalCard theme={theme}>
-                  <Label theme={theme}><DollarSign size={14} /> Renda familiar total</Label>
-                  <Valor theme={theme}>{formatarMoeda(dadosCasal.RendaMensal)}</Valor>
-                </RendaTotalCard>
-
-                <DataCriacao theme={theme}>
-                  <Clock size={13} /> Conta criada em {formatarDataCriacao(dadosCasal.createdAt)}
-                </DataCriacao>
-              </>
-            ) : (
-              /* Formulário Casal */
-              <>
-                <InfoMembro theme={theme}>
-                  <h3><User size={16} /> Pessoa 1</h3>
-                  <FormGroup>
-                    <Label theme={theme}>Nome completo *</Label>
-                    <Input type="text" name="nomeCompletoPessoa1" value={dadosCasal.nomeCompletoPessoa1} onChange={handleChangeCasal} theme={theme} />
-                  </FormGroup>
-                  <FormGroup>
-                    <Label theme={theme}>E-mail</Label>
-                    <Input type="email" value={dadosCasal.emailPessoa1} disabled className="disabled" theme={theme} />
-                  </FormGroup>
-                  <FormRow>
-                    <FormGroup>
-                      <Label theme={theme}>CPF</Label>
-                      <Input type="text" name="cpfPessoa1" value={dadosCasal.cpfPessoa1} onChange={handleChangeCasal} placeholder="000.000.000-00" maxLength="14" disabled={usuario.pessoaQueLogou !== "pessoa1"} theme={theme} />
-                    </FormGroup>
-                    <FormGroup>
-                      <Label theme={theme}>Data de nascimento</Label>
-                      <Input type="text" name="dataNascimentoPessoa1" value={dadosCasal.dataNascimentoPessoa1} onChange={handleChangeCasal} placeholder="DD/MM/AAAA" maxLength="10" theme={theme} />
-                    </FormGroup>
-                  </FormRow>
-                  <FormGroup>
-                    <Label theme={theme}>Renda mensal</Label>
-                    <Input type="text" name="rendaMensalPessoa1" value={dadosCasal.rendaMensalPessoa1} onChange={handleChangeCasal} placeholder="1.500,00" theme={theme} />
-                  </FormGroup>
-                </InfoMembro>
-
-                <InfoMembro theme={theme}>
-                  <h3><User size={16} /> Pessoa 2</h3>
-                  <FormGroup>
-                    <Label theme={theme}>Nome completo *</Label>
-                    <Input type="text" name="nomeCompletoPessoa2" value={dadosCasal.nomeCompletoPessoa2} onChange={handleChangeCasal} theme={theme} />
-                  </FormGroup>
-                  <FormGroup>
-                    <Label theme={theme}>E-mail</Label>
-                    <Input type="email" value={dadosCasal.emailPessoa2} disabled className="disabled" theme={theme} />
-                  </FormGroup>
-                  <FormRow>
-                    <FormGroup>
-                      <Label theme={theme}>CPF</Label>
-                      <Input type="text" name="cpfPessoa2" value={dadosCasal.cpfPessoa2} onChange={handleChangeCasal} placeholder="000.000.000-00" maxLength="14" disabled={usuario.pessoaQueLogou !== "pessoa2"} theme={theme} />
-                    </FormGroup>
-                    <FormGroup>
-                      <Label theme={theme}>Data de nascimento</Label>
-                      <Input type="text" name="dataNascimentoPessoa2" value={dadosCasal.dataNascimentoPessoa2} onChange={handleChangeCasal} placeholder="DD/MM/AAAA" maxLength="10" theme={theme} />
-                    </FormGroup>
-                  </FormRow>
-                  <FormGroup>
-                    <Label theme={theme}>Renda mensal</Label>
-                    <Input type="text" name="rendaMensalPessoa2" value={dadosCasal.rendaMensalPessoa2} onChange={handleChangeCasal} placeholder="1.500,00" theme={theme} />
-                  </FormGroup>
-                </InfoMembro>
-
-                <RendaTotalCard theme={theme}>
-                  <Label theme={theme}>Renda familiar total</Label>
-                  <Valor theme={theme}>{formatarMoeda(dadosCasal.RendaMensal)}</Valor>
-                </RendaTotalCard>
-
-                <FormActions theme={theme}>
-                  <CancelarButton onClick={handleCancelar} disabled={loading} theme={theme}>Cancelar</CancelarButton>
-                  <SalvarButton onClick={handleSalvarPerfil} disabled={loading} theme={theme}>
-                    {loading ? "Salvando…" : "Salvar alterações"}
-                  </SalvarButton>
-                </FormActions>
-              </>
-            )
-          ) : !editando ? (
-            /* Visualização Individual */
+          {!editando ? (
+            // Modo visualização
             <>
               <InfoGrid>
-                <InfoField label="Nome completo" value={dadosIndividual.nomeCompleto} theme={theme} />
-                <InfoField label="E-mail" value={dadosIndividual.email} theme={theme} />
-                <InfoField label="CPF" value={dadosIndividual.cpf} theme={theme} />
-                <InfoField label="Data de nascimento" value={dadosIndividual.dataNascimento} theme={theme} />
-                <InfoField label="Renda mensal" value={formatarMoeda(dadosIndividual.rendaMensal)} destaque theme={theme} />
+                <InfoField label="Nome completo" value={meusDados.nomeCompleto} theme={theme} />
+                <InfoField label="E-mail" value={meusDados.email} theme={theme} />
+                <InfoField label="CPF" value={meusDados.cpf} theme={theme} />
+                <InfoField label="Data de nascimento" value={meusDados.dataNascimento} theme={theme} />
+                <InfoField label="Renda mensal" value={formatarMoeda(meusDados.rendaMensalValor)} destaque theme={theme} />
               </InfoGrid>
+
+              {/* Mostrar dados do parceiro se for conta casal */}
+              {isCasal && dadosParceiro && (
+                <>
+                  <Divider theme={theme} />
+                  <InfoMembro theme={theme}>
+                    <h3>
+                      <User size={16} />
+                      {isPessoa1 ? "Pessoa 2 (Parceiro)" : "Pessoa 1 (Parceiro)"}
+                      <TypeBadge theme={theme} style={{ fontSize: "0.65rem", padding: "0.15rem 0.5rem", marginLeft: "0.5rem" }}>
+                        Apenas leitura
+                      </TypeBadge>
+                    </h3>
+                    <InfoGrid>
+                      <InfoField label="Nome completo" value={dadosParceiro.nomeCompleto} theme={theme} />
+                      <InfoField label="E-mail" value={dadosParceiro.email} theme={theme} />
+                      <InfoField label="CPF" value={dadosParceiro.cpf} theme={theme} />
+                      <InfoField label="Data de nascimento" value={dadosParceiro.dataNascimento} theme={theme} />
+                      <InfoField label="Renda mensal" value={formatarMoeda(dadosParceiro.rendaMensalValor)} destaque theme={theme} />
+                    </InfoGrid>
+                  </InfoMembro>
+                  
+                  <RendaTotalCard theme={theme}>
+                    <Label theme={theme}><DollarSign size={14} /> Renda familiar total</Label>
+                    <Valor theme={theme}>
+                      {formatarMoeda(meusDados.rendaMensalValor + (dadosParceiro?.rendaMensalValor || 0))}
+                    </Valor>
+                  </RendaTotalCard>
+                </>
+              )}
+
               <DataCriacao theme={theme}>
-                <Clock size={13} /> Conta criada em {formatarDataCriacao(dadosIndividual.createdAt)}
+                <Clock size={13} /> Conta criada em {formatarDataCriacao(usuario.createdAt)}
               </DataCriacao>
             </>
           ) : (
-            /* Formulário Individual */
+            // Modo edição - apenas os dados do usuário logado
             <>
               <FormGroup>
                 <Label theme={theme}>Nome completo *</Label>
-                <Input type="text" name="nomeCompleto" value={dadosIndividual.nomeCompleto} onChange={handleChangeIndividual} theme={theme} />
+                <Input 
+                  type="text" 
+                  name="nomeCompleto" 
+                  value={meusDados.nomeCompleto} 
+                  onChange={handleChange} 
+                  theme={theme} 
+                />
               </FormGroup>
+              
               <FormGroup>
                 <Label theme={theme}>E-mail</Label>
-                <Input type="email" value={dadosIndividual.email} disabled className="disabled" theme={theme} />
+                <Input 
+                  type="email" 
+                  value={meusDados.email} 
+                  disabled 
+                  className="disabled" 
+                  theme={theme} 
+                />
+                <Small theme={theme}>O e-mail não pode ser alterado</Small>
               </FormGroup>
+              
               <FormRow>
                 <FormGroup>
                   <Label theme={theme}>CPF</Label>
-                  <Input type="text" name="cpf" value={dadosIndividual.cpf} onChange={handleChangeIndividual} placeholder="000.000.000-00" maxLength="14" theme={theme} />
+                  <Input 
+                    type="text" 
+                    name="cpf" 
+                    value={meusDados.cpf} 
+                    onChange={handleChange} 
+                    placeholder="000.000.000-00" 
+                    maxLength="14" 
+                    theme={theme} 
+                  />
                 </FormGroup>
                 <FormGroup>
                   <Label theme={theme}>Data de nascimento</Label>
-                  <Input type="text" name="dataNascimento" value={dadosIndividual.dataNascimento} onChange={handleChangeIndividual} placeholder="DD/MM/AAAA" maxLength="10" theme={theme} />
+                  <Input 
+                    type="text" 
+                    name="dataNascimento" 
+                    value={meusDados.dataNascimento} 
+                    onChange={handleChange} 
+                    placeholder="DD/MM/AAAA" 
+                    maxLength="10" 
+                    theme={theme} 
+                  />
                 </FormGroup>
               </FormRow>
+              
               <FormGroup>
                 <Label theme={theme}>Renda mensal</Label>
-                <Input type="text" name="rendaMensal" value={dadosIndividual.rendaMensal} onChange={handleChangeIndividual} placeholder="1.500,00" theme={theme} />
+                <Input 
+                  type="text" 
+                  name="rendaMensal" 
+                  value={meusDados.rendaMensal} 
+                  onChange={handleChange} 
+                  placeholder="R$ 1.500,00" 
+                  theme={theme} 
+                />
               </FormGroup>
+              
               <FormActions theme={theme}>
-                <CancelarButton onClick={handleCancelar} disabled={loading} theme={theme}>Cancelar</CancelarButton>
+                <CancelarButton onClick={handleCancelar} disabled={loading} theme={theme}>
+                  Cancelar
+                </CancelarButton>
                 <SalvarButton onClick={handleSalvarPerfil} disabled={loading} theme={theme}>
                   {loading ? "Salvando…" : "Salvar alterações"}
                 </SalvarButton>
@@ -543,8 +512,7 @@ const Perfil = () => {
         </InfoContainer>
       </PerfilCard>
 
-
-      {/* ── Aparência ── */}
+      {/* Aparência */}
       {!editando && !editandoSenha && (
         <PerfilCard theme={theme}>
           <SectionTitle theme={theme}>{isDarkMode ? <Moon size={16} /> : <Sun size={16} />} Aparência</SectionTitle>
@@ -556,7 +524,7 @@ const Perfil = () => {
         </PerfilCard>
       )}
 
-      {/* ── Segurança ── */}
+      {/* Segurança */}
       {!editando && (
         <PerfilCard theme={theme}>
           <SectionTitle theme={theme}><Lock size={16} /> Segurança</SectionTitle>
@@ -570,21 +538,46 @@ const Perfil = () => {
             <>
               <FormGroup>
                 <Label theme={theme}>Senha atual</Label>
-                <SenhaInput name="atual" value={senha.atual} onChange={e => setSenha(p => ({ ...p, atual: e.target.value }))} placeholder="••••••••" theme={theme} />
+                <SenhaInput 
+                  name="atual" 
+                  value={senha.atual} 
+                  onChange={e => setSenha(p => ({ ...p, atual: e.target.value }))} 
+                  placeholder="••••••••" 
+                  theme={theme} 
+                />
               </FormGroup>
               <FormRow>
                 <FormGroup>
                   <Label theme={theme}>Nova senha</Label>
-                  <SenhaInput name="nova" value={senha.nova} onChange={e => setSenha(p => ({ ...p, nova: e.target.value }))} placeholder="••••••••" theme={theme} />
+                  <SenhaInput 
+                    name="nova" 
+                    value={senha.nova} 
+                    onChange={e => setSenha(p => ({ ...p, nova: e.target.value }))} 
+                    placeholder="••••••••" 
+                    theme={theme} 
+                  />
                   <Small theme={theme}>Mínimo 6 caracteres</Small>
                 </FormGroup>
                 <FormGroup>
                   <Label theme={theme}>Confirmar nova senha</Label>
-                  <SenhaInput name="confirmar" value={senha.confirmar} onChange={e => setSenha(p => ({ ...p, confirmar: e.target.value }))} placeholder="••••••••" theme={theme} />
+                  <SenhaInput 
+                    name="confirmar" 
+                    value={senha.confirmar} 
+                    onChange={e => setSenha(p => ({ ...p, confirmar: e.target.value }))} 
+                    placeholder="••••••••" 
+                    theme={theme} 
+                  />
                 </FormGroup>
               </FormRow>
               <FormActions theme={theme}>
-                <CancelarButton onClick={() => { setEditandoSenha(false); setSenha({ atual: "", nova: "", confirmar: "" }); }} disabled={loading} theme={theme}>
+                <CancelarButton 
+                  onClick={() => { 
+                    setEditandoSenha(false); 
+                    setSenha({ atual: "", nova: "", confirmar: "" }); 
+                  }} 
+                  disabled={loading} 
+                  theme={theme}
+                >
                   Cancelar
                 </CancelarButton>
                 <SalvarButton onClick={handleAlterarSenha} disabled={loading} theme={theme}>
@@ -596,7 +589,7 @@ const Perfil = () => {
         </PerfilCard>
       )}
 
-      {/* ── Zona de Perigo ── */}
+      {/* Zona de Perigo */}
       {!editando && !editandoSenha && (
         <PerfilCard theme={theme}>
           <SectionTitle theme={theme}><AlertCircle size={16} /> Zona de Perigo</SectionTitle>
@@ -607,7 +600,7 @@ const Perfil = () => {
         </PerfilCard>
       )}
 
-      {/* ── Modal Excluir ── */}
+      {/* Modal Excluir */}
       {mostrarModalExcluir && (
         <Modal>
           <ModalContent theme={theme}>
@@ -620,9 +613,14 @@ const Perfil = () => {
             <ModalBody theme={theme}>
               <p>Tem certeza que deseja excluir sua conta?</p>
               <p className="warning">⚠️ Esta ação é permanente e não pode ser desfeita!</p>
+              {isCasal && (
+                <p className="warning">⚠️ Atenção: Isso excluirá toda a conta do casal!</p>
+              )}
             </ModalBody>
             <ModalFooter theme={theme}>
-              <CancelarButton onClick={() => setMostrarModalExcluir(false)} theme={theme}>Cancelar</CancelarButton>
+              <CancelarButton onClick={() => setMostrarModalExcluir(false)} theme={theme}>
+                Cancelar
+              </CancelarButton>
               <ConfirmarButton $danger onClick={handleExcluirConta} disabled={loading} theme={theme}>
                 {loading ? "Excluindo…" : "Sim, excluir conta"}
               </ConfirmarButton>

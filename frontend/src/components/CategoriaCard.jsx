@@ -174,7 +174,7 @@ const ItemRow = memo(
             $checked={item.comprado}
             onClick={(e) => {
               e.stopPropagation();
-              onToggleComprado(item.id, !item.comprado);
+              onToggleComprado(item.id);
             }}
             theme={theme}
             disabled={disabled}
