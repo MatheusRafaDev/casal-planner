@@ -19,7 +19,7 @@ public class Item
     
     public bool Comprado { get; set; } = false;
     public string Pagamento { get; set; } = "normal";
-    public string Prioridade { get; set; } = "normal"; // urgente | normal | pode_esperar
+    public string Prioridade { get; set; } = "normal"; 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -28,6 +28,6 @@ public class Item
     public string UsuarioId { get; set; } = string.Empty;
 
     public string Loja { get; set; } = string.Empty;
-    public string LinkProduto { get; set; } = string.Empty;
-    public string FotoUrl { get; set; } = string.Empty;
+    public string LinkProduto { get; set; } = "";
+    public string FotoUrl { get; set; } = "";
 }

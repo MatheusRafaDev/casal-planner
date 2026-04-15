@@ -1,4 +1,4 @@
-// CategoriaCardStyles.jsx - VERSÃO COMPLETA COM PRIORIDADES
+// CategoriaCardStyles.jsx - VERSÃO COMPLETA CORRIGIDA
 
 import styled, { keyframes } from "styled-components";
 import { GripVertical, Check } from "lucide-react";
@@ -316,14 +316,12 @@ export const ItemsList = styled.div`
 export const ItemRow = styled.div`
   background: ${(props) => {
     if (props.$purchased) return props.theme?.success + "0a" || "rgba(76, 175, 80, 0.04)";
-    // Adiciona cor de fundo baseada na prioridade quando não comprado
     if (props.$priority === "urgente" && !props.$purchased) return "#ef444408";
     if (props.$priority === "pode_esperar" && !props.$purchased) return "#22c55e08";
     return props.theme?.surface || "#fafafa";
   }};
   border: 1px solid ${(props) => {
     if (props.$purchased) return props.theme?.success + "30" || "rgba(76, 175, 80, 0.2)";
-    // Adiciona borda colorida baseada na prioridade
     if (props.$priority === "urgente" && !props.$purchased) return "#ef444440";
     if (props.$priority === "pode_esperar" && !props.$purchased) return "#22c55e40";
     return props.theme?.border || "#e0e0e0";
@@ -374,6 +372,7 @@ export const ItemDetailsLeft = styled.div`
   min-width: 0;
 `;
 
+// ✅ DragHandleItem - apenas uma declaração
 export const DragHandleItem = styled.span`
   cursor: grab;
   color: ${(props) => props.theme?.textSoft || "#666"};
@@ -384,8 +383,18 @@ export const DragHandleItem = styled.span`
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  &:hover { opacity: 1; }
-  &:active { cursor: grabbing; }
+  
+  &[draggable="true"] {
+    cursor: grab;
+    
+    &:active {
+      cursor: grabbing;
+    }
+  }
+  
+  &:hover { 
+    opacity: 1; 
+  }
 `;
 
 // ================= PRIORIDADE BADGES =================

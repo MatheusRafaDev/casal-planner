@@ -27,6 +27,43 @@ const GlobalStyle = createGlobalStyle`
     padding-bottom: env(safe-area-inset-bottom);
   }
 
+  /* 🔥 CORREÇÃO: Remove o fundo branco/amarelo do autocomplete em TODOS os inputs */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  textarea:-webkit-autofill:active,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus,
+  select:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px ${({ theme }) => theme?.surface || '#ffffff'} inset !important;
+    -webkit-text-fill-color: ${({ theme }) => theme?.text || '#333333'} !important;
+    background-color: ${({ theme }) => theme?.surface || '#ffffff'} !important;
+    caret-color: ${({ theme }) => theme?.text || '#333333'} !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  /* Para Firefox */
+  input:-moz-autofill,
+  textarea:-moz-autofill,
+  select:-moz-autofill {
+    background-color: ${({ theme }) => theme?.surface || '#ffffff'} !important;
+    color: ${({ theme }) => theme?.text || '#333333'} !important;
+    box-shadow: 0 0 0 1000px ${({ theme }) => theme?.surface || '#ffffff'} inset !important;
+  }
+
+  /* Quando o input estiver em foco com autocomplete */
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px ${({ theme }) => theme?.surface || '#ffffff'} inset, 0 0 0 2px ${({ theme }) => theme?.primary || '#007bff'} !important;
+    -webkit-text-fill-color: ${({ theme }) => theme?.text || '#333333'} !important;
+  }
+
   /* Improve tap targets & remove tap flash on mobile */
   button, a, [role="button"], select, input[type="submit"], input[type="button"] {
     -webkit-tap-highlight-color: transparent;

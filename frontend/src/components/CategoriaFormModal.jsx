@@ -57,9 +57,6 @@ const CategoriaFormModal = ({
     setPrice: setMetaRaw,
     resetPrice: resetMeta,
   } = usePriceFormat(null);
-  
-  // Estado para controle do scroll quando o modal está aberto
-  const [scrollPosition, setScrollPosition] = useState(0);
 
   useEffect(() => {
     if (isOpen && isEditing && categoriaParaEditar) {
@@ -85,27 +82,16 @@ const CategoriaFormModal = ({
     }
   }, [isOpen, isEditing, categoriaParaEditar, resetValidation, setMetaRaw, resetMeta]);
 
-  // Previne scroll do body quando o modal está aberto
+  // ✅ Previne scroll do body - SEM position fixed, apenas overflow hidden
   useEffect(() => {
     if (!isOpen) return;
     
-    // Salva a posição atual do scroll
-    const scrollY = window.scrollY;
-    setScrollPosition(scrollY);
-    
-    // Aplica estilos para prevenir scroll
+    // Apenas bloqueia o scroll, mantém a posição
     document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
     
     return () => {
-      // Restaura o scroll quando o modal fecha
+      // Remove o bloqueio, a posição permanece a mesma
       document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      window.scrollTo(0, scrollY);
     };
   }, [isOpen]);
 
@@ -216,7 +202,6 @@ const CategoriaFormModal = ({
     }
   };
 
-  // Conteúdo do modal
   const modalContent = (
     <Overlay theme={theme}>
       <ModalContainer onClick={(e) => e.stopPropagation()} theme={theme}>
@@ -315,10 +300,8 @@ const CategoriaFormModal = ({
     </Overlay>
   );
 
-  // Se o modal não estiver aberto, não renderiza nada
   if (!isOpen) return null;
 
-  // Usa Portal para renderizar o modal diretamente no body
   return ReactDOM.createPortal(modalContent, document.body);
 };
 

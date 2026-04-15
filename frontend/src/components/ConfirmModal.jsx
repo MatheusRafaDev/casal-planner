@@ -24,20 +24,16 @@ const ConfirmModal = ({ theme }) => {
   const contentRef = useRef(null);
   const { isOpen, title, message, itemName, itemType, onConfirm } = confirmDialog;
 
-  // Trava scroll do body quando modal está aberto
+  // ✅ Previne scroll do body - SEM position fixed, apenas overflow hidden
   useEffect(() => {
     if (!isOpen) return;
-    const scrollY = window.scrollY;
+    
+    // Apenas bloqueia o scroll, mantém a posição
     document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
+    
     return () => {
+      // Remove o bloqueio, a posição permanece a mesma
       document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      window.scrollTo(0, scrollY);
     };
   }, [isOpen]);
 
@@ -83,7 +79,7 @@ const ConfirmModal = ({ theme }) => {
       await onConfirm();
       toast.success(`"${itemName}" excluído com sucesso!`, {
         duration: 3000,
-        style: { borderRadius: '12px', background: '#dc3545', color: '#fff' },
+        style: { borderRadius: '12px', background: '#28a745', color: '#fff' },
       });
       hideConfirm();
     } catch (error) {
