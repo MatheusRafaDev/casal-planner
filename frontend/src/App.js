@@ -42,10 +42,9 @@ const AppContainer = styled.div`
 `;
 
 const MainContent = styled.main`
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 2rem 20px;
 
+  margin: 0 auto;
+  
   @media (max-width: 768px) {
     padding: 1rem 15px 5rem;
   }

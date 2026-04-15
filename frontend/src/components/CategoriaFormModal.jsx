@@ -56,6 +56,7 @@ const CategoriaFormModal = ({
     setPrice: setMetaRaw,
     resetPrice: resetMeta,
   } = usePriceFormat(null);
+  
 
   useEffect(() => {
     if (isOpen && isEditing && categoriaParaEditar) {
@@ -81,6 +82,8 @@ const CategoriaFormModal = ({
     }
   }, [isOpen, isEditing, categoriaParaEditar, resetValidation, setMetaRaw, resetMeta]);
 
+
+  
   useEffect(() => {
     if (!isOpen) return;
     const scrollY = window.scrollY;
@@ -96,6 +99,8 @@ const CategoriaFormModal = ({
       window.scrollTo(0, scrollY);
     };
   }, [isOpen]);
+
+  
 
   const handleNameChange = (e) => {
     const valor = e.target.value;
@@ -132,6 +137,19 @@ const CategoriaFormModal = ({
     resetMeta();
     onClose();
   };
+
+
+   useEffect(() => {
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape' && isOpen) {
+          e.preventDefault();
+          handleClose();
+        }
+      };
+      
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, handleClose]); // Adicionado handleClose como dependência
 
   const handleSubmit = async (e) => {
     e.preventDefault();
