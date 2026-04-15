@@ -68,8 +68,6 @@ O **Casal Planner** nasceu de uma necessidade real: organizar as compras de quem
 - Total VR/VA (itens elegíveis a vale)
 - Total Normal (pagamento convencional)
 - Contagem de itens comprados vs. pendentes
-- **Variação percentual** em relação ao mês anterior com indicadores de tendência (↑ ↓ →)
-- Janela deslizante de **3 meses** para comparativos históricos
 
 ### 🔍 Pesquisa de Preços com IA
 - Busca de preços em lojas online via **SerpAPI**
@@ -153,61 +151,12 @@ O **Casal Planner** nasceu de uma necessidade real: organizar as compras de quem
               └─────────────────────┘
 ```
 
----
-
-## 📁 Estrutura do Projeto
-
-```
-casal-planner/
-├── backend/
-│   └── CasalPlanner.API/
-│       ├── Controllers/
-│       │   ├── AuthController.cs          # Login, logout, refresh token
-│       │   ├── CategoriasController.cs    # CRUD de categorias/cômodos
-│       │   ├── ItensController.cs         # CRUD de itens
-│       │   ├── PesquisaPrecosController.cs# Busca de preços com IA
-│       │   ├── ResumoController.cs        # Dashboard financeiro
-│       │   └── UsuarioController.cs       # Gestão de perfil
-│       ├── Services/
-│       │   ├── AuthService.cs             # JWT, BCrypt, autenticação
-│       │   ├── GroqService.cs             # Integração com LLM (Groq/Llama)
-│       │   ├── ItemService.cs             # Regras de negócio dos itens
-│       │   └── ResumoService.cs           # Cálculos financeiros mensais
-│       ├── Models/
-│       │   ├── Usuario.cs
-│       │   ├── Categoria.cs
-│       │   ├── Item.cs
-│       │   └── DTOs/                      # AuthDto, CategoriaDto, ItemDto...
-│       ├── Data/
-│       │   └── MongoDbContext.cs          # Contexto e collections do MongoDB
-│       ├── Dockerfile
-│       └── Program.cs                     # DI, middlewares, CORS, JWT config
-│
-└── frontend/
-    ├── public/
-    └── src/
-        ├── components/
-        │   ├── CategoriaCard.jsx          # Card com drag-and-drop e itens
-        │   ├── ItemFormModal.jsx          # Modal de criação/edição de item
-        │   ├── PainelPesquisaPrecos.jsx   # Painel de pesquisa de preços
-        │   ├── ResumoCards.jsx            # Cards financeiros com tendência
-        │   └── Login.jsx                 # Tela de login/cadastro
-        ├── pages/
-        │   ├── Inicio.jsx                # Dashboard principal
-        │   ├── Planejamento.jsx          # Lista de categorias e itens
-        │   ├── Perfil.jsx                # Edição de perfil
-        │   └── Home.jsx                  # Landing page
-        ├── services/                      # Camada de integração com a API
-        ├── styles/                        # Styled Components globais e por componente
-        └── utils/                         # Formatters, máscaras, toast helpers
-```
-
 ## 👤 Autor
 
 Feito com ❤️ por **Matheus**
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/seu-perfil)
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/seu-usuario)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/matheus-rafael-50a676219)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/MatheusRafaDev)
 
 ---
 
