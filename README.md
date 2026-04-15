@@ -1,72 +1,216 @@
 # 🏠 Casal Planner
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![React](https://img.shields.io/badge/React-18.2.0-61dafb)
-![.NET](https://img.shields.io/badge/.NET-8.0-512bd4)
-![MongoDB](https://img.shields.io/badge/MongoDB-7.0-47a248)
+<p align="center">
+  <img src="https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/React-18-61dafb?style=for-the-badge&logo=react" />
+  <img src="https://img.shields.io/badge/.NET-8.0-512bd4?style=for-the-badge&logo=dotnet" />
+  <img src="https://img.shields.io/badge/MongoDB-7.0-47a248?style=for-the-badge&logo=mongodb" />
+  <img src="https://img.shields.io/badge/Docker-ready-2496ED?style=for-the-badge&logo=docker" />
+</p>
 
-## 📋 Sobre o Projeto
+> **Organize as compras da sua nova casa junto com quem você ama.**  
+> O Casal Planner é uma aplicação web full-stack para casais que estão montando o lar, com controle de orçamento por cômodo, separação de pagamentos VR/VA e pesquisa de preços inteligente com IA.
 
-**Casal Planner** é um organizador de lista de compras desenvolvido especialmente para casais que estão montando o lar. Com ele, você pode planejar compras por cômodo, controlar gastos separando pagamentos normais de VR/VA (Vale Refeição/Alimentação), e acompanhar evolução financeira mês a mês.
+---
 
-### 🎯 Público-alvo
-- Casais que estão montando a primeira casa
-- Pessoas que querem organizar compras domésticas
-- Quem precisa controlar orçamento familiar
+## 📋 Índice
+
+- [Sobre o Projeto](#-sobre-o-projeto)
+- [Funcionalidades](#-funcionalidades)
+- [Tecnologias](#-tecnologias)
+- [Arquitetura](#-arquitetura)
+- [Estrutura do Projeto](#-estrutura-do-projeto)
+- [Como Rodar Localmente](#-como-rodar-localmente)
+- [Variáveis de Ambiente](#-variáveis-de-ambiente)
+- [Endpoints da API](#-endpoints-da-api)
+- [Autor](#-autor)
+
+---
+
+## 🎯 Sobre o Projeto
+
+O **Casal Planner** nasceu de uma necessidade real: organizar as compras de quem está montando a primeira casa. O app permite que duas pessoas (ou uma só) planejem, acompanhem e controlem gastos domésticos de forma colaborativa, com suporte a dois tipos de pagamento — dinheiro normal e VR/VA — e um painel de pesquisa de preços que usa IA para validar produtos e lojas em tempo real.
+
+**Público-alvo:**
+- Casais montando a primeira casa
+- Pessoas que querem organizar compras domésticas por ambiente
+- Quem precisa controlar orçamento familiar com separação VR/VA
+
+---
 
 ## ✨ Funcionalidades
 
 ### 👥 Gestão de Usuários
-- **Conta Individual** – para uma pessoa organizar suas compras
-- **Conta Casal** – duas pessoas com logins e senhas separados
-- Autenticação JWT com cookies seguros
-- Senhas hasheadas com BCrypt
+- Conta individual ou conta casal (dois logins separados, um casal)
+- Autenticação via **JWT** com cookies `HttpOnly` e `SameSite=Strict`
+- Senhas criptografadas com **BCrypt**
+- Edição de perfil: nome, CPF, data de nascimento, renda mensal
+- Troca de senha com verificação da senha atual
+- Exclusão de conta
 
 ### 🏷️ Categorias (Cômodos)
-- CRUD completo de categorias
-- 5 categorias padrão criadas automaticamente: Cozinha, Sala, Quarto, Banheiro, Lavanderia
+- CRUD completo de categorias personalizadas
+- 5 categorias padrão criadas automaticamente: **Cozinha, Sala, Quarto, Banheiro, Lavanderia**
 - Personalize nome, ícone emoji e cor de fundo
 - Reordenação por **drag-and-drop**
-- Categorias padrão são protegidas contra edição/exclusão
+- Categorias padrão protegidas contra edição/exclusão
 
 ### 📦 Itens
-- CRUD completo dentro de cada categoria
+- CRUD completo de itens dentro de cada categoria
 - Campos: nome, marca, preço, quantidade, tipo de pagamento
-- **Tipos de pagamento**: Normal ou VR/VA
+- Tipos de pagamento: **Normal** ou **VR/VA**
 - Marque itens como comprados com toggle rápido
-- Mova itens entre categorias via drag-and-drop
+- Mova itens entre categorias via **drag-and-drop**
 - Filtro por tipo de pagamento
 
 ### 💰 Resumo Financeiro
-- **Total geral** de todos os itens
-- **Total VR/VA** – itens que podem ser pagos com vale
-- **Total Normal** – itens de pagamento convencional
-- **Itens comprados** – contagem do que já foi adquirido
-- Cada card mostra variação percentual em relação ao mês anterior
-- Indicador de tendência (↑ subiu / ↓ desceu / → estável)
-- Janela deslizante de 3 meses para comparativos
+- Total geral de todos os itens
+- Total VR/VA (itens elegíveis a vale)
+- Total Normal (pagamento convencional)
+- Contagem de itens comprados vs. pendentes
+- **Variação percentual** em relação ao mês anterior com indicadores de tendência (↑ ↓ →)
+- Janela deslizante de **3 meses** para comparativos históricos
 
-### 👤 Perfil
-- Edição de dados pessoais (nome, CPF, data de nascimento, renda mensal)
-- Para casais: cada pessoa edita seus próprios dados
-- Troca de senha
-- Modo escuro/claro
-- Exclusão de conta
+### 🔍 Pesquisa de Preços com IA
+- Busca de preços em lojas online via **SerpAPI**
+- **Validação inteligente de produtos e lojas** com LLM (Groq / Llama 3.1)
+- Identificação automática de marca
+- Filtragem de produtos usados/recondicionados
+- Classificação de lojas confiáveis vs. marketplaces
+- Exibição de logos das lojas
+
+### 🎨 Experiência de Uso
+- Modo escuro / claro
+- Interface responsiva (mobile-first)
+- Navegação por bottom bar no mobile
+- Animações e transições suaves com Styled Components
+
+---
 
 ## 🛠️ Tecnologias
 
 ### Frontend
-- **React 18** – biblioteca principal
-- **React Router** – navegação entre páginas
-- **Styled Components** – estilização CSS-in-JS
-- **Drag-and-Drop** – reordenação de categorias e itens
+| Tecnologia | Versão | Uso |
+|---|---|---|
+| React | 18 | Biblioteca principal |
+| React Router | v6 | Navegação SPA |
+| Styled Components | — | Estilização CSS-in-JS |
+| React DnD / dnd-kit | — | Drag-and-drop |
 
 ### Backend
-- **ASP.NET Core 8** – API RESTful
-- **JWT** – autenticação via cookies
-- **BCrypt** – hashing de senhas
+| Tecnologia | Versão | Uso |
+|---|---|---|
+| ASP.NET Core | 8.0 | API RESTful |
+| JWT Bearer | — | Autenticação |
+| BCrypt.Net | — | Hashing de senhas |
+| HttpClient | — | Integração com APIs externas |
 
 ### Banco de Dados
-- **MongoDB** – armazenamento NoSQL
+| Tecnologia | Uso |
+|---|---|
+| MongoDB 7.0 | Armazenamento NoSQL principal |
+| MongoDB Driver (.NET) | Acesso ao banco via C# |
+
+### Integrações Externas
+| Serviço | Uso |
+|---|---|
+| **Groq API** (Llama 3.1 8B) | Validação inteligente de produtos e lojas |
+| **SerpAPI** | Pesquisa de preços em e-commerces |
+
+### Infraestrutura
+| Tecnologia | Uso |
+|---|---|
+| Docker | Containerização do backend |
+| Docker Compose | Orquestração local |
+
+---
+
+## 🏗️ Arquitetura
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      FRONTEND (React)                   │
+│  ┌──────────┐  ┌──────────┐  ┌────────────────────────┐ │
+│  │  Auth /  │  │ Planner  │  │  Pesquisa de Preços    │ │
+│  │  Perfil  │  │ (Itens + │  │  (SerpAPI + IA Groq)   │ │
+│  │          │  │  Categ.) │  │                        │ │
+│  └──────────┘  └──────────┘  └────────────────────────┘ │
+└───────────────────────┬─────────────────────────────────┘
+                        │ HTTP / REST + JWT Cookie
+┌───────────────────────▼─────────────────────────────────┐
+│                 BACKEND (ASP.NET Core 8)                 │
+│  ┌────────────┐  ┌────────────┐  ┌─────────────────────┐ │
+│  │   Auth     │  │  Business  │  │   PesquisaPreços    │ │
+│  │ Controller │  │  Services  │  │   Controller + Groq │ │
+│  └────────────┘  └─────┬──────┘  └─────────────────────┘ │
+└────────────────────────┼────────────────────────────────┘
+                         │
+              ┌──────────▼──────────┐
+              │     MongoDB 7.0     │
+              │  (Usuários, Itens,  │
+              │   Categorias,       │
+              │   Histórico Mensal) │
+              └─────────────────────┘
+```
+
+---
 
 ## 📁 Estrutura do Projeto
+
+```
+casal-planner/
+├── backend/
+│   └── CasalPlanner.API/
+│       ├── Controllers/
+│       │   ├── AuthController.cs          # Login, logout, refresh token
+│       │   ├── CategoriasController.cs    # CRUD de categorias/cômodos
+│       │   ├── ItensController.cs         # CRUD de itens
+│       │   ├── PesquisaPrecosController.cs# Busca de preços com IA
+│       │   ├── ResumoController.cs        # Dashboard financeiro
+│       │   └── UsuarioController.cs       # Gestão de perfil
+│       ├── Services/
+│       │   ├── AuthService.cs             # JWT, BCrypt, autenticação
+│       │   ├── GroqService.cs             # Integração com LLM (Groq/Llama)
+│       │   ├── ItemService.cs             # Regras de negócio dos itens
+│       │   └── ResumoService.cs           # Cálculos financeiros mensais
+│       ├── Models/
+│       │   ├── Usuario.cs
+│       │   ├── Categoria.cs
+│       │   ├── Item.cs
+│       │   └── DTOs/                      # AuthDto, CategoriaDto, ItemDto...
+│       ├── Data/
+│       │   └── MongoDbContext.cs          # Contexto e collections do MongoDB
+│       ├── Dockerfile
+│       └── Program.cs                     # DI, middlewares, CORS, JWT config
+│
+└── frontend/
+    ├── public/
+    └── src/
+        ├── components/
+        │   ├── CategoriaCard.jsx          # Card com drag-and-drop e itens
+        │   ├── ItemFormModal.jsx          # Modal de criação/edição de item
+        │   ├── PainelPesquisaPrecos.jsx   # Painel de pesquisa de preços
+        │   ├── ResumoCards.jsx            # Cards financeiros com tendência
+        │   └── Login.jsx                 # Tela de login/cadastro
+        ├── pages/
+        │   ├── Inicio.jsx                # Dashboard principal
+        │   ├── Planejamento.jsx          # Lista de categorias e itens
+        │   ├── Perfil.jsx                # Edição de perfil
+        │   └── Home.jsx                  # Landing page
+        ├── services/                      # Camada de integração com a API
+        ├── styles/                        # Styled Components globais e por componente
+        └── utils/                         # Formatters, máscaras, toast helpers
+```
+
+## 👤 Autor
+
+Feito com ❤️ por **Matheus**
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/seu-perfil)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/seu-usuario)
+
+---
+
+<p align="center">
+  Se este projeto te ajudou ou te inspirou, deixa uma ⭐ no repositório!
+</p>
