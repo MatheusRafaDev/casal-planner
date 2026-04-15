@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import { categoriasService } from '../services/categoriasService';
 import { useCategoryValidation } from '../hooks/useCategoryValidation';
@@ -35,7 +36,7 @@ const ErrorMessage = styled.span`
 const CategoriaFormModal = ({ 
   isOpen, 
   onClose, 
-  onCategoryAdded,   // fn(categoria) para nova | fn(categoria) para edição
+  onCategoryAdded,
   theme,
   categoriaParaEditar = null,
   isEditing = false 
@@ -57,6 +58,8 @@ const CategoriaFormModal = ({
     resetPrice: resetMeta,
   } = usePriceFormat(null);
   
+  // Estado para controle do scroll quando o modal está aberto
+  const [scrollPosition, setScrollPosition] = useState(0);
 
   useEffect(() => {
     if (isOpen && isEditing && categoriaParaEditar) {
@@ -82,16 +85,22 @@ const CategoriaFormModal = ({
     }
   }, [isOpen, isEditing, categoriaParaEditar, resetValidation, setMetaRaw, resetMeta]);
 
-
-  
+  // Previne scroll do body quando o modal está aberto
   useEffect(() => {
     if (!isOpen) return;
+    
+    // Salva a posição atual do scroll
     const scrollY = window.scrollY;
+    setScrollPosition(scrollY);
+    
+    // Aplica estilos para prevenir scroll
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
     document.body.style.top = `-${scrollY}px`;
     document.body.style.width = '100%';
+    
     return () => {
+      // Restaura o scroll quando o modal fecha
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.top = '';
@@ -99,8 +108,6 @@ const CategoriaFormModal = ({
       window.scrollTo(0, scrollY);
     };
   }, [isOpen]);
-
-  
 
   const handleNameChange = (e) => {
     const valor = e.target.value;
@@ -138,18 +145,17 @@ const CategoriaFormModal = ({
     onClose();
   };
 
-
-   useEffect(() => {
-      const handleKeyDown = (e) => {
-        if (e.key === 'Escape' && isOpen) {
-          e.preventDefault();
-          handleClose();
-        }
-      };
-      
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, handleClose]); // Adicionado handleClose como dependência
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        e.preventDefault();
+        handleClose();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, handleClose]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -184,16 +190,13 @@ const CategoriaFormModal = ({
       let categoriaResultado;
       if (isEditing && categoriaParaEditar) {
         await categoriasService.update(categoriaParaEditar.id, categoriaData);
-        // Monta objeto atualizado localmente (sem reload)
         categoriaResultado = { ...categoriaParaEditar, ...categoriaData };
         showToast.success(`Categoria "${name}" atualizada!`, theme);
       } else {
-        // Cria no backend e recebe o objeto com id
         categoriaResultado = await categoriasService.create(categoriaData);
         showToast.success(`Categoria "${name}" criada!`, theme);
       }
 
-      // Passa o objeto criado/atualizado de volta — sem reload geral
       if (onCategoryAdded) {
         onCategoryAdded(categoriaResultado, isEditing);
       }
@@ -213,9 +216,8 @@ const CategoriaFormModal = ({
     }
   };
 
-  if (!isOpen) return null;
-
-  return (
+  // Conteúdo do modal
+  const modalContent = (
     <Overlay theme={theme}>
       <ModalContainer onClick={(e) => e.stopPropagation()} theme={theme}>
         <Header theme={theme}>
@@ -245,7 +247,14 @@ const CategoriaFormModal = ({
             <Label theme={theme}>Ícone</Label>
             <IconsGrid>
               {ICONS.map(ic => (
-                <IconButton key={ic} type="button" onClick={() => setIcon(ic)} $active={icon === ic} theme={theme} disabled={loading}>
+                <IconButton 
+                  key={ic} 
+                  type="button" 
+                  onClick={() => setIcon(ic)} 
+                  $active={icon === ic} 
+                  theme={theme} 
+                  disabled={loading}
+                >
                   {ic}
                 </IconButton>
               ))}
@@ -259,10 +268,14 @@ const CategoriaFormModal = ({
                 const [h, s, l] = c.split(' ');
                 return (
                   <ColorButton
-                    key={c} type="button" onClick={() => setColor(c)}
+                    key={c} 
+                    type="button" 
+                    onClick={() => setColor(c)}
                     $active={color === c}
                     style={{ backgroundColor: `hsl(${h}, ${s}, ${l})` }}
-                    theme={theme} title={`Cor ${c}`} disabled={loading}
+                    theme={theme} 
+                    title={`Cor ${c}`} 
+                    disabled={loading}
                   />
                 );
               })}
@@ -289,7 +302,11 @@ const CategoriaFormModal = ({
             <CancelarButton type="button" onClick={handleClose} disabled={loading} theme={theme}>
               Cancelar
             </CancelarButton>
-            <CriarButton type="submit" disabled={loading || !name.trim() || errors.nome} theme={theme}>
+            <CriarButton 
+              type="submit" 
+              disabled={loading || !name.trim() || errors.nome} 
+              theme={theme}
+            >
               {loading ? (isEditing ? 'Salvando...' : 'Criando...') : (isEditing ? 'Salvar Alterações' : 'Criar Categoria')}
             </CriarButton>
           </ModalButtons>
@@ -297,6 +314,12 @@ const CategoriaFormModal = ({
       </ModalContainer>
     </Overlay>
   );
+
+  // Se o modal não estiver aberto, não renderiza nada
+  if (!isOpen) return null;
+
+  // Usa Portal para renderizar o modal diretamente no body
+  return ReactDOM.createPortal(modalContent, document.body);
 };
 
 export default CategoriaFormModal;

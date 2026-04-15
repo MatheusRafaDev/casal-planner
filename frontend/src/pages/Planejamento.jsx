@@ -7,11 +7,13 @@ import React, {
 } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
+
 import ResumoCards from "../components/ResumoCards";
 import CategoriaCard from "../components/CategoriaCard";
 import CategoriaFormModal from "../components/CategoriaFormModal";
 import Filtros from "../components/Filtros";
 import ItemFormModal from "../components/ItemFormModal";
+
 import { categoriasService } from "../services/categoriasService";
 import { itensService } from "../services/itensService";
 import resumoService from "../services/resumoService";
@@ -34,7 +36,7 @@ import {
   EmptyStateButton,
 } from "../styles/pages/PlanejamentoStyles";
 
-// Calcula o resumo localmente a partir dos itens — sem request de rede extra
+// ---------- Utils ----------
 const calcularResumoLocal = (itens) => {
   if (!Array.isArray(itens) || itens.length === 0) {
     return {
@@ -44,31 +46,23 @@ const calcularResumoLocal = (itens) => {
         totalNormal: 0,
         totalComprados: 0,
         totalItens: 0,
-        porCategoria: {},
-        quantidadePorCategoria: {},
       },
-      comparativo: {
-        totalGeral: 0,
-        totalVR: 0,
-        totalNormal: 0,
-        totalComprados: 0,
-        percentualGeral: 0,
-      },
+      comparativo: {},
     };
   }
   return resumoService.calcularResumoManual(itens);
 };
 
+// ---------- Component ----------
 const Planejamento = () => {
   const { theme } = useTheme();
   const { usuario } = useAuth();
 
   const [categorias, setCategorias] = useState([]);
   const [itens, setItens] = useState([]);
-  const [loadingInicial, setLoadingInicial] = useState(true);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
-  const [message, setMessage] = useState({ text: "", type: "" });
+  const [message, setMessage] = useState(null);
 
   const [itemModal, setItemModal] = useState({
     isOpen: false,
@@ -81,10 +75,6 @@ const Planejamento = () => {
     isEditing: false,
   });
 
-  const [draggedCardIndex, setDraggedCardIndex] = useState(null);
-  const [dragOverCardIndex, setDragOverCardIndex] = useState(null);
-  const [draggedItemId, setDraggedItemId] = useState(null);
-
   const [formData, setFormData] = useState({
     nome: "",
     marca: "",
@@ -92,231 +82,98 @@ const Planejamento = () => {
     precoFormatado: "",
     quantidade: 1,
     pagamento: "normal",
+    prioridade: "normal",
     loja: "",
     linkProduto: "",
     fotoUrl: "",
   });
 
-  const scrollPositionRef = useRef(0);
-  const reordenarTimerRef = useRef(null);
+  const scrollRef = useRef(0);
 
-  // Resumo calculado localmente — zero requests extras de rede
-  const resumoCalculado = useMemo(() => calcularResumoLocal(itens), [itens]);
-  const resumo = resumoCalculado.atual;
-  const comparativo = resumoCalculado.comparativo;
-
+  // ---------- Mensagem ----------
   const showMessage = (text, type = "success") => {
     setMessage({ text, type });
-    setTimeout(() => setMessage({ text: "", type: "" }), 3000);
+    setTimeout(() => setMessage(null), 3000);
   };
 
-  useEffect(() => {
-    if (usuario) {
-      loadData();
-    } else {
-      setLoadingInicial(false);
-      setError("Usuário não autenticado");
-    }
-    
-  }, [usuario]);
-
-  // Carrega categorias e itens em paralelo, chamado somente quando necessário
+  // ---------- Load ----------
   const loadData = useCallback(async () => {
     try {
-      scrollPositionRef.current = window.scrollY;
-      setLoadingInicial(true);
-      setError(null);
+      setLoading(true);
+      scrollRef.current = window.scrollY;
 
-      const [categoriasResult, itensResult] = await Promise.allSettled([
+      const [cats, its] = await Promise.all([
         categoriasService.listarDoUsuario(),
         itensService.getAll(),
       ]);
 
-      if (categoriasResult.status === "fulfilled") {
-        const sorted = [...(categoriasResult.value || [])].sort(
-          (a, b) => (a.ordem || 0) - (b.ordem || 0),
-        );
-        setCategorias(sorted);
-      } else {
-        setCategorias([]);
-        showMessage("Erro ao carregar categorias", "error");
-      }
-
-      if (itensResult.status === "fulfilled") {
-        setItens(Array.isArray(itensResult.value) ? itensResult.value : []);
-      } else {
-        setItens([]);
-        showMessage("Erro ao carregar itens", "error");
-      }
-    } catch (err) {
-      setError(err.message || "Erro ao carregar dados");
+      setCategorias(
+        (cats || []).sort((a, b) => (a.ordem || 0) - (b.ordem || 0)),
+      );
+      setItens(Array.isArray(its) ? its : []);
+    } catch {
       showMessage("Erro ao carregar dados", "error");
     } finally {
-      setLoadingInicial(false);
-      setTimeout(() => {
-        window.scrollTo({ top: scrollPositionRef.current, behavior: "auto" });
-      }, 0);
+      setLoading(false);
+      setTimeout(() => window.scrollTo(0, scrollRef.current), 0);
     }
   }, []);
 
-  const categoriasArray = useMemo(
-    () => (Array.isArray(categorias) ? categorias : []),
-    [categorias],
-  );
+  useEffect(() => {
+    if (usuario) loadData();
+  }, [usuario, loadData]);
 
-  const itensArray = useMemo(
-    () => (Array.isArray(itens) ? itens : []),
+  // ---------- Memo ----------
+  const itensFiltrados = useMemo(() => {
+    if (filter === "all") return itens;
+    return itens.filter(
+      (i) => i.pagamento === (filter === "vrva" ? "vr" : "normal"),
+    );
+  }, [itens, filter]);
+
+  const resumo = useMemo(() => calcularResumoLocal(itens).atual, [itens]);
+  const comparativo = useMemo(
+    () => calcularResumoLocal(itens).comparativo,
     [itens],
   );
 
-  const filteredItems = useMemo(() => {
-    if (filter === "all") return itensArray;
-    return itensArray.filter(
-      (i) => i?.pagamento === (filter === "vrva" ? "vr" : "normal"),
-    );
-  }, [itensArray, filter]);
+  // ---------- Item ----------
+  const handleSaveItem = async () => {
+    if (!formData.nome.trim()) return alert("Nome obrigatório");
 
-  // Toggle comprado com optimistic update — sem recarregar nada
-  const handleToggleComprado = useCallback(async (itemId, comprado) => {
-    setItens((prev) =>
-      prev.map((i) => (i.id === itemId ? { ...i, comprado } : i)),
-    );
+    const payload = {
+      ...formData,
+      nome: formData.nome.trim(),
+      preco: Number(formData.preco),
+      quantidade: Number(formData.quantidade),
+      categoriaId: itemModal.categoriaId,
+    };
+
     try {
-      await itensService.updateComprado(itemId, comprado);
-    } catch (error) {
-      // Reverte se falhar
-      setItens((prev) =>
-        prev.map((i) => (i.id === itemId ? { ...i, comprado: !comprado } : i)),
-      );
-      showMessage("Erro ao atualizar item", "error");
-    }
-  }, []);
+      if (itemModal.itemId) {
+        await itensService.update(itemModal.itemId, payload);
 
-  // Drag & drop de cards de categoria
-  const handleCardDragStart = (e, index) => {
-    setDraggedCardIndex(index);
-    e.dataTransfer.setData("text/plain", index.toString());
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  const handleCardDragOver = (e, index) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    if (draggedCardIndex !== null && index !== dragOverCardIndex) {
-      setDragOverCardIndex(index);
-    }
-  };
-
-  const handleCardDrop = async (e, targetIndex) => {
-    e.preventDefault();
-    const sourceIndex = e.dataTransfer.getData("text/plain");
-
-    if (sourceIndex === null || sourceIndex === targetIndex.toString()) {
-      setDraggedCardIndex(null);
-      setDragOverCardIndex(null);
-      return;
-    }
-
-    const newCategorias = [...categoriasArray];
-    const [removed] = newCategorias.splice(parseInt(sourceIndex), 1);
-    newCategorias.splice(targetIndex, 0, removed);
-
-    setCategorias(newCategorias);
-    setDraggedCardIndex(null);
-    setDragOverCardIndex(null);
-
-    // Debounce: espera 400ms antes de salvar no backend
-    if (reordenarTimerRef.current) clearTimeout(reordenarTimerRef.current);
-    reordenarTimerRef.current = setTimeout(async () => {
-      try {
-        const categoriaIds = newCategorias.map((c) => c.id);
-        await categoriasService.reordenar(categoriaIds);
-      } catch (error) {
-        console.error("Erro ao salvar ordem:", error);
-        await loadData();
-      }
-    }, 400);
-  };
-
-  // Drag & drop de itens entre categorias com optimistic update
-  const handleItemDragStart = (itemId) => setDraggedItemId(itemId);
-  const handleItemDragEnd = () => setDraggedItemId(null);
-
-  const handleItemDrop = useCallback(
-    async (categoriaId) => {
-      if (!draggedItemId) return;
-
-      const itemAtual = itensArray.find((i) => i.id === draggedItemId);
-      if (itemAtual?.categoriaId === categoriaId) {
-        setDraggedItemId(null);
-        return;
-      }
-
-      setItens((prev) =>
-        prev.map((i) => (i.id === draggedItemId ? { ...i, categoriaId } : i)),
-      );
-      setDraggedItemId(null);
-
-      try {
-        await itensService.updateCategoria(draggedItemId, categoriaId);
-      } catch (error) {
-        // Reverte
         setItens((prev) =>
           prev.map((i) =>
-            i.id === draggedItemId
-              ? { ...i, categoriaId: itemAtual.categoriaId }
-              : i,
+            i.id === itemModal.itemId ? { ...i, ...payload } : i,
           ),
         );
-        showMessage("Erro ao mover item", "error");
+
+        showMessage("Item atualizado");
+      } else {
+        const novo = await itensService.create(payload);
+        setItens((prev) => [novo, ...prev]);
+        showMessage("Item criado");
       }
-    },
-    [draggedItemId, itensArray],
-  );
 
-  // Categoria
-  const handleAddCategoria = () =>
-    setCategoriaModal({ isOpen: true, categoria: null, isEditing: false });
-
-  const handleEditCategoria = (categoria) =>
-    setCategoriaModal({ isOpen: true, categoria, isEditing: true });
-
-  const handleDeleteCategoria = async (categoriaId) => {
-    const backupCategorias = [...categoriasArray];
-    const backupItens = [...itensArray];
-
-    // Optimistic: remove local
-    setCategorias((prev) => prev.filter((c) => c.id !== categoriaId));
-    setItens((prev) => prev.filter((i) => i.categoriaId !== categoriaId));
-
-    try {
-      await categoriasService.delete(categoriaId);
-      showMessage("Categoria deletada");
-    } catch (error) {
-      setCategorias(backupCategorias);
-      setItens(backupItens);
-      showMessage("Erro ao deletar categoria", "error");
+      handleCloseItemModal();
+    } catch {
+      showMessage("Erro ao salvar item", "error");
     }
   };
 
-  const handleCloseCategoriaModal = () =>
-    setCategoriaModal({ isOpen: false, categoria: null, isEditing: false });
-
-  // Atualização otimística: adiciona/edita categoria sem recarregar tudo
-  const handleCategoriaAdded = (categoriaResultado, isEditing) => {
-    if (!categoriaResultado) return;
-    if (isEditing) {
-      setCategorias(prev =>
-        prev.map(c => c.id === categoriaResultado.id ? { ...c, ...categoriaResultado } : c)
-      );
-    } else {
-      setCategorias(prev => [...prev, categoriaResultado]);
-    }
-  };
-
-  // Item
-  const handleAddItem = (categoriaId) => {
-    setItemModal({ isOpen: true, categoriaId, itemId: null });
+  const handleCloseItemModal = () => {
+    setItemModal({ isOpen: false, categoriaId: null, itemId: null });
     setFormData({
       nome: "",
       marca: "",
@@ -332,88 +189,52 @@ const Planejamento = () => {
   };
 
   const handleEditItem = (itemId) => {
-    const item = itensArray.find((i) => i.id === itemId);
+    const item = itens.find((i) => i.id === itemId);
     if (!item) return;
-    setItemModal({
-      isOpen: true,
-      categoriaId: item.categoriaId,
-      itemId: item.id,
-    });
+
+    setItemModal({ isOpen: true, categoriaId: item.categoriaId, itemId });
+
     setFormData({
-      nome: item.nome || "",
-      marca: item.marca || "",
+      ...item,
       preco: item.preco?.toString() || "",
       precoFormatado: formatarValorParaExibicao(item.preco || 0),
-      quantidade: item.quantidade || 1,
-      pagamento: item.pagamento || "normal",
-      prioridade: item.prioridade || "normal",
-      loja: item.loja || "",
-      linkProduto: item.linkProduto || "",
-      fotoUrl: item.fotoUrl || "",
     });
   };
 
-  const handleDeleteItem = useCallback(
-    async (itemId) => {
-      const backup = [...itens];
-      setItens((prev) => prev.filter((i) => i.id !== itemId));
-      try {
-        await itensService.delete(itemId);
-      } catch (error) {
-        setItens(backup);
-        showMessage("Erro ao deletar item", "error");
-      }
-    },
-    [itens],
-  );
-
-  const handleSaveItem = async () => {
-    if (!formData.nome?.trim()) {
-      alert("Nome é obrigatório");
-      return;
-    }
-
-    const itemData = {
-      nome: formData.nome.trim(),
-      marca: formData.marca?.trim() || "",
-      preco: formData.preco,
-      quantidade: parseInt(formData.quantidade) || 1,
-      categoriaId: itemModal.categoriaId,
-      pagamento: formData.pagamento,
-      prioridade: formData.prioridade || "normal",
-      loja: formData.loja?.trim() || "",
-      linkProduto: formData.linkProduto?.trim() || "",
-      fotoUrl: formData.fotoUrl?.trim() || "",
-    };
+  const handleDeleteItem = async (id) => {
+    const backup = [...itens];
+    setItens((prev) => prev.filter((i) => i.id !== id));
 
     try {
-      if (itemModal.itemId) {
-        // Edição: atualiza local imediatamente
-        setItens((prev) =>
-          prev.map((i) =>
-            i.id === itemModal.itemId ? { ...i, ...itemData } : i,
-          ),
-        );
-        setItemModal({ isOpen: false, categoriaId: null, itemId: null });
-        await itensService.update(itemModal.itemId, itemData);
-      } else {
-        // Criação: fecha modal, cria no backend, adiciona na lista local
-        setItemModal({ isOpen: false, categoriaId: null, itemId: null });
-        const novoItem = await itensService.create(itemData);
-        setItens((prev) => [novoItem, ...prev]);
-      }
-    } catch (error) {
-      console.error("Erro ao salvar item:", error);
-      showMessage("Erro ao salvar item", "error");
-      await loadData();
+      await itensService.delete(id);
+    } catch {
+      setItens(backup);
+      showMessage("Erro ao deletar", "error");
     }
   };
 
-  if (loadingInicial) {
+  // ---------- Categoria ----------
+  const handleAddCategoria = () =>
+    setCategoriaModal({ isOpen: true, categoria: null, isEditing: false });
+
+  const handleDeleteCategoria = async (id) => {
+    const backup = categorias;
+    setCategorias((prev) => prev.filter((c) => c.id !== id));
+
+    try {
+      await categoriasService.delete(id);
+    } catch {
+      setCategorias(backup);
+      showMessage("Erro ao deletar categoria", "error");
+    }
+  };
+
+  // ---------- UI ----------
+  if (loading) {
     return (
       <PlanejamentoContainer theme={theme}>
-        <LoadingContainer theme={theme}>
-          <LoadingSpinner theme={theme} />
+        <LoadingContainer>
+          <LoadingSpinner />
           <p>Carregando...</p>
         </LoadingContainer>
       </PlanejamentoContainer>
@@ -422,30 +243,26 @@ const Planejamento = () => {
 
   return (
     <PlanejamentoContainer theme={theme}>
-      {message.text && (
+      {message && (
         <div
           style={{
             position: "fixed",
-            top: "20px",
-            right: "20px",
-            padding: "12px 24px",
+            top: 20,
+            right: 20,
+            padding: 12,
             background: message.type === "error" ? "#f44336" : "#4caf50",
-            color: "white",
-            borderRadius: "4px",
-            zIndex: 9999,
+            color: "#fff",
           }}
         >
           {message.text}
         </div>
       )}
 
-      <WelcomeSection theme={theme}>
-        <WelcomeTitle theme={theme}>
-          Bem-vindo, {usuario?.nomeCompleto?.split(" ")[0] || "Usuário"}! 👋
+      <WelcomeSection>
+        <WelcomeTitle>
+          Bem-vindo, {usuario?.nomeCompleto?.split(" ")[0]} 👋
         </WelcomeTitle>
-        <WelcomeSubtitle theme={theme}>
-          Organize seu lar com o CasalPlanner
-        </WelcomeSubtitle>
+        <WelcomeSubtitle>Organize seu lar</WelcomeSubtitle>
       </WelcomeSection>
 
       <ResumoCards resumo={resumo} comparativo={comparativo} theme={theme} />
@@ -457,74 +274,48 @@ const Planejamento = () => {
         theme={theme}
       />
 
-      {categoriasArray.length === 0 ? (
-        <EmptyStateContainer theme={theme}>
+      {categorias.length === 0 ? (
+        <EmptyStateContainer>
           <EmptyStateIcon>🏠</EmptyStateIcon>
-          <EmptyStateTitle>Comece por aqui</EmptyStateTitle>
-          <EmptyStateDescription>
-            Crie sua primeira categoria para adicionar itens
-          </EmptyStateDescription>
-          <EmptyStateButton onClick={handleAddCategoria} theme={theme}>
+          <EmptyStateTitle>Comece criando uma categoria</EmptyStateTitle>
+          <EmptyStateButton onClick={handleAddCategoria}>
             Criar categoria
           </EmptyStateButton>
         </EmptyStateContainer>
       ) : (
         <CategoriesGrid>
-          {categoriasArray.map((categoria, index) => (
-            <DragCardWrapper
-              key={categoria?.id || index}
-              $isDragging={draggedCardIndex === index}
-              $isDragOver={dragOverCardIndex === index}
-              onDragStart={(e) => handleCardDragStart(e, index)}
-              onDragOver={(e) => handleCardDragOver(e, index)}
-              onDragLeave={() => setDragOverCardIndex(null)}
-              onDrop={(e) => handleCardDrop(e, index)}
-              onDragEnd={() => {
-                setDraggedCardIndex(null);
-                setDragOverCardIndex(null);
-              }}
-            >
-              <CategoriaCard
-                categoria={categoria || {}}
-                itens={filteredItems.filter(
-                  (i) => i?.categoriaId === categoria?.id,
-                )}
-                onAddItem={handleAddItem}
-                onUpdateItem={handleEditItem}
-                onDeleteItem={handleDeleteItem}
-                onDeleteCategoria={handleDeleteCategoria}
-                onEditCategoria={handleEditCategoria}
-                onItemDragStart={handleItemDragStart}
-                onItemDragEnd={handleItemDragEnd}
-                onItemDrop={handleItemDrop}
-                onToggleComprado={handleToggleComprado}
-                draggedItemId={draggedItemId}
-                theme={theme}
-              />
-            </DragCardWrapper>
+          {categorias.map((categoria) => (
+            <CategoriaCard
+              key={categoria.id}
+              categoria={categoria}
+              itens={itensFiltrados.filter(
+                (i) => i.categoriaId === categoria.id,
+              )}
+              onAddItem={(id) =>
+                setItemModal({ isOpen: true, categoriaId: id })
+              }
+              onUpdateItem={handleEditItem}
+              onDeleteItem={handleDeleteItem}
+              onDeleteCategoria={handleDeleteCategoria}
+            />
           ))}
         </CategoriesGrid>
       )}
-
-      <CategoriaFormModal
-        isOpen={categoriaModal.isOpen}
-        onClose={handleCloseCategoriaModal}
-        onCategoryAdded={handleCategoriaAdded}
-        categoriaParaEditar={categoriaModal.categoria}
-        isEditing={categoriaModal.isEditing}
-        theme={theme}
-      />
 
       <ItemFormModal
         isOpen={itemModal.isOpen}
         onClose={() =>
           setItemModal({ isOpen: false, categoriaId: null, itemId: null })
         }
-        formData={formData}
-        setFormData={setFormData}
         onSave={handleSaveItem}
+        initialData={formData}
         isEditing={!!itemModal.itemId}
         theme={theme}
+      />
+
+      <CategoriaFormModal
+        isOpen={categoriaModal.isOpen}
+        onClose={() => setCategoriaModal({ isOpen: false })}
       />
     </PlanejamentoContainer>
   );

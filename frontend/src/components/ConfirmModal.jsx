@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import Modal from './Modal';
+import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useConfirm } from '../context/ConfirmContext';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, X } from 'lucide-react';
 import {
+  ConfirmOverlay,
+  ConfirmContainer,
+  ConfirmHeader,
+  CloseButton,
   ConfirmContent,
   WarningBox,
   WarningIcon,
@@ -18,7 +21,60 @@ import {
 const ConfirmModal = ({ theme }) => {
   const { confirmDialog, hideConfirm } = useConfirm();
   const [loading, setLoading] = useState(false);
+  const contentRef = useRef(null);
   const { isOpen, title, message, itemName, itemType, onConfirm } = confirmDialog;
+
+  // Trava scroll do body quando modal está aberto
+  useEffect(() => {
+    if (!isOpen) return;
+    const scrollY = window.scrollY;
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
+    };
+  }, [isOpen]);
+
+  // ESC + focus trap
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (!loading) hideConfirm();
+        return;
+      }
+      if (e.key === 'Tab' && contentRef.current) {
+        const focusable = contentRef.current.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    setTimeout(() => contentRef.current?.focus(), 50);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, loading, hideConfirm]);
+
+  const handleOverlayClick = (e) => {
+    if (loading) return;
+    if (e.target === e.currentTarget) hideConfirm();
+  };
 
   const handleConfirm = async () => {
     if (!onConfirm) return;
@@ -44,25 +100,39 @@ const ConfirmModal = ({ theme }) => {
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={hideConfirm} title={title || 'Confirmar exclusão'} theme={theme} disableOutsideClick={loading}>
-      <ConfirmContent>
-        <WarningBox>
-          <WarningIcon><AlertTriangle size={20} /></WarningIcon>
-          <WarningTexts>
-            <Message theme={theme}>{message}</Message>
-            <WarningNote>⚠️ Esta ação não pode ser desfeita</WarningNote>
-          </WarningTexts>
-        </WarningBox>
-        <ButtonGroup>
-          <CancelButton onClick={hideConfirm} theme={theme} disabled={loading}>
-            Cancelar
-          </CancelButton>
-          <DeleteButton onClick={handleConfirm} disabled={loading}>
-            {loading ? 'Excluindo…' : 'Sim, excluir'}
-          </DeleteButton>
-        </ButtonGroup>
-      </ConfirmContent>
-    </Modal>
+    <ConfirmOverlay onClick={handleOverlayClick} role="dialog" aria-modal="true" aria-label={title}>
+      <ConfirmContainer theme={theme} ref={contentRef} tabIndex={-1}>
+        <ConfirmHeader theme={theme}>
+          <h2>{title || 'Confirmar exclusão'}</h2>
+          <CloseButton 
+            onClick={hideConfirm} 
+            theme={theme} 
+            title="Fechar (ESC)" 
+            aria-label="Fechar modal"
+            disabled={loading}
+          >
+            <X size={20} />
+          </CloseButton>
+        </ConfirmHeader>
+        <ConfirmContent>
+          <WarningBox theme={theme}>
+            <WarningIcon><AlertTriangle size={20} /></WarningIcon>
+            <WarningTexts>
+              <Message theme={theme}>{message}</Message>
+              <WarningNote>⚠️ Esta ação não pode ser desfeita</WarningNote>
+            </WarningTexts>
+          </WarningBox>
+          <ButtonGroup>
+            <CancelButton onClick={hideConfirm} theme={theme} disabled={loading}>
+              Cancelar
+            </CancelButton>
+            <DeleteButton onClick={handleConfirm} disabled={loading}>
+              {loading ? 'Excluindo…' : 'Sim, excluir'}
+            </DeleteButton>
+          </ButtonGroup>
+        </ConfirmContent>
+      </ConfirmContainer>
+    </ConfirmOverlay>
   );
 };
 
