@@ -1,14 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <defs>
-    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#A78BFA"/>
-      <stop offset="100%" stop-color="#F9A8D4"/>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#A78BFA"/>
+      <stop offset="100%" style="stop-color:#F9A8D4"/>
+    </linearGradient>
+    <linearGradient id="heart" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#f0e6ff;stop-opacity:1"/>
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="14" fill="url(#g1)"/>
-  <!-- Ring -->
-  <circle cx="32" cy="20" r="8" fill="none" stroke="white" stroke-width="3" opacity="0.9"/>
-  <circle cx="32" cy="20" r="3.5" fill="white" opacity="0.35"/>
-  <!-- Heart -->
-  <path d="M32 47 C32 47 14 37 14 25.5 C14 20 18.5 17 22.5 17 C26 17 29 19 32 22.5 C35 19 38 17 41.5 17 C45.5 17 50 20 50 25.5 C50 37 32 47 32 47Z" fill="white"/>
+
+  <!-- Background rounded square -->
+  <rect width="64" height="64" rx="14" ry="14" fill="url(#bg)"/>
+
+  <!-- House shape -->
+  <path d="M32 12 L52 30 L49 30 L49 52 L15 52 L15 30 L12 30 Z"
+        fill="white" fill-opacity="0.2"/>
+
+  <!-- House roof line only -->
+  <path d="M32 13 L50 29.5" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.6"/>
+  <path d="M32 13 L14 29.5" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.6"/>
+
+  <!-- Heart in center of house -->
+  <path d="M32 42
+           C32 42 21 34.5 21 28.5
+           C21 24.5 24.5 22 28 24
+           C29.5 24.8 31 26.2 32 27.5
+           C33 26.2 34.5 24.8 36 24
+           C39.5 22 43 24.5 43 28.5
+           C43 34.5 32 42 32 42 Z"
+        fill="url(#heart)" opacity="0.95"/>
+
+  <!-- Subtle door -->
+  <rect x="27.5" y="43" width="9" height="9" rx="4.5" fill="white" opacity="0.3"/>
 </svg>
