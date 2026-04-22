@@ -11,7 +11,7 @@
 > **Organize as compras da sua nova casa junto com quem você ama.**  
 > O Casal Planner é uma aplicação web full-stack para casais que estão montando o lar, com controle de orçamento por cômodo, separação de pagamentos VR/VA e pesquisa de preços inteligente com IA.
 
-## 🔗 Acesso ao App
+## 🔗 Acesso o site
 
 👉 https://casalplanner.vercel.app/
 
