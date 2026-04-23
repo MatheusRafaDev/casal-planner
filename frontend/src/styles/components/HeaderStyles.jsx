@@ -32,17 +32,16 @@ export const Logo = styled.div`
   cursor: pointer;
 
   .icon {
-    width: 40px;
-    height: 40px;
-    background: ${props => props.theme.primary};
+    width: 50px;
+    height: 50px;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
 
     svg {
-      width: 20px;
-      height: 20px;
+      width: 50px;
+      height: 50px;
       color: white;
     }
   }

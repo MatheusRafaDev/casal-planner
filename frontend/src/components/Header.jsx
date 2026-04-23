@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Heart, LogOut, User, ChevronDown, Home, ClipboardList, Sun, Moon } from 'lucide-react';
 import authService from '../services/authService';
+import { ReactComponent as LogoIcon } from '../assets/logo.svg';
+
 
 import {
   HeaderContainer,
@@ -87,7 +89,10 @@ const Header = () => {
       <HeaderContainer theme={theme}>
         <HeaderContent>
           <Logo onClick={() => navigate('/')} theme={theme}>
-            <div className="icon"><Heart /></div>
+            <div className="icon">
+              <LogoIcon width={30} height={30} />
+              
+              </div>
             <span>CasalPlanner</span>
           </Logo>
           <UserSection>

@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import toast from 'react-hot-toast';
-
-import { 
-  Heart, 
-  LogIn, 
-  UserPlus, 
-  Mail, 
-  Lock, 
+import toast from "react-hot-toast";
+import { ReactComponent as CasalPlannerLogo } from "../assets/logo.svg";
+import {
+  Heart,
+  LogIn,
+  UserPlus,
+  Mail,
+  Lock,
   Calendar,
   DollarSign,
   Users,
@@ -21,8 +21,8 @@ import {
   Hash,
   User,
   Check,
-  X
-} from 'lucide-react';
+  X,
+} from "lucide-react";
 
 import {
   formatarCPF,
@@ -30,7 +30,7 @@ import {
   formatarDataInput,
   converterDataBRparaISO,
   validarData,
-  validarCPF
+  validarCPF,
 } from "../utils/formatters";
 
 import {
@@ -56,7 +56,7 @@ import {
   SectionTitle,
   LoginButton,
   InfoMessage,
-  BackLink
+  BackLink,
 } from "../styles/pages/LoginStyles";
 
 // Componente de validação de senha
@@ -66,23 +66,26 @@ const PasswordStrengthIndicator = ({ password }) => {
     { regex: /[A-Z]/, text: "Letra maiúscula", icon: "⬆️" },
     { regex: /[a-z]/, text: "Letra minúscula", icon: "⬇️" },
     { regex: /[0-9]/, text: "Número", icon: "🔢" },
-    { regex: /[^A-Za-z0-9]/, text: "Caractere especial (!@#$%*)", icon: "✨" }
+    { regex: /[^A-Za-z0-9]/, text: "Caractere especial (!@#$%*)", icon: "✨" },
   ];
 
   return (
-    <div style={{ marginTop: '8px', fontSize: '12px' }}>
+    <div style={{ marginTop: "8px", fontSize: "12px" }}>
       {requirements.map((req, index) => {
         const isValid = req.regex.test(password);
         return (
-          <div key={index} style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px',
-            marginBottom: '4px',
-            color: isValid ? '#4caf50' : '#999',
-            fontSize: '11px'
-          }}>
-            <span>{isValid ? '✅' : '❌'}</span>
+          <div
+            key={index}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginBottom: "4px",
+              color: isValid ? "#4caf50" : "#999",
+              fontSize: "11px",
+            }}
+          >
+            <span>{isValid ? "✅" : "❌"}</span>
             <span>{req.icon}</span>
             <span>{req.text}</span>
           </div>
@@ -93,13 +96,13 @@ const PasswordStrengthIndicator = ({ password }) => {
 };
 
 const Login = () => {
-  const location = useLocation(); 
-  const [modo, setModo] = useState(location.state?.modo || "login"); 
-  
+  const location = useLocation();
+  const [modo, setModo] = useState(location.state?.modo || "login");
+
   const [isCasal, setIsCasal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     nomeCompleto: "",
     email: "",
@@ -135,7 +138,7 @@ const Login = () => {
   const [senhaError, setSenhaError] = useState("");
   const [passwordStrength, setPasswordStrength] = useState({
     pessoa1: { isValid: false, errors: [] },
-    pessoa2: { isValid: false, errors: [] }
+    pessoa2: { isValid: false, errors: [] },
   });
 
   const { login, registrar, registrarCasal, estaAutenticado } = useAuth();
@@ -146,15 +149,12 @@ const Login = () => {
     if (estaAutenticado) {
       navigate("/inicio");
     }
-
-
-    
   }, [estaAutenticado, navigate]);
 
   // Função para validar força da senha
   const validatePasswordStrength = (password) => {
     const errors = [];
-    
+
     if (password.length < 8) {
       errors.push("A senha deve ter no mínimo 8 caracteres");
     }
@@ -168,12 +168,14 @@ const Login = () => {
       errors.push("A senha deve conter pelo menos um número");
     }
     if (!/[^A-Za-z0-9]/.test(password)) {
-      errors.push("A senha deve conter pelo menos um caractere especial (!@#$%*)");
+      errors.push(
+        "A senha deve conter pelo menos um caractere especial (!@#$%*)",
+      );
     }
-    
+
     return {
       isValid: errors.length === 0,
-      errors: errors
+      errors: errors,
     };
   };
 
@@ -184,13 +186,13 @@ const Login = () => {
       const validation2 = validatePasswordStrength(formData.pessoa2.senha);
       setPasswordStrength({
         pessoa1: validation1,
-        pessoa2: validation2
+        pessoa2: validation2,
       });
     } else {
       const validation = validatePasswordStrength(formData.senha);
       setPasswordStrength({
         pessoa1: validation,
-        pessoa2: { isValid: false, errors: [] }
+        pessoa2: { isValid: false, errors: [] },
       });
     }
   }, [formData.senha, formData.pessoa1.senha, formData.pessoa2.senha, isCasal]);
@@ -200,21 +202,24 @@ const Login = () => {
 
     if (name.startsWith("pessoa1_")) {
       const campo = name.replace("pessoa1_", "");
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         pessoa1: { ...prev.pessoa1, [campo]: value },
       }));
     } else if (name.startsWith("pessoa2_")) {
       const campo = name.replace("pessoa2_", "");
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         pessoa2: { ...prev.pessoa2, [campo]: value },
       }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
 
-    if (modo === "registro" && (name.includes("senha") || name.includes("confirmar"))) {
+    if (
+      modo === "registro" &&
+      (name.includes("senha") || name.includes("confirmar"))
+    ) {
       setSenhaError("");
     }
   };
@@ -229,14 +234,14 @@ const Login = () => {
         toast.error(msg, { duration: 4000 });
         return false;
       }
-      
+
       if (formData.pessoa1.senha !== formData.pessoa1.confirmarSenha) {
         const msg = "As senhas da primeira pessoa não coincidem";
         setSenhaError(msg);
         toast.error(msg, { duration: 4000 });
         return false;
       }
-      
+
       // Valida senha da pessoa 2
       const validation2 = validatePasswordStrength(formData.pessoa2.senha);
       if (!validation2.isValid) {
@@ -245,7 +250,7 @@ const Login = () => {
         toast.error(msg, { duration: 4000 });
         return false;
       }
-      
+
       if (formData.pessoa2.senha !== formData.pessoa2.confirmarSenha) {
         const msg = "As senhas da segunda pessoa não coincidem";
         setSenhaError(msg);
@@ -261,7 +266,7 @@ const Login = () => {
         toast.error(msg, { duration: 4000 });
         return false;
       }
-      
+
       if (formData.senha !== formData.confirmarSenha) {
         const msg = "As senhas não coincidem";
         setSenhaError(msg);
@@ -274,7 +279,7 @@ const Login = () => {
 
   const limparCPF = (cpf) => {
     if (!cpf) return null;
-    return cpf.replace(/[^\d]/g, '');
+    return cpf.replace(/[^\d]/g, "");
   };
 
   const handleSubmit = async (e) => {
@@ -308,7 +313,8 @@ const Login = () => {
         }
       } else {
         if (!validarCPF(formData.pessoa1.cpf)) {
-          const msg = "CPF da primeira pessoa inválido. Deve conter 11 dígitos.";
+          const msg =
+            "CPF da primeira pessoa inválido. Deve conter 11 dígitos.";
           setError(msg);
           toast.error(msg, { duration: 4000 });
           return;
@@ -344,9 +350,11 @@ const Login = () => {
         toast.loading("Fazendo login...", { id: "login" });
         result = await login(formData.email, formData.senha);
         toast.dismiss("login");
-        
+
         if (result.success === false) {
-          toast.error(result.error || "Erro ao fazer login", { duration: 4000 });
+          toast.error(result.error || "Erro ao fazer login", {
+            duration: 4000,
+          });
           setError(result.error || "Erro ao fazer login");
           setLoading(false);
           return;
@@ -377,41 +385,46 @@ const Login = () => {
             emailPessoa1: formData.pessoa1.email,
             senhaPessoa1: formData.pessoa1.senha,
             cpfPessoa1: limparCPF(formData.pessoa1.cpf),
-            dataNascimentoPessoa1: converterDataBRparaISO(formData.pessoa1.dataNascimento),
+            dataNascimentoPessoa1: converterDataBRparaISO(
+              formData.pessoa1.dataNascimento,
+            ),
             rendaMensalPessoa1: formData.pessoa1.rendaMensal
               ? parseFloat(
                   formData.pessoa1.rendaMensal
                     .replace(/\./g, "")
-                    .replace(",", ".")
+                    .replace(",", "."),
                 )
               : 0,
-            
+
             nomeCompletoPessoa2: formData.pessoa2.nomeCompleto,
             emailPessoa2: formData.pessoa2.email,
             senhaPessoa2: formData.pessoa2.senha,
             cpfPessoa2: limparCPF(formData.pessoa2.cpf),
-            dataNascimentoPessoa2: converterDataBRparaISO(formData.pessoa2.dataNascimento),
+            dataNascimentoPessoa2: converterDataBRparaISO(
+              formData.pessoa2.dataNascimento,
+            ),
             rendaMensalPessoa2: formData.pessoa2.rendaMensal
               ? parseFloat(
                   formData.pessoa2.rendaMensal
                     .replace(/\./g, "")
-                    .replace(",", ".")
+                    .replace(",", "."),
                 )
               : 0,
-            
           };
-          
+
           toast.loading("Registrando casal...", { id: "registro" });
           result = await registrarCasal(dadosCasal);
           toast.dismiss("registro");
-          
+
           if (result && result.success === false) {
-            toast.error(result.error || "Erro ao registrar casal", { duration: 4000 });
+            toast.error(result.error || "Erro ao registrar casal", {
+              duration: 4000,
+            });
             setError(result.error || "Erro ao registrar casal");
             setLoading(false);
             return;
           }
-          
+
           toast.success("Casal registrado com sucesso! 🎉", { duration: 3000 });
         } else {
           if (
@@ -436,7 +449,7 @@ const Login = () => {
             dataNascimento: converterDataBRparaISO(formData.dataNascimento),
             rendaMensal: formData.rendaMensal
               ? parseFloat(
-                  formData.rendaMensal.replace(/\./g, "").replace(",", ".")
+                  formData.rendaMensal.replace(/\./g, "").replace(",", "."),
                 )
               : 0,
           };
@@ -444,26 +457,28 @@ const Login = () => {
           toast.loading("Registrando usuário...", { id: "registro" });
           result = await registrar(dadosIndividuais);
           toast.dismiss("registro");
-          
+
           if (result && result.success === false) {
-            toast.error(result.error || "Erro ao registrar usuário", { duration: 4000 });
+            toast.error(result.error || "Erro ao registrar usuário", {
+              duration: 4000,
+            });
             setError(result.error || "Erro ao registrar usuário");
             setLoading(false);
             return;
           }
-
         }
       }
     } catch (err) {
       console.error("Erro detalhado:", err);
-      
-      const errorMessage = err.response?.data?.message || 
-                          err.response?.data?.errors?.Senha?.[0] ||
-                          err.response?.data?.errors?.senhaPessoa1?.[0] ||
-                          err.response?.data?.errors?.senhaPessoa2?.[0] ||
-                          err.message ||
-                          "Erro ao processar solicitação";
-      
+
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.errors?.Senha?.[0] ||
+        err.response?.data?.errors?.senhaPessoa1?.[0] ||
+        err.response?.data?.errors?.senhaPessoa2?.[0] ||
+        err.message ||
+        "Erro ao processar solicitação";
+
       setError(errorMessage);
       toast.error(errorMessage, { duration: 5000 });
     } finally {
@@ -475,17 +490,15 @@ const Login = () => {
     <LoginContainer theme={theme}>
       <LoginCard theme={theme}>
         <LogoWrapper>
-          <LogoIcon theme={theme}>
-            <Heart size={32} />
-          </LogoIcon>
+          <CasalPlannerLogo width={56} height={56} />
         </LogoWrapper>
-        
+
         <Title theme={theme}>CasalPlanner</Title>
         <Subtitle theme={theme}>Organize a vida a dois</Subtitle>
 
         <TabsContainer theme={theme}>
-          <Tab 
-            $active={modo === "login"} 
+          <Tab
+            $active={modo === "login"}
             onClick={() => {
               setModo("login");
               setError("");
@@ -496,8 +509,8 @@ const Login = () => {
             <LogIn size={16} />
             <span>Login</span>
           </Tab>
-          <Tab 
-            $active={modo === "registro"} 
+          <Tab
+            $active={modo === "registro"}
             onClick={() => {
               setModo("registro");
               setError("");
@@ -570,7 +583,6 @@ const Login = () => {
               <LoginButton type="submit" disabled={loading} theme={theme}>
                 {loading ? "Entrando..." : "Entrar"}
               </LoginButton>
-
             </>
           )}
 
@@ -645,7 +657,11 @@ const Login = () => {
                           onClick={() => setShowPassword(!showPassword)}
                           theme={theme}
                         >
-                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showPassword ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
                         </PasswordToggle>
                       </InputWrapper>
                       <PasswordStrengthIndicator password={formData.senha} />
@@ -667,10 +683,16 @@ const Login = () => {
                         />
                         <PasswordToggle
                           type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
                           theme={theme}
                         >
-                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showConfirmPassword ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
                         </PasswordToggle>
                       </InputWrapper>
                     </FormGroup>
@@ -710,7 +732,10 @@ const Login = () => {
                         onChange={(e) => {
                           const formatado = formatarDataInput(e.target.value);
                           handleChange({
-                            target: { name: "dataNascimento", value: formatado },
+                            target: {
+                              name: "dataNascimento",
+                              value: formatado,
+                            },
                           });
                         }}
                         placeholder="DD/MM/AAAA"
@@ -790,10 +815,16 @@ const Login = () => {
                           onClick={() => setShowPassword(!showPassword)}
                           theme={theme}
                         >
-                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showPassword ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
                         </PasswordToggle>
                       </InputWrapper>
-                      <PasswordStrengthIndicator password={formData.pessoa1.senha} />
+                      <PasswordStrengthIndicator
+                        password={formData.pessoa1.senha}
+                      />
                     </FormGroup>
 
                     <FormGroup $half>
@@ -809,10 +840,16 @@ const Login = () => {
                         />
                         <PasswordToggle
                           type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
                           theme={theme}
                         >
-                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showConfirmPassword ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
                         </PasswordToggle>
                       </InputWrapper>
                     </FormGroup>
@@ -846,7 +883,10 @@ const Login = () => {
                         onChange={(e) => {
                           const formatado = formatarDataInput(e.target.value);
                           handleChange({
-                            target: { name: "pessoa1_dataNascimento", value: formatado },
+                            target: {
+                              name: "pessoa1_dataNascimento",
+                              value: formatado,
+                            },
                           });
                         }}
                         placeholder="DD/MM/AAAA"
@@ -866,7 +906,10 @@ const Login = () => {
                         onChange={(e) => {
                           const formatado = formatarValorInput(e.target.value);
                           handleChange({
-                            target: { name: "pessoa1_rendaMensal", value: formatado },
+                            target: {
+                              name: "pessoa1_rendaMensal",
+                              value: formatado,
+                            },
                           });
                         }}
                         placeholder="1.500,00"
@@ -921,10 +964,16 @@ const Login = () => {
                           onClick={() => setShowPassword(!showPassword)}
                           theme={theme}
                         >
-                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showPassword ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
                         </PasswordToggle>
                       </InputWrapper>
-                      <PasswordStrengthIndicator password={formData.pessoa2.senha} />
+                      <PasswordStrengthIndicator
+                        password={formData.pessoa2.senha}
+                      />
                     </FormGroup>
 
                     <FormGroup $half>
@@ -940,10 +989,16 @@ const Login = () => {
                         />
                         <PasswordToggle
                           type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
                           theme={theme}
                         >
-                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showConfirmPassword ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
                         </PasswordToggle>
                       </InputWrapper>
                     </FormGroup>
@@ -977,7 +1032,10 @@ const Login = () => {
                         onChange={(e) => {
                           const formatado = formatarDataInput(e.target.value);
                           handleChange({
-                            target: { name: "pessoa2_dataNascimento", value: formatado },
+                            target: {
+                              name: "pessoa2_dataNascimento",
+                              value: formatado,
+                            },
                           });
                         }}
                         placeholder="DD/MM/AAAA"
@@ -997,7 +1055,10 @@ const Login = () => {
                         onChange={(e) => {
                           const formatado = formatarValorInput(e.target.value);
                           handleChange({
-                            target: { name: "pessoa2_rendaMensal", value: formatado },
+                            target: {
+                              name: "pessoa2_rendaMensal",
+                              value: formatado,
+                            },
                           });
                         }}
                         placeholder="1.500,00"
@@ -1008,7 +1069,12 @@ const Login = () => {
                 </>
               )}
 
-              <LoginButton type="submit" disabled={loading} style={{ marginTop: '20px' }} theme={theme}>
+              <LoginButton
+                type="submit"
+                disabled={loading}
+                style={{ marginTop: "20px" }}
+                theme={theme}
+              >
                 {loading ? "Registrando..." : "Registrar"}
               </LoginButton>
             </>

@@ -22,7 +22,7 @@ const HeroSection = ({ theme }) => {
   return (
     <Hero>
       <Badge theme={theme}>
-        <Heart size={16} />
+
         {HERO_CONTENT.badge}
       </Badge>
       
