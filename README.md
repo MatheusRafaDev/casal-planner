@@ -9,24 +9,25 @@
 </p>
 
 > **Organize as compras da sua nova casa junto com quem você ama.**  
-> O Casal Planner é uma aplicação web full-stack para casais que estão montando o lar, com controle de orçamento por cômodo, separação de pagamentos VR/VA e pesquisa de preços inteligente com IA.
+> Aplicação full-stack para controle de orçamento doméstico por cômodo, com separação de pagamentos e pesquisa inteligente de preços com IA.
 
-## 🔗 Acesso o site
+## 🔗 Acesse o projeto
 
 👉 https://casalplanner.vercel.app/
 
-### ENV
+---
+
+## 🔐 Variáveis de Ambiente
 
 | Categoria | Variáveis |
 |----------|----------|
 | **Ambiente** | ASPNETCORE_ENVIRONMENT |
-| **JWT** | JWT_SECRET_KEY, JWT_ISSUER, JWT_AUDIENCE, JWT_EXPIRES_IN |
+| **Autenticação (JWT)** | JWT_SECRET_KEY, JWT_ISSUER, JWT_AUDIENCE, JWT_EXPIRES_IN |
 | **APIs externas** | GROQ_API_KEY, SERPAPI_KEY |
 | **IA config** | IA_CALL_DELAY_MS, MAX_PRODUCTS_TO_PROCESS |
-| **MongoDB** | MONGODB_CONNECTION_STRING, MONGODB_DATABASE |
+| **Banco de Dados** | MONGODB_CONNECTION_STRING, MONGODB_DATABASE |
 | **CORS** | MEU_FRONTEND_URL |
 | **SMTP (opcional)** | SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS |
-
 
 ---
 
