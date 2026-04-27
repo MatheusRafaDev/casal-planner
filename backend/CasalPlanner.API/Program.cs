@@ -24,6 +24,7 @@ else
 
 builder.Configuration.AddEnvironmentVariables();
 
+
 // ===== 2. CONFIG =====
 var jwtKey      = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
     ?? throw new Exception("JWT_SECRET_KEY não configurada");
@@ -132,6 +133,10 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IResumoService, ResumoService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IRecuperarSenhaService, RecuperarSenhaService>();
+
+builder.Services.AddMemoryCache(); 
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

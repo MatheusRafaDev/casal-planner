@@ -68,6 +68,8 @@ const Perfil = () => {
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const { usuario, atualizarUsuario, logout } = useAuth();
 
+  console.log("Dados do usuário no Perfil:", usuario);
+
   const [editando, setEditando] = useState(false);
   const [editandoSenha, setEditandoSenha] = useState(false);
   const [mensagem, setMensagem] = useState("");
@@ -203,6 +205,8 @@ const Perfil = () => {
         });
       }
     } else {
+
+      console.log(usuario)
       setMeusDados({
         nomeCompleto: usuario.nomeCompleto || "",
         email: usuario.email || "",
@@ -331,6 +335,8 @@ const Perfil = () => {
   };
 
   const getInitials = () => {
+
+    console.log(meusDados)
     if (!meusDados.nomeCompleto) return "?";
     const parts = meusDados.nomeCompleto.trim().split(' ');
     if (parts.length === 1) return parts[0][0].toUpperCase();
@@ -453,11 +459,9 @@ const Perfil = () => {
                 <Input 
                   type="email" 
                   value={meusDados.email} 
-                  disabled 
-                  className="disabled" 
                   theme={theme} 
+                  maxLength="30" 
                 />
-                <Small theme={theme}>O e-mail não pode ser alterado</Small>
               </FormGroup>
               
               <FormRow>
@@ -600,7 +604,6 @@ const Perfil = () => {
         </PerfilCard>
       )}
 
-      {/* Modal Excluir */}
       {mostrarModalExcluir && (
         <Modal>
           <ModalContent theme={theme}>

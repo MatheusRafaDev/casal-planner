@@ -410,3 +410,18 @@ export const Spinner = styled.div`
     }
   }
 `;
+
+export const ForgotPasswordLink = styled.span`
+  display: block;
+  text-align: right;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: ${props => props.theme.primary};
+  cursor: pointer;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+  }
+`;

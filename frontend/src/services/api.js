@@ -1,6 +1,4 @@
-// ============================================================
-// api.js — Axios com localStorage + Authorization Bearer
-// ============================================================
+
 import axios from 'axios';
 
 const TOKEN_KEY = 'casal_planner_token';

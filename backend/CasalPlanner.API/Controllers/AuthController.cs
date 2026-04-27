@@ -1,3 +1,4 @@
+// Controllers/AuthController.cs
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using CasalPlanner.API.Services;
@@ -15,11 +16,16 @@ namespace CasalPlanner.API.Controllers
     {
         private readonly IAuthService _authService;
         private readonly MongoDbContext _context;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService, MongoDbContext context)
+        public AuthController(
+            IAuthService authService, 
+            MongoDbContext context,
+            ILogger<AuthController> logger)
         {
             _authService = authService;
             _context = context;
+            _logger = logger;
         }
 
         private string GetUsuarioId() =>
@@ -30,6 +36,8 @@ namespace CasalPlanner.API.Controllers
         {
             try
             {
+                _logger.LogInformation("Tentativa de login para email: {Email}", dto.Email);
+
                 var usuario = await _authService.ObterUsuarioPorEmail(dto.Email);
                 var isCasal = false;
                 string pessoa = "";
@@ -45,48 +53,113 @@ namespace CasalPlanner.API.Controllers
                 }
 
                 if (usuario == null)
+                {
+                    _logger.LogWarning("Usuário não encontrado: {Email}", dto.Email);
                     return Unauthorized(new { message = "Usuário não encontrado" });
+                }
 
                 var senhaValida = await _authService.VerificarSenha(usuario, dto.Senha, pessoa);
 
                 if (!senhaValida)
+                {
+                    _logger.LogWarning("Senha inválida para: {Email}", dto.Email);
                     return Unauthorized(new { message = "Senha inválida" });
+                }
 
                 // Gera JWT
                 string token = isCasal
                     ? _authService.GerarTokenCasal(usuario, pessoa)
                     : _authService.GerarToken(usuario);
 
-                // ✅ Retorna token no body — frontend salva no localStorage
-                // ❌ Não usa mais cookie HttpOnly
-                return Ok(new
+                _logger.LogInformation("Login realizado com sucesso: {Email}", dto.Email);
+
+                // ========== CONSTRUIR RESPOSTA COMPLETA SEM SENHA ==========
+                
+                if (usuario.TipoConta == TipoConta.Casal && usuario.CasalInfo != null)
                 {
-                    message = "Login realizado com sucesso",
-                    token,   // <-- bearer token para o frontend armazenar
-                    usuario = new
+                    // Converter DateTime para string de forma segura
+                    string dataNascimentoPessoa1 = usuario.CasalInfo.DataNascimentoPessoa1 == DateTime.MinValue
+                        ? null
+                        : usuario.CasalInfo.DataNascimentoPessoa1.ToString("yyyy-MM-dd");
+                    
+                    string dataNascimentoPessoa2 = usuario.CasalInfo.DataNascimentoPessoa2 == DateTime.MinValue
+                        ? null
+                        : usuario.CasalInfo.DataNascimentoPessoa2.ToString("yyyy-MM-dd");
+
+                    // Resposta para conta CASAL
+                    return Ok(new
                     {
-                        usuario.Id,
-                        usuario.NomeCompleto,
-                        usuario.Email,
-                        usuario.TipoConta,
-                        usuario.IsCasal,
-                        usuario.ModoEscuro,
-                        usuario.RendaMensal
-                    }
-                });
+                        success = true,
+                        message = "Login realizado com sucesso",
+                        token,
+                        usuario = new
+                        {
+                            id = usuario.Id,
+                            tipoConta = "Casal",
+                            isCasal = true,
+                            modoEscuro = usuario.ModoEscuro,
+                            rendaMensal = usuario.RendaMensal,
+                            createdAt = usuario.CreatedAt,
+                            lastLoginAt = usuario.LastLoginAt,
+                            pessoaLogada = pessoa,
+                            pessoa1 = new
+                            {
+                                nomeCompleto = usuario.CasalInfo.NomeCompletoPessoa1,
+                                email = usuario.CasalInfo.EmailPessoa1,
+                                cpf = usuario.CasalInfo.CPFPessoa1,
+                                dataNascimento = dataNascimentoPessoa1,
+                                rendaMensal = usuario.CasalInfo.RendaMensalPessoa1
+                            },
+                            pessoa2 = new
+                            {
+                                nomeCompleto = usuario.CasalInfo.NomeCompletoPessoa2,
+                                email = usuario.CasalInfo.EmailPessoa2,
+                                cpf = usuario.CasalInfo.CPFPessoa2,
+                                dataNascimento = dataNascimentoPessoa2,
+                                rendaMensal = usuario.CasalInfo.RendaMensalPessoa2
+                            }
+                        }
+                    });
+                }
+                else
+                {
+                    // DataNascimento é DateTime? (nullable) - pode usar ?.
+                    string dataNascimento = usuario.DataNascimento?.ToString("yyyy-MM-dd");
+
+                    // Resposta para conta INDIVIDUAL
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "Login realizado com sucesso",
+                        token,
+                        usuario = new
+                        {
+                            id = usuario.Id,
+                            nomeCompleto = usuario.NomeCompleto,
+                            email = usuario.Email,
+                            cpf = usuario.CPF,
+                            dataNascimento = dataNascimento,
+                            rendaMensal = usuario.RendaMensal,
+                            tipoConta = "Individual",
+                            isCasal = false,
+                            modoEscuro = usuario.ModoEscuro,
+                            createdAt = usuario.CreatedAt,
+                            lastLoginAt = usuario.LastLoginAt
+                        }
+                    });
+                }
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                _logger.LogError(ex, "Erro no login para {Email}", dto.Email);
+                return StatusCode(500, new { success = false, message = "Erro interno no servidor", error = ex.Message });
             }
         }
 
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            // Com Bearer token o logout é client-side (apagar do localStorage).
-            // Este endpoint existe apenas para compatibilidade / logs futuros.
-            return Ok(new { message = "Logout realizado" });
+            return Ok(new { message = "Logout realizado com sucesso" });
         }
 
         [Authorize]
@@ -104,50 +177,66 @@ namespace CasalPlanner.API.Controllers
             if (usuario == null)
                 return NotFound();
 
-            if (usuario.TipoConta == TipoConta.Casal)
+            if (usuario.TipoConta == TipoConta.Casal && usuario.CasalInfo != null)
             {
+                // Converter DateTime para string de forma segura
+                string dataNascimentoPessoa1 = usuario.CasalInfo.DataNascimentoPessoa1 == DateTime.MinValue
+                    ? null
+                    : usuario.CasalInfo.DataNascimentoPessoa1.ToString("yyyy-MM-dd");
+                
+                string dataNascimentoPessoa2 = usuario.CasalInfo.DataNascimentoPessoa2 == DateTime.MinValue
+                    ? null
+                    : usuario.CasalInfo.DataNascimentoPessoa2.ToString("yyyy-MM-dd");
+
                 return Ok(new
                 {
-                    usuario.Id,
-                    usuario.NomeCompleto,
-                    usuario.Email,
-                    usuario.TipoConta,
-                    usuario.IsCasal,
-                    usuario.ModoEscuro,
-                    usuario.RendaMensal,
-                    usuario.CreatedAt,
-                    CasalInfo = new
+                    id = usuario.Id,
+                    nomeCompleto = usuario.NomeCompleto,
+                    email = usuario.Email,
+                    tipoConta = "Casal",
+                    isCasal = true,
+                    modoEscuro = usuario.ModoEscuro,
+                    rendaMensal = usuario.RendaMensal,
+                    createdAt = usuario.CreatedAt,
+                    casalInfo = new
                     {
-                        usuario.CasalInfo?.NomeCompletoPessoa1,
-                        usuario.CasalInfo?.EmailPessoa1,
-                        usuario.CasalInfo?.CPFPessoa1,
-                        DataNascimentoPessoa1 = usuario.CasalInfo?.DataNascimentoPessoa1.ToString("yyyy-MM-dd"),
-                        usuario.CasalInfo?.RendaMensalPessoa1,
-                        usuario.CasalInfo?.NomeCompletoPessoa2,
-                        usuario.CasalInfo?.EmailPessoa2,
-                        usuario.CasalInfo?.CPFPessoa2,
-                        DataNascimentoPessoa2 = usuario.CasalInfo?.DataNascimentoPessoa2.ToString("yyyy-MM-dd"),
-                        usuario.CasalInfo?.RendaMensalPessoa2,
-                        usuario.CasalInfo?.CreatedAt
+                        pessoa1 = new
+                        {
+                            nomeCompleto = usuario.CasalInfo.NomeCompletoPessoa1,
+                            email = usuario.CasalInfo.EmailPessoa1,
+                            cpf = usuario.CasalInfo.CPFPessoa1,
+                            dataNascimento = dataNascimentoPessoa1,
+                            rendaMensal = usuario.CasalInfo.RendaMensalPessoa1
+                        },
+                        pessoa2 = new
+                        {
+                            nomeCompleto = usuario.CasalInfo.NomeCompletoPessoa2,
+                            email = usuario.CasalInfo.EmailPessoa2,
+                            cpf = usuario.CasalInfo.CPFPessoa2,
+                            dataNascimento = dataNascimentoPessoa2,
+                            rendaMensal = usuario.CasalInfo.RendaMensalPessoa2
+                        }
                     }
                 });
             }
-            else
+
+            // DataNascimento é DateTime? (nullable) - pode usar ?.
+            string dataNascimento = usuario.DataNascimento?.ToString("yyyy-MM-dd");
+
+            return Ok(new
             {
-                return Ok(new
-                {
-                    usuario.Id,
-                    usuario.NomeCompleto,
-                    usuario.Email,
-                    usuario.TipoConta,
-                    usuario.IsCasal,
-                    usuario.ModoEscuro,
-                    usuario.RendaMensal,
-                    usuario.CPF,
-                    usuario.CreatedAt,
-                    DataNascimento = usuario.DataNascimento?.ToString("yyyy-MM-dd")
-                });
-            }
+                id = usuario.Id,
+                nomeCompleto = usuario.NomeCompleto,
+                email = usuario.Email,
+                cpf = usuario.CPF,
+                dataNascimento = dataNascimento,
+                rendaMensal = usuario.RendaMensal,
+                tipoConta = "Individual",
+                isCasal = false,
+                modoEscuro = usuario.ModoEscuro,
+                createdAt = usuario.CreatedAt,
+                lastLoginAt = usuario.LastLoginAt
+            });
         }
     }
 }

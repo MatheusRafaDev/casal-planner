@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Heart, LogOut, User, ChevronDown, Home, ClipboardList, Sun, Moon } from 'lucide-react';
+import { LogOut, User, ChevronDown, Home, ClipboardList, Sun, Moon } from 'lucide-react';
 import authService from '../services/authService';
 import { ReactComponent as LogoIcon } from '../assets/logo.svg';
-
 
 import {
   HeaderContainer,
@@ -33,6 +32,35 @@ const Header = () => {
 
   const isLogado = !!usuario;
 
+  // Função auxiliar para extrair o nome de exibição
+  const getNomeExibicao = (userData) => {
+    if (!userData) return '';
+    
+    const isCasal = userData.isCasal || userData.tipoConta === 'Casal' || userData.tipoConta === 1;
+    
+    if (!isCasal) {
+      return userData.nomeCompleto || 'Usuário';
+    }
+    
+    const pessoaLogada = userData.pessoaQueLogou || 'pessoa1';
+    
+    // Prioriza a estrutura pessoa1/pessoa2 (sua estrutura atual)
+    if (userData.pessoa1?.nomeCompleto) {
+      return pessoaLogada === 'pessoa1' 
+        ? userData.pessoa1.nomeCompleto 
+        : userData.pessoa2?.nomeCompleto || 'Usuário';
+    }
+    
+    // Fallback para estrutura casalInfo (caso exista)
+    if (userData.casalInfo) {
+      return pessoaLogada === 'pessoa1'
+        ? userData.casalInfo.nomeCompletoPessoa1
+        : userData.casalInfo.nomeCompletoPessoa2 || 'Usuário';
+    }
+    
+    return 'Usuário';
+  };
+
   useEffect(() => {
     const carregarDadosCompletos = async () => {
       if (usuario) {
@@ -49,18 +77,7 @@ const Header = () => {
 
   useEffect(() => {
     const u = dadosUsuario || usuario;
-    if (u) {
-      if (u.isCasal || u.tipoConta === 'Casal' || u.tipoConta === 1) {
-        const pessoaLogada = u.pessoaQueLogou || 'pessoa1';
-        const c = u.casalInfo || {};
-        const nome = pessoaLogada === 'pessoa1' ? c?.nomeCompletoPessoa1 : c?.nomeCompletoPessoa2;
-        setNomeExibicao(nome || 'Usuário');
-      } else {
-        setNomeExibicao(u.nomeCompleto || 'Usuário');
-      }
-    } else {
-      setNomeExibicao('');
-    }
+    setNomeExibicao(getNomeExibicao(u));
   }, [dadosUsuario, usuario]);
 
   const getInitials = () => {
@@ -89,10 +106,7 @@ const Header = () => {
       <HeaderContainer theme={theme}>
         <HeaderContent>
           <Logo onClick={() => navigate('/')} theme={theme}>
-            <div className="icon">
-              <LogoIcon width={30} height={30} />
-              
-              </div>
+            <LogoIcon width={30} height={30} />
             <span>CasalPlanner</span>
           </Logo>
           <UserSection>
@@ -110,7 +124,7 @@ const Header = () => {
     <HeaderContainer theme={theme}>
       <HeaderContent>
         <Logo onClick={() => navigate('/inicio')} theme={theme}>
-          <div className="icon"><Heart /></div>
+          <LogoIcon width={32} height={32} />
           <span>CasalPlanner</span>
         </Logo>
 

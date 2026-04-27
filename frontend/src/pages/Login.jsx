@@ -5,7 +5,6 @@ import { useTheme } from "../context/ThemeContext";
 import toast from "react-hot-toast";
 import { ReactComponent as CasalPlannerLogo } from "../assets/logo.svg";
 import {
-  Heart,
   LogIn,
   UserPlus,
   Mail,
@@ -14,14 +13,11 @@ import {
   DollarSign,
   Users,
   ArrowLeft,
-  CheckCircle,
   AlertCircle,
   Eye,
   EyeOff,
   Hash,
   User,
-  Check,
-  X,
 } from "lucide-react";
 
 import {
@@ -37,7 +33,6 @@ import {
   LoginContainer,
   LoginCard,
   LogoWrapper,
-  LogoIcon,
   Title,
   Subtitle,
   TabsContainer,
@@ -55,11 +50,10 @@ import {
   CheckboxHelper,
   SectionTitle,
   LoginButton,
-  InfoMessage,
   BackLink,
+  ForgotPasswordLink,
 } from "../styles/pages/LoginStyles";
 
-// Componente de validação de senha
 const PasswordStrengthIndicator = ({ password }) => {
   const requirements = [
     { regex: /.{8,}/, text: "Mínimo 8 caracteres", icon: "🔒" },
@@ -583,6 +577,13 @@ const Login = () => {
               <LoginButton type="submit" disabled={loading} theme={theme}>
                 {loading ? "Entrando..." : "Entrar"}
               </LoginButton>
+
+              <ForgotPasswordLink
+                onClick={() => navigate("/recuperar-senha")}
+                theme={theme}
+              >
+                Esqueci minha senha
+              </ForgotPasswordLink>
             </>
           )}
 

@@ -1,3 +1,4 @@
+// frontend/src/styles/RoutesStyles.js
 import styled from 'styled-components';
 
 // Tela de loading
@@ -10,6 +11,22 @@ export const LoadingScreen = styled.div`
   color: ${({ theme }) => theme.primary};
   font-size: 1.2rem;
   font-weight: 500;
+`;
+export const PageWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  animation: fadeSlide 0.25s ease;
+
+  @keyframes fadeSlide {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 `;
 
 // Container principal

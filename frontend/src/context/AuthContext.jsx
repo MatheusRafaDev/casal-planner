@@ -7,7 +7,6 @@ const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-
   if (!context)
     throw new Error("useAuth deve ser usado dentro de AuthProvider");
   return context;
@@ -21,7 +20,6 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const carregarUsuario = async () => {
       try {
-        // getUsuario() já chama buscarDadosCompletos se não houver cache
         const dadosUsuario = await authService.getUsuario();
         setUsuario(dadosUsuario || null);
       } catch (error) {

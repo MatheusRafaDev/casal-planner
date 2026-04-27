@@ -17,15 +17,18 @@ public class UsuarioController : ControllerBase
     private readonly IAuthService _authService;
     private readonly ILogger<UsuarioController> _logger;
     private readonly MongoDbContext _context;
+    private readonly IEmailService _emailService;
 
     public UsuarioController(
-        IAuthService authService,
-        ILogger<UsuarioController> logger,
-        MongoDbContext context)
+    IAuthService authService,
+    ILogger<UsuarioController> logger,
+    MongoDbContext context,
+    IEmailService emailService) // ADICIONE ESTE PARÂMETRO
     {
         _authService = authService;
         _logger = logger;
         _context = context;
+        _emailService = emailService; // ADICIONE ESTA LINHA
     }
 
     private string GetUsuarioId()
@@ -147,25 +150,38 @@ public class UsuarioController : ControllerBase
         // Criar categorias padrão para o novo usuário
         await CriarCategoriasPadrao(usuario.Id!);
 
+        // ENVIAR EMAIL DE BOAS-VINDAS
+        await _emailService.EnviarEmailBoasVindas(usuario.Email!, usuario.NomeCompleto ?? "Usuário", false);
+
         var token = _authService.GerarToken(usuario);
 
-        return Ok(new LoginResponseDto
+        // Retornar dados completos do usuário
+        return Ok(new
         {
-            Id = usuario.Id!,
-            NomeCompleto = usuario.NomeCompleto ?? "",
-            Email = usuario.Email ?? "",
-            Token = token,
-            IsCasal = usuario.IsCasal,
-            TipoConta = usuario.TipoConta.ToString(),
-            ModoEscuro = true
+            success = true,
+            message = "Registro realizado com sucesso",
+            token = token,
+            usuario = new
+            {
+                id = usuario.Id!,
+                nomeCompleto = usuario.NomeCompleto ?? "",
+                email = usuario.Email ?? "",
+                cpf = usuario.CPF,
+                dataNascimento = usuario.DataNascimento?.ToString("yyyy-MM-dd"),
+                rendaMensal = usuario.RendaMensal,
+                tipoConta = usuario.TipoConta.ToString(),
+                isCasal = usuario.IsCasal,
+                modoEscuro = usuario.ModoEscuro,
+                createdAt = usuario.CreatedAt,
+                lastLoginAt = usuario.LastLoginAt
+            }
         });
     }
 
     [AllowAnonymous]
     [HttpPost("registrar-casal")]
-    public async Task<ActionResult<UsuarioResponseDto>> RegistrarCasal([FromBody] RegistroCasalDto dto)
+    public async Task<ActionResult<object>> RegistrarCasal([FromBody] RegistroCasalDto dto)
     {
-
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
@@ -177,36 +193,56 @@ public class UsuarioController : ControllerBase
 
         await CriarCategoriasPadrao(usuario.Id!);
 
+        // ENVIAR EMAIL DE BOAS-VINDAS PARA AMBAS AS PESSOAS
+        if (usuario.CasalInfo != null)
+        {
+            await _emailService.EnviarEmailBoasVindas(
+                usuario.CasalInfo.EmailPessoa1,
+                usuario.CasalInfo.NomeCompletoPessoa1 ?? "Usuário",
+                true);
+
+            await _emailService.EnviarEmailBoasVindas(
+                usuario.CasalInfo.EmailPessoa2,
+                usuario.CasalInfo.NomeCompletoPessoa2 ?? "Usuário",
+                true);
+        }
+
         var token = _authService.GerarTokenCasal(usuario, "pessoa1");
 
-        var response = new UsuarioResponseDto
+        // Retornar dados completos do casal
+        return Ok(new
         {
-            Id = usuario.Id!,
-            TipoConta = "Casal",
-            IsCasal = true,
-            CreatedAt = usuario.CreatedAt,
-            ModoEscuro = true,
-            RendaMensal = usuario.RendaMensal,
-            Token = token,
-
-            // Pessoa 1
-            NomeCompletoPessoa1 = usuario.CasalInfo?.NomeCompletoPessoa1,
-            EmailPessoa1 = usuario.CasalInfo?.EmailPessoa1,
-            CPFPessoa1 = usuario.CasalInfo?.CPFPessoa1,
-            DataNascimentoPessoa1 = usuario.CasalInfo?.DataNascimentoPessoa1,
-            RendaMensalPessoa1 = usuario.CasalInfo?.RendaMensalPessoa1,
-
-            // Pessoa 2
-            NomeCompletoPessoa2 = usuario.CasalInfo?.NomeCompletoPessoa2,
-            EmailPessoa2 = usuario.CasalInfo?.EmailPessoa2,
-            CPFPessoa2 = usuario.CasalInfo?.CPFPessoa2,
-            DataNascimentoPessoa2 = usuario.CasalInfo?.DataNascimentoPessoa2,
-            RendaMensalPessoa2 = usuario.CasalInfo?.RendaMensalPessoa2,
-        };
-
-        return Ok(response);
+            success = true,
+            message = "Registro de casal realizado com sucesso",
+            token = token,
+            usuario = new
+            {
+                id = usuario.Id!,
+                tipoConta = "Casal",
+                isCasal = true,
+                modoEscuro = true,
+                rendaMensal = usuario.RendaMensal,
+                createdAt = usuario.CreatedAt,
+                pessoaLogada = "pessoa1",
+                pessoa1 = new
+                {
+                    nomeCompleto = usuario.CasalInfo?.NomeCompletoPessoa1,
+                    email = usuario.CasalInfo?.EmailPessoa1,
+                    cpf = usuario.CasalInfo?.CPFPessoa1,
+                    dataNascimento = usuario.CasalInfo?.DataNascimentoPessoa1.ToString("yyyy-MM-dd"),
+                    rendaMensal = usuario.CasalInfo?.RendaMensalPessoa1
+                },
+                pessoa2 = new
+                {
+                    nomeCompleto = usuario.CasalInfo?.NomeCompletoPessoa2,
+                    email = usuario.CasalInfo?.EmailPessoa2,
+                    cpf = usuario.CasalInfo?.CPFPessoa2,
+                    dataNascimento = usuario.CasalInfo?.DataNascimentoPessoa2.ToString("yyyy-MM-dd"),
+                    rendaMensal = usuario.CasalInfo?.RendaMensalPessoa2
+                }
+            }
+        });
     }
-
     [Authorize]
     [HttpGet("me")]
     public async Task<ActionResult<object>> GetCurrentUser()
@@ -391,16 +427,17 @@ public class UsuarioController : ControllerBase
             var update = Builders<Usuario>.Update.Set(u => u.SenhaHash, novaSenhaHash);
             await _context.Usuarios.UpdateOneAsync(u => u.Id == usuario.Id, update);
 
+            // Enviar email de aviso
+            await _emailService.EnviarAvisoSenhaAlterada(usuario.Email!, usuario.NomeCompleto ?? "Usuário");
+
             return Ok(new { message = "Senha alterada com sucesso" });
         }
 
         var usuarioCasal = await _authService.ObterCasalPorEmail(dto.Email);
 
-        // Check if usuarioCasal exists and has CasalInfo
         if (usuarioCasal?.CasalInfo == null)
             return NotFound();
 
-        // Now safely access CasalInfo properties
         if (usuarioCasal.CasalInfo.EmailPessoa1 == dto.Email)
         {
             if (!BCrypt.Net.BCrypt.Verify(dto.SenhaAtual, usuarioCasal.CasalInfo.SenhaHashPessoa1))
@@ -409,6 +446,17 @@ public class UsuarioController : ControllerBase
             var novaSenhaHash = BCrypt.Net.BCrypt.HashPassword(dto.NovaSenha);
             var update = Builders<Usuario>.Update.Set(u => u.CasalInfo!.SenhaHashPessoa1, novaSenhaHash);
             await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioCasal.Id, update);
+
+            // Enviar email de aviso para a pessoa que alterou
+            await _emailService.EnviarAvisoSenhaAlterada(usuarioCasal.CasalInfo.EmailPessoa1, usuarioCasal.CasalInfo.NomeCompletoPessoa1 ?? "Usuário");
+
+            // Enviar email de aviso para o parceiro
+            if (!string.IsNullOrEmpty(usuarioCasal.CasalInfo.EmailPessoa2))
+            {
+                await _emailService.EnviarAvisoSenhaAlterada(
+                    usuarioCasal.CasalInfo.EmailPessoa2,
+                    usuarioCasal.CasalInfo.NomeCompletoPessoa2 ?? "Usuário");
+            }
         }
         else if (usuarioCasal.CasalInfo.EmailPessoa2 == dto.Email)
         {
@@ -418,6 +466,17 @@ public class UsuarioController : ControllerBase
             var novaSenhaHash = BCrypt.Net.BCrypt.HashPassword(dto.NovaSenha);
             var update = Builders<Usuario>.Update.Set(u => u.CasalInfo!.SenhaHashPessoa2, novaSenhaHash);
             await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioCasal.Id, update);
+
+            // Enviar email de aviso para a pessoa que alterou
+            await _emailService.EnviarAvisoSenhaAlterada(usuarioCasal.CasalInfo.EmailPessoa2, usuarioCasal.CasalInfo.NomeCompletoPessoa2 ?? "Usuário");
+
+            // Enviar email de aviso para o parceiro
+            if (!string.IsNullOrEmpty(usuarioCasal.CasalInfo.EmailPessoa1))
+            {
+                await _emailService.EnviarAvisoSenhaAlterada(
+                    usuarioCasal.CasalInfo.EmailPessoa1,
+                    usuarioCasal.CasalInfo.NomeCompletoPessoa1 ?? "Usuário");
+            }
         }
         else
         {
@@ -489,9 +548,48 @@ public class UsuarioController : ControllerBase
     [HttpDelete("usuario/{id}")]
     public async Task<IActionResult> ExcluirConta(string id)
     {
+        // Buscar usuário antes de excluir para ter os dados do email
+        var usuario = await _context.Usuarios.Find(u => u.Id == id).FirstOrDefaultAsync();
+
+        if (usuario == null)
+            return NotFound();
+
+        // Salvar dados para enviar email após exclusão
+        var email = usuario.Email;
+        var nome = usuario.NomeCompleto ?? "Usuário";
+        var isCasal = usuario.IsCasal;
+        var casalInfo = usuario.CasalInfo;
+
         var result = await _context.Usuarios.DeleteOneAsync(u => u.Id == id);
+
         if (result.DeletedCount == 0)
             return NotFound();
+
+        // ENVIAR EMAIL DE CONFIRMAÇÃO DE EXCLUSÃO (ASSÍNCRONO, NÃO BLOQUEIA A RESPOSTA)
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(email))
+                {
+                    // Para conta individual
+                    await _emailService.EnviarEmailExclusaoConta(email, nome, false);
+                }
+                else if (isCasal && casalInfo != null)
+                {
+                    // Para conta casal, enviar para ambas as pessoas
+                    if (!string.IsNullOrEmpty(casalInfo.EmailPessoa1))
+                        await _emailService.EnviarEmailExclusaoConta(casalInfo.EmailPessoa1, casalInfo.NomeCompletoPessoa1 ?? "Usuário", true);
+
+                    if (!string.IsNullOrEmpty(casalInfo.EmailPessoa2))
+                        await _emailService.EnviarEmailExclusaoConta(casalInfo.EmailPessoa2, casalInfo.NomeCompletoPessoa2 ?? "Usuário", true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao enviar email de exclusão para {Email}", email);
+            }
+        });
 
         return Ok(new { message = "Conta excluída com sucesso" });
     }

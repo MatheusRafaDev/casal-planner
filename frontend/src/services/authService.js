@@ -11,6 +11,8 @@ class AuthService {
       const response = await api.post('/auth/login', dados);
       const { token, usuario } = response.data;
 
+      console.log('Resposta do login:', response.data);
+
       if (token) {
         // Persiste token no localStorage
         tokenStorage.set(token);
@@ -99,8 +101,13 @@ class AuthService {
     }
   }
 
-  setUsuarioCache(usuario) { this.#usuarioCache = usuario; }
-  clearCache()             { this.#usuarioCache = null; }
+  setUsuarioCache(usuario) { 
+    this.#usuarioCache = usuario; 
+  }
+  
+  clearCache() { 
+    this.#usuarioCache = null; 
+  }
 }
 
 export default new AuthService();
