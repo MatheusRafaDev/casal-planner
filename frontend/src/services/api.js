@@ -1,7 +1,7 @@
-
 import axios from 'axios';
 
 const TOKEN_KEY = 'casal_planner_token';
+const PESSOA_KEY = 'casal_planner_pessoa';
 
 if (!process.env.REACT_APP_API_URL) {
   console.error('❌ REACT_APP_API_URL não está definida. Configure a variável de ambiente.');
@@ -11,8 +11,17 @@ if (!process.env.REACT_APP_API_URL) {
 export const tokenStorage = {
   get:    ()        => localStorage.getItem(TOKEN_KEY),
   set:    (token)   => localStorage.setItem(TOKEN_KEY, token),
-  remove: ()        => localStorage.removeItem(TOKEN_KEY),
+  remove: ()        => { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(PESSOA_KEY); },
   exists: ()        => !!localStorage.getItem(TOKEN_KEY),
+};
+
+// Persiste qual pessoa do casal está logada (pessoa1 | pessoa2 | null)
+export const pessoaStorage = {
+  get:    ()       => localStorage.getItem(PESSOA_KEY) || null,
+  set:    (pessoa) => pessoa
+    ? localStorage.setItem(PESSOA_KEY, pessoa)
+    : localStorage.removeItem(PESSOA_KEY),
+  remove: ()       => localStorage.removeItem(PESSOA_KEY),
 };
 
 // ─── Instância Axios ───────────────────────────────────────

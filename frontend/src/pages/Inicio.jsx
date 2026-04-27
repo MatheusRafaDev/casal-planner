@@ -53,30 +53,28 @@ import {
 /* ── Componente ─────────────────────────────────────────────────────────────── */
 const Inicio = () => {
   const navigate = useNavigate();
-  const { usuario } = useAuth();
+  const { usuario, isCasal, pessoaQueLogou } = useAuth();
   const { theme } = useTheme();
 
   const [categorias, setCategorias] = useState([]);
   const [itens, setItens]           = useState([]);
   const [loading, setLoading]       = useState(true);
 
-  // ✅ Função para obter o nome do usuário
+  // ✅ Função para obter o nome do usuário (usa valores do contexto)
   const getNome = useCallback(() => {
     if (!usuario) return 'Usuário';
 
-    const isCasalAccount = usuario.isCasal || usuario.tipoConta === 'Casal' || usuario.tipoConta === 1;
-    
-    if (isCasalAccount) {
-      const info = usuario.casalInfo || {};
-      const pessoaLogada = usuario.pessoaQueLogou || 'pessoa1';
-      const nomeCompleto = pessoaLogada === 'pessoa1'
-        ? (info.nomeCompletoPessoa1 || 'Usuário')
-        : (info.nomeCompletoPessoa2 || 'Usuário');
+    if (isCasal && usuario.casalInfo) {
+      const pessoa = pessoaQueLogou || 'pessoa1';
+      const info = usuario.casalInfo;
+      const nomeCompleto = pessoa === 'pessoa1'
+        ? (info.pessoa1?.nomeCompleto || info.nomeCompletoPessoa1 || 'Usuário')
+        : (info.pessoa2?.nomeCompleto || info.nomeCompletoPessoa2 || 'Usuário');
       return nomeCompleto.split(' ')[0];
     }
-    
+
     return (usuario.nomeCompleto || 'Usuário').split(' ')[0];
-  }, [usuario]);
+  }, [usuario, isCasal, pessoaQueLogou]);
 
   // ✅ Função para saudação baseada na hora
   const getHora = useCallback(() => {
@@ -87,7 +85,7 @@ const Inicio = () => {
   }, []);
 
   // ✅ Verificar se é conta de casal
-  const isCasal = usuario?.isCasal || usuario?.tipoConta === 'Casal' || usuario?.tipoConta === 1;
+  // isCasal vem do contexto (AuthContext)
 
   useEffect(() => {
     const carregar = async () => {

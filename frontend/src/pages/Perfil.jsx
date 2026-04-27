@@ -66,7 +66,7 @@ const SenhaInput = ({ value, name, onChange, placeholder, theme }) => {
 
 const Perfil = () => {
   const { theme, isDarkMode, toggleTheme } = useTheme();
-  const { usuario, atualizarUsuario, logout } = useAuth();
+  const { usuario, atualizarUsuario, recarregarUsuario, logout, isCasal, pessoaQueLogou } = useAuth();
 
   console.log("Dados do usuário no Perfil:", usuario);
 
@@ -91,8 +91,8 @@ const Perfil = () => {
   const [dadosParceiro, setDadosParceiro] = useState(null);
   const [senha, setSenha] = useState({ atual: "", nova: "", confirmar: "" });
 
-  const isCasal = usuario?.isCasal || usuario?.tipoConta === 1;
-  const pessoaLogada = usuario?.pessoaQueLogou || "pessoa1";
+  // isCasal e pessoaQueLogou vêm do contexto (AuthContext)
+  const pessoaLogada = pessoaQueLogou || "pessoa1";
   const isPessoa1 = pessoaLogada === "pessoa1";
 
   const showMsg = (msg, isErro = false) => {
@@ -258,18 +258,8 @@ const Perfil = () => {
         
         await usuarioService.atualizarPerfilCasal(usuario.id, dados);
         
-        // Atualizar contexto
-        const novoCasalInfo = { ...usuario.casalInfo, ...dados };
-        const novaRendaTotal = (novoCasalInfo.rendaMensalPessoa1 || 0) + (novoCasalInfo.rendaMensalPessoa2 || 0);
-        
-        const usuarioAtualizado = {
-          ...usuario,
-          casalInfo: novoCasalInfo,
-          rendaMensal: novaRendaTotal,
-          nomeCompleto: meusDados.nomeCompleto, // Atualizar nome da pessoa logada
-        };
-        
-        atualizarUsuario(usuarioAtualizado);
+        // Recarrega dados frescos do servidor para manter consistência
+        await recarregarUsuario();
       } else {
         // Conta individual
         const dados = {
@@ -280,7 +270,7 @@ const Perfil = () => {
         };
         
         await usuarioService.atualizarPerfil(usuario.id, dados);
-        atualizarUsuario({ ...usuario, ...dados });
+        await recarregarUsuario();
       }
       
       showMsg("Perfil atualizado com sucesso! ✓");

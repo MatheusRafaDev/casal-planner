@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { LogOut, User, ChevronDown, Home, ClipboardList, Sun, Moon } from 'lucide-react';
-import authService from '../services/authService';
 import { ReactComponent as LogoIcon } from '../assets/logo.svg';
 
 import {
@@ -24,61 +23,36 @@ import {
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { usuario, logout } = useAuth();
+  const { usuario, logout, isCasal, pessoaQueLogou } = useAuth();
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const [menuAberto, setMenuAberto] = useState(false);
-  const [nomeExibicao, setNomeExibicao] = useState('');
-  const [dadosUsuario, setDadosUsuario] = useState(null);
 
   const isLogado = !!usuario;
 
-  // Função auxiliar para extrair o nome de exibição
-  const getNomeExibicao = (userData) => {
-    if (!userData) return '';
-    
-    const isCasal = userData.isCasal || userData.tipoConta === 'Casal' || userData.tipoConta === 1;
-    
-    if (!isCasal) {
-      return userData.nomeCompleto || 'Usuário';
+  // Deriva o nome de exibição diretamente do contexto — sem chamada extra à API
+  const getNomeExibicao = () => {
+    if (!usuario) return '';
+
+    if (isCasal && usuario.casalInfo) {
+      const pessoa = pessoaQueLogou || 'pessoa1';
+      if (pessoa === 'pessoa1') {
+        return (
+          usuario.casalInfo.pessoa1?.nomeCompleto ||
+          usuario.casalInfo.nomeCompletoPessoa1 ||
+          'Usuário'
+        );
+      }
+      return (
+        usuario.casalInfo.pessoa2?.nomeCompleto ||
+        usuario.casalInfo.nomeCompletoPessoa2 ||
+        'Usuário'
+      );
     }
-    
-    const pessoaLogada = userData.pessoaQueLogou || 'pessoa1';
-    
-    // Prioriza a estrutura pessoa1/pessoa2 (sua estrutura atual)
-    if (userData.pessoa1?.nomeCompleto) {
-      return pessoaLogada === 'pessoa1' 
-        ? userData.pessoa1.nomeCompleto 
-        : userData.pessoa2?.nomeCompleto || 'Usuário';
-    }
-    
-    // Fallback para estrutura casalInfo (caso exista)
-    if (userData.casalInfo) {
-      return pessoaLogada === 'pessoa1'
-        ? userData.casalInfo.nomeCompletoPessoa1
-        : userData.casalInfo.nomeCompletoPessoa2 || 'Usuário';
-    }
-    
-    return 'Usuário';
+
+    return usuario.nomeCompleto || 'Usuário';
   };
 
-  useEffect(() => {
-    const carregarDadosCompletos = async () => {
-      if (usuario) {
-        try {
-          const dados = await authService.buscarDadosCompletos();
-          setDadosUsuario(dados);
-        } catch {
-          setDadosUsuario(usuario);
-        }
-      }
-    };
-    carregarDadosCompletos();
-  }, [usuario]);
-
-  useEffect(() => {
-    const u = dadosUsuario || usuario;
-    setNomeExibicao(getNomeExibicao(u));
-  }, [dadosUsuario, usuario]);
+  const nomeExibicao = getNomeExibicao();
 
   const getInitials = () => {
     if (!nomeExibicao || nomeExibicao === 'Usuário') return 'U';
@@ -159,7 +133,6 @@ const Header = () => {
                   <ClipboardList size={16} /><span>Planejamento</span>
                 </DropdownItem>
 
-                {/* Toggle de tema no dropdown */}
                 <DropdownItem
                   onClick={() => { toggleTheme(); setMenuAberto(false); }}
                   theme={theme}
