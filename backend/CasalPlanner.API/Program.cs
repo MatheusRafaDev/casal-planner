@@ -110,17 +110,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CasalPlannerPolicy", policy =>
     {
-        var origins = new List<string> { frontendUrl };
-
-        // URLs adicionais do Vercel
-        origins.Add("https://casalplanner.vercel.app");
-        origins.Add("https://casal-planner.vercel.app");
-
-        if (builder.Environment.IsDevelopment())
-            origins.Add("http://localhost:3000");
-
         policy
-            .WithOrigins(origins.Distinct().ToArray())
+            .WithOrigins(
+                "http://localhost:3000",
+                "https://casalplanner.vercel.app",
+                "https://casal-planner.vercel.app"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod();
     });

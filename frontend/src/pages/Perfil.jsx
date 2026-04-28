@@ -1,7 +1,9 @@
+// Perfil.js (parte modificada)
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { Sun, Moon } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useConfirm } from "../context/ConfirmContext"; // Importar o hook
 import usuarioService from "../services/usuarioService";
 import {
   User, Heart, Lock, Trash2, Edit3, X, CheckCircle,
@@ -67,6 +69,7 @@ const SenhaInput = ({ value, name, onChange, placeholder, theme }) => {
 const Perfil = () => {
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const { usuario, atualizarUsuario, recarregarUsuario, logout, isCasal, pessoaQueLogou } = useAuth();
+  const { showConfirm } = useConfirm(); // Usar o contexto de confirmação
 
   console.log("Dados do usuário no Perfil:", usuario);
 
@@ -75,7 +78,7 @@ const Perfil = () => {
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
   const [loading, setLoading] = useState(false);
-  const [mostrarModalExcluir, setMostrarModalExcluir] = useState(false);
+  // Removido o estado mostrarModalExcluir pois vamos usar o ConfirmContext
 
   // Dados do usuário logado (a pessoa que está usando o sistema)
   const [meusDados, setMeusDados] = useState({
@@ -205,7 +208,6 @@ const Perfil = () => {
         });
       }
     } else {
-
       console.log(usuario)
       setMeusDados({
         nomeCompleto: usuario.nomeCompleto || "",
@@ -304,17 +306,33 @@ const Perfil = () => {
     }
   };
 
-  const handleExcluirConta = async () => {
-    setLoading(true);
-    try {
-      await usuarioService.excluirConta(usuario.id);
-      await logout();
-    } catch (error) {
-      showMsg(error.response?.data?.message || "Erro ao excluir conta", true);
-      setMostrarModalExcluir(false);
-    } finally {
-      setLoading(false);
-    }
+  // Função modificada para usar o ConfirmContext
+  const handleExcluirConta = () => {
+    // Mensagem personalizada para conta casal
+    const mensagem = isCasal
+      ? "⚠️ ATENÇÃO: Isso excluirá TODA a conta do casal, incluindo todos os dados de ambas as pessoas. Esta ação é PERMANENTE e não pode ser desfeita!"
+      : "⚠️ ATENÇÃO: Esta ação é PERMANENTE e não pode ser desfeita! Todos os seus dados serão excluídos.";
+
+    showConfirm({
+      title: 'Excluir Conta Permanentemente',
+      itemName: meusDados.nomeCompleto,
+      itemType: 'conta',
+      message: mensagem,
+      isDanger: true, // Para estilização diferente no modal
+      confirmText: 'Sim, excluir minha conta',
+      cancelText: 'Cancelar',
+      onConfirm: async () => {
+        setLoading(true);
+        try {
+          await usuarioService.excluirConta(usuario.id);
+          await logout();
+        } catch (error) {
+          showMsg(error.response?.data?.message || "Erro ao excluir conta", true);
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   const formatarDataCriacao = (data) => {
@@ -325,7 +343,6 @@ const Perfil = () => {
   };
 
   const getInitials = () => {
-
     console.log(meusDados)
     if (!meusDados.nomeCompleto) return "?";
     const parts = meusDados.nomeCompleto.trim().split(' ');
@@ -583,44 +600,18 @@ const Perfil = () => {
         </PerfilCard>
       )}
 
-      {/* Zona de Perigo */}
+      {/* Zona de Perigo - usando o ConfirmContext */}
       {!editando && !editandoSenha && (
         <PerfilCard theme={theme}>
           <SectionTitle theme={theme}><AlertCircle size={16} /> Zona de Perigo</SectionTitle>
-          <AlterarSenhaButton $danger onClick={() => setMostrarModalExcluir(true)} theme={theme}>
+          <AlterarSenhaButton $danger onClick={handleExcluirConta} theme={theme}>
             <Trash2 size={16} /> Excluir minha conta permanentemente
             <ChevronRight size={16} style={{ marginLeft: "auto" }} />
           </AlterarSenhaButton>
         </PerfilCard>
       )}
 
-      {mostrarModalExcluir && (
-        <Modal>
-          <ModalContent theme={theme}>
-            <ModalHeader theme={theme}>
-              <h2>Excluir conta</h2>
-              <FecharButton onClick={() => setMostrarModalExcluir(false)} theme={theme}>
-                <X size={16} />
-              </FecharButton>
-            </ModalHeader>
-            <ModalBody theme={theme}>
-              <p>Tem certeza que deseja excluir sua conta?</p>
-              <p className="warning">⚠️ Esta ação é permanente e não pode ser desfeita!</p>
-              {isCasal && (
-                <p className="warning">⚠️ Atenção: Isso excluirá toda a conta do casal!</p>
-              )}
-            </ModalBody>
-            <ModalFooter theme={theme}>
-              <CancelarButton onClick={() => setMostrarModalExcluir(false)} theme={theme}>
-                Cancelar
-              </CancelarButton>
-              <ConfirmarButton $danger onClick={handleExcluirConta} disabled={loading} theme={theme}>
-                {loading ? "Excluindo…" : "Sim, excluir conta"}
-              </ConfirmarButton>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-      )}
+      {/* Removeu o modal de exclusão local, pois agora usa o ConfirmContext */}
     </PerfilContainer>
   );
 };

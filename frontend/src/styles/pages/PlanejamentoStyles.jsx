@@ -3,25 +3,29 @@ import styled from 'styled-components';
 export const PlanejamentoContainer = styled.div`
   min-height: 100vh;
   background: ${props => props.theme.background};
-  padding: 2rem;
 
-  @media (max-width: 768px) {
-    padding: 1rem 1rem 5rem;
-  }
 `;
 
 export const WelcomeSection = styled.div`
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+
+  @media (max-width: 768px) {
+    margin-bottom: 1rem;
+  }
 `;
 
 export const WelcomeTitle = styled.h2`
   font-size: 1.75rem;
   font-weight: 700;
   color: ${props => props.theme.text};
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.25rem 0;
 
   @media (max-width: 768px) {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.2rem;
   }
 `;
 
@@ -29,6 +33,10 @@ export const WelcomeSubtitle = styled.p`
   font-size: 1rem;
   color: ${props => props.theme.textSoft};
   margin: 0;
+
+  @media (max-width: 480px) {
+    font-size: 0.875rem;
+  }
 `;
 
 export const LoadingContainer = styled.div`
@@ -55,9 +63,7 @@ export const LoadingSpinner = styled.div`
   animation: spin 1s linear infinite;
 
   @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
+    to { transform: rotate(360deg); }
   }
 `;
 
@@ -73,9 +79,11 @@ export const CategoriesGrid = styled.div`
     gap: 1.25rem;
   }
 
+  /* Mobile: coluna única, sem margin lateral */
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
+    margin: 1rem 0;
   }
 `;
 
@@ -88,9 +96,7 @@ export const DragCardWrapper = styled.div`
   cursor: grab;
   height: 100%;
 
-  &:active {
-    cursor: grabbing;
-  }
+  &:active { cursor: grabbing; }
 
   &::before {
     content: ${props => props.$isDragOver ? '"Mover para cá"' : '""'};
@@ -112,14 +118,14 @@ export const DragCardWrapper = styled.div`
   }
 `;
 
-
 export const EmptyStateIcon = styled.div`
   font-size: 5rem;
   margin-bottom: 1.5rem;
   opacity: 0.7;
-  
+
   @media (max-width: 768px) {
-    font-size: 4rem;
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
   }
 `;
 
@@ -128,9 +134,9 @@ export const EmptyStateTitle = styled.h3`
   font-weight: 600;
   color: ${props => props.theme.text};
   margin: 0 0 0.75rem 0;
-  
+
   @media (max-width: 768px) {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
   }
 `;
 
@@ -142,27 +148,25 @@ export const EmptyStateDescription = styled.p`
   max-width: 350px;
 `;
 
-
-
 export const EmptyStateTips = styled.div`
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid ${props => props.theme.border};
   width: 100%;
-  
+
   p {
     font-size: 0.8rem;
     color: ${props => props.theme.textSoft};
     margin: 0 0 0.5rem 0;
     opacity: 0.7;
   }
-  
+
   div {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.75rem;
-    
+
     span {
       display: inline-flex;
       align-items: center;
@@ -176,8 +180,6 @@ export const EmptyStateTips = styled.div`
   }
 `;
 
-// Adicione apenas estes 2 componentes ao seu arquivo de estilos
-
 export const EmptyStateContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -185,7 +187,7 @@ export const EmptyStateContainer = styled.div`
   justify-content: center;
   text-align: center;
   min-height: 50vh;
-  padding: 2rem;
+
   border-radius: 1.5rem;
   margin: 2rem auto;
   max-width: 450px;
@@ -193,6 +195,7 @@ export const EmptyStateContainer = styled.div`
   @media (max-width: 768px) {
     margin: 1rem;
     min-height: 40vh;
+    padding: 1.5rem 1rem;
   }
 `;
 
@@ -207,12 +210,13 @@ export const EmptyStateButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  
+  min-height: 48px;
+
   &:hover {
     transform: translateY(-2px);
     filter: brightness(1.05);
   }
-  
+
   &::before {
     content: '+ ';
     font-size: 1.1rem;

@@ -1,9 +1,11 @@
-
-import React, { useMemo } from 'react';
-import { TrendingUp, Coffee, DollarSign, CheckCircle, ArrowUp, ArrowDown } from 'lucide-react';
+import React, { useMemo, useRef, useState, useCallback } from 'react';
+import { TrendingUp, Coffee, DollarSign, CheckCircle } from 'lucide-react';
 import * as S from '../styles/components/ResumoCardsStyles';
 
 const ResumoCards = ({ resumo = {}, comparativo = {}, theme }) => {
+
+  const gridRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const formatarPreco = (valor = 0) =>
     valor.toLocaleString('pt-BR', {
@@ -61,46 +63,62 @@ const ResumoCards = ({ resumo = {}, comparativo = {}, theme }) => {
     }
   ], [resumo, theme]);
 
+  // Atualiza indicador de paginação ao rolar
+  const handleScroll = useCallback(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const scrollLeft = el.scrollLeft;
+    const cardWidth = el.scrollWidth / cards.length;
+    setActiveIndex(Math.round(scrollLeft / cardWidth));
+  }, [cards.length]);
+
   return (
-    <S.ResumoGrid>
-      {cards.map((card) => {
-        const Icon = card.icon;
-        const trendValue = comparativo[card.id] || 0;
-        const trend = getTrend(trendValue);
+    <>
+      <S.ResumoGrid ref={gridRef} onScroll={handleScroll}>
+        {cards.map((card) => {
+          const Icon = card.icon;
+          const trendValue = comparativo[card.id] || 0;
+          const trend = getTrend(trendValue);
 
-        const formattedValue = card.formatter
-          ? card.formatter(card.value)
-          : formatarPreco(card.value);
+          const formattedValue = card.formatter
+            ? card.formatter(card.value)
+            : formatarPreco(card.value);
 
-        return (
-          <S.ResumoCard key={card.id} $color={card.color}>
-            <S.CardHeader>
-              <S.CardIcon $color={card.color}>
-                <Icon size={18} />
-              </S.CardIcon>
-              <S.CardBadge $color={card.color}>
-                {card.badge}
-              </S.CardBadge>
-            </S.CardHeader>
+          return (
+            <S.ResumoCard key={card.id} $color={card.color}>
+              <S.CardHeader>
+                <S.CardIcon $color={card.color}>
+                  <Icon size={18} />
+                </S.CardIcon>
+                <S.CardBadge $color={card.color}>
+                  {card.badge}
+                </S.CardBadge>
+              </S.CardHeader>
 
-            <S.CardContent>
-              <S.CardTitle>{card.label}</S.CardTitle>
-              <S.CardDescription>{card.descricao}</S.CardDescription>
+              <S.CardContent>
+                <S.CardTitle>{card.label}</S.CardTitle>
+                <S.CardDescription>{card.descricao}</S.CardDescription>
 
-              <S.CardValue $color={card.color}>
-                {card.prefix && <span>{card.prefix}</span>}
-                {formattedValue}
-                {card.suffix && <span>{card.suffix}</span>}
-              </S.CardValue>
-            </S.CardContent>
+                <S.CardValue $color={card.color}>
+                  {card.prefix && <span>{card.prefix}</span>}
+                  {formattedValue}
+                  {card.suffix && <span>{card.suffix}</span>}
+                </S.CardValue>
+              </S.CardContent>
 
-            <S.CardFooter>
+              <S.CardFooter />
+            </S.ResumoCard>
+          );
+        })}
+      </S.ResumoGrid>
 
-            </S.CardFooter>
-          </S.ResumoCard>
-        );
-      })}
-    </S.ResumoGrid>
+      {/* Indicador de paginação (só aparece em mobile via CSS) */}
+      <S.ScrollDots>
+        {cards.map((_, i) => (
+          <S.ScrollDot key={i} $active={i === activeIndex} />
+        ))}
+      </S.ScrollDots>
+    </>
   );
 };
 

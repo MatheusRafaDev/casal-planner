@@ -17,18 +17,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.3s, color 0.3s;
   background-color: #faf7f2;
-  /* Prevent horizontal scroll on mobile */
   overflow-x: hidden;
 }
 
-/* Improve tap targets globally */
+/* Melhora tap targets globalmente */
 button, a, [role="button"] {
   min-height: 44px;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Exception: small icon buttons can be smaller with proper padding */
+/* Exceção: ícones pequenos */
 button.icon-btn {
   min-height: unset;
 }
@@ -66,7 +65,7 @@ button.icon-btn {
   margin-top: 1.5rem;
 }
 
-/* Drag and drop styles */
+/* Drag and drop */
 .drag-wrapper {
   transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
   cursor: grab;
@@ -87,7 +86,7 @@ button.icon-btn {
   box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.2);
 }
 
-/* Indicador visual de que pode arrastar */
+/* Indicador de drag */
 .cards-container .drag-wrapper .card-header {
   position: relative;
   padding-left: 2rem;
@@ -113,50 +112,61 @@ button.icon-btn {
   color: rgba(255,255,255,0.3);
 }
 
-/* Scrollbar personalizada */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+/* Scrollbar personalizada (desktop) */
+@media (min-width: 769px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #27ae60;
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #219a52;
+  }
+
+  .dark-mode ::-webkit-scrollbar-track {
+    background: #2d3748;
+  }
+
+  .dark-mode ::-webkit-scrollbar-thumb {
+    background: #48bb78;
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #27ae60;
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #219a52;
-}
-
-.dark-mode ::-webkit-scrollbar-track {
-  background: #2d3748;
-}
-
-.dark-mode ::-webkit-scrollbar-thumb {
-  background: #48bb78;
-}
-
-/* Responsividade */
+/* ===== MOBILE ===== */
 @media (max-width: 768px) {
   .container {
-    padding: 1rem;
+    padding: 0.75rem;
   }
-  
+
   .cards-container {
     grid-template-columns: 1fr;
   }
 
-  /* Hide drag indicators on touch devices */
+  /* Sem drag em touch */
   .drag-wrapper {
     cursor: default;
   }
 
-  /* Estilos para drag and drop */
+  /* Sem drag indicators em touch */
+  .cards-container .drag-wrapper .card-header {
+    padding-left: 1rem;
+  }
+
+  .cards-container .drag-wrapper .card-header::before {
+    display: none;
+  }
+
+  /* Estilos drag mobile */
   .drag-card-wrapper {
     transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
     cursor: default;
@@ -173,5 +183,31 @@ button.icon-btn {
 
   .drag-card-wrapper.drag-over .card-header {
     border: 2px dashed #27ae60;
+  }
+}
+
+/* ===== INDICADOR DE CARROSSEL (ResumoCards) ===== */
+@media (max-width: 640px) {
+  /* Dica visual de scroll horizontal */
+  .resumo-scroll-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .resumo-scroll-hint span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #27ae60;
+    opacity: 0.3;
+    transition: opacity 0.3s;
+  }
+
+  .resumo-scroll-hint span.active {
+    opacity: 1;
   }
 }

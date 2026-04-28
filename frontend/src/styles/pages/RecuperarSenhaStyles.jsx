@@ -28,7 +28,6 @@ export const Container = styled.div`
   animation: ${fadeUp} 0.4s ease both;
 
   @media (max-width: 640px) {
-    padding: 1rem;
     align-items: flex-start;
     padding-top: 2rem;
   }
@@ -38,7 +37,6 @@ export const Card = styled.div`
   background: ${p => p.theme.surface};
   border: 1px solid ${p => p.theme.border};
   border-radius: 1.5rem;
-  padding: 2rem;
   width: 100%;
   max-width: 520px;
   transition: all 0.2s ease;

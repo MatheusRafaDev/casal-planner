@@ -52,7 +52,7 @@ export const MainContent = styled.main`
   }
 
   @media (max-width: 768px) {
-    padding: 1rem;
+    padding: 0.5rem;
   }
 `;
 

@@ -8,9 +8,11 @@ export const FilterSection = styled.div`
   gap: 0.5rem;
   flex-wrap: wrap;
 
-  @media (max-width: 480px) {
-    margin: 1rem 0;
-    gap: 0.75rem;
+  @media (max-width: 640px) {
+    margin: 0.875rem 0;
+    gap: 0.5rem;
+    flex-direction: column;
+    align-items: stretch;
   }
 `;
 
@@ -19,7 +21,8 @@ export const FilterGroup = styled.div`
   align-items: center;
   gap: 0.5rem;
 
-  @media (max-width: 480px) {
+  @media (max-width: 640px) {
+    justify-content: space-between;
     gap: 0.375rem;
   }
 `;
@@ -27,6 +30,11 @@ export const FilterGroup = styled.div`
 export const FilterButtons = styled.div`
   display: flex;
   gap: 0.25rem;
+
+  @media (max-width: 640px) {
+    flex: 1;
+    gap: 0.25rem;
+  }
 `;
 
 export const FilterButton = styled.button`
@@ -37,25 +45,28 @@ export const FilterButton = styled.button`
   transition: all 0.2s;
   border: none;
   cursor: pointer;
-  min-height: 32px;
+  min-height: 36px;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 
-  @media (max-width: 480px) {
-    padding: 0.375rem 0.625rem;
-    font-size: 0.7rem;
-    min-height: 36px;
+  @media (max-width: 640px) {
+    flex: 1;
+    text-align: center;
+    min-height: 40px;
+    font-size: 0.78rem;
+    border-radius: 9999px;
+    padding: 0.4rem 0.5rem;
   }
 
   ${(props) => {
     if (props.$active) {
-      if (props.$filter === "vrva") {
+      if (props.$filter === 'vrva') {
         return `
           background: ${props.theme.vrva};
           color: white;
         `;
       }
-      if (props.$filter === "normal") {
+      if (props.$filter === 'normal') {
         return `
           background: ${props.theme.normal};
           color: white;
@@ -79,6 +90,7 @@ export const FilterButton = styled.button`
 export const AddCategoryButton = styled.button`
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.25rem;
   padding: 0.4rem 0.75rem;
   border-radius: 0.5rem;
@@ -89,7 +101,7 @@ export const AddCategoryButton = styled.button`
   color: ${(props) => props.theme.text};
   cursor: pointer;
   transition: all 0.2s;
-  min-height: 36px;
+  min-height: 40px;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   white-space: nowrap;
@@ -100,9 +112,14 @@ export const AddCategoryButton = styled.button`
     color: ${(props) => props.theme.primary};
   }
 
-  @media (max-width: 480px) {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
-    min-height: 40px;
+  @media (max-width: 640px) {
+    width: 100%;
+    min-height: 44px;
+    font-size: 0.875rem;
+    border-radius: 0.75rem;
+    background: ${(props) => props.theme.primary}12;
+    border-color: ${(props) => props.theme.primary}40;
+    color: ${(props) => props.theme.primary};
+    font-weight: 600;
   }
 `;

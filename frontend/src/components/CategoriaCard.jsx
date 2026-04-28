@@ -154,121 +154,68 @@ const ItemRow = memo(
         $purchased={item.comprado}
         $priority={item.prioridade}
         theme={theme}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         $isDragging={draggedItemId === String(item.id)}
-        $isHovered={isHovered}
       >
+        {/* Linha 1: checkbox · nome · preço · ações */}
         <S.ItemMainRow>
-          <S.DragHandleItem
-            className="item-drag-handle"
-            theme={theme}
-            draggable={!disabled}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <GripVertical size={14} />
-          </S.DragHandleItem>
-
           <S.CheckboxButton
             $checked={item.comprado}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleComprado(item.id);
-            }}
+            onClick={(e) => { e.stopPropagation(); onToggleComprado(item.id); }}
             theme={theme}
             disabled={disabled}
           >
             {item.comprado && <S.CheckIcon />}
           </S.CheckboxButton>
 
-          <S.PriorityBadgeFull
-            $color={prioridadeConfig.color}
-            $bgColor={prioridadeConfig.bgColor}
-            theme={theme}
-          >
-            {prioridadeConfig.emoji} {prioridadeConfig.label}
-          </S.PriorityBadgeFull>
-
-          <S.ItemNameSection>
-            <S.ItemName
-              $purchased={item.comprado}
-              theme={theme}
-              title={item.nome}
-            >
-              {item.nome}
-            </S.ItemName>
-            {isAddedToday(item.createdAt) && <S.NewBadge>Novo</S.NewBadge>}
-            {item.marca && (
-              <S.ItemBrand theme={theme} title={item.marca}>
-                {item.marca}
-              </S.ItemBrand>
-            )}
-          </S.ItemNameSection>
+          <S.ItemName $purchased={item.comprado} theme={theme} title={item.nome}>
+            {item.nome}
+          </S.ItemName>
 
           <S.ItemTotalCompact>
             <S.ItemTotalValueCompact theme={theme}>
               {formatarMoeda(item.preco * item.quantidade)}
             </S.ItemTotalValueCompact>
           </S.ItemTotalCompact>
-        </S.ItemMainRow>
-
-        <S.ItemDetailsRow>
-          <S.ItemDetailsLeft>
-            <S.ItemQuantityBadge theme={theme}>
-              <ShoppingBag size={12} />
-              <span>{item.quantidade}x</span>
-            </S.ItemQuantityBadge>
-            <S.ItemPriceBadge theme={theme}>
-              {formatarMoeda(item.preco)}/un
-            </S.ItemPriceBadge>
-            {item.loja && (
-              <S.StoreBadge theme={theme}>
-                <StoreLogo storeName={item.loja} size="small" />
-                <S.StoreName theme={theme} title={item.loja}>
-                  {item.loja.length > 25
-                    ? item.loja.substring(0, 25) + "…"
-                    : item.loja}
-                </S.StoreName>
-              </S.StoreBadge>
-            )}
-            <S.PaymentBadge $type={item.pagamento} theme={theme}>
-              {getPaymentIcon(item.pagamento)}
-              <span>{item.pagamento === "vr" ? "VR/VA" : "Normal"}</span>
-            </S.PaymentBadge>
-          </S.ItemDetailsLeft>
 
           <S.ItemActions>
             {item.linkProduto && (
-              <S.ItemActionButton
-                onClick={handleOpenLink}
-                theme={theme}
-                variant="link"
-                title="Ver na loja"
-                disabled={disabled}
-              >
-                <ExternalLink size={14} />
+              <S.ItemActionButton onClick={handleOpenLink} theme={theme} variant="link" disabled={disabled}>
+                <ExternalLink size={13} />
               </S.ItemActionButton>
             )}
-            <S.ItemActionButton
-              onClick={() => onEditItem(item)}
-              theme={theme}
-              variant="edit"
-              title="Editar item"
-              disabled={disabled}
-            >
-              <Pencil size={14} />
+            <S.ItemActionButton onClick={() => onEditItem(item)} theme={theme} variant="edit" disabled={disabled}>
+              <Pencil size={13} />
             </S.ItemActionButton>
-            <S.ItemActionButton
-              variant="delete"
-              onClick={() => onDeleteItem(item)}
-              theme={theme}
-              title="Excluir item"
-              disabled={disabled}
-            >
-              <Trash2 size={14} />
+            <S.ItemActionButton variant="delete" onClick={() => onDeleteItem(item)} theme={theme} disabled={disabled}>
+              <Trash2 size={13} />
             </S.ItemActionButton>
           </S.ItemActions>
+        </S.ItemMainRow>
+
+        {/* Linha 2: badges de detalhe */}
+        <S.ItemDetailsRow>
+          <S.PriorityBadgeFull $color={prioridadeConfig.color} $bgColor={prioridadeConfig.bgColor} theme={theme}>
+            {prioridadeConfig.emoji} {prioridadeConfig.label}
+          </S.PriorityBadgeFull>
+          {isAddedToday(item.createdAt) && <S.NewBadge>Novo</S.NewBadge>}
+          <S.ItemQuantityBadge theme={theme}>
+            <ShoppingBag size={11} />
+            <span>{item.quantidade}x</span>
+          </S.ItemQuantityBadge>
+          <S.ItemPriceBadge theme={theme}>
+            {formatarMoeda(item.preco)}/un
+          </S.ItemPriceBadge>
+          {item.loja && (
+            <S.StoreBadge theme={theme}>
+              <StoreLogo storeName={item.loja} size="small" />
+              <S.StoreName theme={theme}>{item.loja.length > 18 ? item.loja.substring(0, 18) + "…" : item.loja}</S.StoreName>
+            </S.StoreBadge>
+          )}
+          <S.PaymentBadge $type={item.pagamento} theme={theme}>
+            {getPaymentIcon(item.pagamento)}
+            <span>{item.pagamento === "vr" ? "VR/VA" : "Normal"}</span>
+          </S.PaymentBadge>
+          {item.marca && <S.ItemBrand theme={theme}>{item.marca}</S.ItemBrand>}
         </S.ItemDetailsRow>
       </S.ItemRow>
     );
