@@ -56,11 +56,13 @@ const NavBar = styled.nav`
     bottom: 0;
     left: 0;
     right: 0;
-    height: 64px;
+    /* Altura base + safe area do iPhone */
+    height: calc(64px + env(safe-area-inset-bottom));
     background: ${p => p.theme.surface};
     border-top: 1px solid ${p => p.theme.border};
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
     z-index: 80;
+    /* Padding só para empurrar os itens, não a barra inteira */
     padding-bottom: env(safe-area-inset-bottom);
   }
 `;
@@ -70,12 +72,12 @@ const NavItem = styled.button`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start; /* era center */
+  padding-top: 10px;           /* espaço do topo fixo */
   gap: 3px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px 4px;
   transition: all 0.2s ease;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -84,7 +86,7 @@ const NavItem = styled.button`
   &::before {
     content: '';
     position: absolute;
-    top: 6px;
+    top: 0;          /* era 6px */
     left: 50%;
     transform: translateX(-50%);
     width: ${p => p.$active ? '32px' : '0px'};
