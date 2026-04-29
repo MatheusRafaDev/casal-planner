@@ -32,6 +32,7 @@ export const PageWrapper = styled.div`
 // Container principal
 export const AppContainer = styled.div`
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   background: ${({ theme }) => theme.background};

@@ -43,6 +43,7 @@ button.icon-btn {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  min-height: 100dvh;
   font-size: 1.2rem;
   color: #7f8c8d;
 }

@@ -6,6 +6,7 @@ export const LoadingScreen = styled.div`
   justify-content: center;
   align-items: center;
   height: 100vh;
+  height: 100dvh;
   background: ${props => props.theme.background};
   color: ${props => props.theme.primary};
   font-size: 1.2rem;
@@ -24,6 +25,7 @@ export const LoadingScreen = styled.div`
 
 export const AppContainer = styled.div`
   min-height: 100vh;
+  min-height: 100dvh;
   background: ${({ theme }) => theme.background};
   transition: background 0.3s ease;
 `;

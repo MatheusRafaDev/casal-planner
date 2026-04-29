@@ -66,6 +66,7 @@ function useInView(threshold = 0.15) {
 
 const Page = styled.div`
   min-height: 100vh;
+  min-height: 100dvh;
   background: ${p => p.theme.background};
   color: ${p => p.theme.text};
   overflow-x: hidden;
@@ -76,6 +77,7 @@ const Page = styled.div`
 const HeroWrapper = styled.section`
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;

@@ -10,7 +10,6 @@ export const ResumoGrid = styled.div`
     grid-template-columns: repeat(2, 1fr);
   }
 
-  /* Mobile: scroll horizontal tipo carrossel */
   @media (max-width: 640px) {
     display: flex;
     flex-direction: row;
@@ -23,8 +22,6 @@ export const ResumoGrid = styled.div`
     margin-right: -1rem;
     padding-left: 1rem;
     padding-right: 1rem;
-
-    /* Esconde scrollbar mas mantém funcionalidade */
     scrollbar-width: none;
     &::-webkit-scrollbar {
       display: none;
@@ -42,12 +39,11 @@ export const ResumoCard = styled.div`
   overflow: hidden;
   color: ${({ theme }) => theme.text};
 
-  /* Mobile: card com largura fixa para carrossel */
   @media (max-width: 640px) {
     min-width: 160px;
     max-width: 160px;
     flex-shrink: 0;
-    padding: 0.3rem;
+    padding: 1rem;
     border-radius: 14px;
     scroll-snap-align: start;
   }
@@ -73,10 +69,6 @@ export const ResumoCard = styled.div`
     transform: translateY(-6px) scale(1.015);
     box-shadow: ${({ theme }) => theme.shadowHover};
     border-color: ${({ $color }) => `${$color}50`};
-
-    ${({ theme, $color }) =>
-      theme.background === '#18181B' &&
-      `box-shadow: 0 10px 25px ${$color}20;`}
   }
 
   @media (max-width: 640px) {
@@ -162,8 +154,7 @@ export const CardTitle = styled.h4`
 export const CardDescription = styled.p`
   font-size: 0.75rem;
   margin-bottom: 0.75rem;
-  color: ${({ theme }) =>
-    theme.background === '#18181B' ? '#D4D4D8' : theme.textSoft};
+  color: ${({ theme }) => theme.textSoft};
 
   @media (max-width: 640px) {
     display: none;
@@ -214,19 +205,49 @@ export const TrendIndicator = styled.div`
   }};
 
   color: ${({ theme, $trend, $stable }) => {
-    if ($stable)
-      return theme.background === '#18181B' ? '#E4E4E7' : theme.textLight;
+    if ($stable) return theme.textSoft;
     return $trend === 'up' ? theme.success : theme.error;
   }};
 `;
 
 export const CompareText = styled.span`
   font-size: 0.72rem;
-  color: ${({ theme }) =>
-    theme.background === '#18181B' ? '#A1A1AA' : theme.textSoft};
+  color: ${({ theme }) => theme.textSoft};
 `;
 
-/* Indicador de paginação — só visível em mobile */
+/* ── Filtro pago / não pago ── */
+export const FiltroBar = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+`;
+
+export const FiltroButton = styled.button`
+  padding: 0.35rem 0.9rem;
+  border-radius: 2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1.5px solid
+    ${({ $active, $color }) => ($active ? $color : 'transparent')};
+  background: ${({ $active, $color }) =>
+    $active ? `${$color}18` : 'transparent'};
+  color: ${({ $active, $color, theme }) =>
+    $active ? $color : theme?.textSoft || '#888'};
+
+  /* outline via border para não quebrar layout */
+  outline: none;
+
+  &:hover {
+    background: ${({ $color }) => `${$color}12`};
+    color: ${({ $color }) => $color};
+    border-color: ${({ $color }) => `${$color}60`};
+  }
+`;
+
+/* ── Bolinhas de paginação — só mobile ── */
 export const ScrollDots = styled.div`
   display: none;
 
@@ -234,7 +255,7 @@ export const ScrollDots = styled.div`
     display: flex;
     justify-content: center;
     gap: 6px;
-    margin-top: 0.5rem;
+    margin-top: 0.25rem;
     margin-bottom: 0.25rem;
   }
 `;
@@ -244,9 +265,7 @@ export const ScrollDot = styled.span`
   height: 6px;
   border-radius: 50%;
   background: ${({ theme, $active }) =>
-    $active
-      ? (theme?.primary || '#27ae60')
-      : (theme?.border || '#ddd')};
-  transition: all 0.3s ease;
-  transform: ${({ $active }) => $active ? 'scale(1.3)' : 'scale(1)'};
+    $active ? theme?.primary || '#27ae60' : theme?.border || '#444'};
+  transition: all 0.25s ease;
+  transform: ${({ $active }) => ($active ? 'scale(1.4)' : 'scale(1)')};
 `;

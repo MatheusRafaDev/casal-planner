@@ -2,6 +2,7 @@ import styled from 'styled-components';
 
 export const PlanejamentoContainer = styled.div`
   min-height: 100vh;
+  min-height: 100dvh;
   background: ${props => props.theme.background};
 
 `;

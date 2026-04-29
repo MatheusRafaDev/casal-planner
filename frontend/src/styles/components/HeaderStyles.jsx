@@ -5,15 +5,18 @@ export const HeaderContainer = styled.header`
   top: 0;
   z-index: 90;
   background: ${props => props.theme.surface}cc;
-  backdrop-filter: blur(8px);
+  /* Remove backdrop-filter que causa problemas no iOS */
   border-bottom: 1px solid ${props => props.theme.border};
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  /* Melhorias para iOS */
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 `;
 
 export const HeaderContent = styled.div`
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 16px;
   height: 70px;
   display: flex;
   align-items: center;
@@ -21,38 +24,40 @@ export const HeaderContent = styled.div`
 
   @media (max-width: 768px) {
     height: 60px;
-    padding: 0 15px;
+    padding: 0 12px;
   }
 `;
 
 export const Logo = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
+  /* Melhora área de toque */
+  padding: 8px 4px;
+  -webkit-tap-highlight-color: transparent;
 
-  .icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    svg {
-      width: 50px;
-      height: 50px;
-      color: white;
+  svg {
+    width: 28px;
+    height: 28px;
+    
+    @media (max-width: 768px) {
+      width: 24px;
+      height: 24px;
     }
   }
 
   span {
     font-weight: 700;
-    font-size: 20px;
+    font-size: 18px;
     color: ${props => props.theme.text};
 
     @media (max-width: 480px) {
-      font-size: 18px;
+      font-size: 16px;
+    }
+    
+    @media (max-width: 380px) {
+      display: none;
     }
   }
 `;
@@ -63,7 +68,7 @@ export const UserSection = styled.div`
   gap: 12px;
 
   @media (max-width: 480px) {
-    gap: 6px;
+    gap: 8px;
   }
 `;
 
@@ -79,6 +84,12 @@ export const ThemeButton = styled.button`
   color: ${props => props.theme.textSoft};
   cursor: pointer;
   transition: all 0.2s;
+  /* Melhorias para iOS */
+  -webkit-tap-highlight-color: transparent;
+  
+  &:active {
+    transform: scale(0.96);
+  }
 
   &:hover {
     background: ${props => props.theme.primary}15;
@@ -99,9 +110,14 @@ export const Button = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Melhorias para iOS */
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   white-space: nowrap;
+  
+  &:active {
+    transform: scale(0.97);
+  }
   
   ${props => props.primary ? `
     background: ${props.theme.primary};
@@ -122,9 +138,9 @@ export const Button = styled.button`
   `}
 
   @media (max-width: 480px) {
-    padding: 8px 12px;
+    padding: 6px 12px;
     font-size: 13px;
-    height: 38px;
+    height: 36px;
   }
 `;
 
@@ -138,9 +154,19 @@ export const UserMenu = styled.button`
   border: none;
   cursor: pointer;
   transition: all 0.2s;
+  /* Melhorias para iOS */
+  -webkit-tap-highlight-color: transparent;
+  
+  &:active {
+    transform: scale(0.98);
+  }
 
   &:hover {
     background: ${props => props.theme.primary}20;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 3px 10px 3px 3px;
   }
 `;
 
@@ -155,6 +181,12 @@ export const UserAvatar = styled.div`
   color: white;
   font-weight: 600;
   font-size: 14px;
+  
+  @media (max-width: 480px) {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
 `;
 
 export const UserName = styled.span`
@@ -190,6 +222,10 @@ export const DropdownMenu = styled.div`
       transform: translateY(0);
     }
   }
+  
+  /* Melhorias para iOS */
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 `;
 
 export const DropdownItem = styled.button`
@@ -203,6 +239,12 @@ export const DropdownItem = styled.button`
   color: ${props => props.danger ? props.theme.error : props.theme.text};
   cursor: pointer;
   transition: all 0.2s;
+  /* Melhorias para iOS */
+  -webkit-tap-highlight-color: transparent;
+  
+  &:active {
+    background: ${props => props.danger ? props.theme.error + '20' : props.theme.primary + '20'};
+  }
 
   &:hover {
     background: ${props => props.danger ? props.theme.error + '15' : props.theme.primary + '15'};
@@ -219,7 +261,6 @@ export const DropdownItem = styled.button`
     font-weight: 500;
   }
 `;
-
 
 export const NavLinks = styled.div`
   display: flex;
@@ -245,6 +286,13 @@ export const NavButton = styled.button`
   font-weight: ${props => props.active ? '600' : '400'};
   cursor: pointer;
   transition: all 0.2s ease;
+  /* Melhorias para iOS */
+  -webkit-tap-highlight-color: transparent;
+  
+  &:active {
+    transform: scale(0.96);
+    background: ${props => props.active ? props.theme.primary + '30' : props.theme.backgroundHover};
+  }
 
   &:hover {
     background: ${props => props.active ? props.theme.primary + '30' : props.theme.backgroundHover};

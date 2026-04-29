@@ -8,6 +8,7 @@ const LoadingContainer = styled.div`
   justify-content: center;
   align-items: center;
   height: 100vh;
+  height: 100dvh;
   background: ${props => props.theme.background};
   color: ${props => props.theme.primary};
   font-size: 1.2rem;

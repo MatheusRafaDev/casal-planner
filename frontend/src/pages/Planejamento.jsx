@@ -117,6 +117,11 @@ const Planejamento = () => {
   // ---------- Memo ----------
   const itensFiltrados = useMemo(() => {
     if (filter === "all") return itens;
+
+    if (filter === "comprado") {
+      return itens.filter((i) => i.comprado === true);
+    }
+
     return itens.filter(
       (i) => i.pagamento === (filter === "vrva" ? "vr" : "normal"),
     );
@@ -199,28 +204,30 @@ const Planejamento = () => {
     [itens],
   );
 
-  const handleToggleComprado = useCallback(async (itemId) => {
-  const itemAtual = itens.find(i => i.id === itemId);
-  if (!itemAtual) return;
-  
-  const novoEstado = !itemAtual.comprado;
-  
-  
-  setItens((prev) =>
-    prev.map((i) => (i.id === itemId ? { ...i, comprado: novoEstado } : i)),
+  const handleToggleComprado = useCallback(
+    async (itemId) => {
+      const itemAtual = itens.find((i) => i.id === itemId);
+      if (!itemAtual) return;
+
+      const novoEstado = !itemAtual.comprado;
+
+      setItens((prev) =>
+        prev.map((i) => (i.id === itemId ? { ...i, comprado: novoEstado } : i)),
+      );
+
+      try {
+        await itensService.updateComprado(itemId, novoEstado);
+      } catch (error) {
+        console.error("Erro:", error);
+        setItens((prev) =>
+          prev.map((i) =>
+            i.id === itemId ? { ...i, comprado: itemAtual.comprado } : i,
+          ),
+        );
+      }
+    },
+    [itens],
   );
-  
-  try {
-    await itensService.updateComprado(itemId, novoEstado);
-  } catch (error) {
-    console.error("Erro:", error);
-    setItens((prev) =>
-      prev.map((i) =>
-        i.id === itemId ? { ...i, comprado: itemAtual.comprado } : i,
-      ),
-    );
-  }
-}, [itens]);
 
   // ---------- Drag & Drop de itens entre categorias ----------
   const handleItemDragStart = useCallback((itemId) => {
@@ -234,22 +241,22 @@ const Planejamento = () => {
   const handleItemDrop = useCallback(
     async (novaCategoriaId) => {
       const itemId = draggedItemIdRef.current;
-      
+
       if (!itemId) return;
       const item = itens.find((i) => String(i.id) === String(itemId));
       if (!item) {
         return;
       }
-      
+
       if (String(item.categoriaId) === String(novaCategoriaId)) {
         return;
       }
       const categoriaAnterior = item.categoriaId;
-      
+
       setItens((prev) =>
         prev.map((i) =>
-          String(i.id) === String(itemId) 
-            ? { ...i, categoriaId: novaCategoriaId } 
+          String(i.id) === String(itemId)
+            ? { ...i, categoriaId: novaCategoriaId }
             : i,
         ),
       );
@@ -364,7 +371,11 @@ const Planejamento = () => {
               onItemDragStart={handleItemDragStart}
               onItemDragEnd={handleItemDragEnd}
               onItemDrop={handleItemDrop}
-              draggedItemId={draggedItemIdRef.current ? String(draggedItemIdRef.current) : null}
+              draggedItemId={
+                draggedItemIdRef.current
+                  ? String(draggedItemIdRef.current)
+                  : null
+              }
               theme={theme}
             />
           ))}
@@ -378,7 +389,9 @@ const Planejamento = () => {
         isEditing={!!itemModal.itemId}
         theme={theme}
         categoriaId={itemModal.categoriaId}
-        itemParaEditar={itemModal.itemId ? itens.find(i => i.id === itemModal.itemId) : null}
+        itemParaEditar={
+          itemModal.itemId ? itens.find((i) => i.id === itemModal.itemId) : null
+        }
       />
 
       <CategoriaFormModal

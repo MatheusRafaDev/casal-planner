@@ -1,4 +1,4 @@
-// CategoriaCard.jsx — otimizado com React.memo, useCallback, StoreLogo síncrono
+// CategoriaCard.jsx — layout mobile corrigido, texto completo, sem fundos pretos
 
 import React, { useState, useMemo, useCallback, memo } from "react";
 import {
@@ -10,7 +10,6 @@ import {
   ShoppingBag,
   Store,
   ExternalLink,
-  GripVertical,
   ArrowUp,
   ArrowDown,
   AlertCircle,
@@ -56,23 +55,20 @@ const isAddedToday = (createdAt) => {
   return added.getTime() === today.getTime();
 };
 
-// StoreLogo — síncrono, sem useEffect, sem loading state
+// StoreLogo — síncrono, sem loading state
 const StoreLogo = memo(({ storeName, size = "small" }) => {
   const [error, setError] = useState(false);
   const iconSize = size === "small" ? 12 : 16;
 
   if (!storeName || error) {
     return (
-      <S.StoreIconFallback size={size}>
+      <S.StoreIconFallback size={size} theme={{}}>
         <Store size={iconSize} />
       </S.StoreIconFallback>
     );
   }
 
-  const logoUrl = storeLogoService.getLogoUrl(
-    storeName,
-    size === "small" ? 16 : 32,
-  );
+  const logoUrl = storeLogoService.getLogoUrl(storeName, size === "small" ? 16 : 32);
 
   return (
     <S.StoreLogoImage
@@ -86,7 +82,7 @@ const StoreLogo = memo(({ storeName, size = "small" }) => {
 });
 
 // Item individual memoizado
-const ItemRow = memo(
+const ItemCard = memo(
   ({
     item,
     isLoading,
@@ -99,7 +95,6 @@ const ItemRow = memo(
     onDragEnd,
     theme,
   }) => {
-    const [isHovered, setIsHovered] = useState(false);
     const prioridadeConfig =
       PRIORIDADE_CONFIG[item.prioridade] || PRIORIDADE_CONFIG.normal;
     const disabled = isLoading || isSaving;
@@ -120,9 +115,7 @@ const ItemRow = memo(
           return;
         }
         e.stopPropagation();
-
         const itemId = String(item.id);
-
         e.dataTransfer.setData("text/plain", itemId);
         e.dataTransfer.effectAllowed = "move";
 
@@ -155,19 +148,26 @@ const ItemRow = memo(
         $priority={item.prioridade}
         theme={theme}
         $isDragging={draggedItemId === String(item.id)}
+        draggable={!disabled}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
       >
-        {/* Linha 1: checkbox · nome · preço · ações */}
+        {/* ── Linha 1: checkbox · nome · preço · ações ── */}
         <S.ItemMainRow>
           <S.CheckboxButton
             $checked={item.comprado}
-            onClick={(e) => { e.stopPropagation(); onToggleComprado(item.id); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleComprado(item.id);
+            }}
             theme={theme}
             disabled={disabled}
           >
             {item.comprado && <S.CheckIcon />}
           </S.CheckboxButton>
 
-          <S.ItemName $purchased={item.comprado} theme={theme} title={item.nome}>
+          {/* FIX: texto completo, sem title/truncate */}
+          <S.ItemName $purchased={item.comprado} theme={theme}>
             {item.nome}
           </S.ItemName>
 
@@ -179,43 +179,82 @@ const ItemRow = memo(
 
           <S.ItemActions>
             {item.linkProduto && (
-              <S.ItemActionButton onClick={handleOpenLink} theme={theme} variant="link" disabled={disabled}>
+              <S.ItemActionButton
+                onClick={handleOpenLink}
+                theme={theme}
+                variant="link"
+                disabled={disabled}
+                title="Abrir link"
+              >
                 <ExternalLink size={13} />
               </S.ItemActionButton>
             )}
-            <S.ItemActionButton onClick={() => onEditItem(item)} theme={theme} variant="edit" disabled={disabled}>
+            <S.ItemActionButton
+              onClick={() => onEditItem(item)}
+              theme={theme}
+              variant="edit"
+              disabled={disabled}
+              title="Editar"
+            >
               <Pencil size={13} />
             </S.ItemActionButton>
-            <S.ItemActionButton variant="delete" onClick={() => onDeleteItem(item)} theme={theme} disabled={disabled}>
+            <S.ItemActionButton
+              variant="delete"
+              onClick={() => onDeleteItem(item)}
+              theme={theme}
+              disabled={disabled}
+              title="Excluir"
+            >
               <Trash2 size={13} />
             </S.ItemActionButton>
           </S.ItemActions>
         </S.ItemMainRow>
 
-        {/* Linha 2: badges de detalhe */}
+        {/* ── Linha 2: badges em flex-wrap — sem campos pretos ── */}
         <S.ItemDetailsRow>
-          <S.PriorityBadgeFull $color={prioridadeConfig.color} $bgColor={prioridadeConfig.bgColor} theme={theme}>
+          {/* prioridade */}
+          <S.PriorityBadgeFull
+            $color={prioridadeConfig.color}
+            $bgColor={prioridadeConfig.bgColor}
+            theme={theme}
+          >
             {prioridadeConfig.emoji} {prioridadeConfig.label}
           </S.PriorityBadgeFull>
+
+          {/* badge novo */}
           {isAddedToday(item.createdAt) && <S.NewBadge>Novo</S.NewBadge>}
+
+          {/* quantidade */}
           <S.ItemQuantityBadge theme={theme}>
-            <ShoppingBag size={11} />
-            <span>{item.quantidade}x</span>
+            <ShoppingBag size={10} />
+            {item.quantidade}x
           </S.ItemQuantityBadge>
+
+          {/* preço unitário */}
           <S.ItemPriceBadge theme={theme}>
             {formatarMoeda(item.preco)}/un
           </S.ItemPriceBadge>
+
+          {/* loja */}
           {item.loja && (
             <S.StoreBadge theme={theme}>
               <StoreLogo storeName={item.loja} size="small" />
-              <S.StoreName theme={theme}>{item.loja.length > 18 ? item.loja.substring(0, 18) + "…" : item.loja}</S.StoreName>
+              <S.StoreName theme={theme}>
+                {item.loja.length > 16 ? item.loja.substring(0, 16) + "…" : item.loja}
+              </S.StoreName>
             </S.StoreBadge>
           )}
+
+          {/* pagamento */}
           <S.PaymentBadge $type={item.pagamento} theme={theme}>
             {getPaymentIcon(item.pagamento)}
-            <span>{item.pagamento === "vr" ? "VR/VA" : "Normal"}</span>
+            {item.pagamento === "vr" ? " VR/VA" : " Normal"}
           </S.PaymentBadge>
-          {item.marca && <S.ItemBrand theme={theme}>{item.marca}</S.ItemBrand>}
+
+          {/* marca */}
+          {item.marca && (
+            <S.ItemBrand theme={theme}>{item.marca}</S.ItemBrand>
+          )}
         </S.ItemDetailsRow>
       </S.ItemRow>
     );
@@ -283,8 +322,7 @@ const CategoriaCard = ({
     [itens],
   );
   const itensComprados = itens.filter((i) => i.comprado).length;
-  const progresso =
-    itens.length > 0 ? (itensComprados / itens.length) * 100 : 0;
+  const progresso = itens.length > 0 ? (itensComprados / itens.length) * 100 : 0;
   const totalGasto = useMemo(
     () =>
       itens
@@ -324,14 +362,11 @@ const CategoriaCard = ({
     }
   }, [isLoading, isSaving, onAddItem, categoria.id]);
 
-  const handleDragOver = useCallback(
-    (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragOver(true);
-    },
-    [categoria.nome],
-  );
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
 
   const handleDragLeave = useCallback((e) => {
     e.preventDefault();
@@ -344,14 +379,10 @@ const CategoriaCard = ({
       e.preventDefault();
       e.stopPropagation();
       setIsDragOver(false);
-
       const itemId = e.dataTransfer.getData("text/plain");
-      
-      if (itemId) {
-        onItemDrop(categoria.id);
-      }
+      if (itemId) onItemDrop(categoria.id);
     },
-    [onItemDrop, categoria.id, categoria.nome],
+    [onItemDrop, categoria.id],
   );
 
   const disabled = isLoading || isSaving;
@@ -364,16 +395,13 @@ const CategoriaCard = ({
       onDrop={handleDrop}
       $isDragOver={isDragOver}
     >
+      {/* ── Header ── */}
       <S.CardHeader color={categoria.bg} theme={theme}>
         <S.HeaderLeft>
-          <S.DragHandle theme={theme}>
-            <GripVertical size={16} />
-          </S.DragHandle>
-          <S.Icon theme={theme}>{categoria.icon}</S.Icon>
+          <S.DragHandle theme={theme} />
+          <S.Icon>{categoria.icon}</S.Icon>
           <S.TitleSection>
-            <S.Title theme={theme} title={categoria.nome}>
-              {categoria.nome}
-            </S.Title>
+            <S.Title theme={theme}>{categoria.nome}</S.Title>
             <S.Subtitle>
               <S.ItemsCount theme={theme}>
                 {itens.length} {itens.length === 1 ? "item" : "itens"}
@@ -386,10 +414,13 @@ const CategoriaCard = ({
                   $excedeu={excedeuMeta}
                   $proximo={proximoLimite}
                   theme={theme}
-                  title={`Meta: ${formatarMoeda(categoria.metaOrcamento)}${excedeuMeta ? ` — Excedeu ${formatarMoeda(totalCategoria - categoria.metaOrcamento)}` : ` — Restam ${formatarMoeda(categoria.metaOrcamento - totalCategoria)}`}`}
+                  title={
+                    excedeuMeta
+                      ? `Excedeu ${formatarMoeda(totalCategoria - categoria.metaOrcamento)}`
+                      : `Restam ${formatarMoeda(categoria.metaOrcamento - totalCategoria)}`
+                  }
                 >
-                  <span>🎯</span>
-                  {formatarMoeda(categoria.metaOrcamento)}
+                  🎯 {formatarMoeda(categoria.metaOrcamento)}
                 </S.MetaBadge>
               )}
             </S.Subtitle>
@@ -431,12 +462,14 @@ const CategoriaCard = ({
         </S.HeaderActions>
       </S.CardHeader>
 
+      {/* ── Conteúdo ── */}
       <S.CardContent>
         {isExpanded && (
           <>
+            {/* Sort bar */}
             {itens.length > 0 && (
               <S.SortBar theme={theme}>
-                <S.SortLabel theme={theme}>Ordenar por:</S.SortLabel>
+                <S.SortLabel theme={theme}>Ordenar:</S.SortLabel>
                 <S.SortButtonsGroup>
                   {[
                     { field: "preco", label: "Preço", emoji: "💰" },
@@ -450,13 +483,13 @@ const CategoriaCard = ({
                       disabled={disabled}
                       theme={theme}
                     >
-                      <span>{emoji}</span> {label}
+                      {emoji} {label}
                       {sortBy === field && (
                         <S.SortIcon>
                           {sortOrder === "asc" ? (
-                            <ArrowUp size={14} />
+                            <ArrowUp size={12} />
                           ) : (
-                            <ArrowDown size={14} />
+                            <ArrowDown size={12} />
                           )}
                         </S.SortIcon>
                       )}
@@ -466,7 +499,8 @@ const CategoriaCard = ({
               </S.SortBar>
             )}
 
-            <S.CategoryProgress>
+            {/* Progress bar */}
+            <S.CategoryProgress theme={theme}>
               <S.ProgressBar theme={theme}>
                 <S.ProgressFill
                   theme={theme}
@@ -476,22 +510,17 @@ const CategoriaCard = ({
               </S.ProgressBar>
             </S.CategoryProgress>
 
+            {/* Lista ou skeleton ou vazio */}
             {isLoading ? (
-              <>
-                <S.ItemSkeletonWrapper>
+              [1, 2, 3].map((n) => (
+                <S.ItemSkeletonWrapper key={n}>
                   <S.ItemSkeleton theme={theme} />
                 </S.ItemSkeletonWrapper>
-                <S.ItemSkeletonWrapper>
-                  <S.ItemSkeleton theme={theme} />
-                </S.ItemSkeletonWrapper>
-                <S.ItemSkeletonWrapper>
-                  <S.ItemSkeleton theme={theme} />
-                </S.ItemSkeletonWrapper>
-              </>
+              ))
             ) : itensOrdenados.length > 0 ? (
               <S.ItemsList>
                 {itensOrdenados.map((item) => (
-                  <ItemRow
+                  <ItemCard
                     key={item.id}
                     item={item}
                     isLoading={isLoading}
@@ -510,12 +539,8 @@ const CategoriaCard = ({
               <S.EmptyState>
                 <S.EmptyIcon>📦</S.EmptyIcon>
                 <S.EmptyText theme={theme}>Nenhum item adicionado</S.EmptyText>
-                <S.AddButton
-                  onClick={handleAddItem}
-                  theme={theme}
-                  disabled={disabled}
-                >
-                  <Plus size={18} />
+                <S.AddButton onClick={handleAddItem} theme={theme} disabled={disabled}>
+                  <Plus size={16} />
                   Adicionar primeiro item
                 </S.AddButton>
               </S.EmptyState>
@@ -524,20 +549,20 @@ const CategoriaCard = ({
         )}
       </S.CardContent>
 
+      {/* ── Footer ── */}
       <S.CategoryFooter theme={theme}>
         <S.CategoryStats>
           <S.StatItem theme={theme}>
-            <span>📦 Comprados:</span>
-            <strong>
-              {itensComprados}/{itens.length}
-            </strong>
+            <span>📦</span>
+            <strong>{itensComprados}/{itens.length}</strong>
+            <span>comprados</span>
           </S.StatItem>
           <S.StatItem theme={theme}>
-            <span>📊 Progresso:</span>
+            <span>📊</span>
             <strong>{progresso.toFixed(0)}%</strong>
           </S.StatItem>
           <S.StatItem theme={theme}>
-            <span>💰 Gasto:</span>
+            <span>💰</span>
             <strong>{formatarMoeda(totalGasto)}</strong>
           </S.StatItem>
         </S.CategoryStats>

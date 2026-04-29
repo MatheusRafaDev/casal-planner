@@ -1,5 +1,5 @@
 import React from 'react';
-import { Filter, Plus } from 'lucide-react';
+import { Filter, Plus, ShoppingBag } from 'lucide-react';
 import {
   FilterSection,
   FilterGroup,
@@ -36,6 +36,14 @@ const Filtros = ({ filter, setFilter, onAddCategory, theme }) => {
             theme={theme}
           >
             Normal
+          </FilterButton>
+          <FilterButton
+            $active={filter === "comprado"}
+            $filter="comprado"
+            onClick={() => setFilter("comprado")}
+            theme={theme}
+          >
+            Comprados
           </FilterButton>
         </FilterButtons>
       </FilterGroup>

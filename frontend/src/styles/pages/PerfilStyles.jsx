@@ -13,6 +13,7 @@ const spin = keyframes`
 
 export const PerfilContainer = styled.div`
   min-height: 100vh;
+  min-height: 100dvh;
   background: ${p => p.theme.background};
   padding: 2rem 1.5rem 4rem;
   max-width: 1200px;
