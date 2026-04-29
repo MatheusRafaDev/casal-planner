@@ -7,7 +7,7 @@ export const LoginContainer = styled.div`
   align-items: center;
   justify-content: center;
   background: ${props => props.theme.background};
-  padding: 1rem;
+  padding: env(safe-area-inset-top, 1rem) 1rem env(safe-area-inset-bottom, 1rem);
 `;
 
 export const LoginCard = styled.div`
@@ -16,7 +16,8 @@ export const LoginCard = styled.div`
   padding: 2rem;
   width: 100%;
   max-width: 500px;
-  max-height: 90vh;
+  max-height: 90dvh;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   overflow-y: auto;
   box-shadow: ${props => props.theme.shadowCard};
   animation: slideUp 0.3s ease;
@@ -100,7 +101,7 @@ export const Tab = styled.button`
   background: none;
   border: none;
   padding: 0.5rem;
-  font-size: 0.95rem;
+  font-size: 16px;
   cursor: pointer;
   color: ${props => props.$active ? props.theme.primary : props.theme.textSoft};
   font-weight: ${props => props.$active ? '600' : '400'};
@@ -177,7 +178,7 @@ export const Input = styled.input`
   padding: 0.7rem 0.9rem;
   border: 1px solid ${props => props.theme.border};
   border-radius: 6px;
-  font-size: 0.95rem;
+  font-size: 16px;
   transition: all 0.2s;
   background: ${props => props.theme.surface};
   color: ${props => props.theme.text};

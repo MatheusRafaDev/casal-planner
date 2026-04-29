@@ -21,7 +21,7 @@ export const shimmer = keyframes`
 export const Container = styled.div`
   max-width: 900px;
   margin: 0 auto;
-  padding: 0 0 4rem;
+  padding: 0 0 calc(60px + env(safe-area-inset-bottom, 0px) + 1rem);
   animation: ${fadeUp} 0.4s ease both;
 `;
 

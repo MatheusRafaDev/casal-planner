@@ -20,8 +20,8 @@ export const PerfilContainer = styled.div`
   margin: 0 auto;
   animation: ${fadeUp} 0.4s ease both;
 
-  @media (max-width: 768px) { padding: 1.25rem 1rem 5.5rem; }
-  @media (max-width: 640px) { padding: 1rem 0.875rem 5.5rem; }
+  @media (max-width: 768px) { padding: 1.25rem 1rem calc(60px + env(safe-area-inset-bottom, 0px) + 1.25rem); }
+  @media (max-width: 640px) { padding: 1rem 0.875rem calc(60px + env(safe-area-inset-bottom, 0px) + 1rem); }
 `;
 
 export const Header = styled.div`

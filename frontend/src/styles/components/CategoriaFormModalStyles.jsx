@@ -5,118 +5,112 @@ export const Overlay = styled.div`
   inset: 0;
   z-index: 99999;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  padding: 1rem;
-  margin: 0;
-  box-sizing: border-box;
+  /* SEM backdrop-filter: causa glitch no Safari iOS */
+  animation: fadeIn 0.2s ease;
 
   @keyframes fadeIn {
     from { opacity: 0; }
-    to { opacity: 1; }
+    to   { opacity: 1; }
   }
-  
-  animation: fadeIn 0.2s ease;
 
-  @media (max-width: 768px) {
-    padding: 0.75rem;
+  @media (min-width: 600px) {
+    align-items: center;
+    padding: 1rem;
   }
 `;
 
 export const ModalContainer = styled.div`
   position: relative;
   background: ${props => props.theme.surface};
-  border-radius: 1.5rem;
-  padding: 2rem;
+  border-radius: 1.5rem 1.5rem 0 0;
+  padding: 1.25rem 1.5rem 0;
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
   width: 100%;
-  max-width: 35rem;
-  max-height: 90dvh;
+  max-width: 100%;
+  /* Limita altura para não cobrir a tela inteira */
+  max-height: 92dvh;
   overflow-y: auto;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.07), 0 20px 50px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.05);
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 -4px 32px rgba(0,0,0,0.18);
   border: 1px solid ${props => props.theme.border};
-  margin: auto;
-  transform: translateZ(0);
-  will-change: transform;
+  animation: sheetUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
 
-  @keyframes slideUp {
-    from { transform: translateY(24px) scale(0.97); opacity: 0; }
-    to { transform: translateY(0) scale(1); opacity: 1; }
-  }
-  
-  animation: slideUp 0.25s ease;
-
-  &::-webkit-scrollbar {
-    width: 6px;
+  @keyframes sheetUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
   }
 
-  &::-webkit-scrollbar-track {
-    background: ${props => props.theme.borderLight};
-    border-radius: 10px;
-  }
-
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb {
-    background: ${props => props.theme.primary};
-    border-radius: 10px;
+    background: ${props => props.theme.border};
+    border-radius: 4px;
   }
 
-  @media (max-width: 480px) {
-    padding: 1.5rem;
-    border-radius: 1.25rem;
-    max-height: 85dvh;
+  @media (min-width: 600px) {
+    border-radius: 1.5rem;
+    max-width: 35rem;
+    max-height: 90dvh;
+    padding: 2rem;
+    padding-bottom: 2rem;
+    animation: slideUp 0.25s ease;
+
+    @keyframes slideUp {
+      from { transform: translateY(24px) scale(0.97); opacity: 0; }
+      to   { transform: translateY(0)    scale(1);    opacity: 1; }
+    }
   }
+`;
+
+/* Alça de drag (sheet handle) — dica visual iOS */
+export const SheetHandle = styled.div`
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: ${props => props.theme.border};
+  margin: 0 auto 1.25rem;
+
+  @media (min-width: 600px) { display: none; }
 `;
 
 export const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid ${props => props.theme.border};
 
   h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1.2rem;
+    font-weight: 700;
     color: ${props => props.theme.text};
     margin: 0;
-  }
-
-  @media (max-width: 480px) {
-    margin-bottom: 1rem;
-    
-    h2 {
-      font-size: 1.125rem;
-    }
   }
 `;
 
 export const CloseButton = styled.button`
-  padding: 0.5rem;
+  padding: 0;
+  width: 36px;
+  height: 36px;
   color: ${props => props.theme.textSoft};
   background: ${props => props.theme.border};
   border: none;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  min-width: 36px;
-  min-height: 36px;
-  font-size: 1rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
 
-  &:hover {
-    background: ${props => props.theme.textLight};
-    color: ${props => props.theme.text};
-    transform: scale(1.05);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
+  &:active { transform: scale(0.92); }
+  &:hover  { background: ${props => props.theme.textLight}; color: ${props => props.theme.text}; }
 `;
 
 export const Form = styled.form`
@@ -126,137 +120,102 @@ export const Form = styled.form`
 `;
 
 export const FormGroup = styled.div`
-  margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
-
-  &:last-of-type {
-    margin-bottom: 0;
-  }
+  gap: 0.4rem;
 `;
 
 export const Label = styled.label`
-  display: block;
-  margin-bottom: 0.5rem;
   color: ${props => props.theme.textSoft};
-  font-weight: 500;
-  font-size: 0.875rem;
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 `;
 
 export const Input = styled.input`
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.8rem 1rem;
   border: 2px solid ${props => props.theme.border};
   border-radius: 12px;
-  font-size: 1rem;
+  /* MUST be ≥16px to prevent iOS zoom on focus */
+  font-size: 16px;
   background: ${props => props.theme.surface};
   color: ${props => props.theme.text};
-  transition: all 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
   font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
 
   &:focus {
     outline: none;
     border-color: ${props => props.theme.primary};
     box-shadow: 0 0 0 3px ${props => `${props.theme.primary}20`};
   }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  &::placeholder {
-    color: ${props => props.theme.textLight};
-  }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  &::placeholder { color: ${props => props.theme.textLight}; }
 `;
 
 export const IconsGrid = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
 `;
 
 export const IconButton = styled.button`
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  border: 2px solid ${props => props.$active 
-    ? props.theme.primary 
-    : props.theme.border};
+  transition: all 0.15s;
+  border: 2px solid ${props => props.$active ? props.theme.primary : props.theme.border};
   cursor: pointer;
-  background: ${props => props.$active 
-    ? `${props.theme.primary}15` 
-    : props.theme.surface};
-  color: ${props => props.theme.text};
+  background: ${props => props.$active ? `${props.theme.primary}15` : props.theme.surface};
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 
-  &:hover {
-    border-color: ${props => props.theme.primary};
-    transform: scale(1.05);
-    background: ${props => `${props.theme.primary}10`};
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
+  &:active { transform: scale(0.9); }
+  &:hover  { border-color: ${props => props.theme.primary}; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
 
 export const ColorsGrid = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
 `;
 
 export const ColorButton = styled.button`
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 12px;
-  transition: all 0.2s;
-  border: 2px solid ${props => props.$active 
-    ? props.theme.primary 
-    : 'transparent'};
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  transition: all 0.15s;
+  border: 2px solid ${props => props.$active ? props.theme.primary : 'transparent'};
   cursor: pointer;
   background: ${props => props.color};
   box-shadow: ${props => props.$active ? `0 0 0 2px ${props.theme.background}, 0 0 0 4px ${props.theme.primary}` : 'none'};
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 
-  &:hover {
-    transform: scale(1.1);
-    border-color: ${props => props.theme.primary};
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
+  &:active { transform: scale(0.88); }
+  &:hover  { transform: scale(1.1); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 `;
 
 export const ModalButtons = styled.div`
   display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-  padding-top: 0.5rem;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-bottom: 0.5rem;
 
   @media (max-width: 480px) {
     flex-direction: column-reverse;
-    gap: 0.75rem;
-    margin-top: 1.5rem;
+    gap: 0.5rem;
   }
 `;
 
@@ -270,41 +229,20 @@ export const CancelarButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  min-height: 48px;
+  min-height: 50px;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  font-size: 0.875rem;
+  font-size: 0.95rem;
 
-  &:hover {
-    background: ${props => props.theme.textLight};
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
+  &:active { transform: scale(0.97); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 `;
 
 export const CriarButton = styled(CancelarButton)`
   background: ${props => props.theme.primary};
   color: white;
 
-  &:hover {
-    background: ${props => props.theme.primaryDark};
-    filter: brightness(1.05);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+  &:hover:not(:disabled) { background: ${props => props.theme.primaryDark}; }
 `;
 
-// Adicione também SalvarButton como alias para CriarButton (para compatibilidade)
 export const SalvarButton = CriarButton;

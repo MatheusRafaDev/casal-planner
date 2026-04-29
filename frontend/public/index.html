@@ -1,15 +1,31 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
-    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <!-- Favicon - Coloque o arquivo favicon.svg dentro da pasta public/ -->
+    <meta charset="utf-8" />
+
+    <!-- ===== VIEWPORT: viewport-fit=cover é ESSENCIAL para safe areas no iPhone ===== -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <!-- ===== PWA / iOS ===== -->
+    <!-- Permite adicionar à tela inicial como app -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!-- Barra de status translúcida (respeita a cor do header via theme-color) -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="CasalPlanner" />
+
+    <!-- theme-color: cor da barra de endereço no Safari/Chrome mobile -->
+    <meta name="theme-color" content="#A78BFA" />
+
+    <!-- ===== Favicons ===== -->
     <link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/favicon.svg" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#A78BFA" />
-    <meta name="description" content="CasalPlanner — Organize as compras e finanças do casal em um só lugar." />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+
+    <!-- ===== PWA manifest ===== -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <meta name="description" content="CasalPlanner — Organize as compras e finanças do casal em um só lugar." />
+
     <title>CasalPlanner</title>
   </head>
   <body>

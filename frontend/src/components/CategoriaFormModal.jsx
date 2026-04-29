@@ -10,6 +10,7 @@ import { COLORS, ICONS, hexToHsl, hslToHex } from '../constants/categoryConstant
 import {
   Overlay,
   ModalContainer,
+  SheetHandle,
   Header,
   CloseButton,
   Form,
@@ -205,6 +206,7 @@ const CategoriaFormModal = ({
   const modalContent = (
     <Overlay theme={theme}>
       <ModalContainer onClick={(e) => e.stopPropagation()} theme={theme}>
+        <SheetHandle theme={theme} />
         <Header theme={theme}>
           <h2>{isEditing ? '✏️ Editar Categoria' : '➕ Nova Categoria'}</h2>
           <CloseButton onClick={handleClose} theme={theme}>✕</CloseButton>

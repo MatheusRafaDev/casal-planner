@@ -4,11 +4,12 @@ export const HeaderContainer = styled.header`
   position: sticky;
   top: 0;
   z-index: 90;
-  background: ${props => props.theme.surface}cc;
-  /* Remove backdrop-filter que causa problemas no iOS */
+  /* safe-area-inset-top cobre notch/dynamic island no iPhone */
+  padding-top: env(safe-area-inset-top, 0px);
+  background: ${props => props.theme.surface};
   border-bottom: 1px solid ${props => props.theme.border};
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  /* Melhorias para iOS */
+  /* Remove backdrop-filter — causa bugs no Safari iOS */
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 `;
@@ -17,13 +18,13 @@ export const HeaderContent = styled.div`
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 16px;
-  height: 70px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 
   @media (max-width: 768px) {
-    height: 60px;
+    height: 52px;
     padding: 0 12px;
   }
 `;
@@ -33,14 +34,16 @@ export const Logo = styled.div`
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  /* Melhora área de toque */
   padding: 8px 4px;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  /* Área mínima de toque HIG Apple: 44px */
+  min-height: 44px;
 
   svg {
     width: 28px;
     height: 28px;
-    
+
     @media (max-width: 768px) {
       width: 24px;
       height: 24px;
@@ -52,13 +55,8 @@ export const Logo = styled.div`
     font-size: 18px;
     color: ${props => props.theme.text};
 
-    @media (max-width: 480px) {
-      font-size: 16px;
-    }
-    
-    @media (max-width: 380px) {
-      display: none;
-    }
+    @media (max-width: 480px) { font-size: 16px; }
+    @media (max-width: 380px) { display: none; }
   }
 `;
 
@@ -67,15 +65,13 @@ export const UserSection = styled.div`
   align-items: center;
   gap: 12px;
 
-  @media (max-width: 480px) {
-    gap: 8px;
-  }
+  @media (max-width: 480px) { gap: 8px; }
 `;
 
 export const ThemeButton = styled.button`
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,12 +80,10 @@ export const ThemeButton = styled.button`
   color: ${props => props.theme.textSoft};
   cursor: pointer;
   transition: all 0.2s;
-  /* Melhorias para iOS */
   -webkit-tap-highlight-color: transparent;
-  
-  &:active {
-    transform: scale(0.96);
-  }
+  touch-action: manipulation;
+
+  &:active { transform: scale(0.93); }
 
   &:hover {
     background: ${props => props.theme.primary}15;
@@ -99,48 +93,38 @@ export const ThemeButton = styled.button`
 `;
 
 export const Button = styled.button`
-  padding: 8px 16px;
-  height: 40px;
-  border-radius: 8px;
+  padding: 0 16px;
+  height: 44px;
+  border-radius: 10px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   border: 1px solid ${props => props.theme.border};
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Melhorias para iOS */
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   white-space: nowrap;
-  
-  &:active {
-    transform: scale(0.97);
-  }
-  
+
+  &:active { transform: scale(0.96); }
+
   ${props => props.primary ? `
     background: ${props.theme.primary};
     border-color: ${props.theme.primary};
     color: white;
-
-    &:hover {
-      background: ${props.theme.primaryDark || props.theme.primary};
-      border-color: ${props.theme.primaryDark || props.theme.primary};
-    }
+    &:hover { background: ${props.theme.primaryDark || props.theme.primary}; }
   ` : `
     background: transparent;
     color: ${props.theme.text};
-
-    &:hover {
-      background: ${props.theme.border};
-    }
+    &:hover { background: ${props.theme.border}; }
   `}
 
   @media (max-width: 480px) {
-    padding: 6px 12px;
+    padding: 0 12px;
     font-size: 13px;
-    height: 36px;
+    height: 40px;
   }
 `;
 
@@ -148,43 +132,39 @@ export const UserMenu = styled.button`
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 12px 4px 4px;
+  padding: 6px 12px 6px 6px;
+  min-height: 44px;
   border-radius: 30px;
   background: ${props => props.theme.border};
   border: none;
   cursor: pointer;
   transition: all 0.2s;
-  /* Melhorias para iOS */
   -webkit-tap-highlight-color: transparent;
-  
-  &:active {
-    transform: scale(0.98);
-  }
+  touch-action: manipulation;
 
-  &:hover {
-    background: ${props => props.theme.primary}20;
-  }
-  
+  &:active { transform: scale(0.97); }
+  &:hover  { background: ${props => props.theme.primary}20; }
+
   @media (max-width: 480px) {
-    padding: 3px 10px 3px 3px;
+    padding: 4px 10px 4px 4px;
   }
 `;
 
 export const UserAvatar = styled.div`
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: ${props => props.theme.primary};
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-weight: 600;
-  font-size: 14px;
-  
+  font-weight: 700;
+  font-size: 13px;
+
   @media (max-width: 480px) {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     font-size: 12px;
   }
 `;
@@ -194,38 +174,28 @@ export const UserName = styled.span`
   font-weight: 500;
   color: ${props => props.theme.text};
 
-  @media (max-width: 480px) {
-    display: none;
-  }
+  @media (max-width: 480px) { display: none; }
 `;
 
 export const DropdownMenu = styled.div`
   position: absolute;
-  top: 50px;
+  top: calc(100% + 8px);
   right: 0;
-  width: 200px;
+  width: 210px;
   background: ${props => props.theme.surface};
   border: 1px solid ${props => props.theme.border};
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  padding: 8px 0;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 6px 0;
   z-index: 100;
-  animation: fadeIn 0.2s ease;
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  /* Melhorias para iOS */
+  animation: dropIn 0.18s ease;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+
+  @keyframes dropIn {
+    from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    }
+  }
 `;
 
 export const DropdownItem = styled.button`
@@ -233,33 +203,26 @@ export const DropdownItem = styled.button`
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 12px 16px;
+  padding: 13px 16px;
+  min-height: 44px;
   border: none;
   background: transparent;
   color: ${props => props.danger ? props.theme.error : props.theme.text};
   cursor: pointer;
-  transition: all 0.2s;
-  /* Melhorias para iOS */
+  transition: background 0.15s;
   -webkit-tap-highlight-color: transparent;
-  
-  &:active {
-    background: ${props => props.danger ? props.theme.error + '20' : props.theme.primary + '20'};
-  }
+  touch-action: manipulation;
 
+  &:active {
+    background: ${props => props.danger ? props.theme.error + '18' : props.theme.primary + '18'};
+  }
   &:hover {
-    background: ${props => props.danger ? props.theme.error + '15' : props.theme.primary + '15'};
+    background: ${props => props.danger ? props.theme.error + '12' : props.theme.primary + '12'};
     color: ${props => props.danger ? props.theme.error : props.theme.primary};
   }
 
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  span {
-    font-size: 14px;
-    font-weight: 500;
-  }
+  svg { width: 16px; height: 16px; flex-shrink: 0; }
+  span { font-size: 14px; font-weight: 500; }
 `;
 
 export const NavLinks = styled.div`
@@ -268,9 +231,7 @@ export const NavLinks = styled.div`
   gap: 0.5rem;
   margin-left: 2rem;
 
-  @media (max-width: 768px) {
-    display: none;
-  }
+  @media (max-width: 768px) { display: none; }
 `;
 
 export const NavButton = styled.button`
@@ -278,35 +239,20 @@ export const NavButton = styled.button`
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
+  min-height: 44px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   background: ${props => props.active ? props.theme.primary + '20' : 'transparent'};
   color: ${props => props.active ? props.theme.primary : props.theme.text};
   font-size: 0.95rem;
   font-weight: ${props => props.active ? '600' : '400'};
   cursor: pointer;
   transition: all 0.2s ease;
-  /* Melhorias para iOS */
   -webkit-tap-highlight-color: transparent;
-  
-  &:active {
-    transform: scale(0.96);
-    background: ${props => props.active ? props.theme.primary + '30' : props.theme.backgroundHover};
-  }
+  touch-action: manipulation;
 
-  &:hover {
-    background: ${props => props.active ? props.theme.primary + '30' : props.theme.backgroundHover};
-  }
+  &:active { transform: scale(0.96); }
+  &:hover  { background: ${props => props.active ? props.theme.primary + '30' : props.theme.hover || props.theme.border}; }
 
-  svg {
-    stroke: ${props => props.active ? props.theme.primary : props.theme.text};
-  }
-
-  @media (max-width: 768px) {
-    padding: 0.5rem;
-    
-    span {
-      display: none;
-    }
-  }
+  svg { stroke: ${props => props.active ? props.theme.primary : props.theme.text}; }
 `;

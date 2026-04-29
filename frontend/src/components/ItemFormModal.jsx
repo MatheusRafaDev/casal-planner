@@ -9,6 +9,7 @@ import PainelPesquisaPrecos from "./PainelPesquisaPrecos";
 import {
   Overlay,
   ModalContainer,
+  SheetHandle,
   Header,
   CloseButton,
   Form,
@@ -275,6 +276,7 @@ const ItemFormModal = ({
   const modalContent = (
     <Overlay theme={theme}>
       <ModalContainer theme={theme}>
+        <SheetHandle theme={theme} />
         <Header theme={theme}>
           <h2>{isEditing ? '✏️ Editar Item' : '➕ Adicionar Item'}</h2>
           <CloseButton onClick={handleClose} theme={theme}>✕</CloseButton>

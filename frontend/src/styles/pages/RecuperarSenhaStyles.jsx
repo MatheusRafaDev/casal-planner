@@ -25,7 +25,7 @@ export const Container = styled.div`
   align-items: center;
   justify-content: center;
   background: ${p => p.theme.background};
-  padding: 1.5rem;
+  padding: env(safe-area-inset-top, 1.5rem) 1.5rem env(safe-area-inset-bottom, 1.5rem);
   animation: ${fadeUp} 0.4s ease both;
 
   @media (max-width: 640px) {
