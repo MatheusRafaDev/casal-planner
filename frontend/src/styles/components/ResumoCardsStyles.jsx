@@ -18,6 +18,7 @@ export const ResumoGrid = styled.div`
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 0.5rem;
+    padding-top: 1.5rem;
     margin-left: -1rem;
     margin-right: -1rem;
     padding-left: 1rem;

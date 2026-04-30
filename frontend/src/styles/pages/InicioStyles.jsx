@@ -17,6 +17,11 @@ export const shimmer = keyframes`
   50%       { opacity: 0.9; }
 `;
 
+export const skeletonPulse = keyframes`
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+`;
+
 // Container principal
 export const Container = styled.div`
   max-width: 900px;
@@ -25,76 +30,7 @@ export const Container = styled.div`
   animation: ${fadeUp} 0.4s ease both;
 `;
 
-// Welcome Card
-export const WelcomeCard = styled.div`
-  background: ${p => p.theme.gradient};
-  border-radius: 1.5rem;
-  padding: 2.25rem 2rem;
-  margin-bottom: 1.75rem;
-  margin-top: 1.75rem;
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    width: 200px;
-    height: 200px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 50%;
-    top: -60px;
-    right: -60px;
-  }
-  
-  &::after {
-    content: '';
-    position: absolute;
-    width: 120px;
-    height: 120px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 50%;
-    bottom: -30px;
-    left: 40px;
-  }
-`;
 
-export const WelcomeTitle = styled.h1`
-  font-size: 1.7rem;
-  font-weight: 800;
-  color: #fff;
-  margin: 0 0 0.4rem;
-  letter-spacing: -0.02em;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-export const WelcomeSub = styled.p`
-  font-size: 0.95rem;
-  color: rgba(255,255,255,0.82);
-  margin: 0 0 1.5rem;
-`;
-
-export const WelcomeBtn = styled.button`
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.4rem;
-  background: rgba(255,255,255,0.18);
-  color: #fff;
-  border: 1.5px solid rgba(255,255,255,0.35);
-  border-radius: 0.75rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
-  
-  &:hover {
-    background: rgba(255,255,255,0.28);
-    transform: translateY(-2px);
-  }
-`;
 
 // Section Title
 export const SectionTitle = styled.h2`
@@ -366,13 +302,144 @@ export const ActionText = styled.div`
   }
 `;
 
-// Skeleton Loading
+// Skeleton Loading Components
 export const SkeletonLine = styled.div`
   height: ${p => p.h || '0.85rem'};
   width: ${p => p.w || '100%'};
   border-radius: 0.5rem;
   background: ${p => p.theme.border};
   animation: ${shimmer} 1.4s ease infinite;
+`;
+
+// Skeleton para os cards de estatísticas
+export const SkeletonStatCard = styled.div`
+  background: ${p => p.theme.surface};
+  border-radius: 1.25rem;
+  padding: 1.25rem;
+  border: 1px solid ${p => p.theme.border};
+  animation: ${skeletonPulse} 1.5s ease-in-out infinite;
+  
+  &::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 36px;
+    border-radius: 0.75rem;
+    background: ${p => p.theme.border};
+    margin-bottom: 0.75rem;
+  }
+  
+  &::after {
+    content: '';
+    display: block;
+    width: 60%;
+    height: 20px;
+    border-radius: 0.5rem;
+    background: ${p => p.theme.border};
+    margin-top: 0.5rem;
+  }
+`;
+
+// Skeleton para o card de progresso
+export const SkeletonCard = styled.div`
+  background: ${p => p.theme.surface};
+  border-radius: 1.25rem;
+  padding: 1.25rem;
+  margin-bottom: 1.75rem;
+  border: 1px solid ${p => p.theme.border};
+  animation: ${skeletonPulse} 1.5s ease-in-out infinite;
+  
+  > div {
+    margin-bottom: 1rem;
+    
+    &:first-child {
+      width: 40%;
+      height: 20px;
+      background: ${p => p.theme.border};
+      border-radius: 0.5rem;
+    }
+    
+    &:nth-child(2) {
+      width: 100%;
+      height: 30px;
+      background: ${p => p.theme.border};
+      border-radius: 0.5rem;
+    }
+    
+    &:nth-child(3) {
+      width: 80%;
+      height: 30px;
+      background: ${p => p.theme.border};
+      border-radius: 0.5rem;
+    }
+    
+    &:last-child {
+      width: 100%;
+      height: 7px;
+      background: ${p => p.theme.border};
+      border-radius: 999px;
+    }
+  }
+`;
+
+// Skeleton para linhas de categoria
+export const SkeletonCatRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: ${p => p.theme.surface};
+  border: 1px solid ${p => p.theme.border};
+  border-radius: 1rem;
+  animation: ${skeletonPulse} 1.5s ease-in-out infinite;
+
+  > div:first-child {
+    width: 38px;
+    height: 38px;
+    background: ${p => p.theme.border};
+    border-radius: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  > div:nth-child(2) {
+    flex: 1;
+    
+    > div:first-child {
+      width: 70%;
+      height: 14px;
+      background: ${p => p.theme.border};
+      border-radius: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    > div:nth-child(2) {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 0.5rem;
+      
+      span {
+        width: 60px;
+        height: 16px;
+        background: ${p => p.theme.border};
+        border-radius: 0.5rem;
+      }
+    }
+    
+    > div:last-child {
+      width: 100%;
+      height: 3px;
+      background: ${p => p.theme.border};
+      border-radius: 999px;
+    }
+  }
+
+  > div:last-child {
+    width: 70px;
+    height: 20px;
+    background: ${p => p.theme.border};
+    border-radius: 0.5rem;
+    flex-shrink: 0;
+  }
 `;
 
 // Heart Animation

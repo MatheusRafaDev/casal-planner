@@ -1,4 +1,4 @@
-// CategoriaCard.jsx — layout mobile corrigido, texto completo, sem fundos pretos
+// CategoriaCard.jsx — com filtro por data corrigido
 
 import React, { useState, useMemo, useCallback, memo } from "react";
 import {
@@ -15,6 +15,9 @@ import {
   AlertCircle,
   Clock,
   CheckCircle,
+  Calendar,
+  Filter,
+  X,
 } from "lucide-react";
 import { useItemActions } from "../hooks/useItemActions";
 import { useCategoryActions } from "../hooks/useCategoryActions";
@@ -46,6 +49,34 @@ const PRIORIDADE_CONFIG = {
   },
 };
 
+// Filtros de data
+const DATA_FILTROS = {
+  todos: { label: "Todos", emoji: "📅", dias: null },
+  hoje: { label: "Hoje", emoji: "🌅", dias: 0 },
+  ultimos7: { label: "Últimos 7 dias", emoji: "📆", dias: 7 },
+  ultimos30: { label: "Últimos 30 dias", emoji: "📅", dias: 30 },
+  esteMes: { label: "Este mês", emoji: "📊", tipo: "mes" },
+};
+
+const isAddedInRange = (createdAt, filtro) => {
+  if (!createdAt || filtro === "todos") return true;
+  if (filtro === "esteMes") {
+    const data = new Date(createdAt);
+    const agora = new Date();
+    return data.getMonth() === agora.getMonth() && data.getFullYear() === agora.getFullYear();
+  }
+  if (DATA_FILTROS[filtro]?.dias !== undefined && DATA_FILTROS[filtro].dias !== null) {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const limite = new Date(hoje);
+    limite.setDate(hoje.getDate() - DATA_FILTROS[filtro].dias);
+    const dataItem = new Date(createdAt);
+    dataItem.setHours(0, 0, 0, 0);
+    return dataItem >= limite;
+  }
+  return true;
+};
+
 const isAddedToday = (createdAt) => {
   if (!createdAt) return false;
   const today = new Date();
@@ -68,7 +99,10 @@ const StoreLogo = memo(({ storeName, size = "small" }) => {
     );
   }
 
-  const logoUrl = storeLogoService.getLogoUrl(storeName, size === "small" ? 16 : 32);
+  const logoUrl = storeLogoService.getLogoUrl(
+    storeName,
+    size === "small" ? 16 : 32,
+  );
 
   return (
     <S.StoreLogoImage
@@ -98,6 +132,12 @@ const ItemCard = memo(
     const prioridadeConfig =
       PRIORIDADE_CONFIG[item.prioridade] || PRIORIDADE_CONFIG.normal;
     const disabled = isLoading || isSaving;
+
+    const formatarData = (dataISO) => {
+      if (!dataISO) return null;
+      const data = new Date(dataISO);
+      return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+    };
 
     const handleOpenLink = useCallback(
       (e) => {
@@ -152,7 +192,6 @@ const ItemCard = memo(
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        {/* ── Linha 1: checkbox · nome · preço · ações ── */}
         <S.ItemMainRow>
           <S.CheckboxButton
             $checked={item.comprado}
@@ -166,7 +205,6 @@ const ItemCard = memo(
             {item.comprado && <S.CheckIcon />}
           </S.CheckboxButton>
 
-          {/* FIX: texto completo, sem title/truncate */}
           <S.ItemName $purchased={item.comprado} theme={theme}>
             {item.nome}
           </S.ItemName>
@@ -210,9 +248,7 @@ const ItemCard = memo(
           </S.ItemActions>
         </S.ItemMainRow>
 
-        {/* ── Linha 2: badges em flex-wrap — sem campos pretos ── */}
         <S.ItemDetailsRow>
-          {/* prioridade */}
           <S.PriorityBadgeFull
             $color={prioridadeConfig.color}
             $bgColor={prioridadeConfig.bgColor}
@@ -221,40 +257,41 @@ const ItemCard = memo(
             {prioridadeConfig.emoji} {prioridadeConfig.label}
           </S.PriorityBadgeFull>
 
-          {/* badge novo */}
+          {item.createdAt && (
+            <S.DateBadge theme={theme}>
+              <Calendar size={10} />
+              {formatarData(item.createdAt)}
+            </S.DateBadge>
+          )}
+
           {isAddedToday(item.createdAt) && <S.NewBadge>Novo</S.NewBadge>}
 
-          {/* quantidade */}
           <S.ItemQuantityBadge theme={theme}>
             <ShoppingBag size={10} />
             {item.quantidade}x
           </S.ItemQuantityBadge>
 
-          {/* preço unitário */}
           <S.ItemPriceBadge theme={theme}>
             {formatarMoeda(item.preco)}/un
           </S.ItemPriceBadge>
 
-          {/* loja */}
           {item.loja && (
             <S.StoreBadge theme={theme}>
               <StoreLogo storeName={item.loja} size="small" />
               <S.StoreName theme={theme}>
-                {item.loja.length > 16 ? item.loja.substring(0, 16) + "…" : item.loja}
+                {item.loja.length > 16
+                  ? item.loja.substring(0, 16) + "…"
+                  : item.loja}
               </S.StoreName>
             </S.StoreBadge>
           )}
 
-          {/* pagamento */}
           <S.PaymentBadge $type={item.pagamento} theme={theme}>
             {getPaymentIcon(item.pagamento)}
             {item.pagamento === "vr" ? " VR/VA" : " Normal"}
           </S.PaymentBadge>
 
-          {/* marca */}
-          {item.marca && (
-            <S.ItemBrand theme={theme}>{item.marca}</S.ItemBrand>
-          )}
+          {item.marca && <S.ItemBrand theme={theme}>{item.marca}</S.ItemBrand>}
         </S.ItemDetailsRow>
       </S.ItemRow>
     );
@@ -282,6 +319,8 @@ const CategoriaCard = ({
   const [sortBy, setSortBy] = useState("preco");
   const [sortOrder, setSortOrder] = useState("asc");
   const [isSaving, setIsSaving] = useState(false);
+  const [dataFiltro, setDataFiltro] = useState("todos");
+  const [showFiltroData, setShowFiltroData] = useState(false);
 
   const { handleToggleComprado, handleDeleteItem, handleEditItem } =
     useItemActions(theme, onToggleComprado, onUpdateItem, onDeleteItem);
@@ -293,9 +332,17 @@ const CategoriaCard = ({
     onEditCategoria,
   );
 
+  // Filtrar itens por data
+  const itensFiltradosPorData = useMemo(() => {
+    if (dataFiltro === "todos") return itens;
+    return itens.filter(item => isAddedInRange(item.createdAt, dataFiltro));
+  }, [itens, dataFiltro]);
+
+  // Ordenar itens filtrados
   const itensOrdenados = useMemo(() => {
-    const sorted = [...itens];
+    const sorted = [...itensFiltradosPorData];
     const prioridadeOrdem = { urgente: 0, normal: 1, pode_esperar: 2 };
+
     if (sortBy === "prioridade") {
       sorted.sort((a, b) => {
         const d =
@@ -313,16 +360,31 @@ const CategoriaCard = ({
         const d = a.nome.toLowerCase().localeCompare(b.nome.toLowerCase());
         return sortOrder === "asc" ? d : -d;
       });
+    } else if (sortBy === "data") {
+      sorted.sort((a, b) => {
+        const dataA = new Date(a.createdAt || 0);
+        const dataB = new Date(b.createdAt || 0);
+        // Asc = mais antigo primeiro, Desc = mais recente primeiro
+        return sortOrder === "asc" ? dataA - dataB : dataB - dataA;
+      });
     }
+
     return sorted;
-  }, [itens, sortBy, sortOrder]);
+  }, [itensFiltradosPorData, sortBy, sortOrder]);
 
   const totalCategoria = useMemo(
     () => itens.reduce((acc, i) => acc + (i.preco * i.quantidade || 0), 0),
     [itens],
   );
+
+  const totalFiltrado = useMemo(
+    () => itensFiltradosPorData.reduce((acc, i) => acc + (i.preco * i.quantidade || 0), 0),
+    [itensFiltradosPorData],
+  );
+
   const itensComprados = itens.filter((i) => i.comprado).length;
-  const progresso = itens.length > 0 ? (itensComprados / itens.length) * 100 : 0;
+  const progresso =
+    itens.length > 0 ? (itensComprados / itens.length) * 100 : 0;
   const totalGasto = useMemo(
     () =>
       itens
@@ -386,6 +448,8 @@ const CategoriaCard = ({
   );
 
   const disabled = isLoading || isSaving;
+  const hasFiltroAtivo = dataFiltro !== "todos";
+  const itensFiltradosCount = itensFiltradosPorData.length;
 
   return (
     <S.CardContainer
@@ -395,7 +459,6 @@ const CategoriaCard = ({
       onDrop={handleDrop}
       $isDragOver={isDragOver}
     >
-      {/* ── Header ── */}
       <S.CardHeader color={categoria.bg} theme={theme}>
         <S.HeaderLeft>
           <S.DragHandle theme={theme} />
@@ -428,6 +491,53 @@ const CategoriaCard = ({
         </S.HeaderLeft>
 
         <S.HeaderActions>
+          <div style={{ position: "relative" }}>
+            <S.IconButton
+              onClick={() => setShowFiltroData(!showFiltroData)}
+              theme={theme}
+              title="Filtrar por data"
+              disabled={disabled}
+              $active={hasFiltroAtivo}
+            >
+              <Filter size={18} />
+            </S.IconButton>
+
+            {showFiltroData && (
+              <S.FiltroDataDropdown theme={theme}>
+                <S.FiltroHeader>
+                  <span>Filtrar por data</span>
+                  <button onClick={() => setShowFiltroData(false)}>
+                    <X size={14} />
+                  </button>
+                </S.FiltroHeader>
+                {Object.entries(DATA_FILTROS).map(([key, config]) => (
+                  <S.FiltroOption
+                    key={key}
+                    $active={dataFiltro === key}
+                    onClick={() => {
+                      setDataFiltro(key);
+                      setShowFiltroData(false);
+                    }}
+                    theme={theme}
+                  >
+                    <span>{config.emoji}</span>
+                    {config.label}
+                  </S.FiltroOption>
+                ))}
+                {hasFiltroAtivo && (
+                  <S.FiltroClear
+                    onClick={() => {
+                      setDataFiltro("todos");
+                      setShowFiltroData(false);
+                    }}
+                  >
+                    Limpar filtro
+                  </S.FiltroClear>
+                )}
+              </S.FiltroDataDropdown>
+            )}
+          </div>
+
           <S.IconButton
             onClick={handleAddItem}
             theme={theme}
@@ -462,11 +572,19 @@ const CategoriaCard = ({
         </S.HeaderActions>
       </S.CardHeader>
 
-      {/* ── Conteúdo ── */}
       <S.CardContent>
         {isExpanded && (
           <>
-            {/* Sort bar */}
+            {hasFiltroAtivo && (
+              <S.FiltroAtivoBadge theme={theme}>
+                <Calendar size={12} />
+                {DATA_FILTROS[dataFiltro]?.label}
+                <button onClick={() => setDataFiltro("todos")}>
+                  <X size={12} />
+                </button>
+              </S.FiltroAtivoBadge>
+            )}
+
             {itens.length > 0 && (
               <S.SortBar theme={theme}>
                 <S.SortLabel theme={theme}>Ordenar:</S.SortLabel>
@@ -475,6 +593,7 @@ const CategoriaCard = ({
                     { field: "preco", label: "Preço", emoji: "💰" },
                     { field: "nome", label: "Nome", emoji: "📝" },
                     { field: "prioridade", label: "Prioridade", emoji: "🎯" },
+                    { field: "data", label: "Data", emoji: "📅" },
                   ].map(({ field, label, emoji }) => (
                     <S.SortButton
                       key={field}
@@ -499,7 +618,6 @@ const CategoriaCard = ({
               </S.SortBar>
             )}
 
-            {/* Progress bar */}
             <S.CategoryProgress theme={theme}>
               <S.ProgressBar theme={theme}>
                 <S.ProgressFill
@@ -510,7 +628,13 @@ const CategoriaCard = ({
               </S.ProgressBar>
             </S.CategoryProgress>
 
-            {/* Lista ou skeleton ou vazio */}
+            {hasFiltroAtivo && itensFiltradosCount !== itens.length && (
+              <S.FiltroInfo theme={theme}>
+                Mostrando {itensFiltradosCount} de {itens.length} itens
+                {totalFiltrado !== totalCategoria && ` · Total: ${formatarMoeda(totalFiltrado)}`}
+              </S.FiltroInfo>
+            )}
+
             {isLoading ? (
               [1, 2, 3].map((n) => (
                 <S.ItemSkeletonWrapper key={n}>
@@ -537,24 +661,41 @@ const CategoriaCard = ({
               </S.ItemsList>
             ) : (
               <S.EmptyState>
-                <S.EmptyIcon>📦</S.EmptyIcon>
-                <S.EmptyText theme={theme}>Nenhum item adicionado</S.EmptyText>
-                <S.AddButton onClick={handleAddItem} theme={theme} disabled={disabled}>
-                  <Plus size={16} />
-                  Adicionar primeiro item
-                </S.AddButton>
+                <S.EmptyIcon>{hasFiltroAtivo ? "🔍" : "📦"}</S.EmptyIcon>
+                <S.EmptyText theme={theme}>
+                  {hasFiltroAtivo 
+                    ? "Nenhum item neste período" 
+                    : "Nenhum item adicionado"}
+                </S.EmptyText>
+                {!hasFiltroAtivo && (
+                  <S.AddButton
+                    onClick={handleAddItem}
+                    theme={theme}
+                    disabled={disabled}
+                  >
+                    <Plus size={16} />
+                    Adicionar primeiro item
+                  </S.AddButton>
+                )}
+                {hasFiltroAtivo && (
+                  <S.AddButton onClick={() => setDataFiltro("todos")} theme={theme}>
+                    <X size={16} />
+                    Limpar filtro
+                  </S.AddButton>
+                )}
               </S.EmptyState>
             )}
           </>
         )}
       </S.CardContent>
 
-      {/* ── Footer ── */}
       <S.CategoryFooter theme={theme}>
         <S.CategoryStats>
           <S.StatItem theme={theme}>
             <span>📦</span>
-            <strong>{itensComprados}/{itens.length}</strong>
+            <strong>
+              {itensComprados}/{itens.length}
+            </strong>
             <span>comprados</span>
           </S.StatItem>
           <S.StatItem theme={theme}>

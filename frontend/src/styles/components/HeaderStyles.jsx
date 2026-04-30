@@ -1,19 +1,5 @@
 import styled from 'styled-components';
 
-export const HeaderContainer = styled.header`
-  position: sticky;
-  top: 0;
-  z-index: 90;
-  /* safe-area-inset-top cobre notch/dynamic island no iPhone */
-  padding-top: env(safe-area-inset-top, 0px);
-  background: ${props => props.theme.surface};
-  border-bottom: 1px solid ${props => props.theme.border};
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  /* Remove backdrop-filter — causa bugs no Safari iOS */
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-`;
-
 export const HeaderContent = styled.div`
   max-width: 1400px;
   margin: 0 auto;
@@ -255,4 +241,19 @@ export const NavButton = styled.button`
   &:hover  { background: ${props => props.active ? props.theme.primary + '30' : props.theme.hover || props.theme.border}; }
 
   svg { stroke: ${props => props.active ? props.theme.primary : props.theme.text}; }
+`;
+
+export const HeaderContainer = styled.header`
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  padding-top: env(safe-area-inset-top, 0px);
+  background: ${props => props.theme.surface};
+  border-bottom: 1px solid ${props => props.theme.border};
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+  /* Esconde completamente no mobile */
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;

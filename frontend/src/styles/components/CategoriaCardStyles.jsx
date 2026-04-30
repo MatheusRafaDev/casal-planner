@@ -714,3 +714,158 @@ export const ItemDetailsLeft = styled.div`
   flex: 1;
   min-width: 0;
 `;
+
+// Adicione estas exportações no final do seu arquivo CategoriaCardStyles.js
+
+export const DateBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: ${p => p.theme.border};
+  color: ${p => p.theme.textSoft};
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.65rem;
+  font-weight: 500;
+`;
+
+export const FiltroDataDropdown = styled.div`
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 170px;
+  background: ${p => p.theme.surface};
+  border: 1px solid ${p => p.theme.border};
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  overflow: hidden;
+  animation: fadeIn 0.15s ease;
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+export const FiltroHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid ${p => p.theme.border};
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: ${p => p.theme.text};
+  background: ${p => p.theme.surface};
+  
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: ${p => p.theme.textSoft};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 6px;
+    
+    &:hover {
+      background: ${p => p.theme.border};
+      color: ${p => p.theme.text};
+    }
+  }
+`;
+
+export const FiltroOption = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  background: ${p => p.$active ? p.theme.primary + '10' : 'transparent'};
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: ${p => p.$active ? p.theme.primary : p.theme.text};
+  transition: all 0.15s;
+  text-align: left;
+  
+  span:first-child {
+    font-size: 1rem;
+  }
+  
+  &:hover {
+    background: ${p => p.theme.border};
+  }
+`;
+
+export const FiltroClear = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  background: ${p => p.theme.error}08;
+  border: none;
+  border-top: 1px solid ${p => p.theme.border};
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: ${p => p.theme.error};
+  transition: all 0.15s;
+  
+  &:hover {
+    background: ${p => p.theme.error}15;
+  }
+`;
+
+export const FiltroAtivoBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: ${p => p.theme.primary}12;
+  color: ${p => p.theme.primary};
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  width: fit-content;
+  
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: ${p => p.theme.primary};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    margin-left: 4px;
+    border-radius: 50%;
+    
+    &:hover {
+      background: ${p => p.theme.primary}20;
+      transform: scale(1.1);
+    }
+  }
+`;
+
+export const FiltroInfo = styled.div`
+  font-size: 0.7rem;
+  color: ${p => p.theme.textLight};
+  margin-bottom: 12px;
+  padding: 6px 12px;
+  background: ${p => p.theme.border};
+  border-radius: 8px;
+  text-align: center;
+  animation: fadeIn 0.2s ease;
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+`;
+

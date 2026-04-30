@@ -11,10 +11,6 @@ import {
 } from 'lucide-react';
 import {
   Container,
-  WelcomeCard,
-  WelcomeTitle,
-  WelcomeSub,
-  WelcomeBtn,
   SectionTitle,
   CardsGrid,
   StatCard,
@@ -42,6 +38,9 @@ import {
   ActionIcon,
   ActionText,
   SkeletonLine,
+  SkeletonCard,
+  SkeletonStatCard,
+  SkeletonCatRow,
   HeartAnim,
   TipCard,
   TipContent,
@@ -76,19 +75,9 @@ const Inicio = () => {
     return (usuario.nomeCompleto || 'Usuário').split(' ')[0];
   }, [usuario, isCasal, pessoaQueLogou]);
 
-  // ✅ Função para saudação baseada na hora
-  const getHora = useCallback(() => {
-    const h = new Date().getHours();
-    if (h < 12) return 'Bom dia';
-    if (h < 18) return 'Boa tarde';
-    return 'Boa noite';
-  }, []);
-
-  // ✅ Verificar se é conta de casal
-  // isCasal vem do contexto (AuthContext)
-
   useEffect(() => {
     const carregar = async () => {
+      setLoading(true); // Garante que loading seja true antes de carregar
       try {
         const [cats, its] = await Promise.all([
           categoriasService.listarDoUsuario(),
@@ -132,53 +121,53 @@ const Inicio = () => {
 
   return (
     <Container>
-      {/* Boas-vindas */}
-      <WelcomeCard theme={theme}>
-        <WelcomeTitle>
-          {getHora()}! <HeartAnim><Heart size={20} fill="currentColor" /></HeartAnim>
-        </WelcomeTitle>
-        <WelcomeSub>
-          {isCasal ? 'Planejando o lar juntos, passo a passo 🏠' : 'Seu organizador pessoal de compras domésticas 🛒'}
-        </WelcomeSub>
-        <WelcomeBtn onClick={() => navigate('/planejamento')}>
-          <ClipboardList size={16} /> Ver planejamento <ArrowRight size={15} />
-        </WelcomeBtn>
-      </WelcomeCard>
-
-      {/* Resumo financeiro */}
+      {/* Resumo financeiro - Cards com Skeleton */}
       <SectionTitle theme={theme}>Resumo do mês</SectionTitle>
       <CardsGrid>
-        <StatCard theme={theme}>
-          <StatIcon bg={theme.primary + '20'} color={theme.primary}><ShoppingCart size={17} /></StatIcon>
-          <StatLabel theme={theme}>Total geral</StatLabel>
-          <StatValue theme={theme}>{loading ? '—' : formatarMoeda(totalGeral)}</StatValue>
-          <StatSub theme={theme}>{loading ? '—' : `${totalItens} ${totalItens === 1 ? 'item' : 'itens'}`}</StatSub>
-        </StatCard>
+        {loading ? (
+          <>
+            <SkeletonStatCard theme={theme} />
+            <SkeletonStatCard theme={theme} />
+            <SkeletonStatCard theme={theme} />
+            <SkeletonStatCard theme={theme} />
+          </>
+        ) : (
+          <>
+            <StatCard theme={theme}>
+              <StatIcon bg={theme.primary + '20'} color={theme.primary}><ShoppingCart size={17} /></StatIcon>
+              <StatLabel theme={theme}>Total geral</StatLabel>
+              <StatValue theme={theme}>{formatarMoeda(totalGeral)}</StatValue>
+              <StatSub theme={theme}>{`${totalItens} ${totalItens === 1 ? 'item' : 'itens'}`}</StatSub>
+            </StatCard>
 
-        <StatCard theme={theme}>
-          <StatIcon bg={theme.success + '20'} color={theme.success}><CheckCircle size={17} /></StatIcon>
-          <StatLabel theme={theme}>Comprados</StatLabel>
-          <StatValue theme={theme}>{loading ? '—' : totalComprados}</StatValue>
-          <StatSub theme={theme}>{loading ? '—' : `${pctComprados}% concluído`}</StatSub>
-        </StatCard>
+            <StatCard theme={theme}>
+              <StatIcon bg={theme.success + '20'} color={theme.success}><CheckCircle size={17} /></StatIcon>
+              <StatLabel theme={theme}>Comprados</StatLabel>
+              <StatValue theme={theme}>{totalComprados}</StatValue>
+              <StatSub theme={theme}>{`${pctComprados}% concluído`}</StatSub>
+            </StatCard>
 
-        <StatCard theme={theme}>
-          <StatIcon bg={theme.vrva + '20'} color={theme.vrva}><CreditCard size={17} /></StatIcon>
-          <StatLabel theme={theme}>VR / VA</StatLabel>
-          <StatValue theme={theme}>{loading ? '—' : formatarMoeda(totalVR)}</StatValue>
-          <StatSub theme={theme}>vale alimentação/refeição</StatSub>
-        </StatCard>
+            <StatCard theme={theme}>
+              <StatIcon bg={theme.vrva + '20'} color={theme.vrva}><CreditCard size={17} /></StatIcon>
+              <StatLabel theme={theme}>VR / VA</StatLabel>
+              <StatValue theme={theme}>{formatarMoeda(totalVR)}</StatValue>
+              <StatSub theme={theme}>vale alimentação/refeição</StatSub>
+            </StatCard>
 
-        <StatCard theme={theme}>
-          <StatIcon bg={theme.secondary + '20'} color={theme.secondaryDark || theme.secondary}><TrendingUp size={17} /></StatIcon>
-          <StatLabel theme={theme}>Pagamento normal</StatLabel>
-          <StatValue theme={theme}>{loading ? '—' : formatarMoeda(totalNormal)}</StatValue>
-          <StatSub theme={theme}>dinheiro / cartão</StatSub>
-        </StatCard>
+            <StatCard theme={theme}>
+              <StatIcon bg={theme.secondary + '20'} color={theme.secondaryDark || theme.secondary}><TrendingUp size={17} /></StatIcon>
+              <StatLabel theme={theme}>Pagamento normal</StatLabel>
+              <StatValue theme={theme}>{formatarMoeda(totalNormal)}</StatValue>
+              <StatSub theme={theme}>dinheiro / cartão</StatSub>
+            </StatCard>
+          </>
+        )}
       </CardsGrid>
 
-      {/* Progresso */}
-      {!loading && totalItens > 0 && (
+      {/* Progresso - Skeleton integrado */}
+      {loading ? (
+        <SkeletonCard theme={theme} />
+      ) : totalItens > 0 && (
         <InfoCard theme={theme}>
           <SectionTitle theme={theme} style={{ marginBottom: '0.4rem' }}>Progresso de compras</SectionTitle>
           <InfoRow theme={theme}>
@@ -204,18 +193,9 @@ const Inicio = () => {
 
       {loading ? (
         <CatGrid>
-          {[1,2,3].map(n => (
-            <CatRow key={n} theme={theme}>
-              <CatEmoji theme={theme} bg={theme.border}>&nbsp;</CatEmoji>
-              <CatInfo theme={theme}>
-                <SkeletonLine theme={theme} w="55%" h="0.8rem" />
-                <div style={{ marginTop: '0.35rem' }}>
-                  <SkeletonLine theme={theme} w="38%" h="0.62rem" />
-                </div>
-              </CatInfo>
-              <SkeletonLine theme={theme} w="4.5rem" h="0.9rem" />
-            </CatRow>
-          ))}
+          <SkeletonCatRow theme={theme} />
+          <SkeletonCatRow theme={theme} />
+          <SkeletonCatRow theme={theme} />
         </CatGrid>
       ) : porCategoria.length === 0 ? (
         <InfoCard theme={theme} style={{ textAlign: 'center', color: theme.textLight, fontSize: '0.88rem' }}>
@@ -244,41 +224,6 @@ const Inicio = () => {
           })}
         </CatGrid>
       )}
-
-      {/* Ações rápidas */}
-      <SectionTitle theme={theme}>Ações rápidas</SectionTitle>
-      <QuickActions>
-        <ActionCard theme={theme} onClick={() => navigate('/planejamento')}>
-          <ActionIcon bg={theme.primary + '20'} color={theme.primary}><ClipboardList size={20} /></ActionIcon>
-          <ActionText theme={theme}>
-            <h3>Ver planejamento</h3>
-            <p>Gerencie categorias e itens de compra</p>
-          </ActionText>
-          <ArrowRight size={16} color={theme.textLight} />
-        </ActionCard>
-
-        <ActionCard theme={theme} onClick={() => navigate('/perfil')}>
-          <ActionIcon bg={theme.secondary + '20'} color={theme.secondaryDark || theme.secondary}><Sparkles size={20} /></ActionIcon>
-          <ActionText theme={theme}>
-            <h3>Meu perfil</h3>
-            <p>Edite seus dados e preferências de tema</p>
-          </ActionText>
-          <ArrowRight size={16} color={theme.textLight} />
-        </ActionCard>
-      </QuickActions>
-
-      {/* Dica */}
-      <TipCard theme={theme}>
-        <TipContent>
-          <TipIcon><Sparkles size={17} color={theme.primary} /></TipIcon>
-          <div>
-            <TipTitle theme={theme}>💡 Dica</TipTitle>
-            <TipText theme={theme}>
-              Organize seus itens por cômodo e marque o tipo de pagamento para saber quanto usar do VR/VA e quanto pagar no crédito.
-            </TipText>
-          </div>
-        </TipContent>
-      </TipCard>
     </Container>
   );
 };

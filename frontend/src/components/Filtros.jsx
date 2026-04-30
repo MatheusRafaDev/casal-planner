@@ -12,7 +12,6 @@ const Filtros = ({ filter, setFilter, onAddCategory, theme }) => {
   return (
     <FilterSection>
       <FilterGroup>
-        <Filter size={18} color={theme.textSoft} />
         <FilterButtons>
           <FilterButton
             $active={filter === "all"}

@@ -30,6 +30,9 @@ import {
   EmptyStateIcon,
   EmptyStateTitle,
   EmptyStateButton,
+  SkeletonWelcomeSection,
+  SkeletonCategoriesGrid,
+  SkeletonCategoryCard,
 } from "../styles/pages/PlanejamentoStyles";
 
 // ---------- Utils ----------
@@ -316,25 +319,55 @@ const Planejamento = () => {
   );
 
   // ---------- UI ----------
+  
+  // Loading com Skeletons
   if (loading) {
     return (
       <PlanejamentoContainer theme={theme}>
-        <LoadingContainer>
-          <LoadingSpinner />
-          <p>Carregando...</p>
-        </LoadingContainer>
+        <SkeletonWelcomeSection theme={theme} />
+        
+        {/* Skeletons para ResumoCards (você precisa criar este componente skeleton) */}
+        <div style={{ marginBottom: "1.5rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem" }}>
+            {[1, 2, 3, 4].map(n => (
+              <div key={n} style={{ 
+                background: theme.border, 
+                borderRadius: "1rem", 
+                padding: "1rem",
+                animation: "pulse 1.5s ease-in-out infinite"
+              }}>
+                <div style={{ width: "32px", height: "32px", background: theme.surface, borderRadius: "0.75rem", marginBottom: "0.75rem" }} />
+                <div style={{ width: "60%", height: "12px", background: theme.surface, borderRadius: "0.5rem", marginBottom: "0.5rem" }} />
+                <div style={{ width: "80%", height: "20px", background: theme.surface, borderRadius: "0.5rem" }} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Skeleton para Filtros */}
+        <div style={{ marginBottom: "1.5rem", display: "flex", gap: "0.5rem" }}>
+          {[1, 2, 3, 4].map(n => (
+            <div key={n} style={{ 
+              width: "80px", 
+              height: "40px", 
+              background: theme.border, 
+              borderRadius: "2rem",
+              animation: "pulse 1.5s ease-in-out infinite"
+            }} />
+          ))}
+        </div>
+
+        <SkeletonCategoriesGrid theme={theme}>
+          {[1, 2, 3, 4, 5, 6].map(n => (
+            <SkeletonCategoryCard key={n} theme={theme} />
+          ))}
+        </SkeletonCategoriesGrid>
       </PlanejamentoContainer>
     );
   }
 
   return (
     <PlanejamentoContainer theme={theme}>
-      <WelcomeSection>
-        <WelcomeTitle>
-          Bem-vindo, {usuario?.nomeCompleto?.split(" ")[0]} 👋
-        </WelcomeTitle>
-        <WelcomeSubtitle>Organize seu lar</WelcomeSubtitle>
-      </WelcomeSection>
 
       <ResumoCards resumo={resumo} comparativo={comparativo} theme={theme} />
 
