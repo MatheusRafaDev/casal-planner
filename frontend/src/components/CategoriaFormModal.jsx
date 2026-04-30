@@ -23,16 +23,11 @@ import {
   ColorButton,
   ModalButtons,
   CancelarButton,
-  CriarButton
+  CriarButton,
+  ErrorMessage
 } from '../styles/components/CategoriaFormModalStyles';
 
-const ErrorMessage = styled.span`
-  color: #dc3545;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
-  display: block;
-  ${props => props.theme === 'dark' && `color: #ff6b6b;`}
-`;
+
 
 const CategoriaFormModal = ({ 
   isOpen, 

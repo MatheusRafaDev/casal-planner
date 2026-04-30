@@ -49,6 +49,7 @@ import {
   TipText
 } from '../styles/pages/InicioStyles';
 
+import { useScrollRestoration } from '../hooks/useScrollRestoration';
 /* ── Componente ─────────────────────────────────────────────────────────────── */
 const Inicio = () => {
   const navigate = useNavigate();
@@ -58,6 +59,7 @@ const Inicio = () => {
   const [categorias, setCategorias] = useState([]);
   const [itens, setItens]           = useState([]);
   const [loading, setLoading]       = useState(true);
+    const scrollRef = useScrollRestoration();
 
   // ✅ Função para obter o nome do usuário (usa valores do contexto)
   const getNome = useCallback(() => {

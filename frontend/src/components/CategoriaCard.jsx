@@ -1,6 +1,6 @@
-// CategoriaCard.jsx — com filtro por data e limpar ordenação
+// CategoriaCard.jsx — com filtro por data, limpar ordenação e menu de contexto para mobile
 
-import React, { useState, useMemo, useCallback, memo } from "react";
+import React, { useState, useMemo, useCallback, memo, useRef, useEffect } from "react";
 import {
   Plus,
   Trash2,
@@ -18,12 +18,18 @@ import {
   Calendar,
   Filter,
   X,
+  MoreHorizontal,
 } from "lucide-react";
 import { useItemActions } from "../hooks/useItemActions";
 import { useCategoryActions } from "../hooks/useCategoryActions";
 import { formatarMoeda, getPaymentIcon } from "../utils/formatters";
 import storeLogoService from "../services/storeLogoService";
 import * as S from "../styles/components/CategoriaCardStyles";
+
+// Detecta se é dispositivo móvel (iOS/Android)
+const isMobileDevice = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
 
 const PRIORIDADE_CONFIG = {
   urgente: {
@@ -86,6 +92,129 @@ const isAddedToday = (createdAt) => {
   return added.getTime() === today.getTime();
 };
 
+// Componente de Menu de Contexto para Mobile
+const ContextMenu = memo(({ x, y, item, onClose, onEdit, onDelete, onOpenLink }) => {
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        onClose();
+      }
+    };
+
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [onClose]);
+
+  // Ajustar posição para não sair da tela
+  const adjustedX = Math.min(x, window.innerWidth - 200);
+  const adjustedY = Math.min(y, window.innerHeight - (item.linkProduto ? 200 : 160));
+
+  return (
+    <div
+      ref={menuRef}
+      style={{
+        position: 'fixed',
+        top: adjustedY,
+        left: adjustedX,
+        background: '#ffffff',
+        borderRadius: '12px',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+        padding: '8px 0',
+        minWidth: '160px',
+        zIndex: 1000,
+        animation: 'fadeInScale 0.15s ease-out',
+        border: '1px solid #e5e7eb',
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <style>
+        {`
+          @keyframes fadeInScale {
+            from {
+              opacity: 0;
+              transform: scale(0.95);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+        `}
+      </style>
+      
+      <div
+        onClick={() => { onEdit(); onClose(); }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '10px 16px',
+          cursor: 'pointer',
+          transition: 'background 0.2s',
+          color: '#374151',
+          fontSize: '14px',
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4f6'}
+        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+      >
+        <Pencil size={16} />
+        Editar item
+      </div>
+      
+      <div
+        onClick={() => { onDelete(); onClose(); }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '10px 16px',
+          cursor: 'pointer',
+          transition: 'background 0.2s',
+          color: '#ef4444',
+          fontSize: '14px',
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.background = '#ef444418'}
+        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+      >
+        <Trash2 size={16} />
+        Excluir item
+      </div>
+      
+      {item.linkProduto && (
+        <div
+          onClick={() => { onOpenLink(); onClose(); }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '10px 16px',
+            cursor: 'pointer',
+            transition: 'background 0.2s',
+            color: '#374151',
+            fontSize: '14px',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4f6'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+        >
+          <ExternalLink size={16} />
+          Abrir link
+        </div>
+      )}
+    </div>
+  );
+});
+
 // StoreLogo — síncrono, sem loading state
 const StoreLogo = memo(({ storeName, size = "small" }) => {
   const [error, setError] = useState(false);
@@ -115,7 +244,7 @@ const StoreLogo = memo(({ storeName, size = "small" }) => {
   );
 });
 
-// Item individual memoizado
+// Item individual memoizado com suporte condicional
 const ItemCard = memo(
   ({
     item,
@@ -129,6 +258,11 @@ const ItemCard = memo(
     onDragEnd,
     theme,
   }) => {
+    const [contextMenu, setContextMenu] = useState(null);
+    const longPressTimer = useRef(null);
+    const isLongPress = useRef(false);
+    const isMobile = useRef(isMobileDevice());
+
     const prioridadeConfig =
       PRIORIDADE_CONFIG[item.prioridade] || PRIORIDADE_CONFIG.normal;
     const disabled = isLoading || isSaving;
@@ -139,14 +273,64 @@ const ItemCard = memo(
       return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
     };
 
-    const handleOpenLink = useCallback(
-      (e) => {
+    const handleOpenLink = useCallback(() => {
+      if (item.linkProduto)
+        window.open(item.linkProduto, "_blank", "noopener,noreferrer");
+    }, [item.linkProduto]);
+
+    // Handler para clique direito (apenas desktop)
+    const handleContextMenu = useCallback((e) => {
+      if (!isMobile.current) {
+        e.preventDefault();
         e.stopPropagation();
-        if (item.linkProduto)
-          window.open(item.linkProduto, "_blank", "noopener,noreferrer");
-      },
-      [item.linkProduto],
-    );
+        if (disabled) return;
+        
+        setContextMenu({
+          x: e.clientX,
+          y: e.clientY,
+        });
+      }
+    }, [disabled]);
+
+    // Handlers para toque longo (apenas mobile)
+    const handleTouchStart = useCallback((e) => {
+      if (!isMobile.current) return;
+      if (disabled) return;
+      
+      isLongPress.current = false;
+      longPressTimer.current = setTimeout(() => {
+        isLongPress.current = true;
+        const touch = e.touches[0];
+        setContextMenu({
+          x: touch.clientX,
+          y: touch.clientY,
+        });
+      }, 500);
+    }, [disabled]);
+
+    const handleTouchEnd = useCallback((e) => {
+      if (!isMobile.current) return;
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+      }
+      // Se foi um toque longo, prevenir o clique normal
+      if (isLongPress.current) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, []);
+
+    const handleTouchMove = useCallback((e) => {
+      if (!isMobile.current) return;
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+      }
+    }, []);
+
+    const handleCloseContextMenu = useCallback(() => {
+      setContextMenu(null);
+      isLongPress.current = false;
+    }, []);
 
     const handleDragStart = useCallback(
       (e) => {
@@ -182,118 +366,163 @@ const ItemCard = memo(
       [onDragEnd],
     );
 
+    // Botão de menu (três pontinhos) - apenas para mobile
+    const handleMenuButtonClick = useCallback((e) => {
+      e.stopPropagation();
+      if (!isMobile.current) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      setContextMenu({
+        x: rect.left,
+        y: rect.bottom + 5,
+      });
+    }, []);
+
     return (
-      <S.ItemRow
-        $purchased={item.comprado}
-        $priority={item.prioridade}
-        theme={theme}
-        $isDragging={draggedItemId === String(item.id)}
-        draggable={!disabled}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <S.ItemMainRow>
-          <S.CheckboxButton
-            $checked={item.comprado}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleComprado(item.id);
-            }}
-            theme={theme}
-            disabled={disabled}
-          >
-            {item.comprado && <S.CheckIcon />}
-          </S.CheckboxButton>
+      <>
+        <S.ItemRow
+          $purchased={item.comprado}
+          $priority={item.prioridade}
+          theme={theme}
+          $isDragging={draggedItemId === String(item.id)}
+          draggable={!disabled}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onContextMenu={handleContextMenu}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchMove={handleTouchMove}
+        >
+          <S.ItemMainRow>
+            <S.CheckboxButton
+              $checked={item.comprado}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isLongPress.current) {
+                  onToggleComprado(item.id);
+                }
+              }}
+              theme={theme}
+              disabled={disabled}
+            >
+              {item.comprado && <S.CheckIcon />}
+            </S.CheckboxButton>
 
-          <S.ItemName $purchased={item.comprado} theme={theme}>
-            {item.nome}
-          </S.ItemName>
+            <S.ItemName $purchased={item.comprado} theme={theme}>
+              {item.nome}
+            </S.ItemName>
 
-          <S.ItemTotalCompact>
-            <S.ItemTotalValueCompact theme={theme}>
-              {formatarMoeda(item.preco * item.quantidade)}
-            </S.ItemTotalValueCompact>
-          </S.ItemTotalCompact>
+            <S.ItemTotalCompact>
+              <S.ItemTotalValueCompact theme={theme}>
+                {formatarMoeda(item.preco * item.quantidade)}
+              </S.ItemTotalValueCompact>
+            </S.ItemTotalCompact>
 
-          <S.ItemActions>
-            {item.linkProduto && (
+            {/* Botões para DESKTOP - visíveis apenas em desktop */}
+            <S.ItemActionsDesktop className="desktop-actions">
+              {item.linkProduto && (
+                <S.ItemActionButton
+                  onClick={handleOpenLink}
+                  theme={theme}
+                  variant="link"
+                  disabled={disabled}
+                  title="Abrir link"
+                >
+                  <ExternalLink size={13} />
+                </S.ItemActionButton>
+              )}
               <S.ItemActionButton
-                onClick={handleOpenLink}
+                onClick={() => onEditItem(item)}
                 theme={theme}
-                variant="link"
+                variant="edit"
                 disabled={disabled}
-                title="Abrir link"
+                title="Editar"
               >
-                <ExternalLink size={13} />
+                <Pencil size={13} />
               </S.ItemActionButton>
+              <S.ItemActionButton
+                variant="delete"
+                onClick={() => onDeleteItem(item)}
+                theme={theme}
+                disabled={disabled}
+                title="Excluir"
+              >
+                <Trash2 size={13} />
+              </S.ItemActionButton>
+            </S.ItemActionsDesktop>
+
+            {/* Botão de menu para MOBILE - visível apenas em mobile */}
+            <S.ItemActionsMobile className="mobile-actions">
+              <S.ItemActionButton
+                onClick={handleMenuButtonClick}
+                theme={theme}
+                variant="menu"
+                disabled={disabled}
+                title="Menu"
+              >
+                <MoreHorizontal size={16} />
+              </S.ItemActionButton>
+            </S.ItemActionsMobile>
+          </S.ItemMainRow>
+
+          <S.ItemDetailsRow>
+            <S.PriorityBadgeFull
+              $color={prioridadeConfig.color}
+              $bgColor={prioridadeConfig.bgColor}
+              theme={theme}
+            >
+              {prioridadeConfig.emoji} {prioridadeConfig.label}
+            </S.PriorityBadgeFull>
+
+            {item.createdAt && (
+              <S.DateBadge theme={theme}>
+                <Calendar size={10} />
+                {formatarData(item.createdAt)}
+              </S.DateBadge>
             )}
-            <S.ItemActionButton
-              onClick={() => onEditItem(item)}
-              theme={theme}
-              variant="edit"
-              disabled={disabled}
-              title="Editar"
-            >
-              <Pencil size={13} />
-            </S.ItemActionButton>
-            <S.ItemActionButton
-              variant="delete"
-              onClick={() => onDeleteItem(item)}
-              theme={theme}
-              disabled={disabled}
-              title="Excluir"
-            >
-              <Trash2 size={13} />
-            </S.ItemActionButton>
-          </S.ItemActions>
-        </S.ItemMainRow>
 
-        <S.ItemDetailsRow>
-          <S.PriorityBadgeFull
-            $color={prioridadeConfig.color}
-            $bgColor={prioridadeConfig.bgColor}
-            theme={theme}
-          >
-            {prioridadeConfig.emoji} {prioridadeConfig.label}
-          </S.PriorityBadgeFull>
+            {isAddedToday(item.createdAt) && <S.NewBadge>Novo</S.NewBadge>}
 
-          {item.createdAt && (
-            <S.DateBadge theme={theme}>
-              <Calendar size={10} />
-              {formatarData(item.createdAt)}
-            </S.DateBadge>
-          )}
+            <S.ItemQuantityBadge theme={theme}>
+              <ShoppingBag size={10} />
+              {item.quantidade}x
+            </S.ItemQuantityBadge>
 
-          {isAddedToday(item.createdAt) && <S.NewBadge>Novo</S.NewBadge>}
+            <S.ItemPriceBadge theme={theme}>
+              {formatarMoeda(item.preco)}/un
+            </S.ItemPriceBadge>
 
-          <S.ItemQuantityBadge theme={theme}>
-            <ShoppingBag size={10} />
-            {item.quantidade}x
-          </S.ItemQuantityBadge>
+            {item.loja && (
+              <S.StoreBadge theme={theme}>
+                <StoreLogo storeName={item.loja} size="small" />
+                <S.StoreName theme={theme}>
+                  {item.loja.length > 16
+                    ? item.loja.substring(0, 16) + "…"
+                    : item.loja}
+                </S.StoreName>
+              </S.StoreBadge>
+            )}
 
-          <S.ItemPriceBadge theme={theme}>
-            {formatarMoeda(item.preco)}/un
-          </S.ItemPriceBadge>
+            <S.PaymentBadge $type={item.pagamento} theme={theme}>
+              {getPaymentIcon(item.pagamento)}
+              {item.pagamento === "vr" ? " VR/VA" : " Normal"}
+            </S.PaymentBadge>
 
-          {item.loja && (
-            <S.StoreBadge theme={theme}>
-              <StoreLogo storeName={item.loja} size="small" />
-              <S.StoreName theme={theme}>
-                {item.loja.length > 16
-                  ? item.loja.substring(0, 16) + "…"
-                  : item.loja}
-              </S.StoreName>
-            </S.StoreBadge>
-          )}
+            {item.marca && <S.ItemBrand theme={theme}>{item.marca}</S.ItemBrand>}
+          </S.ItemDetailsRow>
+        </S.ItemRow>
 
-          <S.PaymentBadge $type={item.pagamento} theme={theme}>
-            {getPaymentIcon(item.pagamento)}
-            {item.pagamento === "vr" ? " VR/VA" : " Normal"}
-          </S.PaymentBadge>
-
-          {item.marca && <S.ItemBrand theme={theme}>{item.marca}</S.ItemBrand>}
-        </S.ItemDetailsRow>
-      </S.ItemRow>
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            item={item}
+            onClose={handleCloseContextMenu}
+            onEdit={() => onEditItem(item)}
+            onDelete={() => onDeleteItem(item)}
+            onOpenLink={handleOpenLink}
+          />
+        )}
+      </>
     );
   },
 );

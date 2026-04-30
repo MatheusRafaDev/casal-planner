@@ -34,12 +34,12 @@ export const Container = styled.div`
 
 // Section Title
 export const SectionTitle = styled.h2`
-  font-size: 0.78rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: ${p => p.theme.textSoft};
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  margin: 0 0 0.85rem;
+  margin:  0.85rem 0 0.85rem;
 `;
 
 // Cards Grid

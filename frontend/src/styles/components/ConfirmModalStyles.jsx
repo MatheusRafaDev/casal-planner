@@ -191,3 +191,4 @@ export const DeleteButton = styled.button`
   &:hover:not(:disabled) { filter: brightness(1.06); }
   &:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
 `;
+

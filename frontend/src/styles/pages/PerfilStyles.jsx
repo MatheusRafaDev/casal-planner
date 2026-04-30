@@ -9,6 +9,69 @@ const spin = keyframes`
   to { transform: rotate(360deg); }
 `;
 
+const shimmer = keyframes`
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+`;
+
+// ─── Shimmer Effect ──────────────────────────────────────────────────────────
+
+export const Shimmer = styled.div`
+  background: linear-gradient(
+    90deg,
+    ${p => p.theme.skeleton} 0%,
+    ${p => p.theme.skeletonShimmer} 50%,
+    ${p => p.theme.skeleton} 100%
+  );
+  background-size: 200% 100%;
+  animation: ${shimmer} 1.5s infinite;
+`;
+
+// ─── Skeleton Components ─────────────────────────────────────────────────────
+
+export const SkeletonAvatar = styled(Shimmer)`
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  flex-shrink: 0;
+`;
+
+export const SkeletonText = styled(Shimmer)`
+  width: ${p => p.width || '100%'};
+  height: ${p => p.height || '16px'};
+  border-radius: 8px;
+  margin: ${p => p.margin || '0'};
+  ${p => p.style && `style: ${p.style}`};
+`;
+
+export const SkeletonLine = styled(Shimmer)`
+  width: ${p => p.width || '100%'};
+  height: ${p => p.height || '14px'};
+  border-radius: ${p => p.borderRadius || '8px'};
+  margin: ${p => p.margin || '0'};
+`;
+
+export const SkeletonCard = styled.div`
+  background: ${p => p.theme.surface};
+  border: 1px solid ${p => p.theme.border};
+  border-radius: 1.25rem;
+  padding: 1.75rem;
+  margin-bottom: 1.25rem;
+  transition: box-shadow 0.2s ease;
+
+  @media (max-width: 640px) { 
+    padding: 1.25rem; 
+    border-radius: 1rem; 
+  }
+`;
+
+export const SkeletonBadge = styled(Shimmer)`
+  width: 80px;
+  height: 24px;
+  border-radius: 2rem;
+  margin-top: 0.5rem;
+`;
+
 // ─── Layout ──────────────────────────────────────────────────────────────────
 
 export const PerfilContainer = styled.div`
@@ -20,8 +83,12 @@ export const PerfilContainer = styled.div`
   margin: 0 auto;
   animation: ${fadeUp} 0.4s ease both;
 
-  @media (max-width: 768px) { padding: 1.25rem 1rem calc(60px + env(safe-area-inset-bottom, 0px) + 1.25rem); }
-  @media (max-width: 640px) { padding: 1rem 0.875rem calc(60px + env(safe-area-inset-bottom, 0px) + 1rem); }
+  @media (max-width: 768px) { 
+    padding: 1.25rem 1rem calc(60px + env(safe-area-inset-bottom, 0px) + 1.25rem); 
+  }
+  @media (max-width: 640px) { 
+    padding: 1rem 0.875rem calc(60px + env(safe-area-inset-bottom, 0px) + 1rem); 
+  }
 `;
 
 export const Header = styled.div`
@@ -38,7 +105,9 @@ export const Header = styled.div`
     letter-spacing: -0.02em;
   }
 
-  @media (max-width: 480px) { h1 { font-size: 1.4rem; } }
+  @media (max-width: 480px) { 
+    h1 { font-size: 1.4rem; } 
+  }
 `;
 
 export const EditarButton = styled.button`
@@ -101,7 +170,10 @@ export const PerfilCard = styled.div`
 
   &:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
 
-  @media (max-width: 640px) { padding: 1.25rem; border-radius: 1rem; }
+  @media (max-width: 640px) { 
+    padding: 1.25rem; 
+    border-radius: 1rem; 
+  }
 `;
 
 // ─── Avatar Section ───────────────────────────────────────────────────────────
@@ -114,7 +186,11 @@ export const AvatarSection = styled.div`
   padding-bottom: 1.5rem;
   border-bottom: 1px solid ${p => p.theme.border};
 
-  @media (max-width: 480px) { flex-direction: column; text-align: center; gap: 1rem; }
+  @media (max-width: 480px) { 
+    flex-direction: column; 
+    text-align: center; 
+    gap: 1rem; 
+  }
 `;
 
 export const Avatar = styled.div`
@@ -223,7 +299,10 @@ export const InfoRow = styled.div`
   gap: 1rem;
   margin-bottom: 0.875rem;
 
-  @media (max-width: 480px) { grid-template-columns: 1fr; gap: 0.75rem; }
+  @media (max-width: 480px) { 
+    grid-template-columns: 1fr; 
+    gap: 0.75rem; 
+  }
 `;
 
 export const Label = styled.span`
@@ -256,9 +335,24 @@ export const RendaTotalCard = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-top: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 
-  ${Label} { font-size: 0.8rem; color: ${p => p.theme.primary}; text-transform: none; font-weight: 600; }
-  ${Valor} { font-size: 1.375rem; font-weight: 800; color: ${p => p.theme.primary}; }
+  ${Label} { 
+    font-size: 0.8rem; 
+    color: ${p => p.theme.primary}; 
+    text-transform: none; 
+    font-weight: 600; 
+  }
+  ${Valor} { 
+    font-size: 1.375rem; 
+    font-weight: 800; 
+    color: ${p => p.theme.primary};
+    
+    @media (max-width: 480px) {
+      font-size: 1.125rem;
+    }
+  }
 `;
 
 export const DataCriacao = styled.div`
@@ -270,6 +364,7 @@ export const DataCriacao = styled.div`
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  flex-wrap: wrap;
 `;
 
 // ─── Forms ────────────────────────────────────────────────────────────────────
@@ -287,7 +382,9 @@ export const FormRow = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 
-  @media (max-width: 640px) { grid-template-columns: 1fr; }
+  @media (max-width: 640px) { 
+    grid-template-columns: 1fr; 
+  }
 `;
 
 export const Input = styled.input`
@@ -310,7 +407,7 @@ export const Input = styled.input`
     background: ${p => p.theme.surface};
   }
 
-  &:disabled, &.disabled {
+  &:disabled {
     background: ${p => p.theme.hover};
     color: ${p => p.theme.textSoft};
     cursor: not-allowed;
@@ -337,7 +434,13 @@ export const FormActions = styled.div`
   padding-top: 1.25rem;
   border-top: 1px solid ${p => p.theme.border};
 
-  @media (max-width: 480px) { flex-direction: column-reverse; }
+  @media (max-width: 480px) { 
+    flex-direction: column-reverse;
+    
+    button {
+      width: 100%;
+    }
+  }
 `;
 
 // ─── Buttons ──────────────────────────────────────────────────────────────────
@@ -358,8 +461,6 @@ export const CancelarButton = styled.button`
     background: ${p => p.theme.hover};
     border-color: ${p => p.theme.textSoft};
   }
-
-  @media (max-width: 480px) { width: 100%; }
 `;
 
 export const SalvarButton = styled.button`
@@ -380,8 +481,6 @@ export const SalvarButton = styled.button`
     transform: translateY(-2px);
     box-shadow: 0 6px 20px ${p => p.theme.primary}40;
   }
-
-  @media (max-width: 480px) { width: 100%; }
 `;
 
 export const SectionTitle = styled.h3`
@@ -417,6 +516,74 @@ export const AlterarSenhaButton = styled.button`
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   }
+
+  @media (max-width: 480px) {
+    font-size: 0.85rem;
+    padding: 0.75rem;
+  }
+`;
+
+// ─── Toggle Switch ────────────────────────────────────────────────────────────
+
+export const ToggleContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  flex-wrap: wrap;
+  gap: 1rem;
+`;
+
+export const ToggleInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
+export const ToggleLabel = styled.span`
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: ${p => p.theme.text};
+`;
+
+export const ToggleSwitch = styled.button`
+  width: 52px;
+  height: 28px;
+  border-radius: 34px;
+  background: ${p => p.$isDark 
+    ? 'linear-gradient(135deg, #4a5568, #2d3748)'
+    : 'linear-gradient(135deg, #fbbf24, #f59e0b)'
+  };
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  padding: 0;
+  flex-shrink: 0;
+
+  &:hover {
+    transform: scale(1.02);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+`;
+
+export const ToggleKnob = styled.div`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  position: absolute;
+  top: 2px;
+  left: ${p => p.$isDark ? '26px' : '2px'};
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 // ─── Loading ──────────────────────────────────────────────────────────────────
@@ -441,117 +608,8 @@ export const LoadingContainer = styled.div`
   p { color: ${p => p.theme.textSoft}; font-size: 0.9rem; margin: 0; }
 `;
 
-// ─── Modal (Excluir) ──────────────────────────────────────────────────────────
+// ─── Safe Area Bottom ─────────────────────────────────────────────────────────
 
-export const Modal = styled.div`
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-  animation: fadeIn 0.18s ease;
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+export const SafeAreaBottom = styled.div`
+  height: env(safe-area-inset-bottom, 0px);
 `;
-
-export const ModalContent = styled.div`
-  background: ${p => p.theme.surface};
-  border-radius: 1.25rem;
-  width: 100%;
-  max-width: 440px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-  border: 1px solid ${p => p.theme.border};
-  animation: slideUp 0.25s cubic-bezier(0.34,1.2,0.64,1);
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px) scale(0.97); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
-  }
-`;
-
-export const ModalHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 1.75rem;
-  border-bottom: 1px solid ${p => p.theme.border};
-
-  h2 {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: ${p => p.theme.text};
-    margin: 0;
-  }
-`;
-
-export const ModalBody = styled.div`
-  padding: 1.75rem;
-
-  p {
-    margin: 0 0 0.875rem;
-    color: ${p => p.theme.textSoft};
-    line-height: 1.6;
-    font-size: 0.9375rem;
-
-    &:last-child { margin-bottom: 0; }
-    &.warning {
-      color: ${p => p.theme.error};
-      font-weight: 600;
-      background: ${p => p.theme.error}10;
-      border: 1px solid ${p => p.theme.error}25;
-      border-radius: 0.75rem;
-      padding: 0.75rem 1rem;
-    }
-  }
-`;
-
-export const ModalFooter = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 1.25rem 1.75rem;
-  border-top: 1px solid ${p => p.theme.border};
-`;
-
-export const FecharButton = styled.button`
-  background: ${p => p.theme.hover};
-  border: none;
-  color: ${p => p.theme.textSoft};
-  font-size: 1.1rem;
-  cursor: pointer;
-  width: 32px; height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.18s;
-
-  &:hover {
-    background: ${p => p.theme.border};
-    color: ${p => p.theme.text};
-  }
-`;
-
-export const ConfirmarButton = styled.button`
-  padding: 0.7rem 1.5rem;
-  background: ${p => p.$danger ? p.theme.error : p.theme.primary};
-  border: none;
-  border-radius: 0.75rem;
-  color: #fff;
-  font-size: 0.9rem;
-  font-weight: 700;
-  cursor: ${p => p.disabled ? 'not-allowed' : 'pointer'};
-  opacity: ${p => p.disabled ? 0.6 : 1};
-  transition: all 0.18s ease;
-
-  &:hover:not(:disabled) {
-    filter: brightness(0.9);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-  }
-`;
-
-// ─── Legacy / unused exports (keep for compatibility) ─────────────────────────
-export const InputIcon = styled.span``;
-export const InputWithIcon = styled.input``;

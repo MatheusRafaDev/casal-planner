@@ -896,3 +896,70 @@ export const SortClearButton = styled.button`
     pointer-events: none;
   }
 `;
+// Adicione estes estilos ao seu arquivo CategoriaCardStyles.js
+
+export const ContextMenuContainer = styled.div`
+  position: fixed;
+  background: ${({ theme }) => theme.colors.surface};
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 8px 0;
+  min-width: 160px;
+  z-index: 1000;
+  animation: fadeInScale 0.15s ease-out;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+`;
+
+export const ContextMenuItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: ${({ theme, $danger }) => 
+    $danger ? theme.colors.error : theme.colors.text};
+  font-size: 14px;
+
+  &:hover {
+    background: ${({ theme, $danger }) => 
+      $danger ? `${theme.colors.error}18` : theme.colors.hover};
+  }
+
+  svg {
+    stroke-width: 1.5;
+  }
+`;
+
+// Adicione ao seu arquivo CategoriaCardStyles.js
+
+export const ItemActionsDesktop = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
+export const ItemActionsMobile = styled.div`
+  display: none;
+  align-items: center;
+  gap: 4px;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+`;

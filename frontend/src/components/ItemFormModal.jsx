@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { itensService } from '../services/itensService';
 import { useItemValidation } from '../hooks/useItemValidation';
@@ -23,7 +23,12 @@ import {
   CancelarButton,
   SalvarButton,
   ErrorMessage,
-  RowGrid
+  RowGrid,
+  QuantidadeWrapper,
+  QuantidadeButton,
+  QuantidadeInput,
+  TwoColumnGrid,
+  ScrollContent
 } from '../styles/components/ItemFormModalStyles';
 
 const DEFAULT_FORM_DATA = {
@@ -51,6 +56,7 @@ const ItemFormModal = ({
 }) => {
   const [formData, setFormData] = useState(DEFAULT_FORM_DATA);
   const [loading, setLoading] = useState(false);
+  const nomeInputRef = useRef(null);
 
   const {
     errors,
@@ -100,19 +106,28 @@ const ItemFormModal = ({
         resetPrice();
         resetValidation();
       }
+      
+      // Foco no input nome ao abrir
+      setTimeout(() => {
+        if (nomeInputRef.current) {
+          nomeInputRef.current.focus();
+        }
+      }, 100);
     }
   }, [isOpen, isEditing, itemParaEditar, categoriaId, resetValidation, setPrecoRaw, resetPrice]);
 
-  // Previne scroll do body quando o modal está aberto - SEM position fixed
+  // Previne scroll do body quando o modal está aberto
   useEffect(() => {
     if (!isOpen) return;
     
-    // Apenas bloqueia o scroll, mantém a posição
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
     
     return () => {
-      // Remove o bloqueio, a posição permanece a mesma
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     };
   }, [isOpen]);
 
@@ -157,8 +172,12 @@ const ItemFormModal = ({
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const finalValue = name === "quantidade" ? parseInt(value) || 1 : value;
-    handleFieldChange(name, finalValue);
+    handleFieldChange(name, value);
+  };
+
+  const handleQuantidadeChange = (delta) => {
+    const newQuantidade = Math.max(1, Math.min(999999, (formData.quantidade || 1) + delta));
+    handleFieldChange("quantidade", newQuantidade);
   };
 
   const handlePrecoChange = (e) => {
@@ -274,174 +293,203 @@ const ItemFormModal = ({
   };
 
   const modalContent = (
-    <Overlay theme={theme}>
-      <ModalContainer theme={theme}>
+    <Overlay theme={theme} onClick={handleClose}>
+      <ModalContainer theme={theme} onClick={(e) => e.stopPropagation()}>
         <SheetHandle theme={theme} />
         <Header theme={theme}>
           <h2>{isEditing ? '✏️ Editar Item' : '➕ Adicionar Item'}</h2>
-          <CloseButton onClick={handleClose} theme={theme}>✕</CloseButton>
+          <CloseButton onClick={handleClose} theme={theme} aria-label="Fechar">✕</CloseButton>
         </Header>
 
-        <Form onSubmit={handleSubmit}>
-          {formData.fotoUrl && (
-            <ImageContainer>
-              <Image 
-                src={formData.fotoUrl} 
-                alt={`Foto de ${formData.nome || 'item'}`}
-                theme={theme}
-                onError={handleImageError}
-              />
-            </ImageContainer>
-          )}
+        <ScrollContent>
+          <Form onSubmit={handleSubmit}>
+            {formData.fotoUrl && (
+              <ImageContainer>
+                <Image 
+                  src={formData.fotoUrl} 
+                  alt={`Foto de ${formData.nome || 'item'}`}
+                  theme={theme}
+                  onError={handleImageError}
+                />
+              </ImageContainer>
+            )}
 
-          <RowGrid>
+            {/* Nome do Item - Campo principal */}
             <FormGroup>
-              <Label theme={theme}>Nome *</Label>
+              <Label theme={theme}>Nome do item *</Label>
               <Input
+                ref={nomeInputRef}
                 type="text"
                 name="nome"
                 value={formData.nome || ""}
                 onChange={handleInputChange}
                 onBlur={() => handleBlur('nome', formData.nome)}
-                placeholder="Digite o nome do item"
-                autoFocus
+                placeholder="Ex: iPhone 15, Camisa Polo, Livro..."
                 theme={theme}
                 style={{ borderColor: errors.nome && touched.nome ? '#dc3545' : undefined }}
                 maxLength={100}
                 disabled={loading}
+                autoComplete="off"
               />
               {errors.nome && touched.nome && <ErrorMessage theme={theme}>{errors.nome}</ErrorMessage>}
             </FormGroup>
 
-            <FormGroup>
-              <Label theme={theme}>Marca</Label>
-              <Input
-                type="text"
-                name="marca"
-                value={formData.marca || ""}
-                onChange={handleInputChange}
-                onBlur={() => handleBlur('marca', formData.marca)}
-                placeholder="Digite a marca"
-                theme={theme}
-                style={{ borderColor: errors.marca && touched.marca ? '#dc3545' : undefined }}
-                maxLength={50}
-                disabled={loading}
-              />
-              {errors.marca && touched.marca && <ErrorMessage theme={theme}>{errors.marca}</ErrorMessage>}
-            </FormGroup>
-          </RowGrid>
+            {/* Marca e Preço */}
+            <TwoColumnGrid>
+              <FormGroup>
+                <Label theme={theme}>Marca</Label>
+                <Input
+                  type="text"
+                  name="marca"
+                  value={formData.marca || ""}
+                  onChange={handleInputChange}
+                  onBlur={() => handleBlur('marca', formData.marca)}
+                  placeholder="Ex: Apple, Nike, Amazon"
+                  theme={theme}
+                  maxLength={50}
+                  disabled={loading}
+                  autoComplete="off"
+                />
+                {errors.marca && touched.marca && <ErrorMessage theme={theme}>{errors.marca}</ErrorMessage>}
+              </FormGroup>
 
-          <RowGrid>
-            <FormGroup>
-              <Label theme={theme}>Preço *</Label>
-              <Input
-                type="text"
-                name="preco"
-                value={precoFormatado}
-                onChange={handlePrecoChange}
-                onBlur={handlePrecoBlur}
-                placeholder="0,00"
-                theme={theme}
-                style={{ borderColor: errors.preco && touched.preco ? '#dc3545' : undefined }}
-                disabled={loading}
-              />
-              {errors.preco && touched.preco && <ErrorMessage theme={theme}>{errors.preco}</ErrorMessage>}
-            </FormGroup>
+              <FormGroup>
+                <Label theme={theme}>Preço *</Label>
+                <Input
+                  type="tel"
+                  name="preco"
+                  value={precoFormatado}
+                  onChange={handlePrecoChange}
+                  onBlur={handlePrecoBlur}
+                  placeholder="R$ 0,00"
+                  theme={theme}
+                  style={{ borderColor: errors.preco && touched.preco ? '#dc3545' : undefined }}
+                  disabled={loading}
+                  inputMode="decimal"
+                />
+                {errors.preco && touched.preco && <ErrorMessage theme={theme}>{errors.preco}</ErrorMessage>}
+              </FormGroup>
+            </TwoColumnGrid>
 
+            {/* Quantidade com botões + e - */}
             <FormGroup>
               <Label theme={theme}>Quantidade</Label>
-              <Input
-                type="number"
-                name="quantidade"
-                value={formData.quantidade || 1}
-                onChange={handleInputChange}
-                onBlur={() => handleBlur('quantidade', formData.quantidade)}
-                min="1"
-                max="999999"
-                step="1"
-                theme={theme}
-                style={{ borderColor: errors.quantidade && touched.quantidade ? '#dc3545' : undefined }}
-                disabled={loading}
-              />
+              <QuantidadeWrapper>
+                <QuantidadeButton 
+                  type="button"
+                  onClick={() => handleQuantidadeChange(-1)}
+                  disabled={loading || formData.quantidade <= 1}
+                  theme={theme}
+                >
+                  −
+                </QuantidadeButton>
+                <QuantidadeInput
+                  type="number"
+                  name="quantidade"
+                  value={formData.quantidade || 1}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 1;
+                    handleFieldChange("quantidade", Math.max(1, Math.min(999999, val)));
+                  }}
+                  onBlur={() => handleBlur('quantidade', formData.quantidade)}
+                  min="1"
+                  max="999999"
+                  step="1"
+                  theme={theme}
+                  disabled={loading}
+                />
+                <QuantidadeButton 
+                  type="button"
+                  onClick={() => handleQuantidadeChange(1)}
+                  disabled={loading}
+                  theme={theme}
+                >
+                  +
+                </QuantidadeButton>
+              </QuantidadeWrapper>
               {errors.quantidade && touched.quantidade && <ErrorMessage theme={theme}>{errors.quantidade}</ErrorMessage>}
             </FormGroup>
-          </RowGrid>
 
-          <FormGroup>
-            <Label theme={theme}>Loja</Label>
-            <Input
-              type="text"
-              name="loja"
-              value={formData.loja || ""}
-              onChange={handleInputChange}
-              onBlur={() => handleBlur('loja', formData.loja)}
-              placeholder="Nome da loja"
+            {/* Loja */}
+            <FormGroup>
+              <Label theme={theme}>Loja</Label>
+              <Input
+                type="text"
+                name="loja"
+                value={formData.loja || ""}
+                onChange={handleInputChange}
+                onBlur={() => handleBlur('loja', formData.loja)}
+                placeholder="Onde comprou? Ex: Mercado Livre, Amazon, Shopee"
+                theme={theme}
+                maxLength={100}
+                disabled={loading}
+                autoComplete="off"
+              />
+              {errors.loja && touched.loja && <ErrorMessage theme={theme}>{errors.loja}</ErrorMessage>}
+            </FormGroup>
+
+            {/* Painel de Pesquisa */}
+            <PainelPesquisaPrecos
+              nome={formData.nome}
+              marca={formData.marca}
+              onSelectItem={handleSelectProductItem}
+              onSelectPrice={(price) => {
+                handleFieldChange("preco", price);
+                setPrecoRaw(price);
+              }}
               theme={theme}
-              style={{ borderColor: errors.loja && touched.loja ? '#dc3545' : undefined }}
-              maxLength={100}
-              disabled={loading}
             />
-            {errors.loja && touched.loja && <ErrorMessage theme={theme}>{errors.loja}</ErrorMessage>}
-          </FormGroup>
 
-          <PainelPesquisaPrecos
-            nome={formData.nome}
-            marca={formData.marca}
-            onSelectItem={handleSelectProductItem}
-            onSelectPrice={(price) => {
-              handleFieldChange("preco", price);
-              setPrecoRaw(price);
-            }}
-            theme={theme}
-          />
+            {/* Pagamento e Prioridade */}
+            <TwoColumnGrid>
+              <FormGroup>
+                <Label theme={theme}>Pagamento</Label>
+                <Select
+                  value={formData.pagamento || "normal"}
+                  onChange={(e) => handleFieldChange("pagamento", e.target.value)}
+                  theme={theme}
+                  disabled={loading}
+                >
+                  <option value="normal">💵 Normal</option>
+                  <option value="vr">🍽️ VR/VA</option>
+                </Select>
+              </FormGroup>
 
-          <RowGrid>
-            <FormGroup>
-              <Label theme={theme}>Pagamento</Label>
-              <Select
-                value={formData.pagamento || "normal"}
-                onChange={(e) => handleFieldChange("pagamento", e.target.value)}
+              <FormGroup>
+                <Label theme={theme}>Prioridade</Label>
+                <Select
+                  value={formData.prioridade || "normal"}
+                  onChange={(e) => handleFieldChange("prioridade", e.target.value)}
+                  theme={theme}
+                  disabled={loading}
+                >
+                  <option value="urgente">🔴 Urgente</option>
+                  <option value="normal">🟡 Normal</option>
+                  <option value="pode_esperar">🟢 Pode esperar</option>
+                </Select>
+              </FormGroup>
+            </TwoColumnGrid>
+
+            {/* Botões */}
+            <ModalButtons>
+              <CancelarButton 
+                type="button" 
+                onClick={handleClose} 
+                disabled={loading} 
                 theme={theme}
-                disabled={loading}
               >
-                <option value="normal">💵 Normal</option>
-                <option value="vr">🍽️ VR/VA</option>
-              </Select>
-            </FormGroup>
-
-            <FormGroup>
-              <Label theme={theme}>Prioridade</Label>
-              <Select
-                value={formData.prioridade || "normal"}
-                onChange={(e) => handleFieldChange("prioridade", e.target.value)}
+                Cancelar
+              </CancelarButton>
+              <SalvarButton 
+                type="submit" 
+                disabled={loading || !formData.nome?.trim()} 
                 theme={theme}
-                disabled={loading}
               >
-                <option value="urgente">🔴 Urgente</option>
-                <option value="normal">🟡 Normal</option>
-                <option value="pode_esperar">🟢 Pode esperar</option>
-              </Select>
-            </FormGroup>
-          </RowGrid>
-
-          <ModalButtons>
-            <CancelarButton 
-              type="button" 
-              onClick={handleClose} 
-              disabled={loading} 
-              theme={theme}
-            >
-              Cancelar
-            </CancelarButton>
-            <SalvarButton 
-              type="submit" 
-              disabled={loading || !formData.nome?.trim() || errors.nome} 
-              theme={theme}
-            >
-              {loading ? (isEditing ? 'Salvando...' : 'Adicionando...') : (isEditing ? 'Salvar Alterações' : 'Adicionar Item')}
-            </SalvarButton>
-          </ModalButtons>
-        </Form>
+                {loading ? (isEditing ? 'Salvando...' : 'Adicionando...') : (isEditing ? 'Salvar' : 'Adicionar')}
+              </SalvarButton>
+            </ModalButtons>
+          </Form>
+        </ScrollContent>
       </ModalContainer>
     </Overlay>
   );

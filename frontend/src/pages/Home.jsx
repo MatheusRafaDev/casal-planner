@@ -9,7 +9,6 @@ import {
   ChevronDown, Quote, Smartphone, Globe, Lock
 } from 'lucide-react';
 import styled, { keyframes, css } from 'styled-components';
-
 // ─── Animações ───────────────────────────────────────────────────────────────
 
 const fadeUp = keyframes`

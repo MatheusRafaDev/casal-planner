@@ -1,9 +1,9 @@
-// Perfil.js (parte modificada)
+// Perfil.js
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { Sun, Moon } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { useConfirm } from "../context/ConfirmContext"; // Importar o hook
+import { useConfirm } from "../context/ConfirmContext";
 import usuarioService from "../services/usuarioService";
 import {
   User, Heart, Lock, Trash2, Edit3, X, CheckCircle,
@@ -23,9 +23,13 @@ import {
   InfoContainer, InfoMembro, InfoRow, InfoGroup, Label, Valor, InfoGrid,
   RendaTotalCard, FormGroup, FormRow, Input, Small, FormActions,
   CancelarButton, SalvarButton, SectionTitle, AlterarSenhaButton,
-  LoadingSpinner, LoadingContainer, Modal, ModalContent, ModalHeader,
-  ModalBody, ModalFooter, FecharButton, ConfirmarButton, DataCriacao, Divider,
+  LoadingSpinner, LoadingContainer, DataCriacao, Divider,
+  ToggleContainer, ToggleInfo, ToggleLabel, ToggleSwitch, ToggleKnob,
+  SkeletonAvatar, SkeletonText, SkeletonLine, SkeletonCard, SkeletonBadge,
+  Shimmer
 } from "../styles/pages/PerfilStyles";
+
+import { useScrollRestoration } from "../hooks/useScrollRestoration";
 
 const InfoField = ({ label, value, icon: Icon, destaque, theme }) => (
   <InfoGroup>
@@ -39,7 +43,7 @@ const InfoField = ({ label, value, icon: Icon, destaque, theme }) => (
 const SenhaInput = ({ value, name, onChange, placeholder, theme }) => {
   const [show, setShow] = useState(false);
   return (
-    <div style={{ position: "relative" }}>
+    <div style={{ position: "relative", width: "100%" }}>
       <Input
         type={show ? "text" : "password"}
         name={name}
@@ -66,21 +70,93 @@ const SenhaInput = ({ value, name, onChange, placeholder, theme }) => {
   );
 };
 
+// Componente de Skeleton para o Perfil
+const PerfilSkeleton = ({ theme }) => {
+  return (
+    <PerfilContainer theme={theme}>
+      <Header theme={theme}>
+        <h1>Meu Perfil</h1>
+      </Header>
+
+      {/* Skeleton do Card Principal */}
+      <SkeletonCard theme={theme}>
+        <AvatarSection theme={theme}>
+          <SkeletonAvatar theme={theme} />
+          <UserInfo theme={theme}>
+            <SkeletonText width="180px" height="24px" theme={theme} />
+            <SkeletonText width="100px" height="16px" style={{ marginTop: "8px" }} theme={theme} />
+            <SkeletonBadge theme={theme} />
+          </UserInfo>
+        </AvatarSection>
+
+        <InfoContainer theme={theme}>
+          <InfoGrid>
+            {[...Array(5)].map((_, i) => (
+              <InfoGroup key={i}>
+                <SkeletonLine width="60px" height="12px" theme={theme} />
+                <SkeletonLine width="140px" height="20px" theme={theme} />
+              </InfoGroup>
+            ))}
+          </InfoGrid>
+          <DataCriacao theme={theme}>
+            <SkeletonLine width="160px" height="14px" theme={theme} />
+          </DataCriacao>
+        </InfoContainer>
+      </SkeletonCard>
+
+      {/* Skeleton do Card de Aparência */}
+      <SkeletonCard theme={theme}>
+        <SectionTitle theme={theme}>
+          <SkeletonLine width="20px" height="18px" theme={theme} />
+          <SkeletonLine width="80px" height="18px" theme={theme} />
+        </SectionTitle>
+        <ToggleContainer>
+          <ToggleInfo>
+            <SkeletonLine width="100px" height="20px" theme={theme} />
+          </ToggleInfo>
+          <SkeletonLine width="52px" height="28px" borderRadius="34px" theme={theme} />
+        </ToggleContainer>
+      </SkeletonCard>
+
+      {/* Skeleton do Card de Segurança */}
+      <SkeletonCard theme={theme}>
+        <SectionTitle theme={theme}>
+          <SkeletonLine width="20px" height="18px" theme={theme} />
+          <SkeletonLine width="80px" height="18px" theme={theme} />
+        </SectionTitle>
+        <AlterarSenhaButton as="div" style={{ background: theme.hover, cursor: "default" }} theme={theme}>
+          <SkeletonLine width="120px" height="16px" theme={theme} />
+        </AlterarSenhaButton>
+      </SkeletonCard>
+
+      {/* Skeleton do Card de Zona de Perigo */}
+      <SkeletonCard theme={theme}>
+        <SectionTitle theme={theme}>
+          <SkeletonLine width="20px" height="18px" theme={theme} />
+          <SkeletonLine width="100px" height="18px" theme={theme} />
+        </SectionTitle>
+        <AlterarSenhaButton as="div" $danger style={{ background: `${theme.error}10`, cursor: "default" }} theme={theme}>
+          <SkeletonLine width="200px" height="16px" theme={theme} />
+        </AlterarSenhaButton>
+      </SkeletonCard>
+    </PerfilContainer>
+  );
+};
+
 const Perfil = () => {
   const { theme, isDarkMode, toggleTheme } = useTheme();
-  const { usuario, atualizarUsuario, recarregarUsuario, logout, isCasal, pessoaQueLogou } = useAuth();
-  const { showConfirm } = useConfirm(); // Usar o contexto de confirmação
-
-  console.log("Dados do usuário no Perfil:", usuario);
+  const { usuario, atualizarUsuario, recarregarUsuario, logout, isCasal, pessoaQueLogou, loading: authLoading } = useAuth();
+  const { showConfirm } = useConfirm();
 
   const [editando, setEditando] = useState(false);
   const [editandoSenha, setEditandoSenha] = useState(false);
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
   const [loading, setLoading] = useState(false);
-  // Removido o estado mostrarModalExcluir pois vamos usar o ConfirmContext
+  const [isLoading, setIsLoading] = useState(true); // Estado para skeleton
 
-  // Dados do usuário logado (a pessoa que está usando o sistema)
+  const scrollRef = useScrollRestoration();
+
   const [meusDados, setMeusDados] = useState({
     nomeCompleto: "",
     email: "",
@@ -90,11 +166,9 @@ const Perfil = () => {
     rendaMensalValor: 0,
   });
 
-  // Para contas casal, armazenar dados do parceiro (apenas leitura)
   const [dadosParceiro, setDadosParceiro] = useState(null);
   const [senha, setSenha] = useState({ atual: "", nova: "", confirmar: "" });
 
-  // isCasal e pessoaQueLogou vêm do contexto (AuthContext)
   const pessoaLogada = pessoaQueLogou || "pessoa1";
   const isPessoa1 = pessoaLogada === "pessoa1";
 
@@ -103,14 +177,21 @@ const Perfil = () => {
     else { setMensagem(msg); setTimeout(() => setMensagem(""), 4000); }
   };
 
-  // Carregar dados do usuário logado
+  // Simular loading inicial
   useEffect(() => {
-    if (!usuario) return;
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800); // Tempo para mostrar o skeleton
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!usuario || isLoading) return;
 
     if (isCasal) {
       const casalInfo = usuario.casalInfo || {};
       
-      // Dados da pessoa logada (pode editar)
       if (isPessoa1) {
         setMeusDados({
           nomeCompleto: casalInfo.nomeCompletoPessoa1 || "",
@@ -121,7 +202,6 @@ const Perfil = () => {
           rendaMensalValor: parseFloat(casalInfo.rendaMensalPessoa1 || 0),
         });
         
-        // Dados do parceiro (apenas leitura)
         setDadosParceiro({
           nomeCompleto: casalInfo.nomeCompletoPessoa2 || "",
           email: casalInfo.emailPessoa2 || "",
@@ -131,7 +211,6 @@ const Perfil = () => {
           rendaMensalValor: parseFloat(casalInfo.rendaMensalPessoa2 || 0),
         });
       } else {
-        // Pessoa 2 logada
         setMeusDados({
           nomeCompleto: casalInfo.nomeCompletoPessoa2 || "",
           email: casalInfo.emailPessoa2 || usuario.email || "",
@@ -141,7 +220,6 @@ const Perfil = () => {
           rendaMensalValor: parseFloat(casalInfo.rendaMensalPessoa2 || 0),
         });
         
-        // Dados do parceiro (apenas leitura)
         setDadosParceiro({
           nomeCompleto: casalInfo.nomeCompletoPessoa1 || "",
           email: casalInfo.emailPessoa1 || "",
@@ -152,7 +230,6 @@ const Perfil = () => {
         });
       }
     } else {
-      // Conta individual
       setMeusDados({
         nomeCompleto: usuario.nomeCompleto || "",
         email: usuario.email || "",
@@ -163,7 +240,7 @@ const Perfil = () => {
       });
       setDadosParceiro(null);
     }
-  }, [usuario, isCasal, isPessoa1]);
+  }, [usuario, isCasal, isPessoa1, isLoading]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -185,7 +262,6 @@ const Perfil = () => {
   };
 
   const handleCancelar = () => {
-    // Recarregar dados originais
     if (isCasal) {
       const casalInfo = usuario.casalInfo || {};
       if (isPessoa1) {
@@ -208,7 +284,6 @@ const Perfil = () => {
         });
       }
     } else {
-      console.log(usuario)
       setMeusDados({
         nomeCompleto: usuario.nomeCompleto || "",
         email: usuario.email || "",
@@ -245,7 +320,6 @@ const Perfil = () => {
     setLoading(true);
     try {
       if (isCasal) {
-        // Atualizar apenas os dados da pessoa logada
         const dados = isPessoa1 ? {
           nomeCompletoPessoa1: meusDados.nomeCompleto,
           dataNascimentoPessoa1: meusDados.dataNascimento ? converterDataBRparaISO(meusDados.dataNascimento) : null,
@@ -259,11 +333,8 @@ const Perfil = () => {
         };
         
         await usuarioService.atualizarPerfilCasal(usuario.id, dados);
-        
-        // Recarrega dados frescos do servidor para manter consistência
         await recarregarUsuario();
       } else {
-        // Conta individual
         const dados = {
           nomeCompleto: meusDados.nomeCompleto,
           dataNascimento: meusDados.dataNascimento ? converterDataBRparaISO(meusDados.dataNascimento) : null,
@@ -306,9 +377,7 @@ const Perfil = () => {
     }
   };
 
-  // Função modificada para usar o ConfirmContext
   const handleExcluirConta = () => {
-    // Mensagem personalizada para conta casal
     const mensagem = isCasal
       ? "⚠️ ATENÇÃO: Isso excluirá TODA a conta do casal, incluindo todos os dados de ambas as pessoas. Esta ação é PERMANENTE e não pode ser desfeita!"
       : "⚠️ ATENÇÃO: Esta ação é PERMANENTE e não pode ser desfeita! Todos os seus dados serão excluídos.";
@@ -318,7 +387,7 @@ const Perfil = () => {
       itemName: meusDados.nomeCompleto,
       itemType: 'conta',
       message: mensagem,
-      isDanger: true, // Para estilização diferente no modal
+      isDanger: true,
       confirmText: 'Sim, excluir minha conta',
       cancelText: 'Cancelar',
       onConfirm: async () => {
@@ -343,21 +412,15 @@ const Perfil = () => {
   };
 
   const getInitials = () => {
-    console.log(meusDados)
     if (!meusDados.nomeCompleto) return "?";
     const parts = meusDados.nomeCompleto.trim().split(' ');
     if (parts.length === 1) return parts[0][0].toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
-  if (!usuario) {
-    return (
-      <PerfilContainer theme={theme}>
-        <PerfilCard theme={theme}>
-          <p>Usuário não encontrado. Faça login novamente.</p>
-        </PerfilCard>
-      </PerfilContainer>
-    );
+  // Mostrar skeleton enquanto carrega
+  if (isLoading || authLoading || !usuario) {
+    return <PerfilSkeleton theme={theme} />;
   }
 
   return (
@@ -390,11 +453,6 @@ const Perfil = () => {
           </Avatar>
           <UserInfo theme={theme}>
             <h2>{meusDados.nomeCompleto || "Usuário"}</h2>
-            <p>
-              {isCasal
-                ? `Conta Casal · ${isPessoa1 ? "Pessoa 1" : "Pessoa 2"}`
-                : "Conta Individual"}
-            </p>
             <TypeBadge theme={theme}>
               {isCasal ? <><Heart size={11} /> Casal</> : <><User size={11} /> Individual</>}
             </TypeBadge>
@@ -403,7 +461,6 @@ const Perfil = () => {
 
         <InfoContainer theme={theme}>
           {!editando ? (
-            // Modo visualização
             <>
               <InfoGrid>
                 <InfoField label="Nome completo" value={meusDados.nomeCompleto} theme={theme} />
@@ -413,7 +470,6 @@ const Perfil = () => {
                 <InfoField label="Renda mensal" value={formatarMoeda(meusDados.rendaMensalValor)} destaque theme={theme} />
               </InfoGrid>
 
-              {/* Mostrar dados do parceiro se for conta casal */}
               {isCasal && dadosParceiro && (
                 <>
                   <Divider theme={theme} />
@@ -448,7 +504,6 @@ const Perfil = () => {
               </DataCriacao>
             </>
           ) : (
-            // Modo edição - apenas os dados do usuário logado
             <>
               <FormGroup>
                 <Label theme={theme}>Nome completo *</Label>
@@ -467,7 +522,7 @@ const Perfil = () => {
                   type="email" 
                   value={meusDados.email} 
                   theme={theme} 
-                  maxLength="30" 
+                  disabled
                 />
               </FormGroup>
               
@@ -523,15 +578,35 @@ const Perfil = () => {
         </InfoContainer>
       </PerfilCard>
 
-      {/* Aparência */}
+      {/* Aparência - Versão com Toggle Switch */}
       {!editando && !editandoSenha && (
         <PerfilCard theme={theme}>
-          <SectionTitle theme={theme}>{isDarkMode ? <Moon size={16} /> : <Sun size={16} />} Aparência</SectionTitle>
-          <AlterarSenhaButton onClick={toggleTheme} theme={theme}>
-            {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
-            {isDarkMode ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
-            <ChevronRight size={16} style={{ marginLeft: 'auto' }} />
-          </AlterarSenhaButton>
+          <SectionTitle theme={theme}>
+            {isDarkMode ? <Moon size={18} /> : <Sun size={18} />} 
+            Aparência
+          </SectionTitle>
+          
+          <ToggleContainer>
+            <ToggleInfo>
+              <ToggleLabel theme={theme}>
+                {isDarkMode ? 'Modo escuro' : 'Modo claro'}
+              </ToggleLabel>
+            </ToggleInfo>
+            
+            <ToggleSwitch
+              onClick={toggleTheme}
+              $isDark={isDarkMode}
+              aria-label={isDarkMode ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
+            >
+              <ToggleKnob $isDark={isDarkMode}>
+                {isDarkMode ? (
+                  <Moon size={12} color="#4a5568" />
+                ) : (
+                  <Sun size={12} color="#f59e0b" />
+                )}
+              </ToggleKnob>
+            </ToggleSwitch>
+          </ToggleContainer>
         </PerfilCard>
       )}
 
@@ -600,7 +675,7 @@ const Perfil = () => {
         </PerfilCard>
       )}
 
-      {/* Zona de Perigo - usando o ConfirmContext */}
+      {/* Zona de Perigo */}
       {!editando && !editandoSenha && (
         <PerfilCard theme={theme}>
           <SectionTitle theme={theme}><AlertCircle size={16} /> Zona de Perigo</SectionTitle>
@@ -610,8 +685,6 @@ const Perfil = () => {
           </AlterarSenhaButton>
         </PerfilCard>
       )}
-
-      {/* Removeu o modal de exclusão local, pois agora usa o ConfirmContext */}
     </PerfilContainer>
   );
 };

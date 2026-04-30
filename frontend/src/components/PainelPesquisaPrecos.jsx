@@ -19,13 +19,182 @@ const IconExternal = () => (
   </svg>
 );
 
+const IconChevronLeft = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="15 18 9 12 15 6" />
+  </svg>
+);
+
+const IconChevronRight = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+);
+
 // ---------- API ----------
 const buscarPrecos = async (query, signal) => {
   const { data } = await api.get(`/PesquisaPrecos?q=${encodeURIComponent(query)}`, { signal });
   return data?.produtos || [];
 };
 
-// ---------- Component ----------
+// ---------- Componente de Imagem com Zoom ----------
+const ProductImageViewer = ({ imageUrl, productName, onClose }) => {
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
+
+  return (
+    <S.ImageModalOverlay onClick={onClose}>
+      <S.ImageModalContent onClick={(e) => e.stopPropagation()}>
+        <S.ImageModalClose onClick={onClose}>✕</S.ImageModalClose>
+        <S.ImageModalImg src={imageUrl} alt={productName} />
+        <S.ImageModalCaption>{productName}</S.ImageModalCaption>
+      </S.ImageModalContent>
+    </S.ImageModalOverlay>
+  );
+};
+
+// ---------- Componente de Produto com Imagem ----------
+const ProductItem = ({ item, isSelected, onSelect }) => {
+  const [imageError, setImageError] = useState(false);
+  const [showZoom, setShowZoom] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Array de imagens (pode ter múltiplas no futuro)
+  const images = item.imagem ? [item.imagem] : [];
+  const hasImage = images.length > 0 && !imageError;
+
+  const handleImageClick = (e) => {
+    e.stopPropagation();
+    if (hasImage) {
+      setShowZoom(true);
+    }
+  };
+
+  const handleNextImage = (e) => {
+    e.stopPropagation();
+    if (images.length > 1) {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    }
+  };
+
+  const handlePrevImage = (e) => {
+    e.stopPropagation();
+    if (images.length > 1) {
+      setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    }
+  };
+
+  const isMarketplace = item.is_marketplace;
+
+  return (
+    <>
+      <S.ProductItem
+        onClick={() => onSelect(item)}
+        $selected={isSelected}
+        $isMarketplace={isMarketplace}
+      >
+        {/* Área da Imagem com hover effect */}
+        <S.ProductImageContainer
+          $hasImage={hasImage}
+          onClick={handleImageClick}
+        >
+          {hasImage ? (
+            <>
+              <S.ProductImage 
+                src={images[currentImageIndex]} 
+                alt={item.nome}
+                onError={() => setImageError(true)}
+                loading="lazy"
+              />
+              {images.length > 1 && (
+                <>
+                  <S.ImageNavPrev onClick={handlePrevImage}>
+                    <IconChevronLeft />
+                  </S.ImageNavPrev>
+                  <S.ImageNavNext onClick={handleNextImage}>
+                    <IconChevronRight />
+                  </S.ImageNavNext>
+                </>
+              )}
+              <S.ImageZoomHint>
+                🔍 Clique para ampliar
+              </S.ImageZoomHint>
+            </>
+          ) : (
+            <S.ProductImagePlaceholder>
+              <span>🛒</span>
+            </S.ProductImagePlaceholder>
+          )}
+        </S.ProductImageContainer>
+
+        <S.ProductInfo>
+          <S.ProductTitle>{item.nome}</S.ProductTitle>
+
+          <S.StoreInfo>
+            <S.StoreName>{item.loja}</S.StoreName>
+
+            {isMarketplace && <S.MarketplaceBadge>🛍️ Marketplace</S.MarketplaceBadge>}
+            {item.is_trusted && !isMarketplace && <S.TrustBadge>✓ Oficial</S.TrustBadge>}
+          </S.StoreInfo>
+
+          {item.marca && (
+            <S.BrandInfo>
+              {item.marca}
+            </S.BrandInfo>
+          )}
+
+          {/* Avaliação (simulada) */}
+          {item.avaliacao && (
+            <S.RatingInfo>
+              ⭐ {item.avaliacao} • {item.vendas || 0}+ vendidos
+            </S.RatingInfo>
+          )}
+        </S.ProductInfo>
+
+        <S.ProductMeta>
+          <S.PriceValue $selected={isSelected}>
+            {formatarValorParaExibicao(item.preco)}
+          </S.PriceValue>
+          {item.precoAntigo && (
+            <S.OldPrice>
+              {formatarValorParaExibicao(item.precoAntigo)}
+            </S.OldPrice>
+          )}
+          {item.parcelamento && (
+            <S.InstallmentInfo>
+              até {item.parcelamento}x sem juros
+            </S.InstallmentInfo>
+          )}
+        </S.ProductMeta>
+
+        <S.LinkButton
+          href={item.link}
+          target="_blank"
+          onClick={(e) => e.stopPropagation()}
+          title="Abrir página do produto"
+        >
+          <IconExternal />
+        </S.LinkButton>
+      </S.ProductItem>
+
+      {/* Modal de Zoom da Imagem */}
+      {showZoom && hasImage && (
+        <ProductImageViewer
+          imageUrl={images[currentImageIndex]}
+          productName={item.nome}
+          onClose={() => setShowZoom(false)}
+        />
+      )}
+    </>
+  );
+};
+
+// ---------- Componente Principal ----------
 const PainelPesquisaPrecos = ({
   nome = '',
   marca = '',
@@ -48,7 +217,6 @@ const PainelPesquisaPrecos = ({
   const handleSearch = useCallback(async () => {
     if (!query) return;
 
-    // Cancela request anterior
     if (abortRef.current) abortRef.current.abort();
     abortRef.current = new AbortController();
 
@@ -94,7 +262,6 @@ const PainelPesquisaPrecos = ({
       setExpanded(false);
       isSelectingRef.current = false;
     }, 200);
-
   }, [onSelectItem, onSelectPrice]);
 
   // ---------- Shortcuts ----------
@@ -149,15 +316,29 @@ const PainelPesquisaPrecos = ({
     <S.Wrapper>
       <S.Panel>
         <S.PanelHeader>
-          <S.Title>🔍 Pesquisar preços</S.Title>
+          <S.Title>
+            🔍 Pesquisar preços
+            {results.length > 0 && <S.ResultCount>{results.length} produtos</S.ResultCount>}
+          </S.Title>
           <S.CloseButton onClick={() => setExpanded(false)}>✕</S.CloseButton>
         </S.PanelHeader>
 
         <S.PanelBody>
           <S.SearchSection>
-            <S.SearchInput value={query} disabled />
+            <S.SearchInput 
+              value={query} 
+              disabled 
+              placeholder="Produto buscado..."
+            />
             <S.SearchButton onClick={handleSearch} disabled={loading}>
-              {loading ? 'Buscando...' : 'Buscar'}
+              {loading ? (
+                <>
+                  <S.LoadingSpinnerSmall />
+                  Buscando...
+                </>
+              ) : (
+                'Buscar novamente'
+              )}
             </S.SearchButton>
           </S.SearchSection>
 
@@ -191,56 +372,14 @@ const PainelPesquisaPrecos = ({
               </S.StatsGrid>
 
               <S.ProductsList>
-                {results.map((item) => {
-                  const isSelected = selectedItemId === item.id;
-                  const isMarketplace = item.is_marketplace;
-
-                  return (
-                    <S.ProductItem
-                      key={item.id}
-                      onClick={() => handleSelect(item)}
-                      $selected={isSelected}
-                      $isMarketplace={isMarketplace}
-                    >
-                      <S.ProductImage>
-                        {item.imagem ? (
-                          <img src={item.imagem} alt={item.nome} />
-                        ) : '🛒'}
-                      </S.ProductImage>
-
-                      <S.ProductInfo>
-                        <S.ProductTitle>{item.nome}</S.ProductTitle>
-
-                        <S.StoreInfo>
-                          <S.StoreName>{item.loja}</S.StoreName>
-
-                          {isMarketplace && <S.MarketplaceBadge>🛍️ Marketplace</S.MarketplaceBadge>}
-                          {item.is_trusted && !isMarketplace && <S.TrustBadge>✓ Oficial</S.TrustBadge>}
-                        </S.StoreInfo>
-
-                        {item.marca && (
-                          <S.BrandInfo>
-                            🏷️ {item.marca}
-                          </S.BrandInfo>
-                        )}
-                      </S.ProductInfo>
-
-                      <S.ProductMeta>
-                        <S.PriceValue $selected={isSelected}>
-                          {formatarValorParaExibicao(item.preco)}
-                        </S.PriceValue>
-                      </S.ProductMeta>
-
-                      <S.LinkButton
-                        href={item.link}
-                        target="_blank"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <IconExternal />
-                      </S.LinkButton>
-                    </S.ProductItem>
-                  );
-                })}
+                {results.map((item) => (
+                  <ProductItem
+                    key={item.id}
+                    item={item}
+                    isSelected={selectedItemId === item.id}
+                    onSelect={handleSelect}
+                  />
+                ))}
               </S.ProductsList>
             </>
           )}

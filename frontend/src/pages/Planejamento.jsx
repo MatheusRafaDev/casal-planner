@@ -17,6 +17,7 @@ import ItemFormModal from "../components/ItemFormModal";
 import { categoriasService } from "../services/categoriasService";
 import { itensService } from "../services/itensService";
 import resumoService from "../services/resumoService";
+import { useScrollRestoration } from "../hooks/useScrollRestoration";
 
 import {
   PlanejamentoContainer,
@@ -88,7 +89,7 @@ const Planejamento = () => {
   const [formData, setFormData] = useState(FORM_DATA_VAZIO);
 
   const draggedItemIdRef = useRef(null);
-  const scrollRef = useRef(0);
+  const scrollRef = useScrollRestoration();
 
   // ---------- Load ----------
   const loadData = useCallback(async () => {
