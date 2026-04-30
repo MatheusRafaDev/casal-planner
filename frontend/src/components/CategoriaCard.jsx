@@ -1,4 +1,4 @@
-// CategoriaCard.jsx — com filtro por data corrigido
+// CategoriaCard.jsx — com filtro por data e limpar ordenação
 
 import React, { useState, useMemo, useCallback, memo } from "react";
 import {
@@ -364,7 +364,6 @@ const CategoriaCard = ({
       sorted.sort((a, b) => {
         const dataA = new Date(a.createdAt || 0);
         const dataB = new Date(b.createdAt || 0);
-        // Asc = mais antigo primeiro, Desc = mais recente primeiro
         return sortOrder === "asc" ? dataA - dataB : dataB - dataA;
       });
     }
@@ -413,6 +412,16 @@ const CategoriaCard = ({
     },
     [isLoading, isSaving],
   );
+
+  // FUNÇÃO PARA LIMPAR ORDENAÇÃO
+  const handleClearSort = useCallback(() => {
+    if (isLoading || isSaving) return;
+    setSortBy("preco");
+    setSortOrder("asc");
+  }, [isLoading, isSaving]);
+
+  // Verifica se há ordenação ativa (diferente do padrão)
+  const hasActiveSort = sortBy !== "preco" || sortOrder !== "asc";
 
   const handleAddItem = useCallback(async () => {
     if (isLoading || isSaving) return;
@@ -615,6 +624,19 @@ const CategoriaCard = ({
                     </S.SortButton>
                   ))}
                 </S.SortButtonsGroup>
+
+                {/* BOTÃO LIMPAR ORDENAÇÃO - aparece quando há ordenação ativa */}
+                {hasActiveSort && (
+                  <S.SortClearButton
+                    onClick={handleClearSort}
+                    disabled={disabled}
+                    theme={theme}
+                    title="Resetar para ordenação padrão (Preço crescente)"
+                  >
+                    <X size={12} />
+                    Limpar
+                  </S.SortClearButton>
+                )}
               </S.SortBar>
             )}
 

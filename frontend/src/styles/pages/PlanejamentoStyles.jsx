@@ -346,3 +346,31 @@ export const SkeletonWelcomeSection = styled.div`
     animation: ${skeletonPulse} 1.5s ease-in-out infinite;
   }
 `;
+
+// Adicione no final da seção SORT (antes dos outros componentes)
+export const SortClearButton = styled.button`
+  font-size: 0.7rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid ${props => props.theme?.border || "#e5e7eb"};
+  background: ${props => props.theme?.surface || "#f8fafc"};
+  color: ${props => props.theme?.textSoft || "#666"};
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+
+  &:hover {
+    background: ${props => props.theme?.border || "#e5e7eb"};
+    color: ${props => props.theme?.text || "#111"};
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+`;
