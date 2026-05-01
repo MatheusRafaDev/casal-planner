@@ -130,8 +130,6 @@ const GlobalStyle = createGlobalStyle`
     to   { transform: translateY(0);    opacity: 1; }
   }
 
-  .fade-in  { animation: fadeIn  0.3s ease; }
-  .slide-up { animation: slideUp 0.3s ease; }
 `;
 
 export default GlobalStyle;

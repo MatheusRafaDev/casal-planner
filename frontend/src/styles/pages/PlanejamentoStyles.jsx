@@ -18,12 +18,11 @@ export const skeletonPulse = keyframes`
   50%       { opacity: 0.5; }
 `;
 
-// Container principal
+// Container principal — SEM animation aqui, era a causa do scroll reset
 export const PlanejamentoContainer = styled.div`
   min-height: 100vh;
   min-height: 100dvh;
   background: ${props => props.theme?.background || "#f8fafc"};
-  animation: ${fadeUp} 0.4s ease both;
   padding: 1rem;
 
   @media (max-width: 768px) {
@@ -347,7 +346,6 @@ export const SkeletonWelcomeSection = styled.div`
   }
 `;
 
-// Adicione no final da seção SORT (antes dos outros componentes)
 export const SortClearButton = styled.button`
   font-size: 0.7rem;
   padding: 0.3rem 0.6rem;

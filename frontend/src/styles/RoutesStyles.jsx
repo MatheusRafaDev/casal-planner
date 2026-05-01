@@ -15,7 +15,6 @@ export const LoadingScreen = styled.div`
 export const PageWrapper = styled.div`
   width: 100%;
   height: 100%;
-  animation: fadeSlide 0.25s ease;
 
   @keyframes fadeSlide {
     from { opacity: 0; transform: translateY(8px); }
@@ -54,7 +53,7 @@ export const MainContent = styled.main`
 export const PageTransition = styled.div`
   width: 100%;
   height: 100%;
-  animation: fadeSlide 0.25s ease;
+
 
   @keyframes fadeSlide {
     from { opacity: 0; transform: translateY(8px); }

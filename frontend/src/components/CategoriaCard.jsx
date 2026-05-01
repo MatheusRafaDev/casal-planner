@@ -1,5 +1,4 @@
-// CategoriaCard.jsx — com filtro por data, limpar ordenação e menu de contexto para mobile
-
+// CategoriaCard.jsx — versão final com menu corrigido e scroll preservado
 import React, { useState, useMemo, useCallback, memo, useRef, useEffect } from "react";
 import {
   Plus,
@@ -26,7 +25,7 @@ import { formatarMoeda, getPaymentIcon } from "../utils/formatters";
 import storeLogoService from "../services/storeLogoService";
 import * as S from "../styles/components/CategoriaCardStyles";
 
-// Detecta se é dispositivo móvel (iOS/Android)
+// Detecta se é dispositivo móvel
 const isMobileDevice = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
@@ -55,7 +54,6 @@ const PRIORIDADE_CONFIG = {
   },
 };
 
-// Filtros de data
 const DATA_FILTROS = {
   todos: { label: "Todos", emoji: "📅", dias: null },
   hoje: { label: "Hoje", emoji: "🌅", dias: 0 },
@@ -92,130 +90,214 @@ const isAddedToday = (createdAt) => {
   return added.getTime() === today.getTime();
 };
 
-// Componente de Menu de Contexto para Mobile
-const ContextMenu = memo(({ x, y, item, onClose, onEdit, onDelete, onOpenLink }) => {
+// ─── MenuItem ───────────────────────────────────────────────────────────────
+const MenuItem = memo(({ icon: Icon, label, onClick, color, hoverBg, theme }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        padding: "12px 16px",
+        cursor: "pointer",
+        transition: "background 0.2s ease",
+        background: isHovered ? hoverBg : "transparent",
+        color: color,
+        fontSize: "14px",
+        fontWeight: 500,
+        whiteSpace: "nowrap",
+      }}
+    >
+      <Icon size={16} />
+      <span>{label}</span>
+    </div>
+  );
+});
+
+// ─── ContextMenu ─────────────────────────────────────────────────────────────
+const ContextMenu = memo(({ anchorRef, item, onClose, onEdit, onDelete, onOpenLink, theme }) => {
   const menuRef = useRef(null);
+  const [position, setPosition] = useState({ x: -9999, y: -9999 });
+  const [isVisible, setIsVisible] = useState(false);
+
+  const calculatePosition = useCallback(() => {
+    if (!anchorRef?.current || !menuRef.current) return;
+
+    const anchorRect = anchorRef.current.getBoundingClientRect();
+    const menuRect = menuRef.current.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const spacing = 8;
+    const edgePadding = 8;
+
+    let x = anchorRect.right + spacing;
+    let y = anchorRect.top;
+
+    if (x + menuRect.width > viewportWidth - edgePadding) {
+      x = anchorRect.left - menuRect.width - spacing;
+    }
+
+    if (y + menuRect.height > viewportHeight - edgePadding) {
+      y = viewportHeight - menuRect.height - edgePadding;
+    }
+
+    if (y < edgePadding) {
+      y = anchorRect.bottom + spacing;
+    }
+
+    x = Math.max(edgePadding, Math.min(x, viewportWidth - menuRect.width - edgePadding));
+    y = Math.max(edgePadding, y);
+
+    setPosition({ x, y });
+  }, [anchorRef]);
 
   useEffect(() => {
+    if (!anchorRef?.current) return;
+
+    const timer = setTimeout(() => {
+      calculatePosition();
+      setIsVisible(true);
+    }, 10);
+
+    return () => clearTimeout(timer);
+  }, [anchorRef, calculatePosition]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const handleScroll = () => calculatePosition();
+    const handleResize = () => calculatePosition();
+
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [isVisible, calculatePosition]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
     const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(e.target) &&
+        anchorRef?.current &&
+        !anchorRef.current.contains(e.target)
+      ) {
         onClose();
       }
     };
 
     const handleEscape = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
-    
+    const timer = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
+    }, 0);
+
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
+      clearTimeout(timer);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
     };
-  }, [onClose]);
+  }, [isVisible, onClose, anchorRef]);
 
-  // Ajustar posição para não sair da tela
-  const adjustedX = Math.min(x, window.innerWidth - 200);
-  const adjustedY = Math.min(y, window.innerHeight - (item.linkProduto ? 200 : 160));
+  const isDark = theme?.mode === "dark" || theme?.background === "#1a1a2e";
+  const isMobile = useRef(isMobileDevice());
+
+  const colors = {
+    background: isDark ? "#2d2d3a" : (theme?.surface || "#ffffff"),
+    border: isDark ? "#4a4a5a" : (theme?.border || "#e5e7eb"),
+    text: isDark ? "#e5e5e5" : (theme?.text || "#374151"),
+    textSecondary: isDark ? "#9ca3af" : "#6b7280",
+    hover: isDark ? "#3d3d4a" : (theme?.border || "#f3f4f6"),
+    danger: "#ef4444",
+    dangerHover: isDark ? "#ef444428" : "#ef444418",
+    divider: isDark ? "#40404f" : "#e5e7eb",
+  };
+
+  const menuItems = [
+    {
+      icon: Pencil,
+      label: "Editar item",
+      onClick: () => { onEdit(); onClose(); },
+      color: colors.text,
+      hoverBg: colors.hover,
+    },
+    {
+      icon: Trash2,
+      label: "Excluir item",
+      onClick: () => { onDelete(); onClose(); },
+      color: colors.danger,
+      hoverBg: colors.dangerHover,
+    },
+  ];
+
+  if (item.linkProduto) {
+    menuItems.push({
+      icon: ExternalLink,
+      label: "Abrir link",
+      onClick: () => { onOpenLink(); onClose(); },
+      color: colors.text,
+      hoverBg: colors.hover,
+    });
+  }
 
   return (
     <div
       ref={menuRef}
       style={{
-        position: 'fixed',
-        top: adjustedY,
-        left: adjustedX,
-        background: '#ffffff',
-        borderRadius: '12px',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-        padding: '8px 0',
-        minWidth: '160px',
-        zIndex: 1000,
-        animation: 'fadeInScale 0.15s ease-out',
-        border: '1px solid #e5e7eb',
+        position: "fixed",
+        top: position.y,
+        left: position.x,
+        zIndex: 10000,
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? "scale(1)" : "scale(0.95)",
+        transition: "opacity 0.15s ease-out, transform 0.15s ease-out",
+        visibility: position.x !== -9999 ? "visible" : "hidden",
       }}
-      onClick={(e) => e.stopPropagation()}
     >
-      <style>
-        {`
-          @keyframes fadeInScale {
-            from {
-              opacity: 0;
-              transform: scale(0.95);
-            }
-            to {
-              opacity: 1;
-              transform: scale(1);
-            }
-          }
-        `}
-      </style>
-      
       <div
-        onClick={() => { onEdit(); onClose(); }}
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '10px 16px',
-          cursor: 'pointer',
-          transition: 'background 0.2s',
-          color: '#374151',
-          fontSize: '14px',
+          background: colors.background,
+          borderRadius: "12px",
+          boxShadow: "0 4px 24px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05)",
+          padding: "8px 0",
+          minWidth: isMobile.current ? "180px" : "160px",
+          maxWidth: "280px",
+          overflow: "hidden",
         }}
-        onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4f6'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+        onClick={(e) => e.stopPropagation()}
       >
-        <Pencil size={16} />
-        Editar item
+        {menuItems.map((menuItem) => (
+          <MenuItem
+            key={menuItem.label}
+            icon={menuItem.icon}
+            label={menuItem.label}
+            onClick={menuItem.onClick}
+            color={menuItem.color}
+            hoverBg={menuItem.hoverBg}
+            theme={theme}
+          />
+        ))}
       </div>
-      
-      <div
-        onClick={() => { onDelete(); onClose(); }}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '10px 16px',
-          cursor: 'pointer',
-          transition: 'background 0.2s',
-          color: '#ef4444',
-          fontSize: '14px',
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.background = '#ef444418'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-      >
-        <Trash2 size={16} />
-        Excluir item
-      </div>
-      
-      {item.linkProduto && (
-        <div
-          onClick={() => { onOpenLink(); onClose(); }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '10px 16px',
-            cursor: 'pointer',
-            transition: 'background 0.2s',
-            color: '#374151',
-            fontSize: '14px',
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4f6'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-        >
-          <ExternalLink size={16} />
-          Abrir link
-        </div>
-      )}
     </div>
   );
 });
 
-// StoreLogo — síncrono, sem loading state
+// ─── StoreLogo ───────────────────────────────────────────────────────────────
 const StoreLogo = memo(({ storeName, size = "small" }) => {
   const [error, setError] = useState(false);
   const iconSize = size === "small" ? 12 : 16;
@@ -228,10 +310,7 @@ const StoreLogo = memo(({ storeName, size = "small" }) => {
     );
   }
 
-  const logoUrl = storeLogoService.getLogoUrl(
-    storeName,
-    size === "small" ? 16 : 32,
-  );
+  const logoUrl = storeLogoService.getLogoUrl(storeName, size === "small" ? 16 : 32);
 
   return (
     <S.StoreLogoImage
@@ -244,7 +323,7 @@ const StoreLogo = memo(({ storeName, size = "small" }) => {
   );
 });
 
-// Item individual memoizado com suporte condicional
+// ─── ItemCard ─────────────────────────────────────────────────────────────────
 const ItemCard = memo(
   ({
     item,
@@ -258,13 +337,11 @@ const ItemCard = memo(
     onDragEnd,
     theme,
   }) => {
-    const [contextMenu, setContextMenu] = useState(null);
-    const longPressTimer = useRef(null);
-    const isLongPress = useRef(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuButtonRef = useRef(null);
     const isMobile = useRef(isMobileDevice());
 
-    const prioridadeConfig =
-      PRIORIDADE_CONFIG[item.prioridade] || PRIORIDADE_CONFIG.normal;
+    const prioridadeConfig = PRIORIDADE_CONFIG[item.prioridade] || PRIORIDADE_CONFIG.normal;
     const disabled = isLoading || isSaving;
 
     const formatarData = (dataISO) => {
@@ -274,70 +351,16 @@ const ItemCard = memo(
     };
 
     const handleOpenLink = useCallback(() => {
-      if (item.linkProduto)
-        window.open(item.linkProduto, "_blank", "noopener,noreferrer");
+      if (item.linkProduto) window.open(item.linkProduto, "_blank", "noopener,noreferrer");
     }, [item.linkProduto]);
 
-    // Handler para clique direito (apenas desktop)
-    const handleContextMenu = useCallback((e) => {
-      if (!isMobile.current) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (disabled) return;
-        
-        setContextMenu({
-          x: e.clientX,
-          y: e.clientY,
-        });
-      }
-    }, [disabled]);
-
-    // Handlers para toque longo (apenas mobile)
-    const handleTouchStart = useCallback((e) => {
-      if (!isMobile.current) return;
-      if (disabled) return;
-      
-      isLongPress.current = false;
-      longPressTimer.current = setTimeout(() => {
-        isLongPress.current = true;
-        const touch = e.touches[0];
-        setContextMenu({
-          x: touch.clientX,
-          y: touch.clientY,
-        });
-      }, 500);
-    }, [disabled]);
-
-    const handleTouchEnd = useCallback((e) => {
-      if (!isMobile.current) return;
-      if (longPressTimer.current) {
-        clearTimeout(longPressTimer.current);
-      }
-      // Se foi um toque longo, prevenir o clique normal
-      if (isLongPress.current) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    }, []);
-
-    const handleTouchMove = useCallback((e) => {
-      if (!isMobile.current) return;
-      if (longPressTimer.current) {
-        clearTimeout(longPressTimer.current);
-      }
-    }, []);
-
-    const handleCloseContextMenu = useCallback(() => {
-      setContextMenu(null);
-      isLongPress.current = false;
+    const handleCloseMenu = useCallback(() => {
+      setIsMenuOpen(false);
     }, []);
 
     const handleDragStart = useCallback(
       (e) => {
-        if (disabled) {
-          e.preventDefault();
-          return;
-        }
+        if (disabled) { e.preventDefault(); return; }
         e.stopPropagation();
         const itemId = String(item.id);
         e.dataTransfer.setData("text/plain", itemId);
@@ -359,23 +382,27 @@ const ItemCard = memo(
     );
 
     const handleDragEnd = useCallback(
-      (e) => {
-        e.stopPropagation();
-        onDragEnd();
-      },
+      (e) => { e.stopPropagation(); onDragEnd(); },
       [onDragEnd],
     );
 
-    // Botão de menu (três pontinhos) - apenas para mobile
-    const handleMenuButtonClick = useCallback((e) => {
+    const toggleMenu = useCallback((e) => {
       e.stopPropagation();
-      if (!isMobile.current) return;
-      const rect = e.currentTarget.getBoundingClientRect();
-      setContextMenu({
-        x: rect.left,
-        y: rect.bottom + 5,
-      });
+      setIsMenuOpen((prev) => !prev);
     }, []);
+
+    useEffect(() => {
+      if (!isMenuOpen) return;
+
+      const handleOutsideClick = (e) => {
+        if (menuButtonRef.current && !menuButtonRef.current.contains(e.target)) {
+          setIsMenuOpen(false);
+        }
+      };
+
+      document.addEventListener("click", handleOutsideClick);
+      return () => document.removeEventListener("click", handleOutsideClick);
+    }, [isMenuOpen]);
 
     return (
       <>
@@ -387,20 +414,11 @@ const ItemCard = memo(
           draggable={!disabled}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
-          onContextMenu={handleContextMenu}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          onTouchMove={handleTouchMove}
         >
           <S.ItemMainRow>
             <S.CheckboxButton
               $checked={item.comprado}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!isLongPress.current) {
-                  onToggleComprado(item.id);
-                }
-              }}
+              onClick={(e) => { e.stopPropagation(); onToggleComprado(item.id); }}
               theme={theme}
               disabled={disabled}
             >
@@ -417,8 +435,8 @@ const ItemCard = memo(
               </S.ItemTotalValueCompact>
             </S.ItemTotalCompact>
 
-            {/* Botões para DESKTOP - visíveis apenas em desktop */}
-            <S.ItemActionsDesktop className="desktop-actions">
+            {/* Botões para DESKTOP */}
+            <S.ItemActionsDesktop>
               {item.linkProduto && (
                 <S.ItemActionButton
                   onClick={handleOpenLink}
@@ -431,7 +449,7 @@ const ItemCard = memo(
                 </S.ItemActionButton>
               )}
               <S.ItemActionButton
-                onClick={() => onEditItem(item)}
+                onClick={(e) => { e.stopPropagation(); onEditItem(item.id); }}
                 theme={theme}
                 variant="edit"
                 disabled={disabled}
@@ -441,7 +459,7 @@ const ItemCard = memo(
               </S.ItemActionButton>
               <S.ItemActionButton
                 variant="delete"
-                onClick={() => onDeleteItem(item)}
+                onClick={(e) => { e.stopPropagation(); onDeleteItem(item.id); }}
                 theme={theme}
                 disabled={disabled}
                 title="Excluir"
@@ -450,10 +468,11 @@ const ItemCard = memo(
               </S.ItemActionButton>
             </S.ItemActionsDesktop>
 
-            {/* Botão de menu para MOBILE - visível apenas em mobile */}
-            <S.ItemActionsMobile className="mobile-actions">
+            {/* Botão de menu para MOBILE */}
+            <S.ItemActionsMobile>
               <S.ItemActionButton
-                onClick={handleMenuButtonClick}
+                ref={menuButtonRef}
+                onClick={toggleMenu}
                 theme={theme}
                 variant="menu"
                 disabled={disabled}
@@ -495,9 +514,7 @@ const ItemCard = memo(
               <S.StoreBadge theme={theme}>
                 <StoreLogo storeName={item.loja} size="small" />
                 <S.StoreName theme={theme}>
-                  {item.loja.length > 16
-                    ? item.loja.substring(0, 16) + "…"
-                    : item.loja}
+                  {item.loja.length > 16 ? item.loja.substring(0, 16) + "…" : item.loja}
                 </S.StoreName>
               </S.StoreBadge>
             )}
@@ -511,15 +528,15 @@ const ItemCard = memo(
           </S.ItemDetailsRow>
         </S.ItemRow>
 
-        {contextMenu && (
+        {isMenuOpen && (
           <ContextMenu
-            x={contextMenu.x}
-            y={contextMenu.y}
+            anchorRef={menuButtonRef}
             item={item}
-            onClose={handleCloseContextMenu}
-            onEdit={() => onEditItem(item)}
-            onDelete={() => onDeleteItem(item)}
+            onClose={handleCloseMenu}
+            onEdit={() => { onEditItem(item.id); }}
+            onDelete={() => { onDeleteItem(item.id); }}
             onOpenLink={handleOpenLink}
+            theme={theme}
           />
         )}
       </>
@@ -527,6 +544,7 @@ const ItemCard = memo(
   },
 );
 
+// ─── CategoriaCard ────────────────────────────────────────────────────────────
 const CategoriaCard = ({
   categoria,
   itens,
@@ -561,22 +579,18 @@ const CategoriaCard = ({
     onEditCategoria,
   );
 
-  // Filtrar itens por data
   const itensFiltradosPorData = useMemo(() => {
     if (dataFiltro === "todos") return itens;
-    return itens.filter(item => isAddedInRange(item.createdAt, dataFiltro));
+    return itens.filter((item) => isAddedInRange(item.createdAt, dataFiltro));
   }, [itens, dataFiltro]);
 
-  // Ordenar itens filtrados
   const itensOrdenados = useMemo(() => {
     const sorted = [...itensFiltradosPorData];
     const prioridadeOrdem = { urgente: 0, normal: 1, pode_esperar: 2 };
 
     if (sortBy === "prioridade") {
       sorted.sort((a, b) => {
-        const d =
-          (prioridadeOrdem[a.prioridade] ?? 1) -
-          (prioridadeOrdem[b.prioridade] ?? 1);
+        const d = (prioridadeOrdem[a.prioridade] ?? 1) - (prioridadeOrdem[b.prioridade] ?? 1);
         return sortOrder === "asc" ? d : -d;
       });
     } else if (sortBy === "preco") {
@@ -611,19 +625,12 @@ const CategoriaCard = ({
   );
 
   const itensComprados = itens.filter((i) => i.comprado).length;
-  const progresso =
-    itens.length > 0 ? (itensComprados / itens.length) * 100 : 0;
+  const progresso = itens.length > 0 ? (itensComprados / itens.length) * 100 : 0;
   const totalGasto = useMemo(
-    () =>
-      itens
-        .filter((i) => i.comprado)
-        .reduce((acc, i) => acc + (i.preco * i.quantidade || 0), 0),
+    () => itens.filter((i) => i.comprado).reduce((acc, i) => acc + (i.preco * i.quantidade || 0), 0),
     [itens],
   );
-  const percentMeta =
-    categoria.metaOrcamento > 0
-      ? (totalCategoria / categoria.metaOrcamento) * 100
-      : 0;
+  const percentMeta = categoria.metaOrcamento > 0 ? (totalCategoria / categoria.metaOrcamento) * 100 : 0;
   const excedeuMeta = totalCategoria > categoria.metaOrcamento;
   const proximoLimite = !excedeuMeta && percentMeta >= 80;
 
@@ -642,14 +649,12 @@ const CategoriaCard = ({
     [isLoading, isSaving],
   );
 
-  // FUNÇÃO PARA LIMPAR ORDENAÇÃO
   const handleClearSort = useCallback(() => {
     if (isLoading || isSaving) return;
     setSortBy("preco");
     setSortOrder("asc");
   }, [isLoading, isSaving]);
 
-  // Verifica se há ordenação ativa (diferente do padrão)
   const hasActiveSort = sortBy !== "preco" || sortOrder !== "asc";
 
   const handleAddItem = useCallback(async () => {
@@ -707,9 +712,7 @@ const CategoriaCard = ({
               <S.ItemsCount theme={theme}>
                 {itens.length} {itens.length === 1 ? "item" : "itens"}
               </S.ItemsCount>
-              <S.TotalValue theme={theme}>
-                {formatarMoeda(totalCategoria)}
-              </S.TotalValue>
+              <S.TotalValue theme={theme}>{formatarMoeda(totalCategoria)}</S.TotalValue>
               {categoria.metaOrcamento > 0 && (
                 <S.MetaBadge
                   $excedeu={excedeuMeta}
@@ -776,35 +779,16 @@ const CategoriaCard = ({
             )}
           </div>
 
-          <S.IconButton
-            onClick={handleAddItem}
-            theme={theme}
-            title="Adicionar item"
-            disabled={disabled}
-          >
+          <S.IconButton onClick={handleAddItem} theme={theme} title="Adicionar item" disabled={disabled}>
             <Plus size={18} />
           </S.IconButton>
-          <S.IconButton
-            onClick={handleEditCategoria}
-            theme={theme}
-            title="Editar categoria"
-            disabled={disabled}
-          >
+          <S.IconButton onClick={handleEditCategoria} theme={theme} title="Editar categoria" disabled={disabled}>
             <Pencil size={16} />
           </S.IconButton>
-          <S.IconButton
-            danger
-            onClick={handleDeleteCategoria}
-            theme={theme}
-            title="Excluir categoria"
-            disabled={disabled}
-          >
+          <S.IconButton danger onClick={handleDeleteCategoria} theme={theme} title="Excluir categoria" disabled={disabled}>
             <Trash2 size={16} />
           </S.IconButton>
-          <S.ExpandButton
-            onClick={() => setIsExpanded((p) => !p)}
-            theme={theme}
-          >
+          <S.ExpandButton onClick={() => setIsExpanded((p) => !p)} theme={theme}>
             {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </S.ExpandButton>
         </S.HeaderActions>
@@ -843,25 +827,15 @@ const CategoriaCard = ({
                       {emoji} {label}
                       {sortBy === field && (
                         <S.SortIcon>
-                          {sortOrder === "asc" ? (
-                            <ArrowUp size={12} />
-                          ) : (
-                            <ArrowDown size={12} />
-                          )}
+                          {sortOrder === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
                         </S.SortIcon>
                       )}
                     </S.SortButton>
                   ))}
                 </S.SortButtonsGroup>
 
-                {/* BOTÃO LIMPAR ORDENAÇÃO - aparece quando há ordenação ativa */}
                 {hasActiveSort && (
-                  <S.SortClearButton
-                    onClick={handleClearSort}
-                    disabled={disabled}
-                    theme={theme}
-                    title="Resetar para ordenação padrão (Preço crescente)"
-                  >
+                  <S.SortClearButton onClick={handleClearSort} disabled={disabled} theme={theme}>
                     <X size={12} />
                     Limpar
                   </S.SortClearButton>
@@ -871,11 +845,7 @@ const CategoriaCard = ({
 
             <S.CategoryProgress theme={theme}>
               <S.ProgressBar theme={theme}>
-                <S.ProgressFill
-                  theme={theme}
-                  style={{ width: `${progresso}%` }}
-                  color={categoria.bg}
-                />
+                <S.ProgressFill theme={theme} style={{ width: `${progresso}%` }} color={categoria.bg} />
               </S.ProgressBar>
             </S.CategoryProgress>
 
@@ -914,16 +884,10 @@ const CategoriaCard = ({
               <S.EmptyState>
                 <S.EmptyIcon>{hasFiltroAtivo ? "🔍" : "📦"}</S.EmptyIcon>
                 <S.EmptyText theme={theme}>
-                  {hasFiltroAtivo 
-                    ? "Nenhum item neste período" 
-                    : "Nenhum item adicionado"}
+                  {hasFiltroAtivo ? "Nenhum item neste período" : "Nenhum item adicionado"}
                 </S.EmptyText>
                 {!hasFiltroAtivo && (
-                  <S.AddButton
-                    onClick={handleAddItem}
-                    theme={theme}
-                    disabled={disabled}
-                  >
+                  <S.AddButton onClick={handleAddItem} theme={theme} disabled={disabled}>
                     <Plus size={16} />
                     Adicionar primeiro item
                   </S.AddButton>
@@ -944,9 +908,7 @@ const CategoriaCard = ({
         <S.CategoryStats>
           <S.StatItem theme={theme}>
             <span>📦</span>
-            <strong>
-              {itensComprados}/{itens.length}
-            </strong>
+            <strong>{itensComprados}/{itens.length}</strong>
             <span>comprados</span>
           </S.StatItem>
           <S.StatItem theme={theme}>

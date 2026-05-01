@@ -17,7 +17,6 @@ import ItemFormModal from "../components/ItemFormModal";
 import { categoriasService } from "../services/categoriasService";
 import { itensService } from "../services/itensService";
 import resumoService from "../services/resumoService";
-import { useScrollRestoration } from "../hooks/useScrollRestoration";
 
 import {
   PlanejamentoContainer,
@@ -89,13 +88,27 @@ const Planejamento = () => {
   const [formData, setFormData] = useState(FORM_DATA_VAZIO);
 
   const draggedItemIdRef = useRef(null);
-  const scrollRef = useScrollRestoration();
+
+  // ---------- Scroll preservation ----------
+  const savedScrollRef = useRef(0);
+
+  const saveScroll = useCallback(() => {
+    savedScrollRef.current = window.scrollY;
+  }, []);
+
+  const restoreScroll = useCallback(() => {
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: savedScrollRef.current, behavior: "instant" });
+    });
+  }, []);
 
   // ---------- Load ----------
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (preserveScroll = false) => {
     try {
+      if (!preserveScroll) {
+        savedScrollRef.current = window.scrollY;
+      }
       setLoading(true);
-      scrollRef.current = window.scrollY;
 
       const [cats, its] = await Promise.all([
         categoriasService.listarDoUsuario(),
@@ -110,7 +123,9 @@ const Planejamento = () => {
       // erro silencioso — toast é mostrado pelos hooks
     } finally {
       setLoading(false);
-      setTimeout(() => window.scrollTo(0, scrollRef.current), 0);
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: savedScrollRef.current, behavior: "instant" });
+      });
     }
   }, []);
 
@@ -163,21 +178,24 @@ const Planejamento = () => {
   const handleCloseItemModal = useCallback(() => {
     setItemModal({ isOpen: false, categoriaId: null, itemId: null });
     setFormData(FORM_DATA_VAZIO);
-  }, []);
+    restoreScroll();
+  }, [restoreScroll]);
 
   const handleAddItem = useCallback((categoriaId) => {
+    saveScroll();
     setFormData({
       ...FORM_DATA_VAZIO,
       categoriaId: categoriaId,
     });
     setItemModal({ isOpen: true, categoriaId, itemId: null });
-  }, []);
+  }, [saveScroll]);
 
   const handleEditItem = useCallback(
     (itemId) => {
       const item = itens.find((i) => i.id === itemId);
       if (!item) return;
 
+      saveScroll();
       setItemModal({ isOpen: true, categoriaId: item.categoriaId, itemId });
       setFormData({
         nome: item.nome || "",
@@ -192,20 +210,23 @@ const Planejamento = () => {
         categoriaId: item.categoriaId,
       });
     },
-    [itens],
+    [itens, saveScroll],
   );
 
   const handleDeleteItem = useCallback(
     async (id) => {
+      saveScroll();
       const backup = [...itens];
       setItens((prev) => prev.filter((i) => i.id !== id));
+      restoreScroll();
       try {
         await itensService.delete(id);
       } catch {
         setItens(backup);
+        restoreScroll();
       }
     },
-    [itens],
+    [itens, saveScroll, restoreScroll],
   );
 
   const handleToggleComprado = useCallback(
@@ -213,11 +234,13 @@ const Planejamento = () => {
       const itemAtual = itens.find((i) => i.id === itemId);
       if (!itemAtual) return;
 
+      saveScroll();
       const novoEstado = !itemAtual.comprado;
 
       setItens((prev) =>
         prev.map((i) => (i.id === itemId ? { ...i, comprado: novoEstado } : i)),
       );
+      restoreScroll();
 
       try {
         await itensService.updateComprado(itemId, novoEstado);
@@ -228,9 +251,10 @@ const Planejamento = () => {
             i.id === itemId ? { ...i, comprado: itemAtual.comprado } : i,
           ),
         );
+        restoreScroll();
       }
     },
-    [itens],
+    [itens, saveScroll, restoreScroll],
   );
 
   // ---------- Drag & Drop de itens entre categorias ----------
@@ -248,13 +272,11 @@ const Planejamento = () => {
 
       if (!itemId) return;
       const item = itens.find((i) => String(i.id) === String(itemId));
-      if (!item) {
-        return;
-      }
+      if (!item) return;
 
-      if (String(item.categoriaId) === String(novaCategoriaId)) {
-        return;
-      }
+      if (String(item.categoriaId) === String(novaCategoriaId)) return;
+
+      saveScroll();
       const categoriaAnterior = item.categoriaId;
 
       setItens((prev) =>
@@ -264,6 +286,7 @@ const Planejamento = () => {
             : i,
         ),
       );
+      restoreScroll();
 
       try {
         await itensService.updateCategoria(String(itemId), novaCategoriaId);
@@ -275,9 +298,10 @@ const Planejamento = () => {
               : i,
           ),
         );
+        restoreScroll();
       }
     },
-    [itens],
+    [itens, saveScroll, restoreScroll],
   );
 
   // ---------- Categoria ----------
@@ -288,8 +312,14 @@ const Planejamento = () => {
   );
 
   const handleEditCategoria = useCallback((categoria) => {
+    saveScroll();
     setCategoriaModal({ isOpen: true, categoria, isEditing: true });
-  }, []);
+  }, [saveScroll]);
+
+  const handleCloseCategoriaModal = useCallback(() => {
+    setCategoriaModal({ isOpen: false, categoria: null, isEditing: false });
+    restoreScroll();
+  }, [restoreScroll]);
 
   const handleCategoryAdded = useCallback((categoriaResultado, isEditing) => {
     if (isEditing) {
@@ -301,39 +331,41 @@ const Planejamento = () => {
     } else {
       setCategorias((prev) => [...prev, categoriaResultado]);
     }
-  }, []);
+    restoreScroll();
+  }, [restoreScroll]);
 
   const handleDeleteCategoria = useCallback(
     async (id) => {
+      saveScroll();
       const backup = [...categorias];
       setCategorias((prev) => prev.filter((c) => c.id !== id));
       setItens((prev) => prev.filter((i) => i.categoriaId !== id));
+      restoreScroll();
       try {
         await categoriasService.delete(id);
       } catch {
         setCategorias(backup);
         const its = await itensService.getAll().catch(() => itens);
         setItens(Array.isArray(its) ? its : itens);
+        restoreScroll();
       }
     },
-    [categorias, itens],
+    [categorias, itens, saveScroll, restoreScroll],
   );
 
   // ---------- UI ----------
-  
-  // Loading com Skeletons
+
   if (loading) {
     return (
       <PlanejamentoContainer theme={theme}>
         <SkeletonWelcomeSection theme={theme} />
-        
-        {/* Skeletons para ResumoCards (você precisa criar este componente skeleton) */}
+
         <div style={{ marginBottom: "1.5rem" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem" }}>
             {[1, 2, 3, 4].map(n => (
-              <div key={n} style={{ 
-                background: theme.border, 
-                borderRadius: "1rem", 
+              <div key={n} style={{
+                background: theme.border,
+                borderRadius: "1rem",
                 padding: "1rem",
                 animation: "pulse 1.5s ease-in-out infinite"
               }}>
@@ -345,13 +377,12 @@ const Planejamento = () => {
           </div>
         </div>
 
-        {/* Skeleton para Filtros */}
         <div style={{ marginBottom: "1.5rem", display: "flex", gap: "0.5rem" }}>
           {[1, 2, 3, 4].map(n => (
-            <div key={n} style={{ 
-              width: "80px", 
-              height: "40px", 
-              background: theme.border, 
+            <div key={n} style={{
+              width: "80px",
+              height: "40px",
+              background: theme.border,
               borderRadius: "2rem",
               animation: "pulse 1.5s ease-in-out infinite"
             }} />
@@ -430,13 +461,7 @@ const Planejamento = () => {
 
       <CategoriaFormModal
         isOpen={categoriaModal.isOpen}
-        onClose={() =>
-          setCategoriaModal({
-            isOpen: false,
-            categoria: null,
-            isEditing: false,
-          })
-        }
+        onClose={handleCloseCategoriaModal}
         onCategoryAdded={handleCategoryAdded}
         categoriaParaEditar={categoriaModal.categoria}
         isEditing={categoriaModal.isEditing}
