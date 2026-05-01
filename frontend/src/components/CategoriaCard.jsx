@@ -1,4 +1,4 @@
-// CategoriaCard.jsx — versão final com menu corrigido e scroll preservado
+// CategoriaCard.jsx — versão final com seu ItemFormModal
 import React, { useState, useMemo, useCallback, memo, useRef, useEffect } from "react";
 import {
   Plus,
@@ -19,13 +19,11 @@ import {
   X,
   MoreHorizontal,
 } from "lucide-react";
-import { useItemActions } from "../hooks/useItemActions";
-import { useCategoryActions } from "../hooks/useCategoryActions";
 import { formatarMoeda, getPaymentIcon } from "../utils/formatters";
 import storeLogoService from "../services/storeLogoService";
+import ItemFormModal from "./ItemFormModal"; // ✅ Importa seu modal existente
 import * as S from "../styles/components/CategoriaCardStyles";
 
-// Detecta se é dispositivo móvel
 const isMobileDevice = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
@@ -90,7 +88,7 @@ const isAddedToday = (createdAt) => {
   return added.getTime() === today.getTime();
 };
 
-// ─── MenuItem ───────────────────────────────────────────────────────────────
+// ─── MenuItem ────────────────────────────────────────────────────────────────
 const MenuItem = memo(({ icon: Icon, label, onClick, color, hoverBg, theme }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -124,6 +122,7 @@ const ContextMenu = memo(({ anchorRef, item, onClose, onEdit, onDelete, onOpenLi
   const menuRef = useRef(null);
   const [position, setPosition] = useState({ x: -9999, y: -9999 });
   const [isVisible, setIsVisible] = useState(false);
+  const isMobile = useRef(isMobileDevice());
 
   const calculatePosition = useCallback(() => {
     if (!anchorRef?.current || !menuRef.current) return;
@@ -158,24 +157,19 @@ const ContextMenu = memo(({ anchorRef, item, onClose, onEdit, onDelete, onOpenLi
 
   useEffect(() => {
     if (!anchorRef?.current) return;
-
     const timer = setTimeout(() => {
       calculatePosition();
       setIsVisible(true);
     }, 10);
-
     return () => clearTimeout(timer);
   }, [anchorRef, calculatePosition]);
 
   useEffect(() => {
     if (!isVisible) return;
-
     const handleScroll = () => calculatePosition();
     const handleResize = () => calculatePosition();
-
     window.addEventListener("scroll", handleScroll, true);
     window.addEventListener("resize", handleResize);
-
     return () => {
       window.removeEventListener("scroll", handleScroll, true);
       window.removeEventListener("resize", handleResize);
@@ -200,11 +194,13 @@ const ContextMenu = memo(({ anchorRef, item, onClose, onEdit, onDelete, onOpenLi
       if (e.key === "Escape") onClose();
     };
 
+    const delay = isMobile.current ? 100 : 0;
+
     const timer = setTimeout(() => {
       document.addEventListener("mousedown", handleClickOutside);
       document.addEventListener("touchstart", handleClickOutside);
       document.addEventListener("keydown", handleEscape);
-    }, 0);
+    }, delay);
 
     return () => {
       clearTimeout(timer);
@@ -215,7 +211,6 @@ const ContextMenu = memo(({ anchorRef, item, onClose, onEdit, onDelete, onOpenLi
   }, [isVisible, onClose, anchorRef]);
 
   const isDark = theme?.mode === "dark" || theme?.background === "#1a1a2e";
-  const isMobile = useRef(isMobileDevice());
 
   const colors = {
     background: isDark ? "#2d2d3a" : (theme?.surface || "#ffffff"),
@@ -232,14 +227,20 @@ const ContextMenu = memo(({ anchorRef, item, onClose, onEdit, onDelete, onOpenLi
     {
       icon: Pencil,
       label: "Editar item",
-      onClick: () => { onEdit(); onClose(); },
+      onClick: () => {
+        onEdit();
+        setTimeout(onClose, 0);
+      },
       color: colors.text,
       hoverBg: colors.hover,
     },
     {
       icon: Trash2,
       label: "Excluir item",
-      onClick: () => { onDelete(); onClose(); },
+      onClick: () => {
+        onDelete();
+        setTimeout(onClose, 0);
+      },
       color: colors.danger,
       hoverBg: colors.dangerHover,
     },
@@ -249,7 +250,10 @@ const ContextMenu = memo(({ anchorRef, item, onClose, onEdit, onDelete, onOpenLi
     menuItems.push({
       icon: ExternalLink,
       label: "Abrir link",
-      onClick: () => { onOpenLink(); onClose(); },
+      onClick: () => {
+        onOpenLink();
+        setTimeout(onClose, 0);
+      },
       color: colors.text,
       hoverBg: colors.hover,
     });
@@ -339,7 +343,6 @@ const ItemCard = memo(
   }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuButtonRef = useRef(null);
-    const isMobile = useRef(isMobileDevice());
 
     const prioridadeConfig = PRIORIDADE_CONFIG[item.prioridade] || PRIORIDADE_CONFIG.normal;
     const disabled = isLoading || isSaving;
@@ -357,6 +360,14 @@ const ItemCard = memo(
     const handleCloseMenu = useCallback(() => {
       setIsMenuOpen(false);
     }, []);
+
+    const handleEditClick = useCallback(() => {
+      onEditItem(item);
+    }, [onEditItem, item]);
+
+    const handleDeleteClick = useCallback(() => {
+      onDeleteItem(item.id);
+    }, [onDeleteItem, item.id]);
 
     const handleDragStart = useCallback(
       (e) => {
@@ -390,19 +401,6 @@ const ItemCard = memo(
       e.stopPropagation();
       setIsMenuOpen((prev) => !prev);
     }, []);
-
-    useEffect(() => {
-      if (!isMenuOpen) return;
-
-      const handleOutsideClick = (e) => {
-        if (menuButtonRef.current && !menuButtonRef.current.contains(e.target)) {
-          setIsMenuOpen(false);
-        }
-      };
-
-      document.addEventListener("click", handleOutsideClick);
-      return () => document.removeEventListener("click", handleOutsideClick);
-    }, [isMenuOpen]);
 
     return (
       <>
@@ -449,7 +447,7 @@ const ItemCard = memo(
                 </S.ItemActionButton>
               )}
               <S.ItemActionButton
-                onClick={(e) => { e.stopPropagation(); onEditItem(item.id); }}
+                onClick={handleEditClick}
                 theme={theme}
                 variant="edit"
                 disabled={disabled}
@@ -459,7 +457,7 @@ const ItemCard = memo(
               </S.ItemActionButton>
               <S.ItemActionButton
                 variant="delete"
-                onClick={(e) => { e.stopPropagation(); onDeleteItem(item.id); }}
+                onClick={handleDeleteClick}
                 theme={theme}
                 disabled={disabled}
                 title="Excluir"
@@ -533,8 +531,8 @@ const ItemCard = memo(
             anchorRef={menuButtonRef}
             item={item}
             onClose={handleCloseMenu}
-            onEdit={() => { onEditItem(item.id); }}
-            onDelete={() => { onDeleteItem(item.id); }}
+            onEdit={handleEditClick}
+            onDelete={handleDeleteClick}
             onOpenLink={handleOpenLink}
             theme={theme}
           />
@@ -568,16 +566,73 @@ const CategoriaCard = ({
   const [isSaving, setIsSaving] = useState(false);
   const [dataFiltro, setDataFiltro] = useState("todos");
   const [showFiltroData, setShowFiltroData] = useState(false);
+  
+  // Estados para o modal de item
+  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [isEditingMode, setIsEditingMode] = useState(false);
 
-  const { handleToggleComprado, handleDeleteItem, handleEditItem } =
-    useItemActions(theme, onToggleComprado, onUpdateItem, onDeleteItem);
-  const { handleDeleteCategoria, handleEditCategoria } = useCategoryActions(
-    categoria,
-    itens,
-    theme,
-    onDeleteCategoria,
-    onEditCategoria,
-  );
+  const handleDeleteCategoria = useCallback(async () => {
+    if (isLoading || isSaving) return;
+    if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria.nome}"?`)) {
+      await onDeleteCategoria(categoria.id);
+    }
+  }, [categoria.id, categoria.nome, isLoading, isSaving, onDeleteCategoria]);
+
+  const handleEditCategoria = useCallback(async () => {
+    if (isLoading || isSaving) return;
+    await onEditCategoria(categoria.id);
+  }, [categoria.id, isLoading, isSaving, onEditCategoria]);
+
+  // Função para abrir modal de edição de item
+  const handleEditItem = useCallback((item) => {
+    setEditingItem(item);
+    setIsEditingMode(true);
+    setIsItemModalOpen(true);
+  }, []);
+
+  // Função para abrir modal de criação de item
+  const handleAddItemClick = useCallback(async () => {
+    if (isLoading || isSaving) return;
+    setEditingItem(null);
+    setIsEditingMode(false);
+    setIsItemModalOpen(true);
+  }, [isLoading, isSaving]);
+
+  // Função para fechar o modal
+  const handleCloseItemModal = useCallback(() => {
+    setIsItemModalOpen(false);
+    setEditingItem(null);
+    setIsEditingMode(false);
+  }, []);
+
+  // Função para salvar o item (criação ou edição)
+  const handleSaveItem = useCallback(async (dadosParaEnvio) => {
+    if (isEditingMode && editingItem) {
+      // Edição: passa o ID e os dados
+      await onUpdateItem(editingItem.id, dadosParaEnvio);
+    } else {
+      // Criação: passa o ID da categoria e os dados
+      await onAddItem(categoria.id, dadosParaEnvio);
+    }
+  }, [isEditingMode, editingItem, onUpdateItem, onAddItem, categoria.id]);
+
+  // Função para deletar item com confirmação
+  const handleDeleteItemLocal = useCallback(async (itemId) => {
+    if (isLoading || isSaving) return;
+    if (window.confirm("Tem certeza que deseja excluir este item?")) {
+      await onDeleteItem(itemId);
+    }
+  }, [isLoading, isSaving, onDeleteItem]);
+
+  // Função para alternar comprado
+  const handleToggleCompradoLocal = useCallback(async (itemId) => {
+    if (isLoading || isSaving) return;
+    const item = itens.find(i => i.id === itemId);
+    if (item) {
+      await onToggleComprado(itemId, !item.comprado);
+    }
+  }, [isLoading, isSaving, itens, onToggleComprado]);
 
   const itensFiltradosPorData = useMemo(() => {
     if (dataFiltro === "todos") return itens;
@@ -657,16 +712,6 @@ const CategoriaCard = ({
 
   const hasActiveSort = sortBy !== "preco" || sortOrder !== "asc";
 
-  const handleAddItem = useCallback(async () => {
-    if (isLoading || isSaving) return;
-    setIsSaving(true);
-    try {
-      await onAddItem(categoria.id);
-    } finally {
-      setTimeout(() => setIsSaving(false), 500);
-    }
-  }, [isLoading, isSaving, onAddItem, categoria.id]);
-
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -685,7 +730,7 @@ const CategoriaCard = ({
       e.stopPropagation();
       setIsDragOver(false);
       const itemId = e.dataTransfer.getData("text/plain");
-      if (itemId) onItemDrop(categoria.id);
+      if (itemId) onItemDrop(categoria.id, itemId);
     },
     [onItemDrop, categoria.id],
   );
@@ -695,233 +740,246 @@ const CategoriaCard = ({
   const itensFiltradosCount = itensFiltradosPorData.length;
 
   return (
-    <S.CardContainer
-      theme={theme}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      $isDragOver={isDragOver}
-    >
-      <S.CardHeader color={categoria.bg} theme={theme}>
-        <S.HeaderLeft>
-          <S.DragHandle theme={theme} />
-          <S.Icon>{categoria.icon}</S.Icon>
-          <S.TitleSection>
-            <S.Title theme={theme}>{categoria.nome}</S.Title>
-            <S.Subtitle>
-              <S.ItemsCount theme={theme}>
-                {itens.length} {itens.length === 1 ? "item" : "itens"}
-              </S.ItemsCount>
-              <S.TotalValue theme={theme}>{formatarMoeda(totalCategoria)}</S.TotalValue>
-              {categoria.metaOrcamento > 0 && (
-                <S.MetaBadge
-                  $excedeu={excedeuMeta}
-                  $proximo={proximoLimite}
-                  theme={theme}
-                  title={
-                    excedeuMeta
-                      ? `Excedeu ${formatarMoeda(totalCategoria - categoria.metaOrcamento)}`
-                      : `Restam ${formatarMoeda(categoria.metaOrcamento - totalCategoria)}`
-                  }
-                >
-                  🎯 {formatarMoeda(categoria.metaOrcamento)}
-                </S.MetaBadge>
-              )}
-            </S.Subtitle>
-          </S.TitleSection>
-        </S.HeaderLeft>
-
-        <S.HeaderActions>
-          <div style={{ position: "relative" }}>
-            <S.IconButton
-              onClick={() => setShowFiltroData(!showFiltroData)}
-              theme={theme}
-              title="Filtrar por data"
-              disabled={disabled}
-              $active={hasFiltroAtivo}
-            >
-              <Filter size={18} />
-            </S.IconButton>
-
-            {showFiltroData && (
-              <S.FiltroDataDropdown theme={theme}>
-                <S.FiltroHeader>
-                  <span>Filtrar por data</span>
-                  <button onClick={() => setShowFiltroData(false)}>
-                    <X size={14} />
-                  </button>
-                </S.FiltroHeader>
-                {Object.entries(DATA_FILTROS).map(([key, config]) => (
-                  <S.FiltroOption
-                    key={key}
-                    $active={dataFiltro === key}
-                    onClick={() => {
-                      setDataFiltro(key);
-                      setShowFiltroData(false);
-                    }}
+    <>
+      <S.CardContainer
+        theme={theme}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        $isDragOver={isDragOver}
+      >
+        <S.CardHeader color={categoria.bg} theme={theme}>
+          <S.HeaderLeft>
+            <S.DragHandle theme={theme} />
+            <S.Icon>{categoria.icon}</S.Icon>
+            <S.TitleSection>
+              <S.Title theme={theme}>{categoria.nome}</S.Title>
+              <S.Subtitle>
+                <S.ItemsCount theme={theme}>
+                  {itens.length} {itens.length === 1 ? "item" : "itens"}
+                </S.ItemsCount>
+                <S.TotalValue theme={theme}>{formatarMoeda(totalCategoria)}</S.TotalValue>
+                {categoria.metaOrcamento > 0 && (
+                  <S.MetaBadge
+                    $excedeu={excedeuMeta}
+                    $proximo={proximoLimite}
                     theme={theme}
+                    title={
+                      excedeuMeta
+                        ? `Excedeu ${formatarMoeda(totalCategoria - categoria.metaOrcamento)}`
+                        : `Restam ${formatarMoeda(categoria.metaOrcamento - totalCategoria)}`
+                    }
                   >
-                    <span>{config.emoji}</span>
-                    {config.label}
-                  </S.FiltroOption>
-                ))}
-                {hasFiltroAtivo && (
-                  <S.FiltroClear
-                    onClick={() => {
-                      setDataFiltro("todos");
-                      setShowFiltroData(false);
-                    }}
-                  >
-                    Limpar filtro
-                  </S.FiltroClear>
+                    🎯 {formatarMoeda(categoria.metaOrcamento)}
+                  </S.MetaBadge>
                 )}
-              </S.FiltroDataDropdown>
-            )}
-          </div>
+              </S.Subtitle>
+            </S.TitleSection>
+          </S.HeaderLeft>
 
-          <S.IconButton onClick={handleAddItem} theme={theme} title="Adicionar item" disabled={disabled}>
-            <Plus size={18} />
-          </S.IconButton>
-          <S.IconButton onClick={handleEditCategoria} theme={theme} title="Editar categoria" disabled={disabled}>
-            <Pencil size={16} />
-          </S.IconButton>
-          <S.IconButton danger onClick={handleDeleteCategoria} theme={theme} title="Excluir categoria" disabled={disabled}>
-            <Trash2 size={16} />
-          </S.IconButton>
-          <S.ExpandButton onClick={() => setIsExpanded((p) => !p)} theme={theme}>
-            {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-          </S.ExpandButton>
-        </S.HeaderActions>
-      </S.CardHeader>
+          <S.HeaderActions>
+            <div style={{ position: "relative" }}>
+              <S.IconButton
+                onClick={() => setShowFiltroData(!showFiltroData)}
+                theme={theme}
+                title="Filtrar por data"
+                disabled={disabled}
+                $active={hasFiltroAtivo}
+              >
+                <Filter size={18} />
+              </S.IconButton>
 
-      <S.CardContent>
-        {isExpanded && (
-          <>
-            {hasFiltroAtivo && (
-              <S.FiltroAtivoBadge theme={theme}>
-                <Calendar size={12} />
-                {DATA_FILTROS[dataFiltro]?.label}
-                <button onClick={() => setDataFiltro("todos")}>
-                  <X size={12} />
-                </button>
-              </S.FiltroAtivoBadge>
-            )}
-
-            {itens.length > 0 && (
-              <S.SortBar theme={theme}>
-                <S.SortLabel theme={theme}>Ordenar:</S.SortLabel>
-                <S.SortButtonsGroup>
-                  {[
-                    { field: "preco", label: "Preço", emoji: "💰" },
-                    { field: "nome", label: "Nome", emoji: "📝" },
-                    { field: "prioridade", label: "Prioridade", emoji: "🎯" },
-                    { field: "data", label: "Data", emoji: "📅" },
-                  ].map(({ field, label, emoji }) => (
-                    <S.SortButton
-                      key={field}
-                      $active={sortBy === field}
-                      onClick={() => handleSort(field)}
-                      disabled={disabled}
+              {showFiltroData && (
+                <S.FiltroDataDropdown theme={theme}>
+                  <S.FiltroHeader>
+                    <span>Filtrar por data</span>
+                    <button onClick={() => setShowFiltroData(false)}>
+                      <X size={14} />
+                    </button>
+                  </S.FiltroHeader>
+                  {Object.entries(DATA_FILTROS).map(([key, config]) => (
+                    <S.FiltroOption
+                      key={key}
+                      $active={dataFiltro === key}
+                      onClick={() => {
+                        setDataFiltro(key);
+                        setShowFiltroData(false);
+                      }}
                       theme={theme}
                     >
-                      {emoji} {label}
-                      {sortBy === field && (
-                        <S.SortIcon>
-                          {sortOrder === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
-                        </S.SortIcon>
-                      )}
-                    </S.SortButton>
+                      <span>{config.emoji}</span>
+                      {config.label}
+                    </S.FiltroOption>
                   ))}
-                </S.SortButtonsGroup>
+                  {hasFiltroAtivo && (
+                    <S.FiltroClear
+                      onClick={() => {
+                        setDataFiltro("todos");
+                        setShowFiltroData(false);
+                      }}
+                    >
+                      Limpar filtro
+                    </S.FiltroClear>
+                  )}
+                </S.FiltroDataDropdown>
+              )}
+            </div>
 
-                {hasActiveSort && (
-                  <S.SortClearButton onClick={handleClearSort} disabled={disabled} theme={theme}>
+            <S.IconButton onClick={handleAddItemClick} theme={theme} title="Adicionar item" disabled={disabled}>
+              <Plus size={18} />
+            </S.IconButton>
+            <S.IconButton onClick={handleEditCategoria} theme={theme} title="Editar categoria" disabled={disabled}>
+              <Pencil size={16} />
+            </S.IconButton>
+            <S.IconButton danger onClick={handleDeleteCategoria} theme={theme} title="Excluir categoria" disabled={disabled}>
+              <Trash2 size={16} />
+            </S.IconButton>
+            <S.ExpandButton onClick={() => setIsExpanded((p) => !p)} theme={theme}>
+              {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </S.ExpandButton>
+          </S.HeaderActions>
+        </S.CardHeader>
+
+        <S.CardContent>
+          {isExpanded && (
+            <>
+              {hasFiltroAtivo && (
+                <S.FiltroAtivoBadge theme={theme}>
+                  <Calendar size={12} />
+                  {DATA_FILTROS[dataFiltro]?.label}
+                  <button onClick={() => setDataFiltro("todos")}>
                     <X size={12} />
-                    Limpar
-                  </S.SortClearButton>
-                )}
-              </S.SortBar>
-            )}
+                  </button>
+                </S.FiltroAtivoBadge>
+              )}
 
-            <S.CategoryProgress theme={theme}>
-              <S.ProgressBar theme={theme}>
-                <S.ProgressFill theme={theme} style={{ width: `${progresso}%` }} color={categoria.bg} />
-              </S.ProgressBar>
-            </S.CategoryProgress>
+              {itens.length > 0 && (
+                <S.SortBar theme={theme}>
+                  <S.SortLabel theme={theme}>Ordenar:</S.SortLabel>
+                  <S.SortButtonsGroup>
+                    {[
+                      { field: "preco", label: "Preço", emoji: "💰" },
+                      { field: "nome", label: "Nome", emoji: "📝" },
+                      { field: "prioridade", label: "Prioridade", emoji: "🎯" },
+                      { field: "data", label: "Data", emoji: "📅" },
+                    ].map(({ field, label, emoji }) => (
+                      <S.SortButton
+                        key={field}
+                        $active={sortBy === field}
+                        onClick={() => handleSort(field)}
+                        disabled={disabled}
+                        theme={theme}
+                      >
+                        {emoji} {label}
+                        {sortBy === field && (
+                          <S.SortIcon>
+                            {sortOrder === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                          </S.SortIcon>
+                        )}
+                      </S.SortButton>
+                    ))}
+                  </S.SortButtonsGroup>
 
-            {hasFiltroAtivo && itensFiltradosCount !== itens.length && (
-              <S.FiltroInfo theme={theme}>
-                Mostrando {itensFiltradosCount} de {itens.length} itens
-                {totalFiltrado !== totalCategoria && ` · Total: ${formatarMoeda(totalFiltrado)}`}
-              </S.FiltroInfo>
-            )}
+                  {hasActiveSort && (
+                    <S.SortClearButton onClick={handleClearSort} disabled={disabled} theme={theme}>
+                      <X size={12} />
+                      Limpar
+                    </S.SortClearButton>
+                  )}
+                </S.SortBar>
+              )}
 
-            {isLoading ? (
-              [1, 2, 3].map((n) => (
-                <S.ItemSkeletonWrapper key={n}>
-                  <S.ItemSkeleton theme={theme} />
-                </S.ItemSkeletonWrapper>
-              ))
-            ) : itensOrdenados.length > 0 ? (
-              <S.ItemsList>
-                {itensOrdenados.map((item) => (
-                  <ItemCard
-                    key={item.id}
-                    item={item}
-                    isLoading={isLoading}
-                    isSaving={isSaving}
-                    draggedItemId={draggedItemId}
-                    onToggleComprado={handleToggleComprado}
-                    onEditItem={handleEditItem}
-                    onDeleteItem={handleDeleteItem}
-                    onDragStart={onItemDragStart}
-                    onDragEnd={onItemDragEnd}
-                    theme={theme}
-                  />
-                ))}
-              </S.ItemsList>
-            ) : (
-              <S.EmptyState>
-                <S.EmptyIcon>{hasFiltroAtivo ? "🔍" : "📦"}</S.EmptyIcon>
-                <S.EmptyText theme={theme}>
-                  {hasFiltroAtivo ? "Nenhum item neste período" : "Nenhum item adicionado"}
-                </S.EmptyText>
-                {!hasFiltroAtivo && (
-                  <S.AddButton onClick={handleAddItem} theme={theme} disabled={disabled}>
-                    <Plus size={16} />
-                    Adicionar primeiro item
-                  </S.AddButton>
-                )}
-                {hasFiltroAtivo && (
-                  <S.AddButton onClick={() => setDataFiltro("todos")} theme={theme}>
-                    <X size={16} />
-                    Limpar filtro
-                  </S.AddButton>
-                )}
-              </S.EmptyState>
-            )}
-          </>
-        )}
-      </S.CardContent>
+              <S.CategoryProgress theme={theme}>
+                <S.ProgressBar theme={theme}>
+                  <S.ProgressFill theme={theme} style={{ width: `${progresso}%` }} color={categoria.bg} />
+                </S.ProgressBar>
+              </S.CategoryProgress>
 
-      <S.CategoryFooter theme={theme}>
-        <S.CategoryStats>
-          <S.StatItem theme={theme}>
-            <span>📦</span>
-            <strong>{itensComprados}/{itens.length}</strong>
-            <span>comprados</span>
-          </S.StatItem>
-          <S.StatItem theme={theme}>
-            <span>📊</span>
-            <strong>{progresso.toFixed(0)}%</strong>
-          </S.StatItem>
-          <S.StatItem theme={theme}>
-            <span>💰</span>
-            <strong>{formatarMoeda(totalGasto)}</strong>
-          </S.StatItem>
-        </S.CategoryStats>
-      </S.CategoryFooter>
-    </S.CardContainer>
+              {hasFiltroAtivo && itensFiltradosCount !== itens.length && (
+                <S.FiltroInfo theme={theme}>
+                  Mostrando {itensFiltradosCount} de {itens.length} itens
+                  {totalFiltrado !== totalCategoria && ` · Total: ${formatarMoeda(totalFiltrado)}`}
+                </S.FiltroInfo>
+              )}
+
+              {isLoading ? (
+                [1, 2, 3].map((n) => (
+                  <S.ItemSkeletonWrapper key={n}>
+                    <S.ItemSkeleton theme={theme} />
+                  </S.ItemSkeletonWrapper>
+                ))
+              ) : itensOrdenados.length > 0 ? (
+                <S.ItemsList>
+                  {itensOrdenados.map((item) => (
+                    <ItemCard
+                      key={item.id}
+                      item={item}
+                      isLoading={isLoading}
+                      isSaving={isSaving}
+                      draggedItemId={draggedItemId}
+                      onToggleComprado={handleToggleCompradoLocal}
+                      onEditItem={handleEditItem}
+                      onDeleteItem={handleDeleteItemLocal}
+                      onDragStart={onItemDragStart}
+                      onDragEnd={onItemDragEnd}
+                      theme={theme}
+                    />
+                  ))}
+                </S.ItemsList>
+              ) : (
+                <S.EmptyState>
+                  <S.EmptyIcon>{hasFiltroAtivo ? "🔍" : "📦"}</S.EmptyIcon>
+                  <S.EmptyText theme={theme}>
+                    {hasFiltroAtivo ? "Nenhum item neste período" : "Nenhum item adicionado"}
+                  </S.EmptyText>
+                  {!hasFiltroAtivo && (
+                    <S.AddButton onClick={handleAddItemClick} theme={theme} disabled={disabled}>
+                      <Plus size={16} />
+                      Adicionar primeiro item
+                    </S.AddButton>
+                  )}
+                  {hasFiltroAtivo && (
+                    <S.AddButton onClick={() => setDataFiltro("todos")} theme={theme}>
+                      <X size={16} />
+                      Limpar filtro
+                    </S.AddButton>
+                  )}
+                </S.EmptyState>
+              )}
+            </>
+          )}
+        </S.CardContent>
+
+        <S.CategoryFooter theme={theme}>
+          <S.CategoryStats>
+            <S.StatItem theme={theme}>
+              <span>📦</span>
+              <strong>{itensComprados}/{itens.length}</strong>
+              <span>comprados</span>
+            </S.StatItem>
+            <S.StatItem theme={theme}>
+              <span>📊</span>
+              <strong>{progresso.toFixed(0)}%</strong>
+            </S.StatItem>
+            <S.StatItem theme={theme}>
+              <span>💰</span>
+              <strong>{formatarMoeda(totalGasto)}</strong>
+            </S.StatItem>
+          </S.CategoryStats>
+        </S.CategoryFooter>
+      </S.CardContainer>
+
+      {/* Modal de Item - Usando seu componente existente */}
+      <ItemFormModal
+        isOpen={isItemModalOpen}
+        onClose={handleCloseItemModal}
+        onSave={handleSaveItem}
+        theme={theme}
+        itemParaEditar={editingItem}
+        isEditing={isEditingMode}
+        categoriaId={categoria.id}
+      />
+    </>
   );
 };
 
