@@ -24,7 +24,6 @@ else
 
 builder.Configuration.AddEnvironmentVariables();
 
-
 // ===== 2. CONFIG =====
 var jwtKey      = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
     ?? throw new Exception("JWT_SECRET_KEY não configurada");
@@ -37,18 +36,73 @@ if (jwtKey.Length < 32)
 var mongoConnection = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING")
     ?? throw new Exception("MONGODB_CONNECTION_STRING não configurada");
 
+// ===== 2.5. CONFIGURAÇÃO DE CORS DINÂMICO =====
+// Pega os IPs/URLs permitidos da variável de ambiente
+var corsAllowedOriginsEnv = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS") ?? "";
+var allowedOriginsList = new List<string>();
+
+if (!string.IsNullOrEmpty(corsAllowedOriginsEnv))
+{
+    // Se a variável existe, usa ela
+    allowedOriginsList = corsAllowedOriginsEnv
+        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+        .Select(o => o.Trim())
+        .ToList();
+    Console.WriteLine($"📋 CORS: Usando origens da env: {string.Join(", ", allowedOriginsList)}");
+}
+else
+{
+    // Fallback para desenvolvimento local
+    allowedOriginsList = new List<string>
+    {
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:8080",
+        "http://127.0.0.1:3000",
+        "https://casalplanner.vercel.app",
+        "https://casal-planner.vercel.app"
+    };
+    Console.WriteLine("📋 CORS: Usando origens padrão (localhost)");
+}
+
+// Adiciona IPs da rede local automaticamente (opcional)
+if (builder.Environment.IsDevelopment())
+{
+    try
+    {
+        var localIp = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()
+            .SelectMany(i => i.GetIPProperties().UnicastAddresses)
+            .FirstOrDefault(a => a.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork && 
+                                 !System.Net.IPAddress.IsLoopback(a.Address))
+            ?.Address.ToString();
+        
+        if (!string.IsNullOrEmpty(localIp))
+        {
+            allowedOriginsList.Add($"http://{localIp}:3000");
+            allowedOriginsList.Add($"http://{localIp}:5173");
+            Console.WriteLine($"🔍 IP Local detectado: {localIp}");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"⚠️ Não foi possível detectar IP local: {ex.Message}");
+    }
+}
+
+// Remove duplicatas
+allowedOriginsList = allowedOriginsList.Distinct().ToList();
+
 // ===== 3. RATE LIMIT =====
 builder.Services.AddMemoryCache();
 builder.Services.Configure<IpRateLimitOptions>(options =>
 {
     options.EnableEndpointRateLimiting = true;
-    // Usa IP real quando atrás de proxy/load balancer (Render, Railway, etc.)
     options.RealIpHeader = "X-Forwarded-For";
     options.ClientIdHeader = "X-ClientId";
     options.GeneralRules = new List<RateLimitRule>
     {
         new() { Endpoint = "*",                Period = "1m",  Limit = 100 },
-        new() { Endpoint = "POST:/api/auth/*", Period = "10m", Limit = 10  }, // Proteção brute-force login
+        new() { Endpoint = "POST:/api/auth/*", Period = "10m", Limit = 10  },
     };
 });
 builder.Services.AddInMemoryRateLimiting();
@@ -72,7 +126,6 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    // Em produção, exige HTTPS; em dev, permite HTTP
     options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
     options.SaveToken = true;
 
@@ -103,21 +156,34 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// ===== 6. CORS =====
-var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "https://casalplanner.vercel.app";
-
+// ===== 6. CORS CONFIGURADO DINAMICAMENTE =====
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CasalPlannerPolicy", policy =>
     {
-        policy
-            .WithOrigins(
-                "http://localhost:3000",
-                "https://casalplanner.vercel.app",
-                "https://casal-planner.vercel.app"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        if (builder.Environment.IsDevelopment())
+        {
+            // Em desenvolvimento: mais flexível
+            policy.SetIsOriginAllowed(_ => true)  // Permite qualquer origem
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+            Console.WriteLine("🔓 CORS: Modo desenvolvimento - liberado para testes");
+        }
+        else
+        {
+            // Em produção: apenas origens específicas da ENV
+            policy.WithOrigins(allowedOriginsList.ToArray())
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+            
+            Console.WriteLine($"🔒 CORS: Modo produção - origens permitidas:");
+            foreach (var origin in allowedOriginsList)
+            {
+                Console.WriteLine($"   - {origin}");
+            }
+        }
     });
 });
 
@@ -132,7 +198,6 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IRecuperarSenhaService, RecuperarSenhaService>();
 
 builder.Services.AddMemoryCache(); 
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -150,13 +215,68 @@ if (builder.Environment.IsDevelopment())
             Type = SecuritySchemeType.ApiKey,
             Scheme = "Bearer"
         });
+        
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
     });
 }
 
 // ===== BUILD =====
 var app = builder.Build();
 
-// ===== 8. HEADERS DE SEGURANÇA =====
+// ===== 8. MIDDLEWARE PARA LOG DE CORS =====
+app.Use(async (context, next) =>
+{
+    var origin = context.Request.Headers["Origin"].ToString();
+    var method = context.Request.Method;
+    var path = context.Request.Path;
+    var ip = context.Connection.RemoteIpAddress?.ToString();
+    
+    // Log de requisições CORS
+    if (!string.IsNullOrEmpty(origin))
+    {
+        Console.WriteLine($"📡 [{DateTime.Now:HH:mm:ss}] {method} {path} - Origem: {origin} | IP: {ip}");
+        
+        // Verifica se a origem é permitida
+        var isAllowed = allowedOriginsList.Contains(origin) || 
+                       (builder.Environment.IsDevelopment() && origin.StartsWith("http://192.168."));
+        
+        if (isAllowed)
+        {
+            context.Response.Headers.Add("Access-Control-Allow-Origin", origin);
+            context.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+        }
+        else
+        {
+            Console.WriteLine($"⚠️ Origem não permitida pelo CORS: {origin}");
+        }
+    }
+    
+    // Responde imediatamente para requisições OPTIONS (preflight)
+    if (context.Request.Method == "OPTIONS")
+    {
+        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+        context.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+        context.Response.StatusCode = 200;
+        return;
+    }
+    
+    await next();
+});
+
+// ===== 9. HEADERS DE SEGURANÇA =====
 app.Use(async (context, next) =>
 {
     if (!app.Environment.IsDevelopment())
@@ -194,23 +314,32 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// ===== 9. SWAGGER (apenas dev) =====
+// ===== 10. SWAGGER =====
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Casal Planner API v1");
+        c.RoutePrefix = "swagger";
+    });
 }
 
-// Health check sempre disponível
+// Health check com informações de CORS
 app.MapGet("/health", () => Results.Ok(new
 {
     status = "healthy",
     timestamp = DateTime.UtcNow,
     environment = app.Environment.EnvironmentName,
-    version = "1.0.0"
+    version = "1.0.0",
+    cors = new
+    {
+        mode = app.Environment.IsDevelopment() ? "development (all origins)" : "production",
+        allowedOrigins = allowedOriginsList
+    }
 }));
 
-// ===== 10. SEED — apenas em desenvolvimento =====
+// ===== 11. SEED E ÍNDICES =====
 try
 {
     using var scope = app.Services.CreateScope();
@@ -218,7 +347,6 @@ try
 
     await dbContext.TestarConexaoAsync();
 
-    // Seed de dados de exemplo APENAS em desenvolvimento
     if (app.Environment.IsDevelopment())
     {
         await dbContext.SeedDataAsync();
@@ -227,7 +355,6 @@ try
 
     await dbContext.VerificarUsuarioCasal();
 
-    // Índices sempre criados (idempotente)
     await dbContext.Itens.Indexes.CreateManyAsync(new[]
     {
         new CreateIndexModel<Item>(
@@ -253,14 +380,22 @@ try
 catch (Exception ex)
 {
     Console.WriteLine($"❌ Erro na inicialização: {ex.Message}");
-    // Não derruba o app — permite que o health check responda
 }
 
-// ===== 11. INICIAR =====
-// Em dev: launchSettings.json controla a URL via ASPNETCORE_URLS automaticamente.
-// Em prod (Render/Railway): PORT é injetada via variável de ambiente.
+// ===== 12. INICIAR SERVIDOR =====
+Console.WriteLine("\n=========================================");
+Console.WriteLine("🚀 Casal Planner API Iniciada");
+Console.WriteLine($"🔧 Ambiente: {app.Environment.EnvironmentName}");
+Console.WriteLine("=========================================");
+Console.WriteLine("📋 CORS - Origens permitidas:");
+foreach (var origin in allowedOriginsList)
+{
+    Console.WriteLine($"   ✓ {origin}");
+}
+Console.WriteLine("=========================================\n");
+
 var portEnv = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrEmpty(portEnv))
     app.Run($"http://0.0.0.0:{portEnv}");
 else
-    app.Run(); // usa ASPNETCORE_URLS do launchSettings (dev) ou padrão :5000
+    app.Run();
