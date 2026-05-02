@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { itensService } from '../services/itensService';
 import { useItemValidation } from '../hooks/useItemValidation';
@@ -56,7 +56,10 @@ const ItemFormModal = ({
 }) => {
   const [formData, setFormData] = useState(DEFAULT_FORM_DATA);
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // ✅ Novo estado para submissão
+  const submissionRef = useRef(false); // ✅ Ref para prevenir duplicação
   const nomeInputRef = useRef(null);
+  const mountedRef = useRef(true); // ✅ Para prevenir atualizações após desmontagem
 
   const {
     errors,
@@ -77,9 +80,21 @@ const ItemFormModal = ({
     resetPrice,
   } = usePriceFormat(formData?.preco || 0);
 
+  // Cleanup ao desmontar
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   // Atualiza o formulário quando o modal abre
   useEffect(() => {
     if (isOpen) {
+      // Reset estados de submissão ao abrir
+      setIsSubmitting(false);
+      submissionRef.current = false;
+      
       if (isEditing && itemParaEditar) {
         setFormData({
           id: itemParaEditar.id || null,
@@ -109,7 +124,7 @@ const ItemFormModal = ({
       
       // Foco no input nome ao abrir
       setTimeout(() => {
-        if (nomeInputRef.current) {
+        if (nomeInputRef.current && mountedRef.current) {
           nomeInputRef.current.focus();
         }
       }, 100);
@@ -131,16 +146,19 @@ const ItemFormModal = ({
     };
   }, [isOpen]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
+    if (isSubmitting || loading) return; // ✅ Não fecha enquanto está salvando
     resetValidation();
     resetPrice();
+    setIsSubmitting(false);
+    submissionRef.current = false;
     onClose();
-  };
+  }, [resetValidation, resetPrice, onClose, isSubmitting, loading]);
 
   // Atalho ESC para fechar modal
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape' && isOpen && !isSubmitting && !loading) {
         e.preventDefault();
         handleClose();
       }
@@ -148,9 +166,11 @@ const ItemFormModal = ({
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, handleClose]);
+  }, [isOpen, handleClose, isSubmitting, loading]);
 
-  const handleSelectProductItem = (item) => {
+  const handleSelectProductItem = useCallback((item) => {
+    if (isSubmitting || loading) return;
+    
     setFormData((prev) => ({
       ...prev,
       nome: item.nome,
@@ -163,37 +183,41 @@ const ItemFormModal = ({
 
     setPrecoRaw(item.preco);
     handleChange("preco", item.preco, true);
-  };
+  }, [isSubmitting, loading, setPrecoRaw, handleChange]);
 
-  const handleFieldChange = (fieldName, value) => {
+  const handleFieldChange = useCallback((fieldName, value) => {
+    if (isSubmitting || loading) return;
     setFormData((prev) => ({ ...prev, [fieldName]: value }));
     handleChange(fieldName, value, touched[fieldName]);
-  };
+  }, [isSubmitting, loading, handleChange, touched]);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     handleFieldChange(name, value);
-  };
+  }, [handleFieldChange]);
 
-  const handleQuantidadeChange = (delta) => {
+  const handleQuantidadeChange = useCallback((delta) => {
+    if (isSubmitting || loading) return;
     const newQuantidade = Math.max(1, Math.min(999999, (formData.quantidade || 1) + delta));
     handleFieldChange("quantidade", newQuantidade);
-  };
+  }, [isSubmitting, loading, formData.quantidade, handleFieldChange]);
 
-  const handlePrecoChange = (e) => {
+  const handlePrecoChange = useCallback((e) => {
+    if (isSubmitting || loading) return;
     const result = hookPriceChange(e);
     if (result && result.raw !== undefined) {
       setFormData((prev) => ({ ...prev, preco: result.raw }));
       handleChange("preco", result.raw, touched.preco);
     }
-  };
+  }, [isSubmitting, loading, hookPriceChange, handleChange, touched.preco]);
 
-  const handlePrecoBlur = () => {
+  const handlePrecoBlur = useCallback(() => {
+    if (isSubmitting || loading) return;
     handlePriceBlur();
     handleBlur("preco", formData.preco);
-  };
+  }, [isSubmitting, loading, handlePriceBlur, handleBlur, formData.preco]);
 
-  const handleImageError = (e) => {
+  const handleImageError = useCallback((e) => {
     e.target.style.display = 'none';
     const parent = e.target.parentElement;
     const fallbackDiv = document.createElement('div');
@@ -213,12 +237,21 @@ const ItemFormModal = ({
       padding: 20px;
     `;
     fallbackDiv.innerHTML = '🖼️ Imagem não disponível';
-    parent.appendChild(fallbackDiv);
-  };
+    if (parent && !parent.querySelector('.fallback-div')) {
+      fallbackDiv.className = 'fallback-div';
+      parent.appendChild(fallbackDiv);
+    }
+  }, [theme]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     
+    // ✅ Previne submissão duplicada
+    if (isSubmitting || loading || submissionRef.current) {
+      console.log("Submissão já em andamento, ignorando...");
+      return;
+    }
+
     // Marca todos os campos como touched
     const allTouched = {
       nome: true,
@@ -250,7 +283,11 @@ const ItemFormModal = ({
       return;
     }
 
+    // ✅ Marca como em submissão
+    setIsSubmitting(true);
+    submissionRef.current = true;
     setLoading(true);
+    
     try {
       const dadosParaEnvio = {
         nome: formData.nome?.trim() || "",
@@ -272,25 +309,42 @@ const ItemFormModal = ({
 
       await onSave(dadosParaEnvio);
       
-      showToast.success(
-        isEditing ? `Item "${formData.nome}" atualizado!` : `Item "${formData.nome}" adicionado!`,
-        theme
-      );
-      
-      handleClose();
+      // ✅ Só mostra toast e fecha se ainda estiver montado
+      if (mountedRef.current) {
+        showToast.success(
+          isEditing ? `Item "${formData.nome}" atualizado!` : `Item "${formData.nome}" adicionado!`,
+          theme
+        );
+        handleClose();
+      }
     } catch (error) {
       console.error('Erro ao salvar item:', error);
-      if (error.response?.status === 400) {
-        showToast.error('Dados inválidos. Verifique as informações.', theme);
-      } else if (error.response?.status === 401) {
-        showToast.error('Sessão expirada. Faça login novamente.', theme);
-      } else {
-        showToast.error(`Erro ao ${isEditing ? 'atualizar' : 'adicionar'} item. Tente novamente.`, theme);
+      if (mountedRef.current) {
+        if (error.response?.status === 400) {
+          showToast.error('Dados inválidos. Verifique as informações.', theme);
+        } else if (error.response?.status === 401) {
+          showToast.error('Sessão expirada. Faça login novamente.', theme);
+        } else {
+          showToast.error(`Erro ao ${isEditing ? 'atualizar' : 'adicionar'} item. Tente novamente.`, theme);
+        }
       }
+      // ✅ Reseta para permitir tentar novamente
+      submissionRef.current = false;
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+        setIsSubmitting(false);
+      }
     }
-  };
+  }, [isSubmitting, loading, formData, precoFormatado, setTouched, validarFormulario, setErrors, theme, onSave, isEditing, handleClose]);
+
+  // ✅ Previne múltiplos cliques no botão
+  const handleButtonClick = useCallback((e) => {
+    if (isSubmitting || loading || submissionRef.current) {
+      e.preventDefault();
+      return;
+    }
+  }, [isSubmitting, loading]);
 
   const modalContent = (
     <Overlay theme={theme} onClick={handleClose}>
@@ -298,7 +352,7 @@ const ItemFormModal = ({
         <SheetHandle theme={theme} />
         <Header theme={theme}>
           <h2>{isEditing ? '✏️ Editar Item' : '➕ Adicionar Item'}</h2>
-          <CloseButton onClick={handleClose} theme={theme} aria-label="Fechar">✕</CloseButton>
+          <CloseButton onClick={handleClose} theme={theme} aria-label="Fechar" disabled={isSubmitting || loading}>✕</CloseButton>
         </Header>
 
         <ScrollContent>
@@ -328,7 +382,7 @@ const ItemFormModal = ({
                 theme={theme}
                 style={{ borderColor: errors.nome && touched.nome ? '#dc3545' : undefined }}
                 maxLength={100}
-                disabled={loading}
+                disabled={loading || isSubmitting}
                 autoComplete="off"
               />
               {errors.nome && touched.nome && <ErrorMessage theme={theme}>{errors.nome}</ErrorMessage>}
@@ -347,7 +401,7 @@ const ItemFormModal = ({
                   placeholder="Ex: Apple, Nike, Amazon"
                   theme={theme}
                   maxLength={50}
-                  disabled={loading}
+                  disabled={loading || isSubmitting}
                   autoComplete="off"
                 />
                 {errors.marca && touched.marca && <ErrorMessage theme={theme}>{errors.marca}</ErrorMessage>}
@@ -364,7 +418,7 @@ const ItemFormModal = ({
                   placeholder="R$ 0,00"
                   theme={theme}
                   style={{ borderColor: errors.preco && touched.preco ? '#dc3545' : undefined }}
-                  disabled={loading}
+                  disabled={loading || isSubmitting}
                   inputMode="decimal"
                 />
                 {errors.preco && touched.preco && <ErrorMessage theme={theme}>{errors.preco}</ErrorMessage>}
@@ -378,7 +432,7 @@ const ItemFormModal = ({
                 <QuantidadeButton 
                   type="button"
                   onClick={() => handleQuantidadeChange(-1)}
-                  disabled={loading || formData.quantidade <= 1}
+                  disabled={loading || isSubmitting || formData.quantidade <= 1}
                   theme={theme}
                 >
                   −
@@ -396,12 +450,12 @@ const ItemFormModal = ({
                   max="999999"
                   step="1"
                   theme={theme}
-                  disabled={loading}
+                  disabled={loading || isSubmitting}
                 />
                 <QuantidadeButton 
                   type="button"
                   onClick={() => handleQuantidadeChange(1)}
-                  disabled={loading}
+                  disabled={loading || isSubmitting}
                   theme={theme}
                 >
                   +
@@ -422,7 +476,7 @@ const ItemFormModal = ({
                 placeholder="Onde comprou? Ex: Mercado Livre, Amazon, Shopee"
                 theme={theme}
                 maxLength={100}
-                disabled={loading}
+                disabled={loading || isSubmitting}
                 autoComplete="off"
               />
               {errors.loja && touched.loja && <ErrorMessage theme={theme}>{errors.loja}</ErrorMessage>}
@@ -434,8 +488,10 @@ const ItemFormModal = ({
               marca={formData.marca}
               onSelectItem={handleSelectProductItem}
               onSelectPrice={(price) => {
-                handleFieldChange("preco", price);
-                setPrecoRaw(price);
+                if (!isSubmitting && !loading) {
+                  handleFieldChange("preco", price);
+                  setPrecoRaw(price);
+                }
               }}
               theme={theme}
             />
@@ -448,7 +504,7 @@ const ItemFormModal = ({
                   value={formData.pagamento || "normal"}
                   onChange={(e) => handleFieldChange("pagamento", e.target.value)}
                   theme={theme}
-                  disabled={loading}
+                  disabled={loading || isSubmitting}
                 >
                   <option value="normal">💵 Normal</option>
                   <option value="vr">🍽️ VR/VA</option>
@@ -461,7 +517,7 @@ const ItemFormModal = ({
                   value={formData.prioridade || "normal"}
                   onChange={(e) => handleFieldChange("prioridade", e.target.value)}
                   theme={theme}
-                  disabled={loading}
+                  disabled={loading || isSubmitting}
                 >
                   <option value="urgente">🔴 Urgente</option>
                   <option value="normal">🟡 Normal</option>
@@ -475,17 +531,20 @@ const ItemFormModal = ({
               <CancelarButton 
                 type="button" 
                 onClick={handleClose} 
-                disabled={loading} 
+                disabled={loading || isSubmitting} 
                 theme={theme}
               >
                 Cancelar
               </CancelarButton>
               <SalvarButton 
                 type="submit" 
-                disabled={loading || !formData.nome?.trim()} 
+                onClick={handleButtonClick}
+                disabled={loading || isSubmitting || !formData.nome?.trim()} 
                 theme={theme}
               >
-                {loading ? (isEditing ? 'Salvando...' : 'Adicionando...') : (isEditing ? 'Salvar' : 'Adicionar')}
+                {(loading || isSubmitting) 
+                  ? (isEditing ? 'Salvando...' : 'Adicionando...') 
+                  : (isEditing ? 'Salvar' : 'Adicionar')}
               </SalvarButton>
             </ModalButtons>
           </Form>
