@@ -1,4 +1,4 @@
-// CategoriaCard.jsx — versão final com seu ItemFormModal
+// CategoriaCard.jsx — versão corrigida (sem duplicação do modal)
 import React, { useState, useMemo, useCallback, memo, useRef, useEffect } from "react";
 import {
   Plus,
@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { formatarMoeda, getPaymentIcon } from "../utils/formatters";
 import storeLogoService from "../services/storeLogoService";
-import ItemFormModal from "./ItemFormModal"; // ✅ Importa seu modal existente
+import ItemFormModal from "./ItemFormModal";
 import * as S from "../styles/components/CategoriaCardStyles";
 
 const isMobileDevice = () => {
@@ -433,7 +433,6 @@ const ItemCard = memo(
               </S.ItemTotalValueCompact>
             </S.ItemTotalCompact>
 
-            {/* Botões para DESKTOP */}
             <S.ItemActionsDesktop>
               {item.linkProduto && (
                 <S.ItemActionButton
@@ -466,7 +465,6 @@ const ItemCard = memo(
               </S.ItemActionButton>
             </S.ItemActionsDesktop>
 
-            {/* Botão de menu para MOBILE */}
             <S.ItemActionsMobile>
               <S.ItemActionButton
                 ref={menuButtonRef}
@@ -572,6 +570,9 @@ const CategoriaCard = ({
   const [editingItem, setEditingItem] = useState(null);
   const [isEditingMode, setIsEditingMode] = useState(false);
 
+  // Ref para controlar o modal ativo globalmente
+  const modalInstanceRef = useRef(null);
+
   const handleDeleteCategoria = useCallback(async () => {
     if (isLoading || isSaving) return;
     if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria.nome}"?`)) {
@@ -586,36 +587,57 @@ const CategoriaCard = ({
 
   // Função para abrir modal de edição de item
   const handleEditItem = useCallback((item) => {
+    // Previne abrir se já está aberto
+    if (isItemModalOpen) return;
+    
     setEditingItem(item);
     setIsEditingMode(true);
     setIsItemModalOpen(true);
-  }, []);
+    modalInstanceRef.current = 'edit';
+  }, [isItemModalOpen]);
 
   // Função para abrir modal de criação de item
   const handleAddItemClick = useCallback(async () => {
     if (isLoading || isSaving) return;
+    // Previne abrir se já está aberto
+    if (isItemModalOpen) return;
+    
     setEditingItem(null);
     setIsEditingMode(false);
     setIsItemModalOpen(true);
-  }, [isLoading, isSaving]);
+    modalInstanceRef.current = 'add';
+  }, [isLoading, isSaving, isItemModalOpen]);
 
   // Função para fechar o modal
   const handleCloseItemModal = useCallback(() => {
     setIsItemModalOpen(false);
     setEditingItem(null);
     setIsEditingMode(false);
+    modalInstanceRef.current = null;
   }, []);
 
   // Função para salvar o item (criação ou edição)
   const handleSaveItem = useCallback(async (dadosParaEnvio) => {
-    if (isEditingMode && editingItem) {
-      // Edição: passa o ID e os dados
-      await onUpdateItem(editingItem.id, dadosParaEnvio);
-    } else {
-      // Criação: passa o ID da categoria e os dados
-      await onAddItem(categoria.id, dadosParaEnvio);
+    // Previne salvamento duplicado
+    if (isSaving) return;
+    
+    setIsSaving(true);
+    try {
+      if (isEditingMode && editingItem) {
+        // Edição: passa o ID e os dados
+        await onUpdateItem(editingItem.id, dadosParaEnvio);
+      } else {
+        // Criação: passa o ID da categoria e os dados
+        await onAddItem(categoria.id, dadosParaEnvio);
+      }
+      // Fecha o modal APÓS salvar com sucesso
+      handleCloseItemModal();
+    } catch (error) {
+      console.error('Erro ao salvar item:', error);
+    } finally {
+      setIsSaving(false);
     }
-  }, [isEditingMode, editingItem, onUpdateItem, onAddItem, categoria.id]);
+  }, [isEditingMode, editingItem, onUpdateItem, onAddItem, categoria.id, isSaving, handleCloseItemModal]);
 
   // Função para deletar item com confirmação
   const handleDeleteItemLocal = useCallback(async (itemId) => {
@@ -969,7 +991,7 @@ const CategoriaCard = ({
         </S.CategoryFooter>
       </S.CardContainer>
 
-      {/* Modal de Item - Usando seu componente existente */}
+      {/* Modal de Item - Com proteção contra duplicação */}
       <ItemFormModal
         isOpen={isItemModalOpen}
         onClose={handleCloseItemModal}
