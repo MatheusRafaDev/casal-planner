@@ -12,7 +12,7 @@ import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ConfirmProvider } from './context/ConfirmContext';
 
 // Components
-import ConfirmModal from './components/ConfirmModal';
+
 import GlobalStyle from './styles/GlobalStyle';
 
 // Routes
@@ -35,7 +35,6 @@ const StyledThemeWrapper = () => {
       <GlobalStyle />
       <ConfirmProvider>
         <AppRoutes />
-        <ConfirmModal theme={theme} />
       </ConfirmProvider>
       <Toaster 
         position="top-right"
