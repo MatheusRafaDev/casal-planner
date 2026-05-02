@@ -1,4 +1,3 @@
-// CategoriaCardStyles.jsx — Layout reestruturado com imagem de produto
 
 import styled, { keyframes } from "styled-components";
 import { GripVertical, Check } from "lucide-react";
@@ -313,12 +312,13 @@ export const ItemLayout = styled.div`
   align-items: flex-start;
 `;
 
-/** Coluna esquerda: checkbox empilhado sobre a foto */
+/** Coluna esquerda: CHECKBOX EMPILHADO SOBRE A FOTO (checkbox em cima, foto embaixo) */
+
 export const ItemLeftCol = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
   flex-shrink: 0;
 `;
 
@@ -426,8 +426,7 @@ export const ProductImgPlaceholder = styled.div`
   background: ${(props) => props.theme?.surface || "#f8fafc"};
 `;
 
-// ─── CHECKBOX ────────────────────────────────────────────────────────────────
-
+// ─── CHECKBOX (agora vem PRIMEIRO na coluna esquerda) ─────────────────────────
 export const CheckboxButton = styled.button`
   width: 1.1rem;
   height: 1.1rem;
@@ -444,6 +443,7 @@ export const CheckboxButton = styled.button`
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  align-self: center;   /* ← novo */
   cursor: pointer;
   transition: all 0.2s;
 
@@ -1036,5 +1036,6 @@ export const ContextMenuItem = styled.div`
       $danger ? `${theme?.error || "#ef4444"}18` : (theme?.border || "#f3f4f6")};
   }
 
+  
   svg { stroke-width: 1.5; }
 `;

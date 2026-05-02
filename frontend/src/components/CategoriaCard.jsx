@@ -1,12 +1,3 @@
-// CategoriaCard.jsx
-// ─── NOVIDADES ────────────────────────────────────────────────────────────────
-// • Imagem do produto ao lado do item (thumbnail clicável para ampliar)
-// • Layout reestruturado: foto | nome · preço total / prioridade · qtd · preço un / loja · pagamento
-// • Swipe direita  → marca/desmarca comprado (verde)
-// • Swipe esquerda → abre confirm de exclusão (vermelho)
-// • Clique no nome do item → abre modal de edição
-// • Modal de item gerenciado pelo Planejamento (sem ItemFormModal interno)
-// ──────────────────────────────────────────────────────────────────────────────
 import React, { useState, useMemo, useCallback, memo, useRef, useEffect } from "react";
 import {
   Plus, Trash2, Pencil, ChevronDown, ChevronUp,
@@ -242,7 +233,7 @@ const ProductImage = memo(({ item, theme, purchased }) => {
         >
           <div onClick={e => e.stopPropagation()} style={{ position: "relative", maxWidth: "90vw", maxHeight: "90vh" }}>
             <img
-              src={item.imagemUrl}
+              src={item.fotoUrl}
               alt={item.nome}
               style={{ maxWidth: "100%", maxHeight: "85vh", objectFit: "contain", borderRadius: "12px" }}
             />
@@ -426,10 +417,10 @@ const ItemCard = memo(({
             onDragEnd={dragEnd}
             style={{ marginBottom:0 }}
           >
-            {/* ── NOVO LAYOUT ────────────────────────────────────────────── */}
+            {/* ── NOVO LAYOUT: CHECKBOX | FOTO | CONTEÚDO ──────────────────── */}
             <S.ItemLayout>
 
-              {/* Coluna esquerda: checkbox + foto */}
+              {/* Coluna esquerda: CHECKBOX (PRIMEIRO) + FOTO (EMBAIXO) */}
               <S.ItemLeftCol>
                 <S.CheckboxButton
                   $checked={item.comprado}
@@ -532,7 +523,11 @@ const ItemCard = memo(({
                     {getPaymentIcon(item.pagamento)}{item.pagamento==="vr"?" VR/VA":" Normal"}
                   </S.PaymentBadge>
 
-
+                  {item.marca && (
+                    <S.ItemBrand theme={theme}>
+                      {item.marca.length>15?item.marca.substring(0,15)+"…":item.marca}
+                    </S.ItemBrand>
+                  )}
                 </S.ItemBottomRow>
 
               </S.ItemContent>
