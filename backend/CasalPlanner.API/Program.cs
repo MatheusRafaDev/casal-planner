@@ -24,7 +24,6 @@ else
 
 builder.Configuration.AddEnvironmentVariables();
 
-
 // ===== 2. CONFIG =====
 var jwtKey      = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
     ?? throw new Exception("JWT_SECRET_KEY não configurada");
@@ -42,13 +41,12 @@ builder.Services.AddMemoryCache();
 builder.Services.Configure<IpRateLimitOptions>(options =>
 {
     options.EnableEndpointRateLimiting = true;
-    // Usa IP real quando atrás de proxy/load balancer (Render, Railway, etc.)
     options.RealIpHeader = "X-Forwarded-For";
     options.ClientIdHeader = "X-ClientId";
     options.GeneralRules = new List<RateLimitRule>
     {
         new() { Endpoint = "*",                Period = "1m",  Limit = 100 },
-        new() { Endpoint = "POST:/api/auth/*", Period = "10m", Limit = 10  }, // Proteção brute-force login
+        new() { Endpoint = "POST:/api/auth/*", Period = "10m", Limit = 10  },
     };
 });
 builder.Services.AddInMemoryRateLimiting();
@@ -72,7 +70,6 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    // Em produção, exige HTTPS; em dev, permite HTTP
     options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
     options.SaveToken = true;
 
@@ -103,21 +100,51 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// ===== 6. CORS =====
+// ===== 6. CORS COMPLETAMENTE LIBERADO PARA DEV =====
 var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "https://casalplanner.vercel.app";
+
+// Obtém IP local para mostrar no console
+var localIp = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()
+    .SelectMany(i => i.GetIPProperties().UnicastAddresses)
+    .FirstOrDefault(a => a.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork && 
+                         !System.Net.IPAddress.IsLoopback(a.Address))
+    ?.Address.ToString() ?? "não encontrado";
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CasalPlannerPolicy", policy =>
     {
-        policy
-            .WithOrigins(
+        if (builder.Environment.IsDevelopment())
+        {
+            // 🔓 MODO DESENVOLVIMENTO: Libera completamente para testes no celular
+            policy.SetIsOriginAllowed(_ => true)  // Aceita QUALQUER origem (qualquer IP)
+                  .AllowAnyMethod()                // GET, POST, PUT, DELETE, OPTIONS
+                  .AllowAnyHeader()                // Qualquer cabeçalho
+                  .AllowCredentials();             // Permite cookies/tokens
+                  
+            Console.WriteLine("🔓 CORS: Modo desenvolvimento - TODAS as origens permitidas");
+            Console.WriteLine($"📱 Para acessar do celular, use: http://{localIp}:5000 ou http://{localIp}:5123");
+            Console.WriteLine("🌐 Ou a porta configurada no launchSettings.json");
+        }
+        else
+        {
+            // 🔒 MODO PRODUÇÃO: Apenas origens específicas
+            var allowedOrigins = new[]
+            {
                 "http://localhost:3000",
+                "http://localhost:5173",
                 "https://casalplanner.vercel.app",
-                "https://casal-planner.vercel.app"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+                "https://casal-planner.vercel.app",
+                frontendUrl
+            }.Where(url => !string.IsNullOrEmpty(url)).ToArray();
+
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+                  
+            Console.WriteLine($"🔒 CORS: Modo produção - origens: {string.Join(", ", allowedOrigins)}");
+        }
     });
 });
 
@@ -132,7 +159,6 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IRecuperarSenhaService, RecuperarSenhaService>();
 
 builder.Services.AddMemoryCache(); 
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -150,13 +176,57 @@ if (builder.Environment.IsDevelopment())
             Type = SecuritySchemeType.ApiKey,
             Scheme = "Bearer"
         });
+        
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
     });
 }
 
 // ===== BUILD =====
 var app = builder.Build();
 
-// ===== 8. HEADERS DE SEGURANÇA =====
+// ===== 8. MIDDLEWARE PARA LOG DE REQUISIÇÕES =====
+app.Use(async (context, next) =>
+{
+    var origin = context.Request.Headers["Origin"].ToString();
+    var method = context.Request.Method;
+    var path = context.Request.Path;
+    var ip = context.Connection.RemoteIpAddress?.ToString();
+    
+    if (!string.IsNullOrEmpty(origin) && builder.Environment.IsDevelopment())
+    {
+        Console.WriteLine($"📡 [{DateTime.Now:HH:mm:ss}] {method} {path} - Origem: {origin} | IP: {ip}");
+        
+        // Adiciona headers CORS manualmente para garantir
+        context.Response.Headers.Add("Access-Control-Allow-Origin", origin);
+        context.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+    }
+    
+    if (context.Request.Method == "OPTIONS")
+    {
+        Console.WriteLine($"🔧 Preflight CORS: {origin}");
+        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+        context.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+        context.Response.StatusCode = 200;
+        return;
+    }
+    
+    await next();
+});
+
+// ===== 9. HEADERS DE SEGURANÇA =====
 app.Use(async (context, next) =>
 {
     if (!app.Environment.IsDevelopment())
@@ -185,7 +255,7 @@ app.UseIpRateLimiting();
 if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 else
-    Console.WriteLine("🔧 Ambiente Dev: HTTP permitido");
+    Console.WriteLine("🔧 Ambiente Dev: HTTP permitido para testes no celular");
 
 app.UseCors("CasalPlannerPolicy");
 
@@ -194,11 +264,15 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// ===== 9. SWAGGER (apenas dev) =====
+// ===== 10. SWAGGER (apenas dev) =====
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Casal Planner API v1");
+        c.RoutePrefix = "swagger";
+    });
 }
 
 // Health check sempre disponível
@@ -207,10 +281,11 @@ app.MapGet("/health", () => Results.Ok(new
     status = "healthy",
     timestamp = DateTime.UtcNow,
     environment = app.Environment.EnvironmentName,
-    version = "1.0.0"
+    version = "1.0.0",
+    localIp = localIp
 }));
 
-// ===== 10. SEED — apenas em desenvolvimento =====
+// ===== 11. SEED E ÍNDICES =====
 try
 {
     using var scope = app.Services.CreateScope();
@@ -218,7 +293,6 @@ try
 
     await dbContext.TestarConexaoAsync();
 
-    // Seed de dados de exemplo APENAS em desenvolvimento
     if (app.Environment.IsDevelopment())
     {
         await dbContext.SeedDataAsync();
@@ -227,7 +301,6 @@ try
 
     await dbContext.VerificarUsuarioCasal();
 
-    // Índices sempre criados (idempotente)
     await dbContext.Itens.Indexes.CreateManyAsync(new[]
     {
         new CreateIndexModel<Item>(
@@ -253,12 +326,22 @@ try
 catch (Exception ex)
 {
     Console.WriteLine($"❌ Erro na inicialização: {ex.Message}");
-    // Não derruba o app — permite que o health check responda
 }
 
-// ===== 11. INICIAR =====
-// Em dev: launchSettings.json controla a URL via ASPNETCORE_URLS automaticamente.
-// Em prod (Render/Railway): PORT é injetada via variável de ambiente.
+// ===== 12. INICIAR SERVIDOR =====
+Console.WriteLine("\n=========================================");
+Console.WriteLine("🚀 Casal Planner API Iniciada");
+Console.WriteLine($"📡 IP Local: http://{localIp}");
+Console.WriteLine($"🔧 Ambiente: {app.Environment.EnvironmentName}");
+Console.WriteLine("=========================================");
+Console.WriteLine("📱 Para acessar do CELULAR (mesma rede Wi-Fi):");
+Console.WriteLine($"   • API: http://{localIp}:5000");
+Console.WriteLine($"   • Health Check: http://{localIp}:5000/health");
+Console.WriteLine($"   • Swagger: http://{localIp}:5000/swagger");
+Console.WriteLine("=========================================\n");
+
+// Em dev: launchSettings.json controla a URL via ASPNETCORE_URLS
+// Em prod (Render/Railway): PORT é injetada via variável de ambiente
 var portEnv = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrEmpty(portEnv))
     app.Run($"http://0.0.0.0:{portEnv}");
