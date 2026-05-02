@@ -1,4 +1,4 @@
-// CategoriaCardStyles.jsx — corrigido: sem fundos pretos, texto completo, mobile ok
+// CategoriaCardStyles.jsx — Layout reestruturado com imagem de produto
 
 import styled, { keyframes } from "styled-components";
 import { GripVertical, Check } from "lucide-react";
@@ -92,7 +92,6 @@ export const Title = styled.h3`
   font-weight: 700;
   margin: 0;
   color: ${(props) => props.theme?.text || "#111"};
-  /* FIX: sem truncate, texto completo */
   white-space: normal;
   word-break: break-word;
   overflow-wrap: break-word;
@@ -281,7 +280,7 @@ export const ItemsList = styled.div`
 
 // ================= ITEM CARD =================
 export const ItemRow = styled.div`
-  padding: 0.65rem 0.75rem;
+  padding: 0.6rem 0.65rem;
   border-radius: 0.75rem;
   border: 1px solid
     ${(props) => {
@@ -297,7 +296,7 @@ export const ItemRow = styled.div`
     return props.theme?.surface || "#fafafa";
   }};
   transition: all 0.15s;
-  opacity: ${(props) => (props.$isDragging ? 0.5 : props.$purchased ? 0.8 : 1)};
+  opacity: ${(props) => (props.$isDragging ? 0.5 : props.$purchased ? 0.82 : 1)};
 
   &:hover {
     border-color: ${(props) => `${props.theme?.primary || "#3b82f6"}40`};
@@ -305,20 +304,135 @@ export const ItemRow = styled.div`
   }
 `;
 
-// LINHA 1: checkbox · nome · preço · ações
-export const ItemMainRow = styled.div`
+// ─── NOVO LAYOUT ESTRUTURADO ──────────────────────────────────────────────────
+
+/** Wrapper principal: [coluna esquerda] [coluna direita] */
+export const ItemLayout = styled.div`
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.4rem;
+  gap: 0.6rem;
+  align-items: flex-start;
 `;
 
-// checkbox
+/** Coluna esquerda: checkbox empilhado sobre a foto */
+export const ItemLeftCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+`;
+
+/** Coluna direita: nome + badges em linhas */
+export const ItemContent = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+`;
+
+/** Linha 1: nome + preço total + ações */
+export const ItemTopRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+`;
+
+export const ItemTopRight = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  margin-left: auto;
+`;
+
+/** Linha 2: prioridade · quantidade · preço un · data */
+export const ItemMidRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+`;
+
+/** Linha 3: loja · pagamento · marca */
+export const ItemBottomRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+`;
+
+/** Separador visual entre badges */
+export const DetailSeparator = styled.span`
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: ${(props) => props.theme?.border || "#d1d5db"};
+  flex-shrink: 0;
+  display: inline-block;
+`;
+
+// ─── IMAGEM DO PRODUTO ────────────────────────────────────────────────────────
+
+export const ProductImageWrapper = styled.div`
+  width: 52px;
+  height: 52px;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid ${(props) => props.theme?.border || "#e5e7eb"};
+  background: ${(props) => props.theme?.surface || "#f8fafc"};
+  transition: all 0.2s;
+  position: relative;
+
+  ${(props) => props.$purchased && `
+    opacity: 0.55;
+    filter: grayscale(40%);
+  `}
+
+  ${(props) => props.$hasImage && `
+    &:hover {
+      border-color: ${props.theme?.primary || "#3b82f6"};
+      box-shadow: 0 0 0 2px ${(props.theme?.primary || "#3b82f6")}30;
+      transform: scale(1.04);
+    }
+  `}
+
+  @media (max-width: 480px) {
+    width: 44px;
+    height: 44px;
+  }
+`;
+
+export const ProductImg = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity 0.2s;
+
+  ${(props) => props.$purchased && `
+    opacity: 0.7;
+  `}
+`;
+
+export const ProductImgPlaceholder = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${(props) => props.theme?.border || "#d1d5db"};
+  background: ${(props) => props.theme?.surface || "#f8fafc"};
+`;
+
+// ─── CHECKBOX ────────────────────────────────────────────────────────────────
+
 export const CheckboxButton = styled.button`
-  width: 1.2rem;
-  height: 1.2rem;
-  min-width: 1.2rem;
-  border-radius: 0.3rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  min-width: 1.1rem;
+  border-radius: 0.25rem;
   border: 2px solid
     ${(props) =>
       props.$checked
@@ -341,13 +455,14 @@ export const CheckboxButton = styled.button`
 `;
 
 export const CheckIcon = styled(Check)`
-  width: 0.65rem;
-  height: 0.65rem;
+  width: 0.6rem;
+  height: 0.6rem;
   color: #fff;
   stroke-width: 3.5;
 `;
 
-// FIX: nome sem truncate para mostrar texto completo
+// ─── NOME ────────────────────────────────────────────────────────────────────
+
 export const ItemName = styled.p`
   flex: 1;
   font-size: 0.875rem;
@@ -356,30 +471,34 @@ export const ItemName = styled.p`
   min-width: 0;
   color: ${(props) =>
     props.$purchased ? props.theme?.textSoft || "#888" : props.theme?.text || "#111"};
-  text-decoration: ${(props) => (props.$purchased ? "line-through" : "none")};
-  /* Permite quebra de linha para texto completo */
   white-space: normal;
   word-break: break-word;
   overflow-wrap: break-word;
-  line-height: 1.3;
+  line-height: 1.35;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
 `;
 
-// preço total do item
+// ─── PREÇO TOTAL ─────────────────────────────────────────────────────────────
+
 export const ItemTotalCompact = styled.div`
   flex-shrink: 0;
 `;
 
 export const ItemTotalValueCompact = styled.span`
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: ${(props) => props.theme?.primary || "#3b82f6"};
   background: ${(props) => `${props.theme?.primary || "#3b82f6"}12`};
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.5rem;
+  padding: 0.18rem 0.45rem;
+  border-radius: 0.45rem;
   white-space: nowrap;
 `;
 
-// ações
+// ─── AÇÕES ───────────────────────────────────────────────────────────────────
+
 export const ItemActions = styled.div`
   display: flex;
   gap: 0.2rem;
@@ -387,9 +506,9 @@ export const ItemActions = styled.div`
 `;
 
 export const ItemActionButton = styled.button`
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 0.4rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 0.35rem;
   border: none;
   background: transparent;
   cursor: pointer;
@@ -420,54 +539,44 @@ export const ItemActionButton = styled.button`
   }
 `;
 
-// ================= LINHA 2: BADGES DE DETALHE =================
-// FIX: layout mobile — badges em linha, quebra natural, sem campos pretos
-export const ItemDetailsRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  align-items: center;
-`;
+// ─── BADGES ──────────────────────────────────────────────────────────────────
 
-// FIX: fundo usa a cor do tema, não hardcoded
 export const ItemQuantityBadge = styled.div`
   display: inline-flex;
   align-items: center;
   gap: 0.2rem;
-  font-size: 0.7rem;
-  padding: 0.15rem 0.45rem;
+  font-size: 0.68rem;
+  padding: 0.12rem 0.4rem;
   background: ${(props) => props.theme?.border || "#e5e7eb"};
-  border-radius: 0.4rem;
-  font-weight: 500;
+  border-radius: 0.35rem;
+  font-weight: 600;
   color: ${(props) => props.theme?.textSoft || "#555"};
   white-space: nowrap;
   flex-shrink: 0;
 
   svg {
-    width: 0.65rem;
-    height: 0.65rem;
+    width: 0.6rem;
+    height: 0.6rem;
     opacity: 0.7;
   }
 `;
 
-// FIX: sem fundo escuro
 export const ItemPriceBadge = styled.div`
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: ${(props) => props.theme?.textSoft || "#666"};
   white-space: nowrap;
   flex-shrink: 0;
-  padding: 0.15rem 0;
+  font-weight: 500;
 `;
 
-// FIX: fundo via tema, sem hardcoded dark
 export const StoreBadge = styled.div`
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   background: ${(props) => props.theme?.border || "#e5e7eb"};
-  padding: 0.15rem 0.45rem;
-  border-radius: 0.4rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.35rem;
   color: ${(props) => props.theme?.text || "#333"};
   max-width: 140px;
   min-width: 0;
@@ -491,7 +600,7 @@ export const StoreIconFallback = styled.span`
 `;
 
 export const StoreName = styled.span`
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: ${(props) => props.theme?.text || "#333"};
   overflow: hidden;
   text-overflow: ellipsis;
@@ -499,15 +608,15 @@ export const StoreName = styled.span`
   min-width: 0;
 `;
 
-// ================= PRIORITY BADGES =================
-// FIX: sem fundo preto — usa cores semânticas leves
+// ─── PRIORITY BADGES ──────────────────────────────────────────────────────────
+
 export const PriorityBadgeFull = styled.div`
   display: inline-flex;
   align-items: center;
   gap: 0.2rem;
-  padding: 0.15rem 0.5rem;
-  border-radius: 0.4rem;
-  font-size: 0.7rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 0.35rem;
+  font-size: 0.68rem;
   font-weight: 600;
   white-space: nowrap;
   flex-shrink: 0;
@@ -520,8 +629,8 @@ export const PriorityBadgeSmall = styled.div`
   display: inline-flex;
   align-items: center;
   gap: 0.2rem;
-  padding: 0.15rem 0.4rem;
-  border-radius: 0.4rem;
+  padding: 0.12rem 0.35rem;
+  border-radius: 0.35rem;
   font-size: 0.65rem;
   font-weight: 600;
   flex-shrink: 0;
@@ -535,15 +644,15 @@ export const PriorityBadgeSmall = styled.div`
   }
 `;
 
-// ================= PAYMENT BADGE =================
-// FIX: sem fundo preto — background leve via tema
+// ─── PAYMENT BADGE ────────────────────────────────────────────────────────────
+
 export const PaymentBadge = styled.span`
   display: inline-flex;
   align-items: center;
   gap: 0.2rem;
-  font-size: 0.7rem;
-  padding: 0.15rem 0.45rem;
-  border-radius: 0.4rem;
+  font-size: 0.68rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.35rem;
   font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
@@ -556,15 +665,15 @@ export const PaymentBadge = styled.span`
     props.$type === "vr" ? "#f59e0b12" : `${props.theme?.primary || "#3b82f6"}10`};
 `;
 
-// ================= ITEM BRAND =================
-// FIX: fundo via tema, sem fundo preto
+// ─── BRAND ───────────────────────────────────────────────────────────────────
+
 export const ItemBrand = styled.span`
   display: inline-flex;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: ${(props) => props.theme?.textSoft || "#666"};
   background: ${(props) => props.theme?.border || "#e5e7eb"};
-  padding: 0.15rem 0.45rem;
-  border-radius: 0.4rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.35rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -572,7 +681,8 @@ export const ItemBrand = styled.span`
   flex-shrink: 0;
 `;
 
-// ================= NEW BADGE =================
+// ─── NEW BADGE ────────────────────────────────────────────────────────────────
+
 export const NewBadge = styled.span`
   display: inline-flex;
   align-items: center;
@@ -587,7 +697,15 @@ export const NewBadge = styled.span`
   flex-shrink: 0;
 `;
 
-// ================= DRAG HANDLE ITEM =================
+/** Versão inline (dentro do nome) */
+export const NewBadgeInline = styled(NewBadge)`
+  font-size: 0.55rem;
+  padding: 0.08rem 0.35rem;
+  vertical-align: middle;
+`;
+
+// ─── DRAG HANDLE ─────────────────────────────────────────────────────────────
+
 export const DragHandleItem = styled.span`
   cursor: grab;
   color: ${(props) => props.theme?.textSoft || "#666"};
@@ -598,16 +716,48 @@ export const DragHandleItem = styled.span`
   user-select: none;
   transition: opacity 0.2s;
 
-  &:hover {
-    opacity: 1;
-  }
-
-  &[draggable="true"]:active {
-    cursor: grabbing;
-  }
+  &:hover { opacity: 1; }
+  &[draggable="true"]:active { cursor: grabbing; }
 `;
 
-// ================= FOOTER =================
+// ─── COMPAT ALIASES ───────────────────────────────────────────────────────────
+
+export const ItemMainRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+`;
+
+export const ItemDetailsRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+`;
+
+export const ItemTotalCompact2 = styled.div`flex-shrink: 0;`;
+
+export const ItemNameSection = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+`;
+
+export const ItemDetailsLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+`;
+
+// ─── FOOTER ───────────────────────────────────────────────────────────────────
+
 export const CategoryFooter = styled.div`
   padding: 0.6rem 0.75rem;
   border-top: 1px solid ${(props) => props.theme?.border || "#e5e7eb"};
@@ -637,19 +787,21 @@ export const StatItem = styled.div`
   }
 `;
 
-// ================= SKELETON =================
+// ─── SKELETON ────────────────────────────────────────────────────────────────
+
 export const ItemSkeletonWrapper = styled.div`
   padding: 0.5rem 0.75rem;
 `;
 
 export const ItemSkeleton = styled.div`
-  height: 58px;
+  height: 72px;
   border-radius: 0.6rem;
   background: ${(props) => props.theme?.border || "#e5e7eb"};
   animation: ${skeletonPulse} 1.5s infinite;
 `;
 
-// ================= EMPTY STATE =================
+// ─── EMPTY STATE ─────────────────────────────────────────────────────────────
+
 export const EmptyState = styled.div`
   padding: 2rem 1rem;
   text-align: center;
@@ -696,55 +848,40 @@ export const AddButton = styled.button`
   }
 `;
 
-// ================= COMPAT =================
-export const ItemNameSection = styled.div`
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-`;
-
-export const ItemDetailsLeft = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  flex-wrap: wrap;
-  flex: 1;
-  min-width: 0;
-`;
-
-// Adicione estas exportações no final do seu arquivo CategoriaCardStyles.js
+// ─── DATE BADGE ───────────────────────────────────────────────────────────────
 
 export const DateBadge = styled.span`
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  background: ${p => p.theme.border};
-  color: ${p => p.theme.textSoft};
-  padding: 2px 8px;
-  border-radius: 20px;
+  gap: 3px;
+  background: ${(p) => p.theme?.border || "#e5e7eb"};
+  color: ${(p) => p.theme?.textSoft || "#888"};
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.35rem;
   font-size: 0.65rem;
   font-weight: 500;
+
+  svg { width: 0.6rem; height: 0.6rem; }
 `;
+
+// ─── FILTRO ───────────────────────────────────────────────────────────────────
 
 export const FiltroDataDropdown = styled.div`
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
   min-width: 170px;
-  background: ${p => p.theme.surface};
-  border: 1px solid ${p => p.theme.border};
+  background: ${(p) => p.theme?.surface || "#fff"};
+  border: 1px solid ${(p) => p.theme?.border || "#e5e7eb"};
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   z-index: 100;
   overflow: hidden;
   animation: fadeIn 0.15s ease;
-  
+
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 `;
 
@@ -753,130 +890,81 @@ export const FiltroHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid ${p => p.theme.border};
+  border-bottom: 1px solid ${(p) => p.theme?.border || "#e5e7eb"};
   font-size: 0.8rem;
   font-weight: 600;
-  color: ${p => p.theme.text};
-  background: ${p => p.theme.surface};
-  
+  color: ${(p) => p.theme?.text || "#111"};
+  background: ${(p) => p.theme?.surface || "#f8fafc"};
+
   button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: ${p => p.theme.textSoft};
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-    border-radius: 6px;
-    
-    &:hover {
-      background: ${p => p.theme.border};
-      color: ${p => p.theme.text};
-    }
+    background: none; border: none; cursor: pointer;
+    color: ${(p) => p.theme?.textSoft || "#666"};
+    display: flex; align-items: center; justify-content: center;
+    padding: 4px; border-radius: 6px;
+    &:hover { background: ${(p) => p.theme?.border || "#e5e7eb"}; color: ${(p) => p.theme?.text || "#111"}; }
   }
 `;
 
 export const FiltroOption = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 10px 16px;
-  background: ${p => p.$active ? p.theme.primary + '10' : 'transparent'};
-  border: none;
-  cursor: pointer;
-  font-size: 0.85rem;
-  color: ${p => p.$active ? p.theme.primary : p.theme.text};
-  transition: all 0.15s;
-  text-align: left;
-  
-  span:first-child {
-    font-size: 1rem;
-  }
-  
-  &:hover {
-    background: ${p => p.theme.border};
-  }
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 10px 16px;
+  background: ${(p) => p.$active ? (p.theme?.primary || "#3b82f6") + "10" : "transparent"};
+  border: none; cursor: pointer; font-size: 0.85rem;
+  color: ${(p) => p.$active ? (p.theme?.primary || "#3b82f6") : (p.theme?.text || "#111")};
+  transition: all 0.15s; text-align: left;
+  span:first-child { font-size: 1rem; }
+  &:hover { background: ${(p) => p.theme?.border || "#e5e7eb"}; }
 `;
 
 export const FiltroClear = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 10px 16px;
-  background: ${p => p.theme.error}08;
-  border: none;
-  border-top: 1px solid ${p => p.theme.border};
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: ${p => p.theme.error};
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 10px 16px;
+  background: ${(p) => (p.theme?.error || "#ef4444") + "08"};
+  border: none; border-top: 1px solid ${(p) => p.theme?.border || "#e5e7eb"};
+  cursor: pointer; font-size: 0.8rem; font-weight: 500;
+  color: ${(p) => p.theme?.error || "#ef4444"};
   transition: all 0.15s;
-  
-  &:hover {
-    background: ${p => p.theme.error}15;
-  }
+  &:hover { background: ${(p) => (p.theme?.error || "#ef4444") + "15"}; }
 `;
 
 export const FiltroAtivoBadge = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: ${p => p.theme.primary}12;
-  color: ${p => p.theme.primary};
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  margin-bottom: 12px;
-  width: fit-content;
-  
+  display: inline-flex; align-items: center; gap: 6px;
+  background: ${(p) => (p.theme?.primary || "#3b82f6") + "12"};
+  color: ${(p) => p.theme?.primary || "#3b82f6"};
+  padding: 5px 12px; border-radius: 20px;
+  font-size: 0.7rem; font-weight: 600;
+  margin-bottom: 12px; width: fit-content;
+
   button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: ${p => p.theme.primary};
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2px;
-    margin-left: 4px;
-    border-radius: 50%;
-    
-    &:hover {
-      background: ${p => p.theme.primary}20;
-      transform: scale(1.1);
-    }
+    background: none; border: none; cursor: pointer;
+    color: ${(p) => p.theme?.primary || "#3b82f6"};
+    display: flex; align-items: center; justify-content: center;
+    padding: 2px; margin-left: 4px; border-radius: 50%;
+    &:hover { background: ${(p) => (p.theme?.primary || "#3b82f6") + "20"}; transform: scale(1.1); }
   }
 `;
 
 export const FiltroInfo = styled.div`
   font-size: 0.7rem;
-  color: ${p => p.theme.textLight};
+  color: ${(p) => p.theme?.textSoft || "#888"};
   margin-bottom: 12px;
   padding: 6px 12px;
-  background: ${p => p.theme.border};
+  background: ${(p) => p.theme?.border || "#e5e7eb"};
   border-radius: 8px;
   text-align: center;
   animation: fadeIn 0.2s ease;
-  
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 `;
 
-// Adicione no final da seção SORT (antes dos outros componentes)
+// ─── SORT CLEAR ───────────────────────────────────────────────────────────────
+
 export const SortClearButton = styled.button`
   font-size: 0.7rem;
   padding: 0.3rem 0.6rem;
   border-radius: 0.5rem;
-  border: 1px solid ${props => props.theme?.border || "#e5e7eb"};
-  background: ${props => props.theme?.surface || "#f8fafc"};
-  color: ${props => props.theme?.textSoft || "#666"};
+  border: 1px solid ${(props) => props.theme?.border || "#e5e7eb"};
+  background: ${(props) => props.theme?.surface || "#f8fafc"};
+  color: ${(props) => props.theme?.textSoft || "#666"};
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
@@ -886,38 +974,50 @@ export const SortClearButton = styled.button`
   margin-left: auto;
 
   &:hover {
-    background: ${props => props.theme?.border || "#e5e7eb"};
-    color: ${props => props.theme?.text || "#111"};
+    background: ${(props) => props.theme?.border || "#e5e7eb"};
+    color: ${(props) => props.theme?.text || "#111"};
   }
+  &:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+`;
 
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
+// ─── AÇÕES DESKTOP / MOBILE ───────────────────────────────────────────────────
+
+export const ItemActionsDesktop = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 2px;
+
+  @media (max-width: 768px) {
+    display: none;
   }
 `;
-// Adicione estes estilos ao seu arquivo CategoriaCardStyles.js
+
+export const ItemActionsMobile = styled.div`
+  display: none;
+  align-items: center;
+  gap: 2px;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+`;
+
+// ─── CONTEXT MENU (compat) ────────────────────────────────────────────────────
 
 export const ContextMenuContainer = styled.div`
   position: fixed;
-  background: ${({ theme }) => theme.colors.surface};
+  background: ${({ theme }) => theme?.surface || "#fff"};
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   padding: 8px 0;
   min-width: 160px;
   z-index: 1000;
   animation: fadeInScale 0.15s ease-out;
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  border: 1px solid ${({ theme }) => theme?.border || "#e5e7eb"};
 
   @keyframes fadeInScale {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
   }
 `;
 
@@ -928,38 +1028,13 @@ export const ContextMenuItem = styled.div`
   padding: 10px 16px;
   cursor: pointer;
   transition: background 0.2s;
-  color: ${({ theme, $danger }) => 
-    $danger ? theme.colors.error : theme.colors.text};
+  color: ${({ theme, $danger }) => $danger ? (theme?.error || "#ef4444") : (theme?.text || "#111")};
   font-size: 14px;
 
   &:hover {
-    background: ${({ theme, $danger }) => 
-      $danger ? `${theme.colors.error}18` : theme.colors.hover};
+    background: ${({ theme, $danger }) =>
+      $danger ? `${theme?.error || "#ef4444"}18` : (theme?.border || "#f3f4f6")};
   }
 
-  svg {
-    stroke-width: 1.5;
-  }
-`;
-
-// Adicione ao seu arquivo CategoriaCardStyles.js
-
-export const ItemActionsDesktop = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-
-  @media (max-width: 768px) {
-    display: none;
-  }
-`;
-
-export const ItemActionsMobile = styled.div`
-  display: none;
-  align-items: center;
-  gap: 4px;
-
-  @media (max-width: 768px) {
-    display: flex;
-  }
+  svg { stroke-width: 1.5; }
 `;

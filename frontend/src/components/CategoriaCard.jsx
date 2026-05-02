@@ -1,5 +1,7 @@
 // CategoriaCard.jsx
 // ─── NOVIDADES ────────────────────────────────────────────────────────────────
+// • Imagem do produto ao lado do item (thumbnail clicável para ampliar)
+// • Layout reestruturado: foto | nome · preço total / prioridade · qtd · preço un / loja · pagamento
 // • Swipe direita  → marca/desmarca comprado (verde)
 // • Swipe esquerda → abre confirm de exclusão (vermelho)
 // • Clique no nome do item → abre modal de edição
@@ -10,7 +12,7 @@ import {
   Plus, Trash2, Pencil, ChevronDown, ChevronUp,
   ShoppingBag, Store, ExternalLink,
   ArrowUp, ArrowDown, AlertCircle, Clock, CheckCircle,
-  Calendar, Filter, X, MoreHorizontal, Check,
+  Calendar, Filter, X, MoreHorizontal, Check, ImageOff,
 } from "lucide-react";
 import { formatarMoeda, getPaymentIcon } from "../utils/formatters";
 import storeLogoService from "../services/storeLogoService";
@@ -26,11 +28,11 @@ const PRIORIDADE_CONFIG = {
 };
 
 const DATA_FILTROS = {
-  todos:    { label:"Todos",           emoji:"📅", dias:null },
-  hoje:     { label:"Hoje",            emoji:"🌅", dias:0 },
-  ultimos7: { label:"Últimos 7 dias",  emoji:"📆", dias:7 },
-  ultimos30:{ label:"Últimos 30 dias", emoji:"📅", dias:30 },
-  esteMes:  { label:"Este mês",        emoji:"📊", tipo:"mes" },
+  todos:    { label:"Todos",           emoji:"", dias:null },
+  hoje:     { label:"Hoje",            emoji:"", dias:0 },
+  ultimos7: { label:"Últimos 7 dias",  emoji:"", dias:7 },
+  ultimos30:{ label:"Últimos 30 dias", emoji:"", dias:30 },
+  esteMes:  { label:"Este mês",        emoji:"", tipo:"mes" },
 };
 
 const isAddedInRange = (createdAt, filtro) => {
@@ -189,31 +191,101 @@ const StoreLogo = memo(({ storeName, size="small" }) => {
   return <S.StoreLogoImage src={storeLogoService.getLogoUrl(storeName, size==="small"?16:32)} alt={storeName} size={size} loading="lazy" onError={()=>setErr(true)}/>;
 });
 
+// ─── ProductImage ─────────────────────────────────────────────────────────────
+const ProductImage = memo(({ item, theme, purchased }) => {
+  const [imgError, setImgError]     = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  console.log(item);
+  const hasImage = item.fotoUrl && !imgError;
+
+  const openLightbox = useCallback((e) => {
+    e.stopPropagation();
+    if (hasImage) setLightboxOpen(true);
+  }, [hasImage]);
+
+  return (
+    <>
+      <S.ProductImageWrapper
+        $purchased={purchased}
+        $hasImage={hasImage}
+        theme={theme}
+        onClick={hasImage ? openLightbox : undefined}
+        style={{ cursor: hasImage ? "zoom-in" : "default" }}
+        title={hasImage ? "Clique para ampliar" : ""}
+      >
+        {hasImage ? (
+          <S.ProductImg
+            src={item.fotoUrl}
+            alt={item.nome}
+            loading="lazy"
+            onError={() => setImgError(true)}
+            $purchased={purchased}
+          />
+        ) : (
+          <S.ProductImgPlaceholder theme={theme}>
+            <ImageOff size={14} />
+          </S.ProductImgPlaceholder>
+        )}
+      </S.ProductImageWrapper>
+
+      {/* Lightbox */}
+      {lightboxOpen && (
+        <div
+          onClick={() => setLightboxOpen(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 30000,
+            backgroundColor: "rgba(0,0,0,0.85)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "24px",
+          }}
+        >
+          <div onClick={e => e.stopPropagation()} style={{ position: "relative", maxWidth: "90vw", maxHeight: "90vh" }}>
+            <img
+              src={item.imagemUrl}
+              alt={item.nome}
+              style={{ maxWidth: "100%", maxHeight: "85vh", objectFit: "contain", borderRadius: "12px" }}
+            />
+            <button
+              onClick={() => setLightboxOpen(false)}
+              style={{
+                position: "absolute", top: "-12px", right: "-12px",
+                width: "32px", height: "32px", borderRadius: "50%",
+                background: "#fff", border: "none", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+              }}
+            >
+              <X size={16} color="#333"/>
+            </button>
+            <p style={{ color: "#fff", textAlign: "center", marginTop: "12px", fontSize: "0.85rem", opacity: 0.7 }}>{item.nome}</p>
+          </div>
+        </div>
+      )}
+    </>
+  );
+});
+
 // ─── SwipeableItemCard ────────────────────────────────────────────────────────
-// Swipe direita → comprado | Swipe esquerda → deletar | Clique no nome → editar
-const SWIPE_THRESHOLD   = 72;   // px para ativar ação
-const SWIPE_MAX         = 120;  // px máximo de arraste visual
-const SWIPE_ACTIVATE_AT = 96;   // px para "travar" na posição de confirmação
+const SWIPE_THRESHOLD   = 72;
+const SWIPE_MAX         = 120;
 
 const ItemCard = memo(({
   item, isLoading, isSaving, draggedItemId,
   onToggleComprado, onEditItem, onDeleteItem,
   onDragStart, onDragEnd, theme,
 }) => {
-  const [menuOpen, setMenuOpen]     = useState(false);
+  const [menuOpen, setMenuOpen]       = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  // Swipe state
-  const [swipeX, setSwipeX]         = useState(0);
-  const [swiping, setSwiping]       = useState(false);
-  const [swipeDir, setSwipeDir]     = useState(null); // 'right' | 'left'
-  const [swipeLocked, setSwipeLocked] = useState(false);
+  const [swipeX, setSwipeX]           = useState(0);
+  const [swiping, setSwiping]         = useState(false);
+  const [swipeDir, setSwipeDir]       = useState(null);
 
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
-  const touchStartT = useRef(0);
   const isScrolling = useRef(false);
-  const swipeRef    = useRef({ x:0, locked:false, dir:null });
+  const swipeRef    = useRef({ x:0, dir:null });
   const menuRef     = useRef(null);
 
   const pc       = PRIORIDADE_CONFIG[item.prioridade] || PRIORIDADE_CONFIG.normal;
@@ -221,13 +293,11 @@ const ItemCard = memo(({
 
   const fmtData = (iso) => iso ? new Date(iso).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}) : null;
 
-  // ─── Swipe handlers ──────────────────────────────────────────────────────
-  const resetSwipe = useCallback((animate = true) => {
-    swipeRef.current = { x:0, locked:false, dir:null };
+  const resetSwipe = useCallback(() => {
+    swipeRef.current = { x:0, dir:null };
     setSwipeX(0);
     setSwiping(false);
     setSwipeDir(null);
-    setSwipeLocked(false);
   }, []);
 
   const onTouchStart = useCallback((e) => {
@@ -235,7 +305,6 @@ const ItemCard = memo(({
     const t = e.touches[0];
     touchStartX.current = t.clientX;
     touchStartY.current = t.clientY;
-    touchStartT.current = Date.now();
     isScrolling.current = false;
   }, [disabled, menuOpen]);
 
@@ -245,47 +314,28 @@ const ItemCard = memo(({
     const dx  = t.clientX - touchStartX.current;
     const dy  = t.clientY - touchStartY.current;
 
-    // Determina se é scroll vertical — ignora swipe
-    if (!swiping && Math.abs(dy) > Math.abs(dx) + 5) {
-      isScrolling.current = true;
-      return;
-    }
+    if (!swiping && Math.abs(dy) > Math.abs(dx) + 5) { isScrolling.current = true; return; }
     if (isScrolling.current) return;
-
-    // Ignora arraste muito pequeno
     if (!swiping && Math.abs(dx) < 8) return;
 
-    e.preventDefault(); // evita scroll enquanto swipa
-
+    e.preventDefault();
     const dir = dx > 0 ? "right" : "left";
+    if (!swiping) { setSwiping(true); setSwipeDir(dir); }
 
-    if (!swiping) {
-      setSwiping(true);
-      setSwipeDir(dir);
-    }
-
-    // Limita o arraste
     const clamped = Math.max(-SWIPE_MAX, Math.min(SWIPE_MAX, dx));
-    swipeRef.current.x   = clamped;
-    swipeRef.current.dir = dir;
+    swipeRef.current = { x: clamped, dir };
     setSwipeX(clamped);
   }, [disabled, menuOpen, swiping]);
 
   const onTouchEnd = useCallback(() => {
     if (!swiping || isScrolling.current) { resetSwipe(); return; }
-
     const { x, dir } = swipeRef.current;
-    const absX = Math.abs(x);
-
-    if (absX >= SWIPE_THRESHOLD) {
+    if (Math.abs(x) >= SWIPE_THRESHOLD) {
       if (dir === "right") {
-        // Marca/desmarca comprado
         onToggleComprado(item.id);
-        // Animação: desliza para fora brevemente e volta
         setSwipeX(SWIPE_MAX * 1.5);
         setTimeout(resetSwipe, 300);
       } else {
-        // Abre confirm de exclusão
         setConfirmOpen(true);
         resetSwipe();
       }
@@ -294,7 +344,6 @@ const ItemCard = memo(({
     }
   }, [swiping, resetSwipe, onToggleComprado, item.id]);
 
-  // ─── Outros handlers ──────────────────────────────────────────────────────
   const openLink  = useCallback(() => { if (item.linkProduto) window.open(item.linkProduto,"_blank","noopener,noreferrer"); }, [item.linkProduto]);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
   const editClick = useCallback(() => onEditItem(item.id), [onEditItem, item.id]);
@@ -302,9 +351,8 @@ const ItemCard = memo(({
   const confirmDel= useCallback(() => { onDeleteItem(item.id); setConfirmOpen(false); }, [onDeleteItem, item.id]);
   const toggleMenu= useCallback(e => { e.stopPropagation(); setMenuOpen(p=>!p); }, []);
 
-  // Clique no nome → abre edição
   const handleNameClick = useCallback((e) => {
-    if (swiping) return; // não abre durante swipe
+    if (swiping) return;
     e.stopPropagation();
     onEditItem(item.id);
   }, [swiping, onEditItem, item.id]);
@@ -327,41 +375,27 @@ const ItemCard = memo(({
 
   const dragEnd = useCallback(e => { e.stopPropagation(); onDragEnd(); }, [onDragEnd]);
 
-  // ─── Cores do swipe ──────────────────────────────────────────────────────
   const swipeProgress = Math.min(Math.abs(swipeX) / SWIPE_THRESHOLD, 1);
   const isRight = swipeDir === "right";
   const isLeft  = swipeDir === "left";
-
   const bgColor = swiping
-    ? isRight
-      ? `rgba(34,197,94,${swipeProgress * 0.25})`
-      : `rgba(239,68,68,${swipeProgress * 0.25})`
+    ? isRight ? `rgba(34,197,94,${swipeProgress * 0.25})` : `rgba(239,68,68,${swipeProgress * 0.25})`
     : "transparent";
-
-  const revealColor = isRight ? "#22c55e" : "#ef4444";
-  const revealIcon  = isRight
-    ? <Check size={28} strokeWidth={3} color="#fff"/>
-    : <Trash2 size={24} strokeWidth={2} color="#fff"/>;
 
   return (
     <>
-      {/* Container com overflow hidden para o reveal */}
       <div style={{ position:"relative", borderRadius:"0.75rem", overflow:"hidden", marginBottom:"0" }}>
-
-        {/* Reveal layer (fundo que aparece atrás) */}
         {swiping && (
           <div style={{
             position:"absolute", inset:0, borderRadius:"0.75rem",
-            backgroundColor: revealColor,
-            display:"flex",
-            alignItems:"center",
+            backgroundColor: isRight ? "#22c55e" : "#ef4444",
+            display:"flex", alignItems:"center",
             justifyContent: isRight ? "flex-start" : "flex-end",
             padding:"0 20px",
             opacity: swipeProgress,
-            transition: "opacity .1s",
           }}>
             <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"4px" }}>
-              {revealIcon}
+              {isRight ? <Check size={28} strokeWidth={3} color="#fff"/> : <Trash2 size={24} strokeWidth={2} color="#fff"/>}
               <span style={{ color:"#fff", fontSize:"0.65rem", fontWeight:700, letterSpacing:"0.05em" }}>
                 {isRight ? (item.comprado ? "DESMARCAR" : "COMPRADO") : "EXCLUIR"}
               </span>
@@ -369,7 +403,6 @@ const ItemCard = memo(({
           </div>
         )}
 
-        {/* Card deslizável */}
         <div
           style={{
             transform: `translateX(${swipeX}px)`,
@@ -393,79 +426,118 @@ const ItemCard = memo(({
             onDragEnd={dragEnd}
             style={{ marginBottom:0 }}
           >
-            <S.ItemMainRow>
-              <S.CheckboxButton
-                $checked={item.comprado}
-                onClick={e=>{ e.stopPropagation(); onToggleComprado(item.id); }}
-                theme={theme}
-                disabled={disabled}
-              >
-                {item.comprado && <S.CheckIcon/>}
-              </S.CheckboxButton>
+            {/* ── NOVO LAYOUT ────────────────────────────────────────────── */}
+            <S.ItemLayout>
 
-              {/* Nome clicável → abre edição */}
-              <S.ItemName
-                $purchased={item.comprado}
-                theme={theme}
-                onClick={handleNameClick}
-                style={{
-                  cursor: "pointer",
-                  textDecoration: item.comprado ? "line-through" : "underline",
-                  textDecorationColor: item.comprado ? "inherit" : `${theme?.primary || "#3b82f6"}50`,
-                  textDecorationThickness: "1px",
-                  textUnderlineOffset: "3px",
-                }}
-                title="Clique para editar"
-              >
-                {item.nome}
-              </S.ItemName>
+              {/* Coluna esquerda: checkbox + foto */}
+              <S.ItemLeftCol>
+                <S.CheckboxButton
+                  $checked={item.comprado}
+                  onClick={e=>{ e.stopPropagation(); onToggleComprado(item.id); }}
+                  theme={theme}
+                  disabled={disabled}
+                >
+                  {item.comprado && <S.CheckIcon/>}
+                </S.CheckboxButton>
 
-              <S.ItemTotalCompact>
-                <S.ItemTotalValueCompact theme={theme}>
-                  {formatarMoeda(item.preco * item.quantidade)}
-                </S.ItemTotalValueCompact>
-              </S.ItemTotalCompact>
+                <ProductImage item={item} theme={theme} purchased={item.comprado} />
+              </S.ItemLeftCol>
 
-              <S.ItemActionsDesktop>
-                {item.linkProduto && (
-                  <S.ItemActionButton onClick={openLink} theme={theme} variant="link" disabled={disabled} title="Abrir link">
-                    <ExternalLink size={13}/>
-                  </S.ItemActionButton>
-                )}
-                <S.ItemActionButton onClick={editClick} theme={theme} variant="edit" disabled={disabled} title="Editar">
-                  <Pencil size={13}/>
-                </S.ItemActionButton>
-                <S.ItemActionButton variant="delete" onClick={delClick} theme={theme} disabled={disabled} title="Excluir">
-                  <Trash2 size={13}/>
-                </S.ItemActionButton>
-              </S.ItemActionsDesktop>
+              {/* Coluna direita: conteúdo */}
+              <S.ItemContent>
 
-              <S.ItemActionsMobile>
-                <S.ItemActionButton ref={menuRef} onClick={toggleMenu} theme={theme} variant="menu" disabled={disabled} title="Menu">
-                  <MoreHorizontal size={16}/>
-                </S.ItemActionButton>
-              </S.ItemActionsMobile>
-            </S.ItemMainRow>
+                {/* Linha 1: nome + preço total + ações */}
+                <S.ItemTopRow>
+                  <S.ItemName
+                    $purchased={item.comprado}
+                    theme={theme}
+                    onClick={handleNameClick}
+                    style={{
+                      cursor: "pointer",
+                      textDecoration: item.comprado ? "line-through" : "underline",
+                      textDecorationColor: item.comprado ? "inherit" : `${theme?.primary || "#3b82f6"}50`,
+                      textDecorationThickness: "1px",
+                      textUnderlineOffset: "3px",
+                    }}
+                    title="Clique para editar"
+                  >
+                    {item.nome}
+                  </S.ItemName>
 
-            <S.ItemDetailsRow>
-              <S.PriorityBadgeFull $color={pc.color} $bgColor={pc.bgColor} theme={theme}>
-                {pc.emoji} {pc.label}
-              </S.PriorityBadgeFull>
-              {item.createdAt && <S.DateBadge theme={theme}><Calendar size={10}/>{fmtData(item.createdAt)}</S.DateBadge>}
-              {isAddedToday(item.createdAt) && <S.NewBadge>Novo</S.NewBadge>}
-              <S.ItemQuantityBadge theme={theme}><ShoppingBag size={10}/>{item.quantidade}x</S.ItemQuantityBadge>
-              <S.ItemPriceBadge theme={theme}>{formatarMoeda(item.preco)}/un</S.ItemPriceBadge>
-              {item.loja && (
-                <S.StoreBadge theme={theme}>
-                  <StoreLogo storeName={item.loja} size="small"/>
-                  <S.StoreName theme={theme}>{item.loja.length>16?item.loja.substring(0,16)+"…":item.loja}</S.StoreName>
-                </S.StoreBadge>
-              )}
-              <S.PaymentBadge $type={item.pagamento} theme={theme}>
-                {getPaymentIcon(item.pagamento)}{item.pagamento==="vr"?" VR/VA":" Normal"}
-              </S.PaymentBadge>
-              {item.marca && <S.ItemBrand theme={theme}>{item.marca}</S.ItemBrand>}
-            </S.ItemDetailsRow>
+                  <S.ItemTopRight>
+                    <S.ItemTotalValueCompact theme={theme}>
+                      {formatarMoeda(item.preco * item.quantidade)}
+                    </S.ItemTotalValueCompact>
+
+                    <S.ItemActionsDesktop>
+                      {item.linkProduto && (
+                        <S.ItemActionButton onClick={openLink} theme={theme} variant="link" disabled={disabled} title="Abrir link">
+                          <ExternalLink size={13}/>
+                        </S.ItemActionButton>
+                      )}
+                      <S.ItemActionButton onClick={editClick} theme={theme} variant="edit" disabled={disabled} title="Editar">
+                        <Pencil size={13}/>
+                      </S.ItemActionButton>
+                      <S.ItemActionButton variant="delete" onClick={delClick} theme={theme} disabled={disabled} title="Excluir">
+                        <Trash2 size={13}/>
+                      </S.ItemActionButton>
+                    </S.ItemActionsDesktop>
+
+                    <S.ItemActionsMobile>
+                      <S.ItemActionButton ref={menuRef} onClick={toggleMenu} theme={theme} variant="menu" disabled={disabled} title="Menu">
+                        <MoreHorizontal size={16}/>
+                      </S.ItemActionButton>
+                    </S.ItemActionsMobile>
+                  </S.ItemTopRight>
+                </S.ItemTopRow>
+
+                {/* Linha 2: prioridade · quantidade · preço unitário */}
+                <S.ItemMidRow>
+                  <S.PriorityBadgeFull $color={pc.color} $bgColor={pc.bgColor} theme={theme}>
+                    {pc.emoji} {pc.label}
+                  </S.PriorityBadgeFull>
+
+                  <S.DetailSeparator theme={theme}/>
+
+                  <S.ItemQuantityBadge theme={theme}>
+                    <ShoppingBag size={10}/>{item.quantidade}x
+                  </S.ItemQuantityBadge>
+
+                  <S.DetailSeparator theme={theme}/>
+
+                  <S.ItemPriceBadge theme={theme}>
+                    {formatarMoeda(item.preco)}/un
+                  </S.ItemPriceBadge>
+
+                  {item.createdAt && (
+                    <>
+                      <S.DetailSeparator theme={theme}/>
+                      <S.DateBadge theme={theme}>
+                        <Calendar size={10}/>{fmtData(item.createdAt)}
+                      </S.DateBadge>
+                    </>
+                  )}
+                </S.ItemMidRow>
+
+                {/* Linha 3: loja · pagamento · marca */}
+                <S.ItemBottomRow>
+                  {item.loja && (
+                    <S.StoreBadge theme={theme}>
+                      <StoreLogo storeName={item.loja} size="small"/>
+                      <S.StoreName theme={theme}>{item.loja.length>20?item.loja.substring(0,20)+"…":item.loja}</S.StoreName>
+                    </S.StoreBadge>
+                  )}
+
+                  <S.PaymentBadge $type={item.pagamento} theme={theme}>
+                    {getPaymentIcon(item.pagamento)}{item.pagamento==="vr"?" VR/VA":" Normal"}
+                  </S.PaymentBadge>
+
+
+                </S.ItemBottomRow>
+
+              </S.ItemContent>
+            </S.ItemLayout>
+            {/* ── FIM NOVO LAYOUT ─────────────────────────────────────── */}
           </S.ItemRow>
         </div>
       </div>
@@ -487,19 +559,19 @@ const ItemCard = memo(({
 // ─── CategoriaCard ────────────────────────────────────────────────────────────
 const CategoriaCard = ({
   categoria, itens,
-  onAddItem,         // (categoriaId) => void
-  onUpdateItem,      // (itemId) => void
-  onDeleteItem,      // (itemId) => Promise
-  onDeleteCategoria, // (categoriaId) => Promise
-  onEditCategoria,   // (categoria) => void  — objeto completo
+  onAddItem,
+  onUpdateItem,
+  onDeleteItem,
+  onDeleteCategoria,
+  onEditCategoria,
   onItemDragStart, onItemDragEnd, onItemDrop,
   draggedItemId, theme, onToggleComprado, isLoading = false,
 }) => {
-  const [expanded, setExpanded]   = useState(true);
-  const [dragOver, setDragOver]   = useState(false);
-  const [sortBy, setSortBy]       = useState("preco");
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [isSaving, setIsSaving]   = useState(false);
+  const [expanded, setExpanded]     = useState(true);
+  const [dragOver, setDragOver]     = useState(false);
+  const [sortBy, setSortBy]         = useState("preco");
+  const [sortOrder, setSortOrder]   = useState("asc");
+  const [isSaving, setIsSaving]     = useState(false);
   const [filtroData, setFiltroData] = useState("todos");
   const [showFiltro, setShowFiltro] = useState(false);
   const [showDelCat, setShowDelCat] = useState(false);
@@ -597,7 +669,7 @@ const CategoriaCard = ({
             <>
               {hasFiltro && (
                 <S.FiltroAtivoBadge theme={theme}>
-                  <Calendar size={12}/>{DATA_FILTROS[filtroData]?.label}
+                  {DATA_FILTROS[filtroData]?.label}
                   <button onClick={()=>setFiltroData("todos")}><X size={12}/></button>
                 </S.FiltroAtivoBadge>
               )}
@@ -606,7 +678,7 @@ const CategoriaCard = ({
                 <S.SortBar theme={theme}>
                   <S.SortLabel theme={theme}>Ordenar:</S.SortLabel>
                   <S.SortButtonsGroup>
-                    {[{field:"preco",label:"Preço",emoji:"💰"},{field:"nome",label:"Nome",emoji:"📝"},{field:"prioridade",label:"Prioridade",emoji:"🎯"},{field:"data",label:"Data",emoji:"📅"}].map(({field,label,emoji})=>(
+                    {[{field:"preco",label:"Preço",emoji:""},{field:"nome",label:"Nome",emoji:""},{field:"prioridade",label:"Prioridade",emoji:""},{field:"data",label:"Data",emoji:""}].map(({field,label,emoji})=>(
                       <S.SortButton key={field} $active={sortBy===field} onClick={()=>handleSort(field)} disabled={disabled} theme={theme}>
                         {emoji} {label}
                         {sortBy===field && <S.SortIcon>{sortOrder==="asc"?<ArrowUp size={12}/>:<ArrowDown size={12}/>}</S.SortIcon>}
@@ -615,17 +687,6 @@ const CategoriaCard = ({
                   </S.SortButtonsGroup>
                   {hasSort && <S.SortClearButton onClick={handleClearSort} disabled={disabled} theme={theme}><X size={12}/>Limpar</S.SortClearButton>}
                 </S.SortBar>
-              )}
-
-              {/* Dica de swipe — só aparece em dispositivos touch */}
-              {itens.length > 0 && (
-                <div style={{
-                  display:"flex", justifyContent:"center", gap:"16px",
-                  padding:"4px 12px 6px",
-                  fontSize:"0.65rem", color:theme?.textSoft||"#999",
-                  userSelect:"none",
-                }}>
-                </div>
               )}
 
               <S.CategoryProgress theme={theme}>
@@ -659,7 +720,7 @@ const CategoriaCard = ({
                 </S.ItemsList>
               ) : (
                 <S.EmptyState>
-                  <S.EmptyIcon>{hasFiltro?"🔍":"📦"}</S.EmptyIcon>
+                  <S.EmptyIcon>{hasFiltro?"🔍":""}</S.EmptyIcon>
                   <S.EmptyText theme={theme}>{hasFiltro?"Nenhum item neste período":"Nenhum item adicionado"}</S.EmptyText>
                   {!hasFiltro && <S.AddButton onClick={handleAddItem} theme={theme} disabled={disabled}><Plus size={16}/>Adicionar primeiro item</S.AddButton>}
                   {hasFiltro  && <S.AddButton onClick={()=>setFiltroData("todos")} theme={theme}><X size={16}/>Limpar filtro</S.AddButton>}
@@ -672,7 +733,6 @@ const CategoriaCard = ({
         <S.CategoryFooter theme={theme}>
           <S.CategoryStats>
             <S.StatItem theme={theme}><span>📦</span><strong>{comprados}/{itens.length}</strong><span>comprados</span></S.StatItem>
-            <S.StatItem theme={theme}><span>📊</span><strong>{progresso.toFixed(0)}%</strong></S.StatItem>
             <S.StatItem theme={theme}><span>💰</span><strong>{formatarMoeda(totalGasto)}</strong></S.StatItem>
           </S.CategoryStats>
         </S.CategoryFooter>
