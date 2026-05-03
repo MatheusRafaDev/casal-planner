@@ -1,256 +1,446 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
+// ================= ANIMAÇÕES =================
+const slideUp = keyframes`
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+`;
+
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+`;
+
+const pulseScale = keyframes`
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.97); }
+`;
+
+// ================= OVERLAY =================
 export const Overlay = styled.div`
   position: fixed;
-  inset: 0;
-  z-index: 99999;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.55);
-  /* SEM backdrop-filter: causa glitch no Safari iOS */
-  animation: fadeIn 0.2s ease;
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-
-  @media (min-width: 600px) {
+  z-index: 1000;
+  animation: ${fadeIn} 0.2s ease;
+  
+  /* iOS otimizações */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: pan-x;
+  
+  /* Safe-area support */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
+  
+  @media (min-width: 768px) {
     align-items: center;
-    padding: 1rem;
+    background: rgba(0, 0, 0, 0.6);
   }
 `;
 
-export const ErrorMessage = styled.span`
-  color: #dc3545;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
-  display: block;
-  ${props => props.theme === 'dark' && `color: #ff6b6b;`}
-`;
-
+// ================= MODAL CONTAINER =================
 export const ModalContainer = styled.div`
-  position: relative;
-  background: ${props => props.theme.surface};
-  border-radius: 1.5rem 1.5rem 0 0;
-  padding: 1.25rem 1.5rem 0;
-  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  background: ${(props) => props.theme?.background || '#fff'};
+  border-radius: 20px 20px 0 0;
   width: 100%;
-  max-width: 100%;
-  /* Limita altura para não cobrir a tela inteira */
-  max-height: 92dvh;
-  overflow-y: auto;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: ${slideUp} 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  
+  /* iOS scroll otimization */
   -webkit-overflow-scrolling: touch;
-  box-shadow: 0 -4px 32px rgba(0,0,0,0.18);
-  border: 1px solid ${props => props.theme.border};
-  animation: sheetUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
-
-  @keyframes sheetUp {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
+  
+  @media (min-width: 768px) {
+    border-radius: 24px;
+    max-height: 85vh;
+    margin: 20px;
   }
+`;
 
-  &::-webkit-scrollbar { width: 4px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb {
-    background: ${props => props.theme.border};
-    border-radius: 4px;
+// ================= SHEET HANDLE =================
+export const SheetHandle = styled.div`
+  width: 40px;
+  height: 5px;
+  background: ${(props) => props.theme?.border || '#e5e7eb'};
+  border-radius: 3px;
+  margin: 12px auto 8px;
+  
+  @media (min-width: 768px) {
+    display: none;
   }
+`;
 
-  @media (min-width: 600px) {
-    border-radius: 1.5rem;
-    max-width: 35rem;
-    max-height: 90dvh;
-    padding: 2rem;
-    padding-bottom: 2rem;
-    animation: slideUp 0.25s ease;
-
-    @keyframes slideUp {
-      from { transform: translateY(24px) scale(0.97); opacity: 0; }
-      to   { transform: translateY(0)    scale(1);    opacity: 1; }
+// ================= HEADER =================
+export const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid ${(props) => props.theme?.border || '#e5e7eb'};
+  background: ${(props) => props.theme?.background || '#fff'};
+  
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: ${(props) => props.theme?.text || '#111'};
+  }
+  
+  @media (max-width: 768px) {
+    padding: 14px 16px;
+    
+    h2 {
+      font-size: 1.125rem;
     }
   }
 `;
 
-/* Alça de drag (sheet handle) — dica visual iOS */
-export const SheetHandle = styled.div`
-  width: 36px;
-  height: 4px;
-  border-radius: 2px;
-  background: ${props => props.theme.border};
-  margin: 0 auto 1.25rem;
-
-  @media (min-width: 600px) { display: none; }
-`;
-
-export const Header = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid ${props => props.theme.border};
-
-  h2 {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: ${props => props.theme.text};
-    margin: 0;
-  }
-`;
-
+// ================= CLOSE BUTTON =================
 export const CloseButton = styled.button`
-  padding: 0;
-  width: 36px;
-  height: 36px;
-  color: ${props => props.theme.textSoft};
-  background: ${props => props.theme.border};
-  border: none;
-  cursor: pointer;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  flex-shrink: 0;
-
-  &:active { transform: scale(0.92); }
-  &:hover  { background: ${props => props.theme.textLight}; color: ${props => props.theme.text}; }
-`;
-
-export const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-`;
-
-export const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-`;
-
-export const Label = styled.label`
-  color: ${props => props.theme.textSoft};
-  font-weight: 600;
-  font-size: 0.82rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-`;
-
-export const Input = styled.input`
-  width: 100%;
-  padding: 0.8rem 1rem;
-  border: 2px solid ${props => props.theme.border};
-  border-radius: 12px;
-  /* MUST be ≥16px to prevent iOS zoom on focus */
-  font-size: 16px;
-  background: ${props => props.theme.surface};
-  color: ${props => props.theme.text};
-  transition: border-color 0.2s, box-shadow 0.2s;
-  font-family: inherit;
-  -webkit-appearance: none;
-  appearance: none;
-
-  &:focus {
-    outline: none;
-    border-color: ${props => props.theme.primary};
-    box-shadow: 0 0 0 3px ${props => `${props.theme.primary}20`};
-  }
-  &:disabled { opacity: 0.6; cursor: not-allowed; }
-  &::placeholder { color: ${props => props.theme.textLight}; }
-`;
-
-export const IconsGrid = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.4rem;
-`;
-
-export const IconButton = styled.button`
   width: 44px;
   height: 44px;
-  border-radius: 12px;
-  font-size: 1.3rem;
+  min-width: 44px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
-  border: 2px solid ${props => props.$active ? props.theme.primary : props.theme.border};
-  cursor: pointer;
-  background: ${props => props.$active ? `${props.theme.primary}15` : props.theme.surface};
+  color: ${(props) => props.theme?.textSoft || '#666'};
+  transition: all 0.2s;
+  
+  /* iOS tap target size */
+  min-height: 44px;
+  
+  /* Prevenir zoom em double-tap */
   touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-
-  &:active { transform: scale(0.9); }
-  &:hover  { border-color: ${props => props.theme.primary}; }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
-`;
-
-export const ColorsGrid = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.4rem;
-`;
-
-export const ColorButton = styled.button`
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  transition: all 0.15s;
-  border: 2px solid ${props => props.$active ? props.theme.primary : 'transparent'};
-  cursor: pointer;
-  background: ${props => props.color};
-  box-shadow: ${props => props.$active ? `0 0 0 2px ${props.theme.background}, 0 0 0 4px ${props.theme.primary}` : 'none'};
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-
-  &:active { transform: scale(0.88); }
-  &:hover  { transform: scale(1.1); }
-  &:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-`;
-
-export const ModalButtons = styled.div`
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-  padding-bottom: 0.5rem;
-
-  @media (max-width: 480px) {
-    flex-direction: column-reverse;
-    gap: 0.5rem;
+  
+  &:active {
+    background: ${(props) => props.theme?.border || '#e5e7eb'};
+    transform: scale(0.95);
+  }
+  
+  &:hover {
+    background: ${(props) => props.theme?.border || '#e5e7eb'};
   }
 `;
 
-export const CancelarButton = styled.button`
+// ================= FORM =================
+export const Form = styled.form`
   flex: 1;
-  padding: 0.875rem 1rem;
-  background: ${props => props.theme.border};
-  color: ${props => props.theme.text};
-  border: none;
-  border-radius: 12px;
+  overflow-y: auto;
+  padding: 20px;
+  
+  /* iOS smooth scroll */
+  -webkit-overflow-scrolling: touch;
+  
+  /* Prevenir bounce no scroll */
+  overscroll-behavior: contain;
+  
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+`;
+
+// ================= FORM GROUP =================
+export const FormGroup = styled.div`
+  margin-bottom: 24px;
+  
+  &:last-of-type {
+    margin-bottom: 16px;
+  }
+`;
+
+// ================= LABEL =================
+export const Label = styled.label`
+  display: block;
+  font-size: 0.875rem;
   font-weight: 600;
+  margin-bottom: 8px;
+  color: ${(props) => props.theme?.text || '#111'};
+  
+  @media (max-width: 768px) {
+    font-size: 0.8125rem;
+    margin-bottom: 6px;
+  }
+`;
+
+// ================= INPUT =================
+export const Input = styled.input`
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 1rem;
+  border: 1.5px solid ${(props) => props.theme?.border || '#e5e7eb'};
+  border-radius: 12px;
+  background: ${(props) => props.theme?.surface || '#fafafa'};
+  color: ${(props) => props.theme?.text || '#111'};
+  transition: all 0.2s;
+  
+  /* iOS otimizações */
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: manipulation;
+  
+  /* Tap target size */
+  min-height: 48px;
+  
+  &:focus {
+    outline: none;
+    border-color: ${(props) => props.theme?.primary || '#3b82f6'};
+    box-shadow: 0 0 0 3px ${(props) => props.theme?.primary ? `${props.theme.primary}20` : '#3b82f620'};
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    background: ${(props) => props.theme?.border || '#e5e7eb'};
+  }
+  
+  @media (max-width: 768px) {
+    padding: 12px 14px;
+    font-size: 0.9375rem;
+  }
+`;
+
+// ================= ICONS GRID =================
+export const IconsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 10px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 4px 2px;
+  
+  /* iOS scroll */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+    gap: 8px;
+    max-height: 160px;
+  }
+`;
+
+// ================= ICON BUTTON =================
+export const IconButton = styled.button`
+  width: 100%;
+  aspect-ratio: 1;
+  min-width: 48px;
+  min-height: 48px;
+  font-size: 1.5rem;
+  border: 2px solid ${(props) => 
+    props.$active 
+      ? (props.theme?.primary || '#3b82f6') 
+      : (props.theme?.border || '#e5e7eb')
+  };
+  border-radius: 16px;
+  background: ${(props) => 
+    props.$active 
+      ? `${props.theme?.primary || '#3b82f6'}10` 
+      : (props.theme?.surface || '#fafafa')
+  };
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  
+  /* iOS tap target */
+  touch-action: manipulation;
+  
+  &:active {
+    transform: scale(0.95);
+    animation: ${pulseScale} 0.1s ease;
+  }
+  
+  &:hover {
+    transform: scale(1.02);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    transform: none;
+  }
+  
+  @media (max-width: 768px) {
+    font-size: 1.25rem;
+    border-radius: 14px;
+  }
+`;
+
+// ================= COLORS GRID =================
+export const ColorsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 10px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+    gap: 8px;
+  }
+`;
+
+// ================= COLOR BUTTON =================
+export const ColorButton = styled.button`
+  width: 100%;
+  aspect-ratio: 1;
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 16px;
+  border: 3px solid ${(props) => 
+    props.$active 
+      ? (props.theme?.primary || '#3b82f6') 
+      : 'transparent'
+  };
   cursor: pointer;
   transition: all 0.2s;
-  min-height: 50px;
+  
+  /* iOS tap target */
   touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  font-size: 0.95rem;
-
-  &:active { transform: scale(0.97); }
-  &:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  
+  /* Shadow para melhor visualização */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+  &:active {
+    transform: scale(0.95);
+  }
+  
+  &:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    transform: none;
+  }
+  
+  @media (max-width: 768px) {
+    border-radius: 14px;
+  }
 `;
 
-export const CriarButton = styled(CancelarButton)`
-  background: ${props => props.theme.primary};
+// ================= ERROR MESSAGE =================
+export const ErrorMessage = styled.span`
+  display: block;
+  font-size: 0.75rem;
+  color: #dc3545;
+  margin-top: 6px;
+  padding-left: 4px;
+  
+  @media (max-width: 768px) {
+    font-size: 0.7rem;
+    margin-top: 4px;
+  }
+`;
+
+// ================= MODAL BUTTONS =================
+export const ModalButtons = styled.div`
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 8px;
+  
+  @media (max-width: 768px) {
+    gap: 10px;
+    margin-top: 20px;
+  }
+`;
+
+// ================= BUTTON BASE =================
+const BaseButton = styled.button`
+  flex: 1;
+  padding: 14px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  /* iOS tap target */
+  min-height: 52px;
+  touch-action: manipulation;
+  
+  &:active {
+    transform: scale(0.98);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    transform: none;
+    cursor: not-allowed;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 12px 16px;
+    font-size: 0.9375rem;
+    min-height: 48px;
+  }
+`;
+
+// ================= CANCEL BUTTON =================
+export const CancelarButton = styled(BaseButton)`
+  background: transparent;
+  color: ${(props) => props.theme?.textSoft || '#666'};
+  border: 1.5px solid ${(props) => props.theme?.border || '#e5e7eb'};
+  
+  &:active:not(:disabled) {
+    background: ${(props) => props.theme?.border || '#e5e7eb'};
+  }
+  
+  &:hover:not(:disabled) {
+    background: ${(props) => props.theme?.border || '#e5e7eb'};
+  }
+`;
+
+// ================= CREATE BUTTON =================
+export const CriarButton = styled(BaseButton)`
+  background: ${(props) => props.theme?.primary || '#3b82f6'};
   color: white;
-
-  &:hover:not(:disabled) { background: ${props => props.theme.primaryDark}; }
+  box-shadow: 0 2px 8px ${(props) => props.theme?.primary ? `${props.theme.primary}40` : '#3b82f640'};
+  
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px ${(props) => props.theme?.primary ? `${props.theme.primary}40` : '#3b82f640'};
+  }
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px ${(props) => props.theme?.primary ? `${props.theme.primary}50` : '#3b82f650'};
+  }
 `;
 
-export const SalvarButton = CriarButton;
+// ================= HELPERS =================
+export const VisuallyHidden = styled.div`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+`;

@@ -81,8 +81,8 @@ const ConfirmDialog = memo(({ isOpen, onClose, onConfirm, title, message, confir
     cancelHover:  theme?.border || "#e5e7eb",
   };
   const typeConfig = {
-    danger:  { buttonBg:"#ef4444", buttonHover:"#dc2626", icon:"⚠️" },
-    warning: { buttonBg:"#f59e0b", buttonHover:"#d97706",  icon:"⚠️" },
+    danger:  { buttonBg:"#ef4444", buttonHover:"#dc2626", icon:"" },
+    warning: { buttonBg:"#f59e0b", buttonHover:"#d97706",  icon:"" },
     info:    { buttonBg:"#3b82f6", buttonHover:"#2563eb",  icon:"ℹ️" },
   };
   const config = typeConfig[type] || typeConfig.danger;
@@ -154,7 +154,12 @@ const ContextMenu = memo(({ anchorRef, item, onClose, onEdit, onDelete, onOpenLi
     if (!visible) return;
     const out = (e) => { if (menuRef.current && !menuRef.current.contains(e.target) && anchorRef?.current && !anchorRef.current.contains(e.target)) onClose(); };
     const esc = (e) => { if (e.key === "Escape") onClose(); };
-    const t = setTimeout(() => { document.addEventListener("mousedown", out); document.addEventListener("touchstart", out); document.addEventListener("keydown", esc); }, isMobile.current ? 100 : 0);
+    const delay = isMobile.current ? 100 : 0;
+    const t = setTimeout(() => {
+      document.addEventListener("mousedown", out);
+      document.addEventListener("touchstart", out);
+      document.addEventListener("keydown", esc);
+    }, delay);
     return () => { clearTimeout(t); document.removeEventListener("mousedown", out); document.removeEventListener("touchstart", out); document.removeEventListener("keydown", esc); };
   }, [visible, onClose, anchorRef]);
 
@@ -167,7 +172,7 @@ const ContextMenu = memo(({ anchorRef, item, onClose, onEdit, onDelete, onOpenLi
 
   return (
     <div ref={menuRef} style={{ position:"fixed", top:pos.y, left:pos.x, zIndex:10000, opacity:visible?1:0, transform:visible?"scale(1)":"scale(.95)", transition:"opacity .15s ease-out, transform .15s ease-out", visibility:pos.x!==-9999?"visible":"hidden" }}>
-      <div style={{ background:colors.background, borderRadius:"12px", boxShadow:"0 4px 24px rgba(0,0,0,.2)", border:`1px solid ${colors.border}`, padding:"8px 0", minWidth:isMobile.current?"180px":"160px", maxWidth:"280px", overflow:"hidden" }} onClick={e=>e.stopPropagation()}>
+      <div style={{ background:colors.background, borderRadius:"12px", boxShadow:"0 4px 24px rgba(0,0,0,.2)", border:`1px solid ${colors.border}`, padding:"8px 0", minWidth:"160px", maxWidth:"280px", overflow:"hidden" }} onClick={e=>e.stopPropagation()}>
         {items.map(mi => <MenuItem key={mi.label} {...mi}/>)}
       </div>
     </div>
@@ -184,10 +189,9 @@ const StoreLogo = memo(({ storeName, size="small" }) => {
 
 // ─── ProductImage ─────────────────────────────────────────────────────────────
 const ProductImage = memo(({ item, theme, purchased }) => {
-  const [imgError, setImgError]     = useState(false);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false); // ✅ CORRIGIDO
 
-  console.log(item);
   const hasImage = item.fotoUrl && !imgError;
 
   const openLightbox = useCallback((e) => {
@@ -417,11 +421,16 @@ const ItemCard = memo(({
             onDragEnd={dragEnd}
             style={{ marginBottom:0 }}
           >
-            {/* ── NOVO LAYOUT: CHECKBOX | FOTO | CONTEÚDO ──────────────────── */}
-            <S.ItemLayout>
+            
+            <S.ItemLayout style={{ alignItems: "center" }}>
 
-              {/* Coluna esquerda: CHECKBOX (PRIMEIRO) + FOTO (EMBAIXO) */}
-              <S.ItemLeftCol>
+              <div style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: "0.35rem",
+                flexShrink: 0,
+              }}>
                 <S.CheckboxButton
                   $checked={item.comprado}
                   onClick={e=>{ e.stopPropagation(); onToggleComprado(item.id); }}
@@ -432,57 +441,41 @@ const ItemCard = memo(({
                 </S.CheckboxButton>
 
                 <ProductImage item={item} theme={theme} purchased={item.comprado} />
-              </S.ItemLeftCol>
+              </div>
 
-              {/* Coluna direita: conteúdo */}
               <S.ItemContent>
 
-                {/* Linha 1: nome + preço total + ações */}
-                <S.ItemTopRow>
-                  <S.ItemName
-                    $purchased={item.comprado}
+                <S.ItemName
+                  $purchased={item.comprado}
+                  theme={theme}
+                  onClick={handleNameClick}
+                  style={{
+                    cursor: "pointer",
+                    textDecoration: item.comprado ? "line-through" : "none",
+                  }}
+                  title="Clique para editar"
+                >
+                  {item.nome}
+                </S.ItemName>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <S.ItemTotalValueCompact theme={theme}>
+                    {formatarMoeda(item.preco * item.quantidade)}
+                  </S.ItemTotalValueCompact>
+
+                  <S.ItemActionButton
+                    ref={menuRef}
+                    onClick={toggleMenu}
                     theme={theme}
-                    onClick={handleNameClick}
-                    style={{
-                      cursor: "pointer",
-                      textDecoration: item.comprado ? "line-through" : "underline",
-                      textDecorationColor: item.comprado ? "inherit" : `${theme?.primary || "#3b82f6"}50`,
-                      textDecorationThickness: "1px",
-                      textUnderlineOffset: "3px",
-                    }}
-                    title="Clique para editar"
+                    variant="menu"
+                    disabled={disabled}
+                    title="Mais opções"
+                    style={{ marginLeft: "auto" }}
                   >
-                    {item.nome}
-                  </S.ItemName>
+                    <MoreHorizontal size={16}/>
+                  </S.ItemActionButton>
+                </div>
 
-                  <S.ItemTopRight>
-                    <S.ItemTotalValueCompact theme={theme}>
-                      {formatarMoeda(item.preco * item.quantidade)}
-                    </S.ItemTotalValueCompact>
-
-                    <S.ItemActionsDesktop>
-                      {item.linkProduto && (
-                        <S.ItemActionButton onClick={openLink} theme={theme} variant="link" disabled={disabled} title="Abrir link">
-                          <ExternalLink size={13}/>
-                        </S.ItemActionButton>
-                      )}
-                      <S.ItemActionButton onClick={editClick} theme={theme} variant="edit" disabled={disabled} title="Editar">
-                        <Pencil size={13}/>
-                      </S.ItemActionButton>
-                      <S.ItemActionButton variant="delete" onClick={delClick} theme={theme} disabled={disabled} title="Excluir">
-                        <Trash2 size={13}/>
-                      </S.ItemActionButton>
-                    </S.ItemActionsDesktop>
-
-                    <S.ItemActionsMobile>
-                      <S.ItemActionButton ref={menuRef} onClick={toggleMenu} theme={theme} variant="menu" disabled={disabled} title="Menu">
-                        <MoreHorizontal size={16}/>
-                      </S.ItemActionButton>
-                    </S.ItemActionsMobile>
-                  </S.ItemTopRight>
-                </S.ItemTopRow>
-
-                {/* Linha 2: prioridade · quantidade · preço unitário */}
                 <S.ItemMidRow>
                   <S.PriorityBadgeFull $color={pc.color} $bgColor={pc.bgColor} theme={theme}>
                     {pc.emoji} {pc.label}
@@ -500,17 +493,8 @@ const ItemCard = memo(({
                     {formatarMoeda(item.preco)}/un
                   </S.ItemPriceBadge>
 
-                  {item.createdAt && (
-                    <>
-                      <S.DetailSeparator theme={theme}/>
-                      <S.DateBadge theme={theme}>
-                        <Calendar size={10}/>{fmtData(item.createdAt)}
-                      </S.DateBadge>
-                    </>
-                  )}
                 </S.ItemMidRow>
 
-                {/* Linha 3: loja · pagamento · marca */}
                 <S.ItemBottomRow>
                   {item.loja && (
                     <S.StoreBadge theme={theme}>
@@ -520,7 +504,7 @@ const ItemCard = memo(({
                   )}
 
                   <S.PaymentBadge $type={item.pagamento} theme={theme}>
-                    {getPaymentIcon(item.pagamento)}{item.pagamento==="vr"?" VR/VA":" Normal"}
+                    Pagamento: {item.pagamento==="vr"?" VR/VA":" Normal"}
                   </S.PaymentBadge>
 
                   {item.marca && (
@@ -532,14 +516,20 @@ const ItemCard = memo(({
 
               </S.ItemContent>
             </S.ItemLayout>
-            {/* ── FIM NOVO LAYOUT ─────────────────────────────────────── */}
           </S.ItemRow>
         </div>
       </div>
 
       {menuOpen && (
-        <ContextMenu anchorRef={menuRef} item={item} onClose={closeMenu}
-          onEdit={editClick} onDelete={delClick} onOpenLink={openLink} theme={theme}/>
+        <ContextMenu
+          anchorRef={menuRef}
+          item={item}
+          onClose={closeMenu}
+          onEdit={editClick}
+          onDelete={delClick}
+          onOpenLink={openLink}
+          theme={theme}
+        />
       )}
 
       <ConfirmDialog
@@ -727,8 +717,8 @@ const CategoriaCard = ({
 
         <S.CategoryFooter theme={theme}>
           <S.CategoryStats>
-            <S.StatItem theme={theme}><span>📦</span><strong>{comprados}/{itens.length}</strong><span>comprados</span></S.StatItem>
-            <S.StatItem theme={theme}><span>💰</span><strong>{formatarMoeda(totalGasto)}</strong></S.StatItem>
+            <S.StatItem theme={theme}><span></span><strong>{comprados}/{itens.length}</strong><span>comprados</span></S.StatItem>
+            <S.StatItem theme={theme}><span></span><strong>{formatarMoeda(totalGasto)}</strong></S.StatItem>
           </S.CategoryStats>
         </S.CategoryFooter>
       </S.CardContainer>
@@ -737,7 +727,7 @@ const CategoriaCard = ({
         isOpen={showDelCat} onClose={()=>setShowDelCat(false)} onConfirm={handleConfirmDelCat}
         title="Excluir categoria"
         message={`Tem certeza que deseja excluir "${categoria.nome}"? Todos os itens serão removidos e esta ação não pode ser desfeita.`}
-        confirmText="Excluir" cancelText="Cancelar" theme={theme} type="danger"/>
+        confirmText="Excluir" cancelText="Cancelar" theme={theme}/>
     </>
   );
 };

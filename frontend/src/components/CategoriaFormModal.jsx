@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import styled from 'styled-components';
 import { categoriasService } from '../services/categoriasService';
 import { useCategoryValidation } from '../hooks/useCategoryValidation';
 import { usePriceFormat } from '../hooks/usePriceFormat';
@@ -24,10 +23,9 @@ import {
   ModalButtons,
   CancelarButton,
   CriarButton,
-  ErrorMessage
+  ErrorMessage,
+  VisuallyHidden
 } from '../styles/components/CategoriaFormModalStyles';
-
-
 
 const CategoriaFormModal = ({ 
   isOpen, 
@@ -43,6 +41,9 @@ const CategoriaFormModal = ({
   const [metaOrcamento, setMetaOrcamento] = useState('');
   const [loading, setLoading] = useState(false);
   
+  const formRef = useRef(null);
+  const firstInputRef = useRef(null);
+  
   const { errors, touched, handleBlur, handleChange, resetValidation, setErrors } = 
     useCategoryValidation();
 
@@ -54,6 +55,14 @@ const CategoriaFormModal = ({
     resetPrice: resetMeta,
   } = usePriceFormat(null);
 
+  // ✅ DEFINIR handleClose ANTES dos useEffects que o utilizam
+  const handleClose = () => {
+    resetValidation();
+    resetMeta();
+    onClose();
+  };
+
+  // Reset form quando abrir
   useEffect(() => {
     if (isOpen && isEditing && categoriaParaEditar) {
       setName(categoriaParaEditar.nome || '');
@@ -76,20 +85,55 @@ const CategoriaFormModal = ({
       resetMeta();
       resetValidation();
     }
+    
+    // Focar no primeiro input quando abrir
+    if (isOpen && firstInputRef.current) {
+      setTimeout(() => {
+        firstInputRef.current?.focus();
+      }, 100);
+    }
   }, [isOpen, isEditing, categoriaParaEditar, resetValidation, setMetaRaw, resetMeta]);
 
-  // ✅ Previne scroll do body - SEM position fixed, apenas overflow hidden
+  // Prevenir scroll do body - Versão compatível com iOS
   useEffect(() => {
     if (!isOpen) return;
     
-    // Apenas bloqueia o scroll, mantém a posição
+    const originalStyle = {
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      top: document.body.style.top,
+      width: document.body.style.width
+    };
+    
+    // Para iOS, precisamos de uma abordagem diferente
+    const scrollY = window.scrollY;
+    
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
     
     return () => {
-      // Remove o bloqueio, a posição permanece a mesma
-      document.body.style.overflow = '';
+      document.body.style.overflow = originalStyle.overflow;
+      document.body.style.position = originalStyle.position;
+      document.body.style.top = originalStyle.top;
+      document.body.style.width = originalStyle.width;
+      window.scrollTo(0, scrollY);
     };
   }, [isOpen]);
+
+  // ✅ Keyboard handling - AGORA handleClose já está definido
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        e.preventDefault();
+        handleClose();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, handleClose]); // ✅ handleClose agora está no array de dependências
 
   const handleNameChange = (e) => {
     const valor = e.target.value;
@@ -121,40 +165,26 @@ const CategoriaFormModal = ({
     }
   };
 
-  const handleClose = () => {
-    resetValidation();
-    resetMeta();
-    onClose();
-  };
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isOpen) {
-        e.preventDefault();
-        handleClose();
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, handleClose]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     handleBlur('nome', name);
+    
     if (errors.nome) {
       showToast.error('Por favor, corrija os erros no formulário', theme);
       return;
     }
+    
     if (metaOrcamento !== '' && parseFloat(metaOrcamento) <= 0) {
       showToast.error('Meta de orçamento deve ser maior que zero', theme);
       return;
     }
 
     setLoading(true);
+    
     try {
       const [h, s, l] = color.split(' ');
       const hexColor = hslToHex(parseInt(h), parseInt(s), parseInt(l));
+      
       let metaValue = null;
       if (metaOrcamento !== '' && metaOrcamento !== null && !isNaN(parseFloat(metaOrcamento))) {
         metaValue = parseFloat(metaOrcamento);
@@ -170,6 +200,7 @@ const CategoriaFormModal = ({
       };
 
       let categoriaResultado;
+      
       if (isEditing && categoriaParaEditar) {
         await categoriasService.update(categoriaParaEditar.id, categoriaData);
         categoriaResultado = { ...categoriaParaEditar, ...categoriaData };
@@ -186,6 +217,7 @@ const CategoriaFormModal = ({
       handleClose();
     } catch (error) {
       console.error('Erro ao salvar categoria:', error);
+      
       if (error.response?.status === 400) {
         showToast.error('Dados inválidos. Verifique as informações.', theme);
       } else if (error.response?.status === 401) {
@@ -199,30 +231,52 @@ const CategoriaFormModal = ({
   };
 
   const modalContent = (
-    <Overlay theme={theme}>
-      <ModalContainer onClick={(e) => e.stopPropagation()} theme={theme}>
+    <Overlay theme={theme} onClick={handleClose}>
+      <ModalContainer 
+        onClick={(e) => e.stopPropagation()} 
+        theme={theme}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
         <SheetHandle theme={theme} />
+        
         <Header theme={theme}>
-          <h2>{isEditing ? '✏️ Editar Categoria' : '➕ Nova Categoria'}</h2>
-          <CloseButton onClick={handleClose} theme={theme}>✕</CloseButton>
+          <h2 id="modal-title">{isEditing ? '✏️ Editar Categoria' : '➕ Nova Categoria'}</h2>
+          <CloseButton 
+            onClick={handleClose} 
+            theme={theme}
+            aria-label="Fechar"
+          >
+            ✕
+          </CloseButton>
         </Header>
 
-        <Form onSubmit={handleSubmit}>
+        <Form onSubmit={handleSubmit} ref={formRef}>
           <FormGroup>
-            <Label theme={theme}>Nome *</Label>
+            <Label htmlFor="categoria-nome" theme={theme}>
+              Nome *
+            </Label>
             <Input
+              id="categoria-nome"
+              ref={firstInputRef}
               type="text"
               value={name}
               onChange={handleNameChange}
               onBlur={() => handleBlur('nome', name)}
               placeholder="Ex: Mercado"
-              autoFocus
               theme={theme}
               style={{ borderColor: errors.nome && touched.nome ? '#dc3545' : undefined }}
               maxLength={30}
               disabled={loading}
+              autoComplete="off"
+              enterKeyHint="next"
             />
-            {errors.nome && touched.nome && <ErrorMessage theme={theme}>{errors.nome}</ErrorMessage>}
+            {errors.nome && touched.nome && (
+              <ErrorMessage theme={theme} role="alert">
+                {errors.nome}
+              </ErrorMessage>
+            )}
           </FormGroup>
 
           <FormGroup>
@@ -236,6 +290,8 @@ const CategoriaFormModal = ({
                   $active={icon === ic} 
                   theme={theme} 
                   disabled={loading}
+                  aria-label={`Ícone ${ic}`}
+                  aria-pressed={icon === ic}
                 >
                   {ic}
                 </IconButton>
@@ -248,16 +304,19 @@ const CategoriaFormModal = ({
             <ColorsGrid>
               {COLORS.map(c => {
                 const [h, s, l] = c.split(' ');
+                const bgColor = `hsl(${h}, ${s}, ${l})`;
                 return (
                   <ColorButton
                     key={c} 
                     type="button" 
                     onClick={() => setColor(c)}
                     $active={color === c}
-                    style={{ backgroundColor: `hsl(${h}, ${s}, ${l})` }}
+                    style={{ backgroundColor: bgColor }}
                     theme={theme} 
                     title={`Cor ${c}`} 
                     disabled={loading}
+                    aria-label={`Selecionar cor ${c}`}
+                    aria-pressed={color === c}
                   />
                 );
               })}
@@ -265,23 +324,36 @@ const CategoriaFormModal = ({
           </FormGroup>
 
           <FormGroup>
-            <Label theme={theme}>🎯 Meta de Orçamento (opcional)</Label>
+            <Label htmlFor="categoria-meta" theme={theme}>
+              🎯 Meta de Orçamento (opcional)
+            </Label>
             <Input
+              id="categoria-meta"
               type="text"
+              inputMode="decimal"
               value={metaFormatada === 'R$ ' ? '' : metaFormatada}
               onChange={handleMetaOrcamentoChange}
               onBlur={handleMetaOrcamentoBlur}
               placeholder="Ex: 500,00"
               theme={theme}
               disabled={loading}
+              autoComplete="off"
+              enterKeyHint="done"
             />
             {errors.metaOrcamento && touched.metaOrcamento && (
-              <ErrorMessage theme={theme}>{errors.metaOrcamento}</ErrorMessage>
+              <ErrorMessage theme={theme} role="alert">
+                {errors.metaOrcamento}
+              </ErrorMessage>
             )}
           </FormGroup>
 
           <ModalButtons>
-            <CancelarButton type="button" onClick={handleClose} disabled={loading} theme={theme}>
+            <CancelarButton 
+              type="button" 
+              onClick={handleClose} 
+              disabled={loading} 
+              theme={theme}
+            >
               Cancelar
             </CancelarButton>
             <CriarButton 
@@ -289,10 +361,14 @@ const CategoriaFormModal = ({
               disabled={loading || !name.trim() || errors.nome} 
               theme={theme}
             >
-              {loading ? (isEditing ? 'Salvando...' : 'Criando...') : (isEditing ? 'Salvar Alterações' : 'Criar Categoria')}
+              {loading ? (isEditing ? 'Salvando...' : 'Criando...') : (isEditing ? 'Salvar' : 'Criar')}
             </CriarButton>
           </ModalButtons>
         </Form>
+        
+        <VisuallyHidden aria-live="polite" role="status">
+          {loading && (isEditing ? 'Salvando categoria...' : 'Criando categoria...')}
+        </VisuallyHidden>
       </ModalContainer>
     </Overlay>
   );
