@@ -1,204 +1,171 @@
-import React, { useMemo, useRef, useState, useCallback } from 'react';
-import { TrendingUp, Coffee, DollarSign, CheckCircle, Clock, Wallet } from 'lucide-react';
+import React from 'react';
 import * as S from '../styles/components/ResumoCardsStyles';
 
-const ResumoCards = ({ resumo = {}, comparativo = {}, theme }) => {
+const ResumoCards = ({ resumo = {}, theme = {} }) => {
+  // Helper para formatar moeda
+  const fmt = (valor = 0) => {
+    return valor.toLocaleString('pt-BR', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+  };
 
-  const gridRef    = useRef(null);
-  const TOTAL_DOTS = 5; // 6 cards → 5 posições de scroll
-  const [activeDot, setActiveDot] = useState(0);
+  // Extrair valores do resumo
+  const totalVR = resumo.totalVR ?? 0;
+  const vrPago = resumo.vrPago ?? 0;
+  const vrRestante = resumo.vrRestante ?? totalVR - vrPago;
+  
+  const totalNormal = resumo.totalNormal ?? 0;
+  const normalPago = resumo.normalPago ?? 0;
+  const normalRestante = resumo.normalRestante ?? totalNormal - normalPago;
+  
+  const totalGeral = resumo.totalGeral ?? totalVR + totalNormal;
+  const totalPago = resumo.totalPago ?? vrPago + normalPago;
+  const totalRestante = resumo.totalRestante ?? totalGeral - totalPago;
+  const totalComprados = resumo.totalComprados ?? 0;
 
-  const fmt = (valor = 0) =>
-    valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // Cores do tema (com fallbacks)
+  const colors = {
+    vr: theme.vrva ?? '#f59e0b',
+    dinheiro: theme.secondary ?? '#3b82f6',
+    primary: theme.primary ?? '#6366f1',
+    success: theme.success ?? '#10b981',
+    warning: theme.warning ?? '#f59e0b',
+    info: theme.info ?? '#8b5cf6',
+  };
 
-  // Valores com fallback seguro
-  const totalGeral     = resumo.totalGeral     ?? 0;
-  const totalPago      = resumo.totalPago       ?? 0;
-  const totalRestante  = resumo.totalRestante   ?? totalGeral - totalPago;
-  const totalVR        = resumo.totalVR         ?? 0;
-  const vrPago         = resumo.vrPago          ?? 0;
-  const vrRestante     = resumo.vrRestante      ?? totalVR - vrPago;
-  const totalNormal    = resumo.totalNormal     ?? 0;
-  const normalPago     = resumo.normalPago      ?? 0;
-  const normalRestante = resumo.normalRestante  ?? totalNormal - normalPago;
-  const totalComprados = resumo.totalComprados  ?? 0;
+  // Ícones em SVG
+  const IconCoffee = () => (
+    <S.IconSm viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M8 12h12M12 8v8M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
+      <path d="M6 8h.01M18 8h.01M6 16h.01M18 16h.01" />
+    </S.IconSm>
+  );
 
-  const cards = useMemo(() => [
-    /* 1 — DESTAQUE: falta pagar */
-    {
-      id: 'restante',
-      label: 'Falta pagar',
-      descricao: 'Total pendente descontando comprados',
-      value: totalRestante,
-      icon: Clock,
-      color: theme.warning ?? '#f59e0b',
-      prefix: 'R$ ',
-      badge: 'Pendente',
-      destaque: true,
-      footer: null,
-    },
-    /* 2 — Já pago */
-    {
-      id: 'pago',
-      label: 'Já pago',
-      descricao: `${totalComprados} item${totalComprados !== 1 ? 's' : ''} comprado${totalComprados !== 1 ? 's' : ''}`,
-      value: totalPago,
-      icon: CheckCircle,
-      color: theme.success,
-      prefix: 'R$ ',
-      badge: 'Pago',
-      destaque: false,
-      footer: null,
-    },
-    /* 3 — Total geral */
-    {
-      id: 'totalGeral',
-      label: 'Total da lista',
-      descricao: 'Soma de todos os itens',
-      value: totalGeral,
-      icon: TrendingUp,
-      color: theme.primary,
-      prefix: 'R$ ',
-      badge: 'Geral',
-      destaque: false,
-      footer: null,
-    },
-    /* 4 — VR com breakdown */
-    {
-      id: 'totalVR',
-      label: 'VR / Vale-refeição',
-      descricao: 'Itens pagos com benefício',
-      value: totalVR,
-      icon: Coffee,
-      color: theme.vrva,
-      prefix: 'R$ ',
-      badge: 'Benefícios',
-      destaque: false,
-      footer: {
-        left:  { label: 'Pago',  value: vrPago,      color: theme.success },
-        right: { label: 'Falta', value: vrRestante,   color: theme.warning ?? '#f59e0b' },
-      },
-    },
-    /* 5 — Normal com breakdown */
-    {
-      id: 'totalNormal',
-      label: 'Dinheiro / Cartão',
-      descricao: 'Itens de pagamento comum',
-      value: totalNormal,
-      icon: DollarSign,
-      color: theme.secondary,
-      prefix: 'R$ ',
-      badge: 'À vista',
-      destaque: false,
-      footer: {
-        left:  { label: 'Pago',  value: normalPago,     color: theme.success },
-        right: { label: 'Falta', value: normalRestante,  color: theme.warning ?? '#f59e0b' },
-      },
-    },
-    /* 6 — Contagem */
-    {
-      id: 'totalComprados',
-      label: 'Itens comprados',
-      descricao: 'Quantidade já adquirida',
-      value: totalComprados,
-      icon: Wallet,
-      color: theme.success,
-      suffix: ' itens',
-      badge: 'Realizados',
-      destaque: false,
-      footer: null,
-      formatter: (v) => String(v || 0),
-    },
-  ], [
-    totalGeral, totalPago, totalRestante,
-    totalVR, vrPago, vrRestante,
-    totalNormal, normalPago, normalRestante,
-    totalComprados, theme,
-  ]);
+  const IconDollar = () => (
+    <S.IconSm viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+      <circle cx="12" cy="12" r="3" />
+    </S.IconSm>
+  );
 
-  const handleScroll = useCallback(() => {
-    const el = gridRef.current;
-    if (!el) return;
-    const maxScroll = el.scrollWidth - el.clientWidth;
-    if (maxScroll <= 0) return;
-    const dot = Math.min(TOTAL_DOTS - 1, Math.round((el.scrollLeft / maxScroll) * (TOTAL_DOTS - 1)));
-    setActiveDot(dot);
-  }, []);
+  const IconTrending = () => (
+    <S.IconSm viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9h-4m-7 9A9 9 0 0 1 3 12m9 9v-4M3 12a9 9 0 0 1 9-9m-9 9h4m7-9a9 9 0 0 1 9 9" />
+    </S.IconSm>
+  );
 
-  const handleDotClick = useCallback((index) => {
-    const el = gridRef.current;
-    if (!el) return;
-    const maxScroll = el.scrollWidth - el.clientWidth;
-    el.scrollTo({ left: (index / (TOTAL_DOTS - 1)) * maxScroll, behavior: 'smooth' });
-    setActiveDot(index);
-  }, []);
+  const IconCheck = () => (
+    <S.IconSm viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M20 6L9 17l-5-5" />
+    </S.IconSm>
+  );
 
   return (
-    <>
-      <S.ResumoGrid ref={gridRef} onScroll={handleScroll}>
-        {cards.map((card) => {
-          const Icon = card.icon;
-          const formattedValue = card.formatter
-            ? card.formatter(card.value)
-            : fmt(card.value);
+    <S.Grid>
+      {/* Card VR */}
+      <S.Card $color={colors.vr}>
+        <S.CardTitle>
+          <IconCoffee />
+          Vale Refeição
+          <S.Badge $color={colors.vr}>Benefício</S.Badge>
+        </S.CardTitle>
+        
+        <S.MainValue $color={colors.vr}>
+          <span>R$ </span>{fmt(totalVR)}
+        </S.MainValue>
+        
+        <S.Divider />
+        
+        <S.InfoRow>
+          <S.InfoLabel>
+            <IconCheck />
+            Pago
+          </S.InfoLabel>
+          <S.InfoValue $color={colors.success}>
+            R$ {fmt(vrPago)}
+          </S.InfoValue>
+        </S.InfoRow>
+        
+        <S.InfoRow>
+          <S.InfoLabel>⏱️ Restante</S.InfoLabel>
+          <S.InfoValue $color={colors.vr}>
+            R$ {fmt(vrRestante)}
+          </S.InfoValue>
+        </S.InfoRow>
+      </S.Card>
 
-          return (
-            <S.ResumoCard
-              key={card.id}
-              $color={card.color}
-              data-destaque={card.destaque ? 'true' : undefined}
-            >
-              <S.CardHeader>
-                <S.CardIcon $color={card.color}>
-                  <Icon size={15} />
-                </S.CardIcon>
-                <S.CardBadge $color={card.color}>
-                  {card.badge}
-                </S.CardBadge>
-              </S.CardHeader>
+      {/* Card Dinheiro/Cartão */}
+      <S.Card $color={colors.dinheiro}>
+        <S.CardTitle>
+          <IconDollar />
+          Dinheiro / Cartão
+          <S.Badge $color={colors.dinheiro}>À vista</S.Badge>
+        </S.CardTitle>
+        
+        <S.MainValue $color={colors.dinheiro}>
+          <span>R$ </span>{fmt(totalNormal)}
+        </S.MainValue>
+        
+        <S.Divider />
+        
+        <S.InfoRow>
+          <S.InfoLabel>
+            <IconCheck />
+            Pago
+          </S.InfoLabel>
+          <S.InfoValue $color={colors.success}>
+            R$ {fmt(normalPago)}
+          </S.InfoValue>
+        </S.InfoRow>
+        
+        <S.InfoRow>
+          <S.InfoLabel>⏱️ Restante</S.InfoLabel>
+          <S.InfoValue $color={colors.dinheiro}>
+            R$ {fmt(normalRestante)}
+          </S.InfoValue>
+        </S.InfoRow>
+      </S.Card>
 
-              <S.CardContent>
-                <S.CardTitle>{card.label}</S.CardTitle>
-                <S.CardDescription>{card.descricao}</S.CardDescription>
-                <S.CardValue $color={card.color}>
-                  {card.prefix && <span>{card.prefix}</span>}
-                  {formattedValue}
-                  {card.suffix && <span>{card.suffix}</span>}
-                </S.CardValue>
-              </S.CardContent>
-
-              {card.footer && (
-                <S.CardFooter>
-                  <S.FooterStat>
-                    <S.FooterLabel>Pago</S.FooterLabel>
-                    <S.FooterValue $color={card.footer.left.color}>
-                      R$ {fmt(card.footer.left.value)}
-                    </S.FooterValue>
-                  </S.FooterStat>
-                  <S.FooterStat>
-                    <S.FooterLabel>Falta</S.FooterLabel>
-                    <S.FooterValue $color={card.footer.right.color}>
-                      R$ {fmt(card.footer.right.value)}
-                    </S.FooterValue>
-                  </S.FooterStat>
-                </S.CardFooter>
-              )}
-            </S.ResumoCard>
-          );
-        })}
-      </S.ResumoGrid>
-
-      <S.ScrollDots>
-        {Array.from({ length: TOTAL_DOTS }).map((_, i) => (
-          <S.ScrollDot
-            key={i}
-            $active={i === activeDot}
-            onClick={() => handleDotClick(i)}
-            style={{ cursor: 'pointer' }}
-          />
-        ))}
-      </S.ScrollDots>
-    </>
+      {/* Card Resumo Geral */}
+      <S.CardFull $color={colors.primary}>
+        <S.CardTitle>
+          <IconTrending />
+          Resumo Geral
+        </S.CardTitle>
+        
+        <S.InfoRow>
+          <S.InfoLabel>Total da lista</S.InfoLabel>
+          <S.InfoValue $color={colors.primary}>
+            R$ {fmt(totalGeral)}
+          </S.InfoValue>
+        </S.InfoRow>
+        
+        <S.InfoRow>
+          <S.InfoLabel>
+            <IconCheck />
+            Total pago
+          </S.InfoLabel>
+          <S.InfoValue $color={colors.success}>
+            R$ {fmt(totalPago)}
+          </S.InfoValue>
+        </S.InfoRow>
+        
+        <S.InfoRow>
+          <S.InfoLabel>⚠️ Falta pagar</S.InfoLabel>
+          <S.InfoValue $color={colors.warning}>
+            R$ {fmt(totalRestante)}
+          </S.InfoValue>
+        </S.InfoRow>
+        
+        <S.InfoRow>
+          <S.InfoLabel>📦 Itens comprados</S.InfoLabel>
+          <S.InfoValue $color={colors.info}>
+            {totalComprados} itens
+          </S.InfoValue>
+        </S.InfoRow>
+      </S.CardFull>
+    </S.Grid>
   );
 };
 

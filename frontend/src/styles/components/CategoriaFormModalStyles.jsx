@@ -24,10 +24,10 @@ export const Overlay = styled.div`
 
 export const ModalContainer = styled.div`
   background: ${props => props.theme.surface};
-  border-radius: 1.5rem;
+  border-radius: 1.25rem;
   width: 90%;
   max-width: 480px;
-  max-height: 85vh;
+  max-height: 95vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -48,7 +48,7 @@ export const ModalContainer = styled.div`
   @media (max-width: 600px) {
     width: 100%;
     max-width: 100%;
-    border-radius: 1.5rem 1.5rem 0 0;
+    border-radius: 1.25rem 1.25rem 0 0;
     max-height: 85vh;
     animation: slideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
 
@@ -76,7 +76,7 @@ export const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.875rem 1.25rem;
+  padding: 0.75rem 1.25rem;
   background: ${props => props.theme.surface};
   border-bottom: 1px solid ${props => props.theme.border};
   flex-shrink: 0;
@@ -183,11 +183,11 @@ export const Input = styled.input`
   }
 `;
 
-// Grids com tamanho menor para ícones e cores
+// GRID DE ÍCONES - MENOR
 export const IconsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  gap: 0.5rem;
+  gap: 0.375rem;
 
   @media (max-width: 600px) {
     grid-template-columns: repeat(6, 1fr);
@@ -195,12 +195,13 @@ export const IconsGrid = styled.div`
   }
 `;
 
+// BOTÃO DE ÍCONE - MENOR
 export const IconButton = styled.button`
   aspect-ratio: 1;
   background: ${props => props.$active ? props.theme.primary : props.theme.background};
   border: 1.5px solid ${props => props.$active ? props.theme.primary : props.theme.border};
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
@@ -210,6 +211,7 @@ export const IconButton = styled.button`
 
   &:hover {
     transform: scale(1.05);
+    background: ${props => props.$active ? props.theme.primary : props.theme.hover};
   }
 
   &:active {
@@ -222,17 +224,19 @@ export const IconButton = styled.button`
   }
 `;
 
+// GRID DE CORES
 export const ColorsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 0.5rem;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 0.375rem;
 
   @media (max-width: 600px) {
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(8, 1fr);
     gap: 0.375rem;
   }
 `;
 
+// BOTÃO DE COR - MENOR
 export const ColorButton = styled.button`
   aspect-ratio: 1;
   background: ${props => props.$bgColor};

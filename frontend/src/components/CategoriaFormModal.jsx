@@ -2,64 +2,22 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import * as Styled from '../styles/components/CategoriaFormModalStyles';
 
-// ========== CONSTANTES COMPLETAS ==========
-const COLORS = [
-  '0 70% 50%',     // Vermelho
-  '10 70% 50%',    // Vermelho alaranjado
-  '20 70% 50%',    // Laranja
-  '35 70% 50%',    // Laranja amarelado
-  '45 70% 50%',    // Amarelo
-  '60 70% 45%',    // Amarelo esverdeado
-  '90 70% 45%',    // Verde claro
-  '120 70% 45%',   // Verde
-  '150 70% 45%',   // Verde azulado
-  '180 70% 45%',   // Ciano
-  '200 70% 50%',   // Azul claro
-  '220 70% 55%',   // Azul
-  '240 70% 55%',   // Azul royal
-  '260 70% 55%',   // Azul violeta
-  '270 70% 55%',   // Roxo
-  '280 70% 55%',   // Violeta
-  '300 70% 60%',   // Rosa
-  '320 70% 60%',   // Rosa choque
-  '340 70% 55%',   // Magenta
-  '0 0% 40%',      // Cinza escuro
-  '0 0% 50%',      // Cinza médio
-  '0 0% 60%'       // Cinza claro
-];
-
+// ========== 24 EMOJIS PADRÃO (menores e mais compactos) ==========
 const ICONS = [
   '🏠', '🛒', '🍕', '🚗', '💳', '💰', '🎓', '💊',
-  '👕', '🎮', '✈️', '🏥', '⚡', '📱', '💻', '🎵',
-  '📚', '🏋️', '🎬', '🍔', '☕', '🍺', '🎁', '💎'
+  '👕', '🎮', '✈️', '🏥', '🛁', '🍳', '🧼', '🛏️',
+  '🛋️', '📦', '🐶', '🎁', '⚡', '📱', '💻', '🎵'
 ];
 
-// Utilitários
-const hslToHex = (h, s, l) => {
-  h = (h % 360 + 360) % 360;
-  s = Math.min(100, Math.max(0, s));
-  l = Math.min(100, Math.max(0, l));
-  
-  const c = (1 - Math.abs(2 * l / 100 - 1)) * s / 100;
-  const x = c * (1 - Math.abs((h / 60) % 2 - 1));
-  const m = l / 100 - c / 2;
-  
-  let r, g, b;
-  if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
-  else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
-  else if (h >= 120 && h < 180) { r = 0; g = c; b = x; }
-  else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
-  else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
-  else { r = c; g = 0; b = x; }
-  
-  const toHex = (val) => {
-    const hex = Math.round((val + m) * 255).toString(16);
-    return hex.length === 1 ? '0' + hex : hex;
-  };
-  
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-};
+// ========== 20 CORES FIXAS (mais compactas) ==========
+const FIXED_COLORS = [
+  '#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#1abc9c',
+  '#3498db', '#2980b9', '#9b59b6', '#e84393', '#fd79a8',
+  '#6c5ce7', '#00cec9', '#fdcb6e', '#e17055', '#81ecec',
+  '#74b9ff', '#a29bfe', '#dfe6e9', '#b2bec3', '#636e72'
+];
 
+// ========== UTILITÁRIOS ==========
 const hexToHsl = (hex) => {
   let r = parseInt(hex.slice(1, 3), 16) / 255;
   let g = parseInt(hex.slice(3, 5), 16) / 255;
@@ -101,7 +59,7 @@ const parsePrice = (value) => {
   return isNaN(parsed) ? null : parsed;
 };
 
-// Componente Principal
+// ========== COMPONENTE PRINCIPAL ==========
 const CategoriaFormModal = ({ 
   isOpen, 
   onClose, 
@@ -111,7 +69,7 @@ const CategoriaFormModal = ({
   isEditing = false 
 }) => {
   const [name, setName] = useState('');
-  const [color, setColor] = useState(COLORS[0]);
+  const [color, setColor] = useState(FIXED_COLORS[0]);
   const [icon, setIcon] = useState('🏠');
   const [metaOrcamento, setMetaOrcamento] = useState('');
   const [loading, setLoading] = useState(false);
@@ -128,7 +86,7 @@ const CategoriaFormModal = ({
 
   const resetForm = () => {
     setName('');
-    setColor(COLORS[0]);
+    setColor(FIXED_COLORS[0]);
     setIcon('🏠');
     setMetaOrcamento('');
     setErrors({});
@@ -144,7 +102,7 @@ const CategoriaFormModal = ({
       const metaValue = categoriaParaEditar.metaOrcamento != null ? categoriaParaEditar.metaOrcamento : '';
       setMetaOrcamento(metaValue);
       if (categoriaParaEditar.bg) {
-        setColor(hexToHsl(categoriaParaEditar.bg));
+        setColor(categoriaParaEditar.bg);
       }
     } else if (isOpen && !isEditing) {
       resetForm();
@@ -248,9 +206,6 @@ const CategoriaFormModal = ({
     setLoading(true);
     
     try {
-      const [h, s, l] = color.split(' ');
-      const hexColor = hslToHex(parseInt(h), parseInt(s), parseInt(l));
-      
       let metaValue = null;
       if (metaOrcamento && metaOrcamento !== '') {
         metaValue = parsePrice(metaOrcamento);
@@ -259,7 +214,7 @@ const CategoriaFormModal = ({
       const categoriaData = {
         nome: name.trim(),
         icon,
-        bg: hexColor,
+        bg: color,
         text: '#ffffff',
         metaOrcamento: metaValue,
       };
@@ -268,7 +223,11 @@ const CategoriaFormModal = ({
       await new Promise(resolve => setTimeout(resolve, 500));
       
       console.log('Categoria salva:', categoriaData);
-      alert(`Categoria "${name}" ${isEditing ? 'atualizada' : 'crirada'}!`);
+      
+      const successMsg = isEditing 
+        ? `Categoria "${name}" atualizada com sucesso!` 
+        : `Categoria "${name}" criada com sucesso!`;
+      alert(successMsg);
 
       if (onCategoryAdded) {
         onCategoryAdded(categoriaData, isEditing);
@@ -317,7 +276,7 @@ const CategoriaFormModal = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               onBlur={() => handleBlur('nome')}
-              placeholder="Ex: Mercado"
+              placeholder="Ex: Mercado, Farmácia, Lazer..."
               theme={theme}
               style={{ borderColor: errors.nome && touched.nome ? '#dc3545' : undefined }}
               maxLength={30}
@@ -354,30 +313,26 @@ const CategoriaFormModal = ({
           <Styled.FormGroup>
             <Styled.Label theme={theme}>Cor</Styled.Label>
             <Styled.ColorsGrid>
-              {COLORS.map(c => {
-                const [h, s, l] = c.split(' ');
-                const bgColor = `hsl(${h}, ${s}, ${l})`;
-                return (
-                  <Styled.ColorButton
-                    key={c} 
-                    type="button" 
-                    onClick={() => setColor(c)}
-                    $active={color === c}
-                    $bgColor={bgColor}
-                    theme={theme} 
-                    title={`Cor ${c}`} 
-                    disabled={loading}
-                    aria-label={`Selecionar cor ${c}`}
-                    aria-pressed={color === c}
-                  />
-                );
-              })}
+              {FIXED_COLORS.map(c => (
+                <Styled.ColorButton
+                  key={c} 
+                  type="button" 
+                  onClick={() => setColor(c)}
+                  $active={color === c}
+                  $bgColor={c}
+                  theme={theme} 
+                  title={c} 
+                  disabled={loading}
+                  aria-label={`Cor ${c}`}
+                  aria-pressed={color === c}
+                />
+              ))}
             </Styled.ColorsGrid>
           </Styled.FormGroup>
 
           <Styled.FormGroup>
             <Styled.Label htmlFor="categoria-meta" theme={theme}>
-              🎯 Meta de Orçamento
+              🎯 Meta de Orçamento (opcional)
             </Styled.Label>
             <Styled.Input
               id="categoria-meta"
@@ -386,7 +341,7 @@ const CategoriaFormModal = ({
               value={metaOrcamento}
               onChange={handleMetaChange}
               onBlur={() => handleBlur('metaOrcamento')}
-              placeholder="Opcional - Ex: 500,00"
+              placeholder="Ex: 500,00"
               theme={theme}
               disabled={loading}
               autoComplete="off"
