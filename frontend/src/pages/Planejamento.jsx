@@ -132,7 +132,9 @@ const Planejamento = () => {
     try {
       savedScrollRef.current = window.scrollY;
       setLoading(true);
-      const [cats, its] = await Promise.all([categoriasService.listarDoUsuario(), itensService.getAll()]);
+      // listar() retorna categorias padrão + do usuário e popula o cache local,
+      // eliminando a request extra que verificarNomeExistente disparava em seguida.
+      const [cats, its] = await Promise.all([categoriasService.listar(), itensService.getAll()]);
       setCategorias((cats||[]).sort((a,b)=>(a.ordem||0)-(b.ordem||0)));
       setItens(Array.isArray(its)?its:[]);
     } catch { /* toast nos services */ } finally {

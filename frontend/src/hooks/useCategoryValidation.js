@@ -22,13 +22,11 @@ export const useCategoryValidation = () => {
     return '';
   }, []);
 
+  // Usa o método cache-aware do service: não dispara request de rede
+  // quando as categorias já foram carregadas nos últimos 30 s.
   const verificarNomeExistente = useCallback(async (nome, categoriaId = null) => {
     try {
-      const categorias = await categoriasService.listar();
-      return categorias.some(cat => 
-        cat.nome.toLowerCase() === nome.toLowerCase() &&
-        (!categoriaId || cat.id !== categoriaId)
-      );
+      return await categoriasService.verificarNomeExistente(nome, categoriaId);
     } catch (error) {
       console.error('Erro ao verificar nome existente:', error);
       return false;

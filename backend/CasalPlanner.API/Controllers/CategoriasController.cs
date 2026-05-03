@@ -39,14 +39,14 @@ public class CategoriasController : ControllerBase
                 Builders<Categoria>.Filter.Eq(c => c.UsuarioId, usuarioId)
             );
 
-            var categorias = await _context.Categorias
+            // Ordenação feita no MongoDB: nenhum documento extra trafega pela rede.
+            // IsPadrao desc (true=1 vem antes de false=0 quando invertido),
+            // depois Nome asc — ambos com suporte de índice.
+            var categoriasOrdenadas = await _context.Categorias
                 .Find(filter)
-                .ToListAsync();
-
-            var categoriasOrdenadas = categorias
-                .OrderBy(c => c.IsPadrao ? 0 : 1)
+                .SortByDescending(c => c.IsPadrao)
                 .ThenBy(c => c.Nome)
-                .ToList();
+                .ToListAsync();
 
             return Ok(categoriasOrdenadas);
         }

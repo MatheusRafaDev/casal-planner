@@ -363,6 +363,10 @@ try
         new CreateIndexModel<Item>(
             Builders<Item>.IndexKeys.Ascending(i => i.UsuarioId).Ascending(i => i.CategoriaId),
             new CreateIndexOptions { Name = "idx_itens_usuarioId_categoriaId", Background = true }),
+        // Suporta o pipeline de aggregation do ResumoService (filtro por data)
+        new CreateIndexModel<Item>(
+            Builders<Item>.IndexKeys.Ascending(i => i.UsuarioId).Ascending(i => i.CreatedAt),
+            new CreateIndexOptions { Name = "idx_itens_usuarioId_createdAt", Background = true }),
     });
 
     await dbContext.Categorias.Indexes.CreateManyAsync(new[]
@@ -373,6 +377,13 @@ try
         new CreateIndexModel<Categoria>(
             Builders<Categoria>.IndexKeys.Ascending(c => c.IsPadrao),
             new CreateIndexOptions { Name = "idx_categorias_isPadrao", Background = true }),
+        // Suporta GetCategorias: filtro (UsuarioId | null) + sort (IsPadrao desc, Nome asc)
+        new CreateIndexModel<Categoria>(
+            Builders<Categoria>.IndexKeys
+                .Ascending(c => c.UsuarioId)
+                .Descending(c => c.IsPadrao)
+                .Ascending(c => c.Nome),
+            new CreateIndexOptions { Name = "idx_categorias_usuario_padrao_nome", Background = true }),
     });
 
     Console.WriteLine("✅ Índices verificados com sucesso");
