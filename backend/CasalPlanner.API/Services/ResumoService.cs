@@ -1,5 +1,4 @@
 using CasalPlanner.API.Data;
-using CasalPlanner.API.Models;
 using CasalPlanner.API.Models.DTOs;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -14,37 +13,34 @@ namespace CasalPlanner.API.Services
         public ResumoService(MongoDbContext context, ILogger<ResumoService> logger)
         {
             _context = context;
-            _logger = logger;
+            _logger  = logger;
         }
 
         public async Task<ResumoResponseDto> ObterResumo(string usuarioId)
         {
             try
             {
-                var hoje              = DateTime.UtcNow;
-                var inicioMesPassado  = hoje.AddMonths(-1);
+                var hoje               = DateTime.UtcNow;
+                var inicioMesPassado   = hoje.AddMonths(-1);
                 var inicioMesRetrasado = hoje.AddMonths(-2);
 
-                // Uma única agregação no MongoDB: filtra, calcula e agrupa tudo no servidor.
-                // Antes: ToListAsync() carregava todos os itens do usuário em memória e
-                // filtrava por data em C#. Agora zero documentos são transferidos além
-                // do único doc de resultado.
+                // Uma única agregação no MongoDB: filtra, calcula e agrupa no servidor.
+                // Antes: ToListAsync() carregava todos os itens em memória e filtrava
+                // por data em C#. Agora apenas um documento de resultado trafega.
                 var pipeline = new[]
                 {
                     // 1. Filtra apenas os itens do usuário autenticado
                     new BsonDocument("$match", new BsonDocument("UsuarioId", usuarioId)),
 
-                    // 2. Projeta campos utilizados + ValorTotal calculado no servidor
+                    // 2. Projeta ValorTotal + flags de período (calculadas no servidor)
                     new BsonDocument("$project", new BsonDocument
                     {
                         { "CategoriaId", 1 },
                         { "Pagamento",   1 },
                         { "Comprado",    1 },
-                        { "CreatedAt",   1 },
                         { "Quantidade",  1 },
                         { "ValorTotal",  new BsonDocument("$multiply",
                             new BsonArray { "$Preco", "$Quantidade" }) },
-                        // flags de período para os $cond no $group
                         { "IsMesPassado", new BsonDocument("$and",
                             new BsonArray {
                                 new BsonDocument("$gte", new BsonArray { "$CreatedAt", new BsonDateTime(inicioMesPassado) }),
@@ -57,43 +53,43 @@ namespace CasalPlanner.API.Services
                             }) },
                     }),
 
-                    // 3. Grupo único acumulando todos os totais de uma vez
+                    // 3. Grupo único — todos os acumuladores em uma passagem
                     new BsonDocument("$group", new BsonDocument
                     {
                         { "_id", BsonNull.Value },
 
-                        // ── Resumo atual (todos os itens, sem filtro de data) ──
-                        { "TotalGeral",   new BsonDocument("$sum", "$ValorTotal") },
-                        { "TotalVR",      new BsonDocument("$sum", new BsonDocument("$cond",
+                        // Totais gerais (todos os itens, sem filtro de data)
+                        { "TotalGeral",     new BsonDocument("$sum", "$ValorTotal") },
+                        { "TotalVR",        new BsonDocument("$sum", new BsonDocument("$cond",
                             new BsonArray { new BsonDocument("$eq", new BsonArray { "$Pagamento", "vr" }), "$ValorTotal", 0 })) },
-                        { "TotalNormal",  new BsonDocument("$sum", new BsonDocument("$cond",
+                        { "TotalNormal",    new BsonDocument("$sum", new BsonDocument("$cond",
                             new BsonArray { new BsonDocument("$eq", new BsonArray { "$Pagamento", "normal" }), "$ValorTotal", 0 })) },
                         { "TotalComprados", new BsonDocument("$sum", new BsonDocument("$cond",
                             new BsonArray { "$Comprado", 1, 0 })) },
-                        { "TotalItens",   new BsonDocument("$sum", 1) },
+                        { "TotalItens",     new BsonDocument("$sum", 1) },
 
-                        // Array de itens para calcular porCategoria depois
-                        { "PorCategoria", new BsonDocument("$push", new BsonDocument
+                        // Array para calcular porCategoria depois
+                        { "PorCategoria",   new BsonDocument("$push", new BsonDocument
                             {
                                 { "CategoriaId", "$CategoriaId" },
                                 { "ValorTotal",  "$ValorTotal"  },
                                 { "Quantidade",  "$Quantidade"  },
                             }) },
 
-                        // ── Mês passado ──
-                        { "MP_TotalGeral",    new BsonDocument("$sum", new BsonDocument("$cond",
+                        // Mês passado
+                        { "MP_TotalGeral",     new BsonDocument("$sum", new BsonDocument("$cond",
                             new BsonArray { "$IsMesPassado", "$ValorTotal", 0 })) },
-                        { "MP_TotalVR",       new BsonDocument("$sum", new BsonDocument("$cond",
+                        { "MP_TotalVR",        new BsonDocument("$sum", new BsonDocument("$cond",
                             new BsonArray { new BsonDocument("$and", new BsonArray { "$IsMesPassado",
                                 new BsonDocument("$eq", new BsonArray { "$Pagamento", "vr" }) }), "$ValorTotal", 0 })) },
-                        { "MP_TotalNormal",   new BsonDocument("$sum", new BsonDocument("$cond",
+                        { "MP_TotalNormal",    new BsonDocument("$sum", new BsonDocument("$cond",
                             new BsonArray { new BsonDocument("$and", new BsonArray { "$IsMesPassado",
                                 new BsonDocument("$eq", new BsonArray { "$Pagamento", "normal" }) }), "$ValorTotal", 0 })) },
                         { "MP_TotalComprados", new BsonDocument("$sum", new BsonDocument("$cond",
                             new BsonArray { new BsonDocument("$and", new BsonArray { "$IsMesPassado", "$Comprado" }), 1, 0 })) },
 
-                        // ── Mês retrasado (só TotalGeral para a tendência) ──
-                        { "MR_TotalGeral",    new BsonDocument("$sum", new BsonDocument("$cond",
+                        // Mês retrasado (só TotalGeral para o cálculo de tendência)
+                        { "MR_TotalGeral",     new BsonDocument("$sum", new BsonDocument("$cond",
                             new BsonArray { "$IsMesRetrasado", "$ValorTotal", 0 })) },
                     })
                 };
@@ -114,25 +110,28 @@ namespace CasalPlanner.API.Services
             }
         }
 
-        // ── helpers ─────────────────────────────────────────────────────────────────
+        // ── helpers ──────────────────────────────────────────────────────────────
 
         private static ResumoDto MontarResumoDto(BsonDocument doc)
         {
-            var porCategoria          = new Dictionary<string, decimal>();
+            var porCategoria           = new Dictionary<string, decimal>();
             var quantidadePorCategoria = new Dictionary<string, int>();
 
             if (doc.TryGetValue("PorCategoria", out var arr) && arr is BsonArray items)
             {
-                foreach (var item in items.OfType<BsonDocument>())
+                foreach (var element in items)
                 {
-                    var catId = item.GetValue("CategoriaId", BsonNull.Value).IsBsonNull
-                        ? "" : item["CategoriaId"].AsString;
+                    if (element is not BsonDocument item) continue;
+
+                    var catVal = item.GetValue("CategoriaId", BsonNull.Value);
+                    if (catVal.IsBsonNull) continue;
+                    var catId = catVal.AsString;
                     if (string.IsNullOrEmpty(catId)) continue;
 
-                    var valor = (decimal)item.GetValue("ValorTotal", 0).ToDouble();
+                    var valor = ToDecimal(item.GetValue("ValorTotal", 0));
                     var qtd   = item.GetValue("Quantidade", 1).ToInt32();
 
-                    if (porCategoria.TryGetValue(catId, out _))
+                    if (porCategoria.ContainsKey(catId))
                     {
                         porCategoria[catId]           += valor;
                         quantidadePorCategoria[catId] += qtd;
@@ -147,11 +146,12 @@ namespace CasalPlanner.API.Services
 
             return new ResumoDto
             {
-                TotalGeral             = (decimal)doc.GetValue("TotalGeral",    0).ToDouble(),
-                TotalVR                = (decimal)doc.GetValue("TotalVR",       0).ToDouble(),
-                TotalNormal            = (decimal)doc.GetValue("TotalNormal",   0).ToDouble(),
-                TotalComprados         = (decimal)doc.GetValue("TotalComprados",0).ToDouble(),
-                TotalItens             = doc.GetValue("TotalItens", 0).ToInt32(),
+                TotalGeral             = ToDecimal(doc.GetValue("TotalGeral",    0)),
+                TotalVR                = ToDecimal(doc.GetValue("TotalVR",       0)),
+                TotalNormal            = ToDecimal(doc.GetValue("TotalNormal",   0)),
+                // TotalComprados e TotalItens são int no DTO
+                TotalComprados         = doc.GetValue("TotalComprados", 0).ToInt32(),
+                TotalItens             = doc.GetValue("TotalItens",     0).ToInt32(),
                 PorCategoria           = porCategoria,
                 QuantidadePorCategoria = quantidadePorCategoria,
             };
@@ -159,16 +159,16 @@ namespace CasalPlanner.API.Services
 
         private static ComparativoDto MontarComparativoDto(BsonDocument doc)
         {
-            var atualGeral  = (decimal)doc.GetValue("TotalGeral",       0).ToDouble();
-            var atualVR     = (decimal)doc.GetValue("TotalVR",          0).ToDouble();
-            var atualNormal = (decimal)doc.GetValue("TotalNormal",      0).ToDouble();
-            var atualComp   = (decimal)doc.GetValue("TotalComprados",   0).ToDouble();
+            var atualGeral  = ToDecimal(doc.GetValue("TotalGeral",       0));
+            var atualVR     = ToDecimal(doc.GetValue("TotalVR",          0));
+            var atualNormal = ToDecimal(doc.GetValue("TotalNormal",      0));
+            var atualComp   = ToDecimal(doc.GetValue("TotalComprados",   0));
 
-            var mpGeral     = (decimal)doc.GetValue("MP_TotalGeral",    0).ToDouble();
-            var mpVR        = (decimal)doc.GetValue("MP_TotalVR",       0).ToDouble();
-            var mpNormal    = (decimal)doc.GetValue("MP_TotalNormal",   0).ToDouble();
-            var mpComp      = (decimal)doc.GetValue("MP_TotalComprados",0).ToDouble();
-            var mrGeral     = (decimal)doc.GetValue("MR_TotalGeral",    0).ToDouble();
+            var mpGeral     = ToDecimal(doc.GetValue("MP_TotalGeral",    0));
+            var mpVR        = ToDecimal(doc.GetValue("MP_TotalVR",       0));
+            var mpNormal    = ToDecimal(doc.GetValue("MP_TotalNormal",   0));
+            var mpComp      = ToDecimal(doc.GetValue("MP_TotalComprados",0));
+            var mrGeral     = ToDecimal(doc.GetValue("MR_TotalGeral",    0));
 
             var mediaGeral  = (mrGeral + mpGeral + atualGeral) / 3;
 
@@ -177,12 +177,19 @@ namespace CasalPlanner.API.Services
                 TotalGeral      = Variacao(atualGeral,  mpGeral),
                 TotalVR         = Variacao(atualVR,     mpVR),
                 TotalNormal     = Variacao(atualNormal, mpNormal),
+                // ComparativoDto.TotalComprados é decimal (variação %)
                 TotalComprados  = Variacao(atualComp,   mpComp),
                 PercentualGeral = mediaGeral > 0
                     ? Math.Round((atualGeral - mediaGeral) / mediaGeral * 100, 2)
                     : 0,
             };
         }
+
+        /// <summary>
+        /// Converte BsonValue para decimal com segurança, independente de o MongoDB
+        /// retornar BsonDouble, BsonInt32 ou BsonInt64.
+        /// </summary>
+        private static decimal ToDecimal(BsonValue v) => (decimal)v.ToDouble();
 
         private static decimal Variacao(decimal atual, decimal anterior)
         {
