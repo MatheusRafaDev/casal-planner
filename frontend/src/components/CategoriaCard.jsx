@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, memo, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   Plus, Trash2, Pencil, ChevronDown, ChevronUp,
   ShoppingBag, Store, ExternalLink,
@@ -87,7 +88,7 @@ const ConfirmDialog = memo(({ isOpen, onClose, onConfirm, title, message, confir
   };
   const config = typeConfig[type] || typeConfig.danger;
 
-  return (
+  return createPortal(
     <div style={{ position:"fixed", inset:0, backgroundColor:colors.overlay, display:"flex", alignItems:"center", justifyContent:"center", zIndex:20000 }} onClick={handleClose}>
       <style>{`@keyframes cdFI{from{opacity:0}to{opacity:1}} @keyframes cdSI{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}} @keyframes cdSO{from{transform:scale(1);opacity:1}to{transform:scale(.95);opacity:0}}`}</style>
       <div style={{ backgroundColor:colors.background, borderRadius:"16px", width:"90%", maxWidth:"400px", boxShadow:"0 20px 25px -5px rgba(0,0,0,.15)", border:`1px solid ${colors.border}`, animation: isClosing ? "cdSO .2s ease-out" : "cdSI .2s ease-out" }} onClick={e=>e.stopPropagation()}>
@@ -104,7 +105,7 @@ const ConfirmDialog = memo(({ isOpen, onClose, onConfirm, title, message, confir
         </div>
       </div>
     </div>
-  );
+  , document.body);
 });
 
 // ─── MenuItem ────────────────────────────────────────────────────────────────
@@ -187,10 +188,76 @@ const StoreLogo = memo(({ storeName, size="small" }) => {
   return <S.StoreLogoImage src={storeLogoService.getLogoUrl(storeName, size==="small"?16:32)} alt={storeName} size={size} loading="lazy" onError={()=>setErr(true)}/>;
 });
 
+// ─── Lightbox ────────────────────────────────────────────────────────────────
+const Lightbox = memo(({ src, alt, onClose }) => {
+  // Fecha com Escape
+  useEffect(() => {
+    const fn = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", fn);
+    // Bloqueia scroll do body enquanto aberto
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", fn);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 30000,
+        backgroundColor: "rgba(0,0,0,0.88)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "24px",
+        animation: "lbFadeIn .18s ease-out",
+        cursor: "zoom-out",
+      }}
+    >
+      <style>{`
+        @keyframes lbFadeIn  { from { opacity:0 } to { opacity:1 } }
+        @keyframes lbScaleIn { from { transform:scale(.92); opacity:0 } to { transform:scale(1); opacity:1 } }
+      `}</style>
+
+      {/* Container interno — stopPropagation APENAS no próprio container, não no overlay */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: "relative",
+          maxWidth: "90vw", maxHeight: "90vh",
+          animation: "lbScaleIn .18s ease-out",
+          cursor: "default",
+        }}
+      >
+        <img
+          src={src}
+          alt={alt}
+          style={{
+            maxWidth: "100%", maxHeight: "82vh",
+            objectFit: "contain", borderRadius: "12px",
+            display: "block",
+            boxShadow: "0 24px 60px rgba(0,0,0,0.6)",
+          }}
+        />
+
+
+        {/* Nome do produto */}
+        <p style={{
+          color: "rgba(255,255,255,0.7)", textAlign: "center",
+          marginTop: "12px", fontSize: "0.82rem",
+          userSelect: "none",
+        }}>
+          {alt} · clique fora ou pressione Esc para fechar
+        </p>
+      </div>
+    </div>
+  , document.body);
+});
+
 // ─── ProductImage ─────────────────────────────────────────────────────────────
 const ProductImage = memo(({ item, theme, purchased }) => {
-  const [imgError, setImgError] = useState(false);
-  const [lightboxOpen, setLightboxOpen] = useState(false); // ✅ CORRIGIDO
+  const [imgError, setImgError]       = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const hasImage = item.fotoUrl && !imgError;
 
@@ -198,6 +265,8 @@ const ProductImage = memo(({ item, theme, purchased }) => {
     e.stopPropagation();
     if (hasImage) setLightboxOpen(true);
   }, [hasImage]);
+
+  const closeLightbox = useCallback(() => setLightboxOpen(false), []);
 
   return (
     <>
@@ -224,38 +293,8 @@ const ProductImage = memo(({ item, theme, purchased }) => {
         )}
       </S.ProductImageWrapper>
 
-      {/* Lightbox */}
       {lightboxOpen && (
-        <div
-          onClick={() => setLightboxOpen(false)}
-          style={{
-            position: "fixed", inset: 0, zIndex: 30000,
-            backgroundColor: "rgba(0,0,0,0.85)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            padding: "24px",
-          }}
-        >
-          <div onClick={e => e.stopPropagation()} style={{ position: "relative", maxWidth: "90vw", maxHeight: "90vh" }}>
-            <img
-              src={item.fotoUrl}
-              alt={item.nome}
-              style={{ maxWidth: "100%", maxHeight: "85vh", objectFit: "contain", borderRadius: "12px" }}
-            />
-            <button
-              onClick={() => setLightboxOpen(false)}
-              style={{
-                position: "absolute", top: "-12px", right: "-12px",
-                width: "32px", height: "32px", borderRadius: "50%",
-                background: "#fff", border: "none", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-              }}
-            >
-              <X size={16} color="#333"/>
-            </button>
-            <p style={{ color: "#fff", textAlign: "center", marginTop: "12px", fontSize: "0.85rem", opacity: 0.7 }}>{item.nome}</p>
-          </div>
-        </div>
+        <Lightbox src={item.fotoUrl} alt={item.nome} onClose={closeLightbox} />
       )}
     </>
   );
@@ -705,7 +744,7 @@ const CategoriaCard = ({
                 </S.ItemsList>
               ) : (
                 <S.EmptyState>
-                  <S.EmptyIcon>{hasFiltro?"🔍":""}</S.EmptyIcon>
+                  <S.EmptyIcon>{hasFiltro?"":""}</S.EmptyIcon>
                   <S.EmptyText theme={theme}>{hasFiltro?"Nenhum item neste período":"Nenhum item adicionado"}</S.EmptyText>
                   {!hasFiltro && <S.AddButton onClick={handleAddItem} theme={theme} disabled={disabled}><Plus size={16}/>Adicionar primeiro item</S.AddButton>}
                   {hasFiltro  && <S.AddButton onClick={()=>setFiltroData("todos")} theme={theme}><X size={16}/>Limpar filtro</S.AddButton>}

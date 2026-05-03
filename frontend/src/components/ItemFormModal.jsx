@@ -45,8 +45,6 @@ const DEFAULT_FORM_DATA = {
   fotoUrl: "",
 };
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
-
 const PRIORIDADE_LABEL = {
   urgente:      { label: "Urgente",       emoji: "🔴", color: "#ef4444", bg: "#ef444418" },
   normal:       { label: "Normal",        emoji: "🟡", color: "#f59e0b", bg: "#f59e0b18" },
@@ -61,18 +59,12 @@ const PAGAMENTO_LABEL = {
 const fmtData = (iso) =>
   iso ? new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
 
-// ─── ReadOnlyBadge ────────────────────────────────────────────────────────────
 const ReadOnlyBadge = ({ children, color, bg, emoji }) => (
   <span style={{
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "0.3rem",
-    padding: "0.3rem 0.7rem",
-    borderRadius: "999px",
-    fontSize: "0.82rem",
-    fontWeight: 600,
-    color: color || "#555",
-    background: bg || "#f3f4f6",
+    display: "inline-flex", alignItems: "center", gap: "0.3rem",
+    padding: "0.3rem 0.7rem", borderRadius: "999px",
+    fontSize: "0.82rem", fontWeight: 600,
+    color: color || "#555", background: bg || "#f3f4f6",
     border: `1px solid ${color ? color + "40" : "#e5e7eb"}`,
     whiteSpace: "nowrap",
   }}>
@@ -81,127 +73,127 @@ const ReadOnlyBadge = ({ children, color, bg, emoji }) => (
   </span>
 );
 
-// ─── ReadOnlyField ────────────────────────────────────────────────────────────
-// Label + um ou mais badges
-const ReadOnlyField = ({ label, theme, children }) => (
-  <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-    <span style={{
-      fontSize: "0.78rem",
-      fontWeight: 600,
-      color: theme?.textSoft || "#888",
-      textTransform: "uppercase",
-      letterSpacing: "0.04em",
-    }}>
-      {label}
-    </span>
-    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-      {children}
-    </div>
-  </div>
-);
+// ─── ProductHero — foto grande com overlay de informações ────────────────────
+const ProductHero = ({ formData, theme, isEditing }) => {
+  const [imgError, setImgError] = useState(false);
+  const [lightbox, setLightbox] = useState(false);
+  const hasFoto = formData.fotoUrl && !imgError;
 
-// ─── EditModeHeader ──────────────────────────────────────────────────────────
-// Bloco de resumo visual que substitui os campos bloqueados na edição
-const EditModeHeader = ({ formData, theme }) => {
   const prio = PRIORIDADE_LABEL[formData.prioridade] || PRIORIDADE_LABEL.normal;
   const pag  = PAGAMENTO_LABEL[formData.pagamento]   || PAGAMENTO_LABEL.normal;
 
-  return (
-    <div style={{
-      background: theme?.surface || "#f8fafc",
-      border: `1px solid ${theme?.border || "#e5e7eb"}`,
-      borderRadius: "1rem",
-      padding: "1rem",
-      display: "flex",
-      flexDirection: "column",
-      gap: "0.75rem",
-      marginBottom: "0.25rem",
-    }}>
+  if (!hasFoto && !isEditing) return null;
+  if (!hasFoto) return null;
 
-      {/* Foto + Nome + Marca */}
-      <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-        {formData.fotoUrl && (
-          <img
-            src={formData.fotoUrl}
-            alt={formData.nome}
-            style={{
-              width: 56, height: 56,
-              objectFit: "cover",
-              borderRadius: "0.6rem",
-              border: `1px solid ${theme?.border || "#e5e7eb"}`,
-              flexShrink: 0,
-            }}
-            onError={e => { e.target.style.display = "none"; }}
-          />
-        )}
-        <div style={{ minWidth: 0 }}>
-          <div style={{
-            fontSize: "1rem",
-            fontWeight: 700,
-            color: theme?.text || "#111",
-            wordBreak: "break-word",
-            lineHeight: 1.3,
-          }}>
-            {formData.nome || "—"}
-          </div>
-          {formData.marca && (
-            <div style={{
-              fontSize: "0.78rem",
-              color: theme?.textSoft || "#888",
-              marginTop: "0.2rem",
+  return (
+    <>
+      {/* Hero banner */}
+      <div
+        onClick={() => setLightbox(true)}
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "220px",
+          borderRadius: "1rem",
+          overflow: "hidden",
+          cursor: "zoom-in",
+          marginBottom: "0.25rem",
+          background: theme?.border || "#f1f5f9",
+          flexShrink: 0,
+        }}
+      >
+        {/* Imagem de fundo desfocada (blur fill) */}
+        <img
+          src={formData.fotoUrl}
+          alt=""
+          aria-hidden
+          style={{
+            position: "absolute", inset: 0,
+            width: "100%", height: "100%",
+            objectFit: "cover",
+            filter: "blur(18px) brightness(0.55) saturate(1.4)",
+            transform: "scale(1.15)",
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Imagem principal centralizada */}
+        <img
+          src={formData.fotoUrl}
+          alt={formData.nome}
+          onError={() => setImgError(true)}
+          style={{
+            position: "absolute", inset: 0,
+            width: "100%", height: "100%",
+            objectFit: "contain",
+            padding: "12px",
+          }}
+        />
+
+        {/* Gradiente bottom para legibilidade dos badges */}
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, right: 0,
+          height: "80px",
+          background: "linear-gradient(to top, rgba(0,0,0,0.65), transparent)",
+          pointerEvents: "none",
+        }}/>
+
+        {/* Badges na parte inferior da foto */}
+        <div style={{
+          position: "absolute", bottom: "10px", left: "12px", right: "12px",
+          display: "flex", flexWrap: "wrap", gap: "6px",
+        }}>
+
+          {isEditing && formData.createdAt && (
+            <span style={{
+              padding: "3px 10px", borderRadius: "999px",
+              fontSize: "0.72rem", fontWeight: 700,
+              background: "rgba(0,0,0,0.45)", color: "#fff",
             }}>
-              {formData.marca}
-            </div>
+              📅 {fmtData(formData.createdAt)}
+            </span>
           )}
         </div>
+
       </div>
 
-      {/* Linha de badges */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-        {/* Prioridade */}
-        <ReadOnlyBadge color={prio.color} bg={prio.bg} emoji={prio.emoji}>
-          {prio.label}
-        </ReadOnlyBadge>
-
-        {/* Pagamento */}
-        <ReadOnlyBadge color={pag.color} bg={pag.bg} emoji={pag.emoji}>
-          {pag.label}
-        </ReadOnlyBadge>
-
-        {/* Quantidade */}
-        <ReadOnlyBadge color="#6366f1" bg="#6366f118" emoji="📦">
-          {formData.quantidade}x
-        </ReadOnlyBadge>
-
-        {/* Data de inclusão */}
-        {formData.createdAt && (
-          <ReadOnlyBadge color="#64748b" bg="#64748b12" emoji="📅">
-            {fmtData(formData.createdAt)}
-          </ReadOnlyBadge>
-        )}
-
-        {/* Loja */}
-        {formData.loja && (
-          <ReadOnlyBadge color="#0ea5e9" bg="#0ea5e912" emoji="🏪">
-            {formData.loja}
-          </ReadOnlyBadge>
-        )}
-      </div>
-
-      {/* Aviso somente leitura */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "0.4rem",
-        fontSize: "0.72rem",
-        color: theme?.textSoft || "#999",
-        borderTop: `1px solid ${theme?.border || "#e5e7eb"}`,
-        paddingTop: "0.6rem",
-      }}>
-        <span>🔒</span>
-        <span>Informações do produto. Apenas o preço pode ser alterado.</span>
-      </div>
-    </div>
+      {/* Lightbox portal */}
+      {lightbox && ReactDOM.createPortal(
+        <div
+          onClick={() => setLightbox(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 99999,
+            background: "rgba(0,0,0,0.92)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "24px", cursor: "zoom-out",
+            animation: "lbIn .15s ease-out",
+          }}
+        >
+          <style>{`@keyframes lbIn{from{opacity:0}to{opacity:1}}`}</style>
+          <div onClick={e => e.stopPropagation()} style={{ position: "relative", maxWidth: "90vw", maxHeight: "90vh", cursor: "default" }}>
+            <img
+              src={formData.fotoUrl}
+              alt={formData.nome}
+              style={{ maxWidth: "100%", maxHeight: "100vh", objectFit: "contain", borderRadius: "12px", display: "block", boxShadow: "0 24px 60px rgba(0,0,0,0.6)" }}
+            />
+            <button
+              onClick={() => setLightbox(false)}
+              style={{
+                position: "absolute", top: "-14px", right: "-14px",
+                width: "34px", height: "34px", borderRadius: "50%",
+                background: "#fff", border: "none", cursor: "pointer",
+                fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+              }}
+            >✕</button>
+            <p style={{ color: "rgba(255,255,255,0.6)", textAlign: "center", marginTop: "10px", fontSize: "0.8rem" }}>
+              {formData.nome} · clique fora ou ✕ para fechar
+            </p>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
   );
 };
 
@@ -350,10 +342,6 @@ const ItemFormModal = ({
     handleBlur("preco", formData.preco);
   }, [isSubmitting, loading, handlePriceBlur, handleBlur, formData.preco]);
 
-  const handleImageError = useCallback((e) => {
-    e.target.style.display = 'none';
-  }, []);
-
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     if (isSubmitting || loading || submissionRef.current) return;
@@ -420,180 +408,124 @@ const ItemFormModal = ({
     if (isSubmitting || loading || submissionRef.current) e.preventDefault();
   }, [isSubmitting, loading]);
 
-  // ─── Render ───────────────────────────────────────────────────────────────
-
   const modalContent = (
     <Overlay theme={theme} onClick={handleClose}>
       <ModalContainer theme={theme} onClick={e => e.stopPropagation()}>
         <SheetHandle theme={theme} />
         <Header theme={theme}>
-          <h2>{isEditing ? '✏️ Editar Item' : '➕ Adicionar Item'}</h2>
+          <h2>{isEditing ? 'Editar Item' : 'Adicionar Item'}</h2>
           <CloseButton onClick={handleClose} theme={theme} aria-label="Fechar" disabled={isSubmitting || loading}>✕</CloseButton>
         </Header>
 
         <ScrollContent>
           <Form onSubmit={handleSubmit}>
 
-            {/* Formulário idêntico em ambos os modos.
-                No modo edição: foto + data aparecem como badge no topo,
-                todos os outros campos permanecem editáveis. */}
-            <>
-              {/* ── Cabeçalho visual (foto + data de inclusão) — sempre visível ── */}
-              {(formData.fotoUrl || (isEditing && formData.createdAt)) && (
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.75rem",
-                  padding: "0.75rem",
-                  background: theme?.surface || "#f8fafc",
-                  border: `1px solid ${theme?.border || "#e5e7eb"}`,
-                  borderRadius: "0.75rem",
-                  marginBottom: "0.25rem",
-                }}>
-                  {formData.fotoUrl && (
-                    <img
-                      src={formData.fotoUrl}
-                      alt={formData.nome}
-                      style={{
-                        width: 52, height: 52, objectFit: "cover",
-                        borderRadius: "0.5rem",
-                        border: `1px solid ${theme?.border || "#e5e7eb"}`,
-                        flexShrink: 0,
-                      }}
-                      onError={e => { e.target.style.display = "none"; }}
-                    />
-                  )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    {formData.nome && (
-                      <div style={{ fontSize: "0.85rem", fontWeight: 600, color: theme?.text || "#111", marginBottom: "0.3rem", wordBreak: "break-word" }}>
-                        {formData.nome}
-                      </div>
-                    )}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
-                      {isEditing && formData.createdAt && (
-                        <span style={{
-                          display: "inline-flex", alignItems: "center", gap: "0.25rem",
-                          padding: "0.2rem 0.55rem", borderRadius: "999px",
-                          fontSize: "0.72rem", fontWeight: 600,
-                          color: "#64748b", background: "#64748b12",
-                          border: "1px solid #64748b30",
-                        }}>
-                          📅 Adicionado em {new Date(formData.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
+            {/* ── Foto grande (hero) — só aparece quando há fotoUrl ── */}
+            <ProductHero formData={formData} theme={theme} isEditing={isEditing} />
 
-              {/* Nome */}
-              <FormGroup>
-                <Label theme={theme}>Nome do item *</Label>
-                <Input
-                  ref={nomeInputRef}
-                  type="text"
-                  name="nome"
-                  value={formData.nome || ""}
-                  onChange={handleInputChange}
-                  onBlur={() => handleBlur('nome', formData.nome)}
-                  placeholder="Ex: iPhone 15, Camisa Polo, Livro..."
-                  theme={theme}
-                  style={{ borderColor: errors.nome && touched.nome ? '#dc3545' : undefined }}
-                  maxLength={100}
-                  disabled={loading || isSubmitting}
-                  autoComplete="off"
-                />
-                {errors.nome && touched.nome && <ErrorMessage theme={theme}>{errors.nome}</ErrorMessage>}
-              </FormGroup>
-
-              {/* Marca + Preço */}
-              <TwoColumnGrid>
-                <FormGroup>
-                  <Label theme={theme}>Marca</Label>
-                  <Input
-                    type="text" name="marca" value={formData.marca || ""}
-                    onChange={handleInputChange} onBlur={() => handleBlur('marca', formData.marca)}
-                    placeholder="Ex: Apple, Nike, Amazon" theme={theme}
-                    maxLength={50} disabled={loading || isSubmitting} autoComplete="off"
-                  />
-                  {errors.marca && touched.marca && <ErrorMessage theme={theme}>{errors.marca}</ErrorMessage>}
-                </FormGroup>
-
-                <FormGroup>
-                  <Label theme={theme}>Preço *</Label>
-                  <Input
-                    type="tel" name="preco" value={precoFormatado}
-                    onChange={handlePrecoChange} onBlur={handlePrecoBlur}
-                    placeholder="R$ 0,00" theme={theme}
-                    style={{ borderColor: errors.preco && touched.preco ? '#dc3545' : undefined }}
-                    disabled={loading || isSubmitting} inputMode="decimal"
-                  />
-                  {errors.preco && touched.preco && <ErrorMessage theme={theme}>{errors.preco}</ErrorMessage>}
-                </FormGroup>
-              </TwoColumnGrid>
-
-              {/* Quantidade */}
-              <FormGroup>
-                <Label theme={theme}>Quantidade</Label>
-                <QuantidadeWrapper>
-                  <QuantidadeButton type="button" onClick={() => handleQuantidadeChange(-1)}
-                    disabled={loading || isSubmitting || formData.quantidade <= 1} theme={theme}>−</QuantidadeButton>
-                  <QuantidadeInput
-                    type="number" name="quantidade" value={formData.quantidade || 1}
-                    onChange={e => { const v = parseInt(e.target.value) || 1; handleFieldChange("quantidade", Math.max(1, Math.min(999999, v))); }}
-                    onBlur={() => handleBlur('quantidade', formData.quantidade)}
-                    min="1" max="999999" step="1" theme={theme} disabled={loading || isSubmitting}
-                  />
-                  <QuantidadeButton type="button" onClick={() => handleQuantidadeChange(1)}
-                    disabled={loading || isSubmitting} theme={theme}>+</QuantidadeButton>
-                </QuantidadeWrapper>
-                {errors.quantidade && touched.quantidade && <ErrorMessage theme={theme}>{errors.quantidade}</ErrorMessage>}
-              </FormGroup>
-
-              {/* Loja */}
-              <FormGroup>
-                <Label theme={theme}>Loja</Label>
-                <Input
-                  type="text" name="loja" value={formData.loja || ""}
-                  onChange={handleInputChange} onBlur={() => handleBlur('loja', formData.loja)}
-                  placeholder="Onde comprou? Ex: Mercado Livre, Amazon, Shopee" theme={theme}
-                  maxLength={100} disabled={loading || isSubmitting} autoComplete="off"
-                />
-                {errors.loja && touched.loja && <ErrorMessage theme={theme}>{errors.loja}</ErrorMessage>}
-              </FormGroup>
-
-              {/* Pesquisa de preços */}
-              <PainelPesquisaPrecos
-                nome={formData.nome} marca={formData.marca}
-                onSelectItem={handleSelectProductItem}
-                onSelectPrice={price => {
-                  if (!isSubmitting && !loading) { handleFieldChange("preco", price); setPrecoRaw(price); }
-                }}
+            {/* Nome */}
+            <FormGroup>
+              <Label theme={theme}>Nome do item *</Label>
+              <Input
+                ref={nomeInputRef}
+                type="text" name="nome" value={formData.nome || ""}
+                onChange={handleInputChange}
+                onBlur={() => handleBlur('nome', formData.nome)}
+                placeholder="Ex: iPhone 15, Camisa Polo, Livro..."
                 theme={theme}
+                style={{ borderColor: errors.nome && touched.nome ? '#dc3545' : undefined }}
+                maxLength={100} disabled={loading || isSubmitting} autoComplete="off"
               />
+              {errors.nome && touched.nome && <ErrorMessage theme={theme}>{errors.nome}</ErrorMessage>}
+            </FormGroup>
 
-              {/* Pagamento + Prioridade */}
-              <TwoColumnGrid>
-                <FormGroup>
-                  <Label theme={theme}>Pagamento</Label>
-                  <Select value={formData.pagamento || "normal"} onChange={e => handleFieldChange("pagamento", e.target.value)}
-                    theme={theme} disabled={loading || isSubmitting}>
-                    <option value="normal">💵 Normal</option>
-                    <option value="vr">🍽️ VR/VA</option>
-                  </Select>
-                </FormGroup>
+            {/* Marca + Preço */}
+            <TwoColumnGrid>
+              <FormGroup>
+                <Label theme={theme}>Marca</Label>
+                <Input
+                  type="text" name="marca" value={formData.marca || ""}
+                  onChange={handleInputChange} onBlur={() => handleBlur('marca', formData.marca)}
+                  placeholder="Ex: Apple, Nike, Amazon" theme={theme}
+                  maxLength={50} disabled={loading || isSubmitting} autoComplete="off"
+                />
+                {errors.marca && touched.marca && <ErrorMessage theme={theme}>{errors.marca}</ErrorMessage>}
+              </FormGroup>
 
-                <FormGroup>
-                  <Label theme={theme}>Prioridade</Label>
-                  <Select value={formData.prioridade || "normal"} onChange={e => handleFieldChange("prioridade", e.target.value)}
-                    theme={theme} disabled={loading || isSubmitting}>
-                    <option value="urgente">🔴 Urgente</option>
-                    <option value="normal">🟡 Normal</option>
-                    <option value="pode_esperar">🟢 Pode esperar</option>
-                  </Select>
-                </FormGroup>
-              </TwoColumnGrid>
-            </>
+              <FormGroup>
+                <Label theme={theme}>Preço *</Label>
+                <Input
+                  type="tel" name="preco" value={precoFormatado}
+                  onChange={handlePrecoChange} onBlur={handlePrecoBlur}
+                  placeholder="R$ 0,00" theme={theme}
+                  style={{ borderColor: errors.preco && touched.preco ? '#dc3545' : undefined }}
+                  disabled={loading || isSubmitting} inputMode="decimal"
+                />
+                {errors.preco && touched.preco && <ErrorMessage theme={theme}>{errors.preco}</ErrorMessage>}
+              </FormGroup>
+            </TwoColumnGrid>
+
+            {/* Quantidade */}
+            <FormGroup>
+              <Label theme={theme}>Quantidade</Label>
+              <QuantidadeWrapper>
+                <QuantidadeButton type="button" onClick={() => handleQuantidadeChange(-1)}
+                  disabled={loading || isSubmitting || formData.quantidade <= 1} theme={theme}>−</QuantidadeButton>
+                <QuantidadeInput
+                  type="number" name="quantidade" value={formData.quantidade || 1}
+                  onChange={e => { const v = parseInt(e.target.value) || 1; handleFieldChange("quantidade", Math.max(1, Math.min(999999, v))); }}
+                  onBlur={() => handleBlur('quantidade', formData.quantidade)}
+                  min="1" max="999999" step="1" theme={theme} disabled={loading || isSubmitting}
+                />
+                <QuantidadeButton type="button" onClick={() => handleQuantidadeChange(1)}
+                  disabled={loading || isSubmitting} theme={theme}>+</QuantidadeButton>
+              </QuantidadeWrapper>
+              {errors.quantidade && touched.quantidade && <ErrorMessage theme={theme}>{errors.quantidade}</ErrorMessage>}
+            </FormGroup>
+
+            {/* Loja */}
+            <FormGroup>
+              <Label theme={theme}>Loja</Label>
+              <Input
+                type="text" name="loja" value={formData.loja || ""}
+                onChange={handleInputChange} onBlur={() => handleBlur('loja', formData.loja)}
+                placeholder="Onde comprou? Ex: Mercado Livre, Amazon, Shopee" theme={theme}
+                maxLength={100} disabled={loading || isSubmitting} autoComplete="off"
+              />
+              {errors.loja && touched.loja && <ErrorMessage theme={theme}>{errors.loja}</ErrorMessage>}
+            </FormGroup>
+
+            {/* Pesquisa de preços */}
+            <PainelPesquisaPrecos
+              nome={formData.nome} marca={formData.marca}
+              onSelectItem={handleSelectProductItem}
+              onSelectPrice={price => {
+                if (!isSubmitting && !loading) { handleFieldChange("preco", price); setPrecoRaw(price); }
+              }}
+              theme={theme}
+            />
+
+            {/* Pagamento + Prioridade */}
+            <TwoColumnGrid>
+              <FormGroup>
+                <Label theme={theme}>Pagamento</Label>
+                <Select value={formData.pagamento || "normal"} onChange={e => handleFieldChange("pagamento", e.target.value)}
+                  theme={theme} disabled={loading || isSubmitting}>
+                  <option value="normal">💵 Normal</option>
+                  <option value="vr">🍽️ VR/VA</option>
+                </Select>
+              </FormGroup>
+
+              <FormGroup>
+                <Label theme={theme}>Prioridade</Label>
+                <Select value={formData.prioridade || "normal"} onChange={e => handleFieldChange("prioridade", e.target.value)}
+                  theme={theme} disabled={loading || isSubmitting}>
+                  <option value="urgente">🔴 Urgente</option>
+                  <option value="normal">🟡 Normal</option>
+                  <option value="pode_esperar">🟢 Pode esperar</option>
+                </Select>
+              </FormGroup>
+            </TwoColumnGrid>
 
             {/* Botões */}
             <ModalButtons>

@@ -122,7 +122,7 @@ const ProductItem = ({ item, isSelected, onSelect }) => {
                 </>
               )}
               <S.ImageZoomHint>
-                🔍 Clique para ampliar
+                 Clique para ampliar
               </S.ImageZoomHint>
             </>
           ) : (
@@ -317,7 +317,7 @@ const PainelPesquisaPrecos = ({
       <S.Panel>
         <S.PanelHeader>
           <S.Title>
-            🔍 Pesquisar preços
+             Pesquisar preços
             {results.length > 0 && <S.ResultCount>{results.length} produtos</S.ResultCount>}
           </S.Title>
           <S.CloseButton onClick={() => setExpanded(false)}>✕</S.CloseButton>

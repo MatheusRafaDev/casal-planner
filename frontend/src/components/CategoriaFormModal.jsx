@@ -242,7 +242,7 @@ const CategoriaFormModal = ({
         <SheetHandle theme={theme} />
         
         <Header theme={theme}>
-          <h2 id="modal-title">{isEditing ? '✏️ Editar Categoria' : '➕ Nova Categoria'}</h2>
+          <h2 id="modal-title">{isEditing ? 'Editar Categoria' : 'Nova Categoria'}</h2>
           <CloseButton 
             onClick={handleClose} 
             theme={theme}
