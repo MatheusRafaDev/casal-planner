@@ -39,12 +39,6 @@ api.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${token}`;
     }
 
-    // Dica ao proxy/CDN: GETs podem ser revalidados após 30 s.
-    // Não afeta a lógica da aplicação — apenas melhora cache de borda.
-    if (config.method === 'get') {
-      config.headers['Cache-Control'] = 'max-age=30';
-    }
-
     if (process.env.NODE_ENV === 'development') {
       //console.log(`📤 ${config.method?.toUpperCase()} ${config.url}`);
     }
