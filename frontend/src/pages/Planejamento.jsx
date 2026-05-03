@@ -1,6 +1,4 @@
 // Planejamento.jsx
-// FIX: handleEditCategoria agora recebe o objeto categoria completo (não só o id)
-// FIX: handleToggleComprado passa (itemId, novoEstado) — compatível com CategoriaCard
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
@@ -13,7 +11,6 @@ import ItemFormModal from "../components/ItemFormModal";
 
 import { categoriasService } from "../services/categoriasService";
 import { itensService } from "../services/itensService";
-import resumoService from "../services/resumoService";
 
 import {
   PlanejamentoContainer,
@@ -32,11 +29,77 @@ import {
   SkeletonCategoryCard,
 } from "../styles/pages/PlanejamentoStyles";
 
+/**
+ * Calcula o resumo financeiro completo a partir da lista de itens.
+ *
+ * Campos retornados em `atual`:
+ *   totalGeral      – soma de (preço × quantidade) de todos os itens
+ *   totalVR         – subtotal dos itens com pagamento "vr"
+ *   totalNormal     – subtotal dos itens com pagamento "normal"
+ *   totalComprados  – contagem de itens com comprado === true
+ *
+ *   totalPago       – valor gasto nos itens já comprados (comprado === true)
+ *   totalRestante   – totalGeral − totalPago
+ *   vrPago          – valor VR já pago
+ *   vrRestante      – totalVR − vrPago
+ *   normalPago      – valor Normal já pago
+ *   normalRestante  – totalNormal − normalPago
+ */
 const calcularResumoLocal = (itens) => {
   if (!Array.isArray(itens) || itens.length === 0) {
-    return { atual: { totalGeral:0, totalVR:0, totalNormal:0, totalComprados:0, totalItens:0 }, comparativo:{} };
+    return {
+      atual: {
+        totalGeral: 0, totalVR: 0, totalNormal: 0,
+        totalComprados: 0,
+        totalPago: 0, totalRestante: 0,
+        vrPago: 0, vrRestante: 0,
+        normalPago: 0, normalRestante: 0,
+      },
+      comparativo: {},
+    };
   }
-  return resumoService.calcularResumoManual(itens);
+
+  let totalGeral   = 0;
+  let totalVR      = 0;
+  let totalNormal  = 0;
+  let totalComprados = 0;
+  let totalPago    = 0;
+  let vrPago       = 0;
+  let normalPago   = 0;
+
+  for (const item of itens) {
+    const preco = Number(item.preco) || 0;
+    const qtd   = Number(item.quantidade) || 1;
+    const valor = preco * qtd;
+    const isVR  = item.pagamento === 'vr';
+
+    totalGeral  += valor;
+    if (isVR) totalVR    += valor;
+    else      totalNormal += valor;
+
+    if (item.comprado) {
+      totalComprados += 1;
+      totalPago      += valor;
+      if (isVR) vrPago     += valor;
+      else      normalPago += valor;
+    }
+  }
+
+  return {
+    atual: {
+      totalGeral,
+      totalVR,
+      totalNormal,
+      totalComprados,
+      totalPago,
+      totalRestante:  totalGeral  - totalPago,
+      vrPago,
+      vrRestante:     totalVR     - vrPago,
+      normalPago,
+      normalRestante: totalNormal - normalPago,
+    },
+    comparativo: {},
+  };
 };
 
 const FORM_DATA_VAZIO = {
@@ -87,8 +150,10 @@ const Planejamento = () => {
     return itens.filter(i=>i.pagamento===(filter==="vrva"?"vr":"normal"));
   }, [itens, filter]);
 
-  const resumo      = useMemo(() => calcularResumoLocal(itens).atual,      [itens]);
-  const comparativo = useMemo(() => calcularResumoLocal(itens).comparativo, [itens]);
+  const { resumo, comparativo } = useMemo(() => {
+    const calc = calcularResumoLocal(itens);
+    return { resumo: calc.atual, comparativo: calc.comparativo };
+  }, [itens]);
 
   // ─── Item ────────────────────────────────────────────────────────────────
   const handleSaveItem = useCallback(async (dadosDoModal) => {
@@ -101,7 +166,6 @@ const Planejamento = () => {
       const novo = await itensService.create(payload);
       setItens(prev => [novo, ...prev]);
     }
-    // NÃO fecha aqui — o ItemFormModal chama onClose() internamente após o toast
   }, [itemModal.categoriaId, itemModal.itemId]);
 
   const handleCloseItemModal = useCallback(() => {
@@ -110,14 +174,12 @@ const Planejamento = () => {
     restoreScroll();
   }, [restoreScroll]);
 
-  // FIX: chamado pelo CategoriaCard com (categoriaId)
   const handleAddItem = useCallback((categoriaId) => {
     saveScroll();
     setFormData({ ...FORM_DATA_VAZIO, categoriaId });
     setItemModal({ isOpen:true, categoriaId, itemId:null });
   }, [saveScroll]);
 
-  // FIX: chamado pelo CategoriaCard com (itemId)
   const handleEditItem = useCallback((itemId) => {
     const item = itens.find(i => i.id === itemId);
     if (!item) return;
@@ -150,7 +212,6 @@ const Planejamento = () => {
     }
   }, [itens, saveScroll, restoreScroll]);
 
-  // FIX: CategoriaCard chama onToggleComprado(itemId) — sem o segundo argumento
   const handleToggleComprado = useCallback(async (itemId) => {
     const itemAtual = itens.find(i => i.id === itemId);
     if (!itemAtual) return;
@@ -190,7 +251,6 @@ const Planejamento = () => {
   // ─── Categoria ───────────────────────────────────────────────────────────
   const handleAddCategoria = useCallback(() => setCategoriaModal({ isOpen:true, categoria:null, isEditing:false }), []);
 
-  // FIX: recebe o OBJETO categoria completo (CategoriaCard passa categoria, não categoria.id)
   const handleEditCategoria = useCallback((categoria) => {
     saveScroll();
     setCategoriaModal({ isOpen:true, categoria, isEditing:true });
@@ -271,11 +331,11 @@ const Planejamento = () => {
               key={categoria.id}
               categoria={categoria}
               itens={itensFiltrados.filter(i => i.categoriaId === categoria.id)}
-              onAddItem={handleAddItem}         // (categoriaId) => void
-              onUpdateItem={handleEditItem}     // (itemId) => void
-              onDeleteItem={handleDeleteItem}   // (itemId) => Promise
+              onAddItem={handleAddItem}
+              onUpdateItem={handleEditItem}
+              onDeleteItem={handleDeleteItem}
               onDeleteCategoria={handleDeleteCategoria}
-              onEditCategoria={handleEditCategoria} // recebe objeto categoria completo
+              onEditCategoria={handleEditCategoria}
               onToggleComprado={handleToggleComprado}
               onItemDragStart={handleItemDragStart}
               onItemDragEnd={handleItemDragEnd}
@@ -287,7 +347,6 @@ const Planejamento = () => {
         </CategoriesGrid>
       )}
 
-      {/* Modal único de item — gerenciado aqui, não no CategoriaCard */}
       <ItemFormModal
         isOpen={itemModal.isOpen}
         onClose={handleCloseItemModal}
