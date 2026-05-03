@@ -190,11 +190,9 @@ const StoreLogo = memo(({ storeName, size="small" }) => {
 
 // ─── Lightbox ────────────────────────────────────────────────────────────────
 const Lightbox = memo(({ src, alt, onClose }) => {
-  // Fecha com Escape
   useEffect(() => {
     const fn = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", fn);
-    // Bloqueia scroll do body enquanto aberto
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", fn);
@@ -203,52 +201,11 @@ const Lightbox = memo(({ src, alt, onClose }) => {
   }, [onClose]);
 
   return createPortal(
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed", inset: 0, zIndex: 30000,
-        backgroundColor: "rgba(0,0,0,0.88)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "24px",
-        animation: "lbFadeIn .18s ease-out",
-        cursor: "zoom-out",
-      }}
-    >
-      <style>{`
-        @keyframes lbFadeIn  { from { opacity:0 } to { opacity:1 } }
-        @keyframes lbScaleIn { from { transform:scale(.92); opacity:0 } to { transform:scale(1); opacity:1 } }
-      `}</style>
-
-      {/* Container interno — stopPropagation APENAS no próprio container, não no overlay */}
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: "relative",
-          maxWidth: "90vw", maxHeight: "90vh",
-          animation: "lbScaleIn .18s ease-out",
-          cursor: "default",
-        }}
-      >
-        <img
-          src={src}
-          alt={alt}
-          style={{
-            maxWidth: "100%", maxHeight: "82vh",
-            objectFit: "contain", borderRadius: "12px",
-            display: "block",
-            boxShadow: "0 24px 60px rgba(0,0,0,0.6)",
-          }}
-        />
-
-
-        {/* Nome do produto */}
-        <p style={{
-          color: "rgba(255,255,255,0.7)", textAlign: "center",
-          marginTop: "12px", fontSize: "0.82rem",
-          userSelect: "none",
-        }}>
-          {alt} · clique fora ou pressione Esc para fechar
-        </p>
+    <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:30000, backgroundColor:"rgba(0,0,0,0.88)", display:"flex", alignItems:"center", justifyContent:"center", padding:"24px", animation:"lbFadeIn .18s ease-out", cursor:"zoom-out" }}>
+      <style>{`@keyframes lbFadeIn { from { opacity:0 } to { opacity:1 } } @keyframes lbScaleIn { from { transform:scale(.92); opacity:0 } to { transform:scale(1); opacity:1 } }`}</style>
+      <div onClick={(e) => e.stopPropagation()} style={{ position:"relative", maxWidth:"90vw", maxHeight:"90vh", animation:"lbScaleIn .18s ease-out", cursor:"default" }}>
+        <img src={src} alt={alt} style={{ maxWidth:"100%", maxHeight:"82vh", objectFit:"contain", borderRadius:"12px", display:"block", boxShadow:"0 24px 60px rgba(0,0,0,0.6)" }} />
+        <p style={{ color:"rgba(255,255,255,0.7)", textAlign:"center", marginTop:"12px", fontSize:"0.82rem", userSelect:"none" }}>{alt} · clique fora ou pressione Esc para fechar</p>
       </div>
     </div>
   , document.body);
@@ -256,76 +213,48 @@ const Lightbox = memo(({ src, alt, onClose }) => {
 
 // ─── ProductImage ─────────────────────────────────────────────────────────────
 const ProductImage = memo(({ item, theme, purchased }) => {
-  const [imgError, setImgError]       = useState(false);
+  const [imgError, setImgError] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-
   const hasImage = item.fotoUrl && !imgError;
 
-  const openLightbox = useCallback((e) => {
-    e.stopPropagation();
-    if (hasImage) setLightboxOpen(true);
-  }, [hasImage]);
-
+  const openLightbox = useCallback((e) => { e.stopPropagation(); if (hasImage) setLightboxOpen(true); }, [hasImage]);
   const closeLightbox = useCallback(() => setLightboxOpen(false), []);
 
   return (
     <>
-      <S.ProductImageWrapper
-        $purchased={purchased}
-        $hasImage={hasImage}
-        theme={theme}
-        onClick={hasImage ? openLightbox : undefined}
-        style={{ cursor: hasImage ? "zoom-in" : "default" }}
-        title={hasImage ? "Clique para ampliar" : ""}
-      >
+      <S.ProductImageWrapper $purchased={purchased} $hasImage={hasImage} theme={theme} onClick={hasImage ? openLightbox : undefined} style={{ cursor: hasImage ? "zoom-in" : "default" }} title={hasImage ? "Clique para ampliar" : ""}>
         {hasImage ? (
-          <S.ProductImg
-            src={item.fotoUrl}
-            alt={item.nome}
-            loading="lazy"
-            onError={() => setImgError(true)}
-            $purchased={purchased}
-          />
+          <S.ProductImg src={item.fotoUrl} alt={item.nome} loading="lazy" onError={() => setImgError(true)} $purchased={purchased} />
         ) : (
-          <S.ProductImgPlaceholder theme={theme}>
-            <ImageOff size={14} />
-          </S.ProductImgPlaceholder>
+          <S.ProductImgPlaceholder theme={theme}><ImageOff size={14} /></S.ProductImgPlaceholder>
         )}
       </S.ProductImageWrapper>
-
-      {lightboxOpen && (
-        <Lightbox src={item.fotoUrl} alt={item.nome} onClose={closeLightbox} />
-      )}
+      {lightboxOpen && <Lightbox src={item.fotoUrl} alt={item.nome} onClose={closeLightbox} />}
     </>
   );
 });
 
 // ─── SwipeableItemCard ────────────────────────────────────────────────────────
-const SWIPE_THRESHOLD   = 72;
-const SWIPE_MAX         = 120;
+const SWIPE_THRESHOLD = 72;
+const SWIPE_MAX = 120;
 
 const ItemCard = memo(({
   item, isLoading, isSaving, draggedItemId,
   onToggleComprado, onEditItem, onDeleteItem,
   onDragStart, onDragEnd, theme,
 }) => {
-  const [menuOpen, setMenuOpen]       = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-
-  const [swipeX, setSwipeX]           = useState(0);
-  const [swiping, setSwiping]         = useState(false);
-  const [swipeDir, setSwipeDir]       = useState(null);
-
+  const [swipeX, setSwipeX] = useState(0);
+  const [swiping, setSwiping] = useState(false);
+  const [swipeDir, setSwipeDir] = useState(null);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const isScrolling = useRef(false);
-  const swipeRef    = useRef({ x:0, dir:null });
-  const menuRef     = useRef(null);
-
-  const pc       = PRIORIDADE_CONFIG[item.prioridade] || PRIORIDADE_CONFIG.normal;
+  const swipeRef = useRef({ x:0, dir:null });
+  const menuRef = useRef(null);
+  const pc = PRIORIDADE_CONFIG[item.prioridade] || PRIORIDADE_CONFIG.normal;
   const disabled = isLoading || isSaving;
-
-  const fmtData = (iso) => iso ? new Date(iso).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}) : null;
 
   const resetSwipe = useCallback(() => {
     swipeRef.current = { x:0, dir:null };
@@ -344,18 +273,15 @@ const ItemCard = memo(({
 
   const onTouchMove = useCallback((e) => {
     if (disabled || menuOpen) return;
-    const t   = e.touches[0];
-    const dx  = t.clientX - touchStartX.current;
-    const dy  = t.clientY - touchStartY.current;
-
+    const t = e.touches[0];
+    const dx = t.clientX - touchStartX.current;
+    const dy = t.clientY - touchStartY.current;
     if (!swiping && Math.abs(dy) > Math.abs(dx) + 5) { isScrolling.current = true; return; }
     if (isScrolling.current) return;
     if (!swiping && Math.abs(dx) < 8) return;
-
     e.preventDefault();
     const dir = dx > 0 ? "right" : "left";
     if (!swiping) { setSwiping(true); setSwipeDir(dir); }
-
     const clamped = Math.max(-SWIPE_MAX, Math.min(SWIPE_MAX, dx));
     swipeRef.current = { x: clamped, dir };
     setSwipeX(clamped);
@@ -373,23 +299,16 @@ const ItemCard = memo(({
         setConfirmOpen(true);
         resetSwipe();
       }
-    } else {
-      resetSwipe();
-    }
+    } else { resetSwipe(); }
   }, [swiping, resetSwipe, onToggleComprado, item.id]);
 
-  const openLink  = useCallback(() => { if (item.linkProduto) window.open(item.linkProduto,"_blank","noopener,noreferrer"); }, [item.linkProduto]);
+  const openLink = useCallback(() => { if (item.linkProduto) window.open(item.linkProduto,"_blank","noopener,noreferrer"); }, [item.linkProduto]);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
   const editClick = useCallback(() => onEditItem(item.id), [onEditItem, item.id]);
-  const delClick  = useCallback(() => { setConfirmOpen(true); setMenuOpen(false); }, []);
-  const confirmDel= useCallback(() => { onDeleteItem(item.id); setConfirmOpen(false); }, [onDeleteItem, item.id]);
-  const toggleMenu= useCallback(e => { e.stopPropagation(); setMenuOpen(p=>!p); }, []);
-
-  const handleNameClick = useCallback((e) => {
-    if (swiping) return;
-    e.stopPropagation();
-    onEditItem(item.id);
-  }, [swiping, onEditItem, item.id]);
+  const delClick = useCallback(() => { setConfirmOpen(true); setMenuOpen(false); }, []);
+  const confirmDel = useCallback(() => { onDeleteItem(item.id); setConfirmOpen(false); }, [onDeleteItem, item.id]);
+  const toggleMenu = useCallback(e => { e.stopPropagation(); setMenuOpen(p=>!p); }, []);
+  const handleNameClick = useCallback((e) => { if (swiping) return; e.stopPropagation(); onEditItem(item.id); }, [swiping, onEditItem, item.id]);
 
   const dragStart = useCallback(e => {
     if (disabled) { e.preventDefault(); return; }
@@ -411,176 +330,56 @@ const ItemCard = memo(({
 
   const swipeProgress = Math.min(Math.abs(swipeX) / SWIPE_THRESHOLD, 1);
   const isRight = swipeDir === "right";
-  const isLeft  = swipeDir === "left";
-  const bgColor = swiping
-    ? isRight ? `rgba(34,197,94,${swipeProgress * 0.25})` : `rgba(239,68,68,${swipeProgress * 0.25})`
-    : "transparent";
+  const bgColor = swiping ? isRight ? `rgba(34,197,94,${swipeProgress * 0.25})` : `rgba(239,68,68,${swipeProgress * 0.25})` : "transparent";
 
   return (
     <>
       <div style={{ position:"relative", borderRadius:"0.75rem", overflow:"hidden", marginBottom:"0" }}>
         {swiping && (
-          <div style={{
-            position:"absolute", inset:0, borderRadius:"0.75rem",
-            backgroundColor: isRight ? "#22c55e" : "#ef4444",
-            display:"flex", alignItems:"center",
-            justifyContent: isRight ? "flex-start" : "flex-end",
-            padding:"0 20px",
-            opacity: swipeProgress,
-          }}>
+          <div style={{ position:"absolute", inset:0, borderRadius:"0.75rem", backgroundColor: isRight ? "#22c55e" : "#ef4444", display:"flex", alignItems:"center", justifyContent: isRight ? "flex-start" : "flex-end", padding:"0 20px", opacity: swipeProgress }}>
             <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"4px" }}>
               {isRight ? <Check size={28} strokeWidth={3} color="#fff"/> : <Trash2 size={24} strokeWidth={2} color="#fff"/>}
-              <span style={{ color:"#fff", fontSize:"0.65rem", fontWeight:700, letterSpacing:"0.05em" }}>
-                {isRight ? (item.comprado ? "DESMARCAR" : "COMPRADO") : "EXCLUIR"}
-              </span>
+              <span style={{ color:"#fff", fontSize:"0.65rem", fontWeight:700, letterSpacing:"0.05em" }}>{isRight ? (item.comprado ? "DESMARCAR" : "COMPRADO") : "EXCLUIR"}</span>
             </div>
           </div>
         )}
-
-        <div
-          style={{
-            transform: `translateX(${swipeX}px)`,
-            transition: swiping ? "none" : "transform .3s cubic-bezier(.25,.46,.45,.94)",
-            backgroundColor: swiping ? bgColor : "transparent",
-            borderRadius:"0.75rem",
-            touchAction: "pan-y",
-            willChange: "transform",
-          }}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-        >
-          <S.ItemRow
-            $purchased={item.comprado}
-            $priority={item.prioridade}
-            theme={theme}
-            $isDragging={draggedItemId === String(item.id)}
-            draggable={!disabled}
-            onDragStart={dragStart}
-            onDragEnd={dragEnd}
-            style={{ marginBottom:0 }}
-          >
-            
+        <div style={{ transform: `translateX(${swipeX}px)`, transition: swiping ? "none" : "transform .3s cubic-bezier(.25,.46,.45,.94)", backgroundColor: swiping ? bgColor : "transparent", borderRadius:"0.75rem", touchAction: "pan-y", willChange: "transform" }} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+          <S.ItemRow $purchased={item.comprado} $priority={item.prioridade} theme={theme} $isDragging={draggedItemId === String(item.id)} draggable={!disabled} onDragStart={dragStart} onDragEnd={dragEnd} style={{ marginBottom:0 }}>
             <S.ItemLayout style={{ alignItems: "center" }}>
-
-              <div style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: "0.35rem",
-                flexShrink: 0,
-              }}>
-                <S.CheckboxButton
-                  $checked={item.comprado}
-                  onClick={e=>{ e.stopPropagation(); onToggleComprado(item.id); }}
-                  theme={theme}
-                  disabled={disabled}
-                >
-                  {item.comprado && <S.CheckIcon/>}
-                </S.CheckboxButton>
-
+              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "0.35rem", flexShrink: 0 }}>
+                <S.CheckboxButton $checked={item.comprado} onClick={e=>{ e.stopPropagation(); onToggleComprado(item.id); }} theme={theme} disabled={disabled}>{item.comprado && <S.CheckIcon/>}</S.CheckboxButton>
                 <ProductImage item={item} theme={theme} purchased={item.comprado} />
               </div>
-
               <S.ItemContent>
-
-                <S.ItemName
-                  $purchased={item.comprado}
-                  theme={theme}
-                  onClick={handleNameClick}
-                  style={{
-                    cursor: "pointer",
-                    textDecoration: item.comprado ? "line-through" : "none",
-                  }}
-                  title="Clique para editar"
-                >
-                  {item.nome}
-                </S.ItemName>
-
+                <S.ItemName $purchased={item.comprado} theme={theme} onClick={handleNameClick} style={{ cursor: "pointer", textDecoration: item.comprado ? "line-through" : "none" }} title="Clique para editar">{item.nome}</S.ItemName>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                  <S.ItemTotalValueCompact theme={theme}>
-                    {formatarMoeda(item.preco * item.quantidade)}
-                  </S.ItemTotalValueCompact>
-
-                  <S.ItemActionButton
-                    ref={menuRef}
-                    onClick={toggleMenu}
-                    theme={theme}
-                    variant="menu"
-                    disabled={disabled}
-                    title="Mais opções"
-                    style={{ marginLeft: "auto" }}
-                  >
-                    <MoreHorizontal size={16}/>
-                  </S.ItemActionButton>
+                  <S.ItemTotalValueCompact theme={theme}>{formatarMoeda(item.preco * item.quantidade)}</S.ItemTotalValueCompact>
+                  <S.ItemActionButton ref={menuRef} onClick={toggleMenu} theme={theme} variant="menu" disabled={disabled} title="Mais opções" style={{ marginLeft: "auto" }}><MoreHorizontal size={16}/></S.ItemActionButton>
                 </div>
-
                 <S.ItemMidRow>
-                  <S.PriorityBadgeFull $color={pc.color} $bgColor={pc.bgColor} theme={theme}>
-                    {pc.emoji} {pc.label}
-                  </S.PriorityBadgeFull>
-
+                  <S.PriorityBadgeFull $color={pc.color} $bgColor={pc.bgColor} theme={theme}>{pc.emoji} {pc.label}</S.PriorityBadgeFull>
                   <S.DetailSeparator theme={theme}/>
-
-                  <S.ItemQuantityBadge theme={theme}>
-                    <ShoppingBag size={10}/>{item.quantidade}x
-                  </S.ItemQuantityBadge>
-
+                  <S.ItemQuantityBadge theme={theme}><ShoppingBag size={10}/>{item.quantidade}x</S.ItemQuantityBadge>
                   <S.DetailSeparator theme={theme}/>
-
-                  <S.ItemPriceBadge theme={theme}>
-                    {formatarMoeda(item.preco)}/un
-                  </S.ItemPriceBadge>
-
+                  <S.ItemPriceBadge theme={theme}>{formatarMoeda(item.preco)}/un</S.ItemPriceBadge>
                 </S.ItemMidRow>
-
                 <S.ItemBottomRow>
-                  {item.loja && (
-                    <S.StoreBadge theme={theme}>
-                      <StoreLogo storeName={item.loja} size="small"/>
-                      <S.StoreName theme={theme}>{item.loja.length>20?item.loja.substring(0,20)+"…":item.loja}</S.StoreName>
-                    </S.StoreBadge>
-                  )}
-
-                  <S.PaymentBadge $type={item.pagamento} theme={theme}>
-                    Pagamento: {item.pagamento==="vr"?" VR/VA":" Normal"}
-                  </S.PaymentBadge>
-
-                  {item.marca && (
-                    <S.ItemBrand theme={theme}>
-                      {item.marca.length>15?item.marca.substring(0,15)+"…":item.marca}
-                    </S.ItemBrand>
-                  )}
+                  {item.loja && (<S.StoreBadge theme={theme}><StoreLogo storeName={item.loja} size="small"/><S.StoreName theme={theme}>{item.loja.length>20?item.loja.substring(0,20)+"…":item.loja}</S.StoreName></S.StoreBadge>)}
+                  <S.PaymentBadge $type={item.pagamento} theme={theme}>Pagamento: {item.pagamento==="vr"?" VR/VA":" Normal"}</S.PaymentBadge>
+                  {item.marca && (<S.ItemBrand theme={theme}>{item.marca.length>15?item.marca.substring(0,15)+"…":item.marca}</S.ItemBrand>)}
                 </S.ItemBottomRow>
-
               </S.ItemContent>
             </S.ItemLayout>
           </S.ItemRow>
         </div>
       </div>
-
-      {menuOpen && (
-        <ContextMenu
-          anchorRef={menuRef}
-          item={item}
-          onClose={closeMenu}
-          onEdit={editClick}
-          onDelete={delClick}
-          onOpenLink={openLink}
-          theme={theme}
-        />
-      )}
-
-      <ConfirmDialog
-        isOpen={confirmOpen} onClose={()=>setConfirmOpen(false)} onConfirm={confirmDel}
-        title="Excluir item"
-        message={`Tem certeza que deseja excluir "${item.nome}"? Esta ação não pode ser desfeita.`}
-        confirmText="Excluir" cancelText="Cancelar" theme={theme} type="danger"/>
+      {menuOpen && <ContextMenu anchorRef={menuRef} item={item} onClose={closeMenu} onEdit={editClick} onDelete={delClick} onOpenLink={openLink} theme={theme} />}
+      <ConfirmDialog isOpen={confirmOpen} onClose={()=>setConfirmOpen(false)} onConfirm={confirmDel} title="Excluir item" message={`Tem certeza que deseja excluir "${item.nome}"? Esta ação não pode ser desfeita.`} confirmText="Excluir" cancelText="Cancelar" theme={theme} type="danger"/>
     </>
   );
 });
 
-// ─── CategoriaCard ────────────────────────────────────────────────────────────
+// ─── CategoriaCard MODIFICADO COM SCROLL INTERNO ────────────────────────────
 const CategoriaCard = ({
   categoria, itens,
   onAddItem,
@@ -591,24 +390,29 @@ const CategoriaCard = ({
   onItemDragStart, onItemDragEnd, onItemDrop,
   draggedItemId, theme, onToggleComprado, isLoading = false,
 }) => {
-  const [expanded, setExpanded]     = useState(true);
-  const [dragOver, setDragOver]     = useState(false);
-  const [sortBy, setSortBy]         = useState("preco");
-  const [sortOrder, setSortOrder]   = useState("asc");
-  const [isSaving, setIsSaving]     = useState(false);
+  const [expanded, setExpanded] = useState(true);
+  const [dragOver, setDragOver] = useState(false);
+  const [sortBy, setSortBy] = useState("preco");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [isSaving, setIsSaving] = useState(false);
   const [filtroData, setFiltroData] = useState("todos");
   const [showFiltro, setShowFiltro] = useState(false);
   const [showDelCat, setShowDelCat] = useState(false);
+  
+  // NOVOS ESTADOS PARA SCROLL INTERNO
+  const [showAllItems, setShowAllItems] = useState(false);
+  const itemsContainerRef = useRef(null);
+  const ITEMS_PER_PAGE = 3; // Mostrar apenas 5 itens inicialmente
 
   const disabled = isLoading || isSaving;
 
-  const handleDelCatClick   = useCallback(() => { if (disabled) return; setShowDelCat(true); }, [disabled]);
+  const handleDelCatClick = useCallback(() => { if (disabled) return; setShowDelCat(true); }, [disabled]);
   const handleConfirmDelCat = useCallback(async () => { await onDeleteCategoria(categoria.id); setShowDelCat(false); }, [categoria.id, onDeleteCategoria]);
-  const handleEditCat       = useCallback(() => { if (disabled) return; onEditCategoria(categoria); }, [disabled, categoria, onEditCategoria]);
-  const handleAddItem       = useCallback(() => { if (disabled) return; onAddItem(categoria.id); }, [disabled, categoria.id, onAddItem]);
-  const handleEditItem      = useCallback((itemId) => onUpdateItem(itemId), [onUpdateItem]);
-  const handleDeleteItem    = useCallback(async (itemId) => { if (disabled) return; await onDeleteItem(itemId); }, [disabled, onDeleteItem]);
-  const handleToggle        = useCallback(async (itemId) => { if (disabled) return; await onToggleComprado(itemId); }, [disabled, onToggleComprado]);
+  const handleEditCat = useCallback(() => { if (disabled) return; onEditCategoria(categoria); }, [disabled, categoria, onEditCategoria]);
+  const handleAddItem = useCallback(() => { if (disabled) return; onAddItem(categoria.id); }, [disabled, categoria.id, onAddItem]);
+  const handleEditItem = useCallback((itemId) => onUpdateItem(itemId), [onUpdateItem]);
+  const handleDeleteItem = useCallback(async (itemId) => { if (disabled) return; await onDeleteItem(itemId); }, [disabled, onDeleteItem]);
+  const handleToggle = useCallback(async (itemId) => { if (disabled) return; await onToggleComprado(itemId); }, [disabled, onToggleComprado]);
 
   const itensFiltrados = useMemo(() => {
     if (filtroData === "todos") return itens;
@@ -625,27 +429,63 @@ const CategoriaCard = ({
     return s;
   }, [itensFiltrados, sortBy, sortOrder]);
 
-  const totalCat   = useMemo(() => itens.reduce((a,i)=>a+(i.preco*i.quantidade||0),0),[itens]);
-  const totalFilt  = useMemo(() => itensFiltrados.reduce((a,i)=>a+(i.preco*i.quantidade||0),0),[itensFiltrados]);
-  const comprados  = itens.filter(i=>i.comprado).length;
-  const progresso  = itens.length > 0 ? (comprados/itens.length)*100 : 0;
+  // ITENS VISÍVEIS (apenas 5 ou todos)
+  const itensVisiveis = useMemo(() => {
+    if (showAllItems) return itensOrdenados;
+    return itensOrdenados.slice(0, ITEMS_PER_PAGE);
+  }, [itensOrdenados, showAllItems]);
+
+  const hasMoreItems = itensOrdenados.length > ITEMS_PER_PAGE;
+
+  const totalCat = useMemo(() => itens.reduce((a,i)=>a+(i.preco*i.quantidade||0),0),[itens]);
+  const totalFilt = useMemo(() => itensFiltrados.reduce((a,i)=>a+(i.preco*i.quantidade||0),0),[itensFiltrados]);
+  const comprados = itens.filter(i=>i.comprado).length;
+  const progresso = itens.length > 0 ? (comprados/itens.length)*100 : 0;
   const totalGasto = useMemo(() => itens.filter(i=>i.comprado).reduce((a,i)=>a+(i.preco*i.quantidade||0),0),[itens]);
-  const pctMeta    = categoria.metaOrcamento > 0 ? (totalCat/categoria.metaOrcamento)*100 : 0;
-  const excedeu    = totalCat > categoria.metaOrcamento;
-  const proximo    = !excedeu && pctMeta >= 80;
+  const pctMeta = categoria.metaOrcamento > 0 ? (totalCat/categoria.metaOrcamento)*100 : 0;
+  const excedeu = totalCat > categoria.metaOrcamento;
+  const proximo = !excedeu && pctMeta >= 80;
 
   const handleSort = useCallback(field => {
     if (disabled) return;
     setSortBy(prev => { if (prev===field){ setSortOrder(o=>o==="asc"?"desc":"asc"); return prev; } setSortOrder("asc"); return field; });
+    setShowAllItems(false);
+    if (itemsContainerRef.current) itemsContainerRef.current.scrollTop = 0;
   }, [disabled]);
-  const handleClearSort = useCallback(() => { if (disabled) return; setSortBy("preco"); setSortOrder("asc"); }, [disabled]);
+  
+  const handleClearSort = useCallback(() => { 
+    if (disabled) return; 
+    setSortBy("preco"); 
+    setSortOrder("asc");
+    setShowAllItems(false);
+    if (itemsContainerRef.current) itemsContainerRef.current.scrollTop = 0;
+  }, [disabled]);
+
+  const handleShowMore = useCallback(() => {
+    setShowAllItems(true);
+    setTimeout(() => { if (itemsContainerRef.current) itemsContainerRef.current.scrollTop = 0; }, 100);
+  }, []);
+
+  const handleShowLess = useCallback(() => {
+    setShowAllItems(false);
+    if (itemsContainerRef.current) itemsContainerRef.current.scrollTop = 0;
+  }, []);
+
   const hasSort = sortBy!=="preco" || sortOrder!=="asc";
 
-  const onDragOver  = useCallback(e => { e.preventDefault(); e.stopPropagation(); setDragOver(true); }, []);
+  const onDragOver = useCallback(e => { e.preventDefault(); e.stopPropagation(); setDragOver(true); }, []);
   const onDragLeave = useCallback(e => { e.preventDefault(); e.stopPropagation(); setDragOver(false); }, []);
-  const onDrop      = useCallback(e => { e.preventDefault(); e.stopPropagation(); setDragOver(false); const id=e.dataTransfer.getData("text/plain"); if(id) onItemDrop(categoria.id,id); }, [onItemDrop, categoria.id]);
+  const onDrop = useCallback(e => { e.preventDefault(); e.stopPropagation(); setDragOver(false); const id=e.dataTransfer.getData("text/plain"); if(id) onItemDrop(categoria.id,id); }, [onItemDrop, categoria.id]);
 
   const hasFiltro = filtroData !== "todos";
+
+  // Scroll automático ao chegar perto do fim
+  const handleScroll = useCallback((e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    if (!showAllItems && hasMoreItems && (scrollHeight - scrollTop - clientHeight) < 50) {
+      handleShowMore();
+    }
+  }, [showAllItems, hasMoreItems, handleShowMore]);
 
   return (
     <>
@@ -702,9 +542,9 @@ const CategoriaCard = ({
                 <S.SortBar theme={theme}>
                   <S.SortLabel theme={theme}>Ordenar:</S.SortLabel>
                   <S.SortButtonsGroup>
-                    {[{field:"preco",label:"Preço",emoji:""},{field:"nome",label:"Nome",emoji:""},{field:"prioridade",label:"Prioridade",emoji:""},{field:"data",label:"Data",emoji:""}].map(({field,label,emoji})=>(
+                    {[{field:"preco",label:"Preço"},{field:"nome",label:"Nome"},{field:"prioridade",label:"Prioridade"},{field:"data",label:"Data"}].map(({field,label})=>(
                       <S.SortButton key={field} $active={sortBy===field} onClick={()=>handleSort(field)} disabled={disabled} theme={theme}>
-                        {emoji} {label}
+                        {label}
                         {sortBy===field && <S.SortIcon>{sortOrder==="asc"?<ArrowUp size={12}/>:<ArrowDown size={12}/>}</S.SortIcon>}
                       </S.SortButton>
                     ))}
@@ -724,31 +564,53 @@ const CategoriaCard = ({
                 </S.FiltroInfo>
               )}
 
-              {isLoading ? (
-                [1,2,3].map(n=><S.ItemSkeletonWrapper key={n}><S.ItemSkeleton theme={theme}/></S.ItemSkeletonWrapper>)
-              ) : itensOrdenados.length > 0 ? (
-                <S.ItemsList>
-                  {itensOrdenados.map(item=>(
-                    <ItemCard
-                      key={item.id} item={item}
-                      isLoading={isLoading} isSaving={isSaving}
-                      draggedItemId={draggedItemId}
-                      onToggleComprado={handleToggle}
-                      onEditItem={handleEditItem}
-                      onDeleteItem={handleDeleteItem}
-                      onDragStart={onItemDragStart}
-                      onDragEnd={onItemDragEnd}
-                      theme={theme}
-                    />
-                  ))}
-                </S.ItemsList>
-              ) : (
-                <S.EmptyState>
-                  <S.EmptyIcon>{hasFiltro?"":""}</S.EmptyIcon>
-                  <S.EmptyText theme={theme}>{hasFiltro?"Nenhum item neste período":"Nenhum item adicionado"}</S.EmptyText>
-                  {!hasFiltro && <S.AddButton onClick={handleAddItem} theme={theme} disabled={disabled}><Plus size={16}/>Adicionar primeiro item</S.AddButton>}
-                  {hasFiltro  && <S.AddButton onClick={()=>setFiltroData("todos")} theme={theme}><X size={16}/>Limpar filtro</S.AddButton>}
-                </S.EmptyState>
+              {/* CONTAINER COM SCROLL INTERNO */}
+              <S.ItemsContainer 
+                ref={itemsContainerRef} 
+                $hasScroll={showAllItems}
+                onScroll={handleScroll}
+              >
+                {isLoading ? (
+                  [1,2,3].map(n=><S.ItemSkeletonWrapper key={n}><S.ItemSkeleton theme={theme}/></S.ItemSkeletonWrapper>)
+                ) : itensVisiveis.length > 0 ? (
+                  <S.ItemsList>
+                    {itensVisiveis.map(item=>(
+                      <ItemCard
+                        key={item.id} item={item}
+                        isLoading={isLoading} isSaving={isSaving}
+                        draggedItemId={draggedItemId}
+                        onToggleComprado={handleToggle}
+                        onEditItem={handleEditItem}
+                        onDeleteItem={handleDeleteItem}
+                        onDragStart={onItemDragStart}
+                        onDragEnd={onItemDragEnd}
+                        theme={theme}
+                      />
+                    ))}
+                  </S.ItemsList>
+                ) : (
+                  <S.EmptyState>
+                    <S.EmptyIcon>{hasFiltro?"🔍":"📦"}</S.EmptyIcon>
+                    <S.EmptyText theme={theme}>{hasFiltro?"Nenhum item neste período":"Nenhum item adicionado"}</S.EmptyText>
+                    {!hasFiltro && <S.AddButton onClick={handleAddItem} theme={theme} disabled={disabled}><Plus size={16}/>Adicionar primeiro item</S.AddButton>}
+                    {hasFiltro && <S.AddButton onClick={()=>setFiltroData("todos")} theme={theme}><X size={16}/>Limpar filtro</S.AddButton>}
+                  </S.EmptyState>
+                )}
+              </S.ItemsContainer>
+
+              {/* BOTÕES VER MAIS / MENOS */}
+              {hasMoreItems && !showAllItems && (
+                <S.ShowMoreButton onClick={handleShowMore} theme={theme}>
+                  <ChevronDown size={16} />
+                  Ver mais {itensOrdenados.length - ITEMS_PER_PAGE} itens
+                </S.ShowMoreButton>
+              )}
+
+              {showAllItems && hasMoreItems && (
+                <S.ShowLessButton onClick={handleShowLess} theme={theme}>
+                  <ChevronUp size={16} />
+                  Mostrar menos
+                </S.ShowLessButton>
               )}
             </>
           )}
@@ -756,17 +618,13 @@ const CategoriaCard = ({
 
         <S.CategoryFooter theme={theme}>
           <S.CategoryStats>
-            <S.StatItem theme={theme}><span></span><strong>{comprados}/{itens.length}</strong><span>comprados</span></S.StatItem>
-            <S.StatItem theme={theme}><span></span><strong>{formatarMoeda(totalGasto)}</strong></S.StatItem>
+            <S.StatItem theme={theme}><span>✅</span><strong>{comprados}/{itens.length}</strong><span>comprados</span></S.StatItem>
+            <S.StatItem theme={theme}><span>💰</span><strong>{formatarMoeda(totalGasto)}</strong><span>gasto</span></S.StatItem>
           </S.CategoryStats>
         </S.CategoryFooter>
       </S.CardContainer>
 
-      <ConfirmDialog
-        isOpen={showDelCat} onClose={()=>setShowDelCat(false)} onConfirm={handleConfirmDelCat}
-        title="Excluir categoria"
-        message={`Tem certeza que deseja excluir "${categoria.nome}"? Todos os itens serão removidos e esta ação não pode ser desfeita.`}
-        confirmText="Excluir" cancelText="Cancelar" theme={theme}/>
+      <ConfirmDialog isOpen={showDelCat} onClose={()=>setShowDelCat(false)} onConfirm={handleConfirmDelCat} title="Excluir categoria" message={`Tem certeza que deseja excluir "${categoria.nome}"? Todos os itens serão removidos e esta ação não pode ser desfeita.`} confirmText="Excluir" cancelText="Cancelar" theme={theme}/>
     </>
   );
 };

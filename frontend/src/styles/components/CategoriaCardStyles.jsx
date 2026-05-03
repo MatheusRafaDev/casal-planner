@@ -1,4 +1,3 @@
-
 import styled, { keyframes } from "styled-components";
 import { GripVertical, Check } from "lucide-react";
 
@@ -111,7 +110,6 @@ export const Subtitle = styled.div`
   align-items: center;
 `;
 
-// ================= BADGES HEADER =================
 export const ItemsCount = styled.span`
   font-size: 0.7rem;
   padding: 0.15rem 0.5rem;
@@ -150,7 +148,6 @@ export const MetaBadge = styled.div`
   border: 1px solid currentColor;
 `;
 
-// ================= ACTIONS =================
 export const HeaderActions = styled.div`
   display: flex;
   gap: 0.3rem;
@@ -187,7 +184,6 @@ export const IconButton = styled.button`
 
 export const ExpandButton = styled(IconButton)``;
 
-// ================= PROGRESS =================
 export const CategoryProgress = styled.div`
   padding: 0.5rem 0.75rem;
   background: ${(props) => props.theme?.background || "#fff"};
@@ -208,7 +204,6 @@ export const ProgressFill = styled.div`
   transition: width 0.3s ease;
 `;
 
-// ================= SORT =================
 export const SortBar = styled.div`
   display: flex;
   gap: 0.5rem;
@@ -263,13 +258,11 @@ export const SortIcon = styled.span`
   }
 `;
 
-// ================= CONTENT =================
 export const CardContent = styled.div`
   flex: 1;
   background: ${(props) => props.theme?.background || "#fff"};
 `;
 
-// ================= ITEMS =================
 export const ItemsList = styled.div`
   padding: 0.6rem 0.75rem;
   display: flex;
@@ -303,26 +296,12 @@ export const ItemRow = styled.div`
   }
 `;
 
-// ─── NOVO LAYOUT ESTRUTURADO ──────────────────────────────────────────────────
-
-/** Wrapper principal: [coluna esquerda] [coluna direita] */
 export const ItemLayout = styled.div`
   display: flex;
   gap: 0.6rem;
   align-items: flex-start;
 `;
 
-/** Coluna esquerda: CHECKBOX EMPILHADO SOBRE A FOTO (checkbox em cima, foto embaixo) */
-
-export const ItemLeftCol = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.35rem;
-  flex-shrink: 0;
-`;
-
-/** Coluna direita: nome + badges em linhas */
 export const ItemContent = styled.div`
   flex: 1;
   min-width: 0;
@@ -331,22 +310,6 @@ export const ItemContent = styled.div`
   gap: 0.3rem;
 `;
 
-/** Linha 1: nome + preço total + ações */
-export const ItemTopRow = styled.div`
-  display: flex;
-  align-items: flex-start;
-  gap: 0.4rem;
-`;
-
-export const ItemTopRight = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  flex-shrink: 0;
-  margin-left: auto;
-`;
-
-/** Linha 2: prioridade · quantidade · preço un · data */
 export const ItemMidRow = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -354,7 +317,6 @@ export const ItemMidRow = styled.div`
   align-items: center;
 `;
 
-/** Linha 3: loja · pagamento · marca */
 export const ItemBottomRow = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -362,7 +324,6 @@ export const ItemBottomRow = styled.div`
   align-items: center;
 `;
 
-/** Separador visual entre badges */
 export const DetailSeparator = styled.span`
   width: 3px;
   height: 3px;
@@ -371,8 +332,6 @@ export const DetailSeparator = styled.span`
   flex-shrink: 0;
   display: inline-block;
 `;
-
-// ─── IMAGEM DO PRODUTO ────────────────────────────────────────────────────────
 
 export const ProductImageWrapper = styled.div`
   width: 52px;
@@ -426,7 +385,6 @@ export const ProductImgPlaceholder = styled.div`
   background: ${(props) => props.theme?.surface || "#f8fafc"};
 `;
 
-// ─── CHECKBOX (agora vem PRIMEIRO na coluna esquerda) ─────────────────────────
 export const CheckboxButton = styled.button`
   width: 1.1rem;
   height: 1.1rem;
@@ -443,7 +401,7 @@ export const CheckboxButton = styled.button`
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  align-self: center;   /* ← novo */
+  align-self: center;
   cursor: pointer;
   transition: all 0.2s;
 
@@ -460,8 +418,6 @@ export const CheckIcon = styled(Check)`
   color: #fff;
   stroke-width: 3.5;
 `;
-
-// ─── NOME ────────────────────────────────────────────────────────────────────
 
 export const ItemName = styled.p`
   flex: 1;
@@ -481,12 +437,6 @@ export const ItemName = styled.p`
   gap: 0.35rem;
 `;
 
-// ─── PREÇO TOTAL ─────────────────────────────────────────────────────────────
-
-export const ItemTotalCompact = styled.div`
-  flex-shrink: 0;
-`;
-
 export const ItemTotalValueCompact = styled.span`
   font-weight: 700;
   font-size: 0.82rem;
@@ -495,14 +445,6 @@ export const ItemTotalValueCompact = styled.span`
   padding: 0.18rem 0.45rem;
   border-radius: 0.45rem;
   white-space: nowrap;
-`;
-
-// ─── AÇÕES ───────────────────────────────────────────────────────────────────
-
-export const ItemActions = styled.div`
-  display: flex;
-  gap: 0.2rem;
-  flex-shrink: 0;
 `;
 
 export const ItemActionButton = styled.button`
@@ -538,8 +480,6 @@ export const ItemActionButton = styled.button`
     pointer-events: none;
   }
 `;
-
-// ─── BADGES ──────────────────────────────────────────────────────────────────
 
 export const ItemQuantityBadge = styled.div`
   display: inline-flex;
@@ -608,8 +548,6 @@ export const StoreName = styled.span`
   min-width: 0;
 `;
 
-// ─── PRIORITY BADGES ──────────────────────────────────────────────────────────
-
 export const PriorityBadgeFull = styled.div`
   display: inline-flex;
   align-items: center;
@@ -624,27 +562,6 @@ export const PriorityBadgeFull = styled.div`
   color: ${(props) => props.$color};
   border: 1px solid ${(props) => `${props.$color}35`};
 `;
-
-export const PriorityBadgeSmall = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  padding: 0.12rem 0.35rem;
-  border-radius: 0.35rem;
-  font-size: 0.65rem;
-  font-weight: 600;
-  flex-shrink: 0;
-  background: ${(props) => `${props.$color}18`};
-  color: ${(props) => props.$color};
-  border: 1px solid ${(props) => `${props.$color}35`};
-
-  svg {
-    width: 0.65rem;
-    height: 0.65rem;
-  }
-`;
-
-// ─── PAYMENT BADGE ────────────────────────────────────────────────────────────
 
 export const PaymentBadge = styled.span`
   display: inline-flex;
@@ -665,8 +582,6 @@ export const PaymentBadge = styled.span`
     props.$type === "vr" ? "#f59e0b12" : `${props.theme?.primary || "#3b82f6"}10`};
 `;
 
-// ─── BRAND ───────────────────────────────────────────────────────────────────
-
 export const ItemBrand = styled.span`
   display: inline-flex;
   font-size: 0.68rem;
@@ -680,83 +595,6 @@ export const ItemBrand = styled.span`
   max-width: 100px;
   flex-shrink: 0;
 `;
-
-// ─── NEW BADGE ────────────────────────────────────────────────────────────────
-
-export const NewBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  padding: 0.1rem 0.4rem;
-  font-size: 0.6rem;
-  font-weight: 700;
-  border-radius: 0.35rem;
-  color: #fff;
-  background: linear-gradient(135deg, #ff6b6b, #ff4757);
-  animation: ${pulseAnimation} 1.5s ease-in-out infinite;
-  white-space: nowrap;
-  flex-shrink: 0;
-`;
-
-/** Versão inline (dentro do nome) */
-export const NewBadgeInline = styled(NewBadge)`
-  font-size: 0.55rem;
-  padding: 0.08rem 0.35rem;
-  vertical-align: middle;
-`;
-
-// ─── DRAG HANDLE ─────────────────────────────────────────────────────────────
-
-export const DragHandleItem = styled.span`
-  cursor: grab;
-  color: ${(props) => props.theme?.textSoft || "#666"};
-  display: inline-flex;
-  align-items: center;
-  opacity: 0.4;
-  flex-shrink: 0;
-  user-select: none;
-  transition: opacity 0.2s;
-
-  &:hover { opacity: 1; }
-  &[draggable="true"]:active { cursor: grabbing; }
-`;
-
-// ─── COMPAT ALIASES ───────────────────────────────────────────────────────────
-
-export const ItemMainRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.4rem;
-`;
-
-export const ItemDetailsRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  align-items: center;
-`;
-
-export const ItemTotalCompact2 = styled.div`flex-shrink: 0;`;
-
-export const ItemNameSection = styled.div`
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-`;
-
-export const ItemDetailsLeft = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  flex-wrap: wrap;
-  flex: 1;
-  min-width: 0;
-`;
-
-// ─── FOOTER ───────────────────────────────────────────────────────────────────
 
 export const CategoryFooter = styled.div`
   padding: 0.6rem 0.75rem;
@@ -787,8 +625,6 @@ export const StatItem = styled.div`
   }
 `;
 
-// ─── SKELETON ────────────────────────────────────────────────────────────────
-
 export const ItemSkeletonWrapper = styled.div`
   padding: 0.5rem 0.75rem;
 `;
@@ -799,8 +635,6 @@ export const ItemSkeleton = styled.div`
   background: ${(props) => props.theme?.border || "#e5e7eb"};
   animation: ${skeletonPulse} 1.5s infinite;
 `;
-
-// ─── EMPTY STATE ─────────────────────────────────────────────────────────────
 
 export const EmptyState = styled.div`
   padding: 2rem 1rem;
@@ -847,24 +681,6 @@ export const AddButton = styled.button`
     pointer-events: none;
   }
 `;
-
-// ─── DATE BADGE ───────────────────────────────────────────────────────────────
-
-export const DateBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  background: ${(p) => p.theme?.border || "#e5e7eb"};
-  color: ${(p) => p.theme?.textSoft || "#888"};
-  padding: 0.12rem 0.4rem;
-  border-radius: 0.35rem;
-  font-size: 0.65rem;
-  font-weight: 500;
-
-  svg { width: 0.6rem; height: 0.6rem; }
-`;
-
-// ─── FILTRO ───────────────────────────────────────────────────────────────────
 
 export const FiltroDataDropdown = styled.div`
   position: absolute;
@@ -956,8 +772,6 @@ export const FiltroInfo = styled.div`
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 `;
 
-// ─── SORT CLEAR ───────────────────────────────────────────────────────────────
-
 export const SortClearButton = styled.button`
   font-size: 0.7rem;
   padding: 0.3rem 0.6rem;
@@ -980,62 +794,74 @@ export const SortClearButton = styled.button`
   &:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 `;
 
-// ─── AÇÕES DESKTOP / MOBILE ───────────────────────────────────────────────────
+// ================= NOVOS COMPONENTES PARA SCROLL =================
+export const ItemsContainer = styled.div`
+  ${props => props.$hasScroll && `
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: ${props.theme?.border || "#e5e7eb"};
+      border-radius: 3px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: ${props.theme?.textSoft || "#94a3b8"};
+      border-radius: 3px;
+    }
+    
+    &::-webkit-scrollbar-thumb:hover {
+      background: ${props.theme?.primary || "#3b82f6"};
+    }
+  `}
+`;
 
-export const ItemActionsDesktop = styled.div`
+export const ShowMoreButton = styled.button`
   display: flex;
   align-items: center;
-  gap: 2px;
-
-  @media (max-width: 768px) {
-    display: none;
-  }
-`;
-
-export const ItemActionsMobile = styled.div`
-  display: none;
-  align-items: center;
-  gap: 2px;
-
-  @media (max-width: 768px) {
-    display: flex;
-  }
-`;
-
-// ─── CONTEXT MENU (compat) ────────────────────────────────────────────────────
-
-export const ContextMenuContainer = styled.div`
-  position: fixed;
-  background: ${({ theme }) => theme?.surface || "#fff"};
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  padding: 8px 0;
-  min-width: 160px;
-  z-index: 1000;
-  animation: fadeInScale 0.15s ease-out;
-  border: 1px solid ${({ theme }) => theme?.border || "#e5e7eb"};
-
-  @keyframes fadeInScale {
-    from { opacity: 0; transform: scale(0.95); }
-    to   { opacity: 1; transform: scale(1); }
-  }
-`;
-
-export const ContextMenuItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.6rem;
+  margin-top: 0.5rem;
+  background: ${({ theme }) => `${theme?.primary || "#3b82f6"}10`};
+  border: 1px solid ${({ theme }) => `${theme?.primary || "#3b82f6"}30`};
+  border-radius: 0.5rem;
+  color: ${({ theme }) => theme?.primary || "#3b82f6"};
+  font-size: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
-  color: ${({ theme, $danger }) => $danger ? (theme?.error || "#ef4444") : (theme?.text || "#111")};
-  font-size: 14px;
+  transition: all 0.2s ease;
 
   &:hover {
-    background: ${({ theme, $danger }) =>
-      $danger ? `${theme?.error || "#ef4444"}18` : (theme?.border || "#f3f4f6")};
+    background: ${({ theme }) => `${theme?.primary || "#3b82f6"}20`};
+    transform: translateY(-1px);
   }
+`;
 
-  
-  svg { stroke-width: 1.5; }
+export const ShowLessButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.6rem;
+  margin-top: 0.5rem;
+  background: ${({ theme }) => `${theme?.textSoft || "#94a3b8"}10`};
+  border: 1px solid ${({ theme }) => `${theme?.textSoft || "#94a3b8"}30`};
+  border-radius: 0.5rem;
+  color: ${({ theme }) => theme?.textSoft || "#94a3b8"};
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: ${({ theme }) => `${theme?.textSoft || "#94a3b8"}20`};
+  }
 `;
