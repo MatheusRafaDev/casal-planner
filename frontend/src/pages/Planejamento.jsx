@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 
-import ResumoCards from "../components/ResumoCards";
 import CategoriaCard from "../components/CategoriaCard";
 import CategoriaFormModal from "../components/CategoriaFormModal";
 import Filtros from "../components/Filtros";
@@ -29,78 +28,7 @@ import {
   SkeletonCategoryCard,
 } from "../styles/pages/PlanejamentoStyles";
 
-/**
- * Calcula o resumo financeiro completo a partir da lista de itens.
- *
- * Campos retornados em `atual`:
- *   totalGeral      – soma de (preço × quantidade) de todos os itens
- *   totalVR         – subtotal dos itens com pagamento "vr"
- *   totalNormal     – subtotal dos itens com pagamento "normal"
- *   totalComprados  – contagem de itens com comprado === true
- *
- *   totalPago       – valor gasto nos itens já comprados (comprado === true)
- *   totalRestante   – totalGeral − totalPago
- *   vrPago          – valor VR já pago
- *   vrRestante      – totalVR − vrPago
- *   normalPago      – valor Normal já pago
- *   normalRestante  – totalNormal − normalPago
- */
-const calcularResumoLocal = (itens) => {
-  if (!Array.isArray(itens) || itens.length === 0) {
-    return {
-      atual: {
-        totalGeral: 0, totalVR: 0, totalNormal: 0,
-        totalComprados: 0,
-        totalPago: 0, totalRestante: 0,
-        vrPago: 0, vrRestante: 0,
-        normalPago: 0, normalRestante: 0,
-      },
-      comparativo: {},
-    };
-  }
 
-  let totalGeral   = 0;
-  let totalVR      = 0;
-  let totalNormal  = 0;
-  let totalComprados = 0;
-  let totalPago    = 0;
-  let vrPago       = 0;
-  let normalPago   = 0;
-
-  for (const item of itens) {
-    const preco = Number(item.preco) || 0;
-    const qtd   = Number(item.quantidade) || 1;
-    const valor = preco * qtd;
-    const isVR  = item.pagamento === 'vr';
-
-    totalGeral  += valor;
-    if (isVR) totalVR    += valor;
-    else      totalNormal += valor;
-
-    if (item.comprado) {
-      totalComprados += 1;
-      totalPago      += valor;
-      if (isVR) vrPago     += valor;
-      else      normalPago += valor;
-    }
-  }
-
-  return {
-    atual: {
-      totalGeral,
-      totalVR,
-      totalNormal,
-      totalComprados,
-      totalPago,
-      totalRestante:  totalGeral  - totalPago,
-      vrPago,
-      vrRestante:     totalVR     - vrPago,
-      normalPago,
-      normalRestante: totalNormal - normalPago,
-    },
-    comparativo: {},
-  };
-};
 
 const FORM_DATA_VAZIO = {
   nome:"", marca:"", preco:0, quantidade:1,
@@ -152,10 +80,7 @@ const Planejamento = () => {
     return itens.filter(i=>i.pagamento===(filter==="vrva"?"vr":"normal"));
   }, [itens, filter]);
 
-  const { resumo, comparativo } = useMemo(() => {
-    const calc = calcularResumoLocal(itens);
-    return { resumo: calc.atual, comparativo: calc.comparativo };
-  }, [itens]);
+  
 
   // ─── Item ────────────────────────────────────────────────────────────────
   const handleSaveItem = useCallback(async (dadosDoModal) => {
@@ -316,8 +241,7 @@ const Planejamento = () => {
 
   return (
     <PlanejamentoContainer theme={theme}>
-      <ResumoCards resumo={resumo} comparativo={comparativo} theme={theme}/>
-
+      
       <Filtros filter={filter} setFilter={setFilter} onAddCategory={handleAddCategoria} theme={theme}/>
 
       {categorias.length === 0 ? (

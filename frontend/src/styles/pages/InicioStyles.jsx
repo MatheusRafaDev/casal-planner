@@ -478,3 +478,70 @@ export const TipText = styled.p`
   color: ${p => p.theme.textSoft};
   line-height: 1.5;
 `;
+
+// Adicione ao final do arquivo InicioStyles.js
+
+export const ResumoGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const ResumoCard = styled.div`
+  background: ${({ theme }) => theme.surface};
+  border-radius: 16px;
+  padding: 1rem;
+  border: 1px solid ${({ theme }) => theme.border};
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: ${({ theme }) => theme.shadowHover};
+  }
+`;
+
+export const PrioridadeGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const PrioridadeItem = styled.div`
+  background: ${({ theme }) => theme.surface};
+  border-radius: 12px;
+  padding: 0.875rem;
+  border-left: 3px solid ${({ color }) => color};
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateX(4px);
+    box-shadow: ${({ theme }) => theme.shadowHover};
+  }
+`;
+
+export const UrgencyBadge = styled.span`
+  background: ${({ theme }) => `${theme.error}20`};
+  color: ${({ theme }) => theme.error};
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.75rem;
+  
+  @media (max-width: 640px) {
+    display: block;
+    margin-left: 0;
+    margin-top: 0.5rem;
+    width: fit-content;
+  }
+`;
