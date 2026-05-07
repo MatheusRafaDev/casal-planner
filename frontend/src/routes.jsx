@@ -20,75 +20,207 @@ import EsqueciSenha from "./pages/RecuperarSenha";
 import usePageTitle from "./hooks/usePageTitle";
 import { AppContainer, MainContent, PageWrapper } from "./styles/RoutesStyles";
 
-// ─── Skeleton ────────────────────────────────────────────────────────────────
+// ─── Skeleton 2.0 - Mais profissional ─────────────────────────────────────────
 
-const shimmer = `
+const shimmerKeyframes = `
   @keyframes shimmer {
-    0%   { background-position: -600px 0; }
-    100% { background-position:  600px 0; }
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
   }
 `;
 
-const SkeletonBlock = ({ width = "100%", height = "1rem", radius = "6px", style = {} }) => (
+const SkeletonItem = ({ width, height, borderRadius = "8px", marginBottom = "0" }) => (
   <div
     style={{
-      width,
-      height,
-      borderRadius: radius,
-      background: "linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%)",
-      backgroundSize: "600px 100%",
-      animation: "shimmer 1.4s infinite linear",
-      ...style,
+      width: width || "100%",
+      height: height || "16px",
+      borderRadius,
+      background: "linear-gradient(90deg, #e8e8e8 0%, #f5f5f5 50%, #e8e8e8 100%)",
+      backgroundSize: "200% 100%",
+      animation: "shimmer 1.2s ease-in-out infinite",
+      marginBottom,
     }}
   />
 );
 
-// Skeleton para rotas PÚBLICAS (sem Header/BottomNav)
-const PublicSkeleton = () => (
-  <>
-    <style>{shimmer}</style>
-    <div style={{ minHeight: "100vh", padding: "2rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      <SkeletonBlock width="160px" height="2rem" />
-      <SkeletonBlock height="3rem" />
-      <SkeletonBlock height="3rem" />
-      <SkeletonBlock width="80%" height="2.5rem" radius="8px" style={{ marginTop: "1rem" }} />
-    </div>
-  </>
-);
+// Skeleton para rotas PÚBLICAS
+const PublicSkeleton = () => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  
+  const bgColor = isDark ? "#1a1a1a" : "#ffffff";
+  const cardBg = isDark ? "#2a2a2a" : "#f7f7f7";
+  const shimmerGradient = isDark 
+    ? "linear-gradient(90deg, #2a2a2a 0%, #3a3a3a 50%, #2a2a2a 100%)"
+    : "linear-gradient(90deg, #e8e8e8 0%, #f5f5f5 50%, #e8e8e8 100%)";
 
-// Skeleton para rotas PRIVADAS (simula Header + conteúdo + BottomNav)
-const PrivateSkeleton = () => (
-  <>
-    <style>{shimmer}</style>
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* Header placeholder */}
-      <div style={{ height: "56px", padding: "0 1rem", display: "flex", alignItems: "center", gap: "1rem", borderBottom: "1px solid #eee" }}>
-        <SkeletonBlock width="120px" height="1.5rem" />
-        <SkeletonBlock width="32px" height="32px" radius="50%" style={{ marginLeft: "auto" }} />
-      </div>
-
-      {/* Conteúdo placeholder */}
-      <div style={{ flex: 1, padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-        <SkeletonBlock height="1.5rem" width="50%" />
-        <SkeletonBlock height="120px" radius="12px" />
-        <SkeletonBlock height="120px" radius="12px" />
-        <SkeletonBlock height="80px" radius="12px" />
-      </div>
-
-      {/* BottomNav placeholder */}
-      <div style={{ height: "60px", display: "flex", justifyContent: "space-around", alignItems: "center", borderTop: "1px solid #eee", padding: "0 1rem" }}>
-        {[...Array(3)].map((_, i) => (
-          <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-            <SkeletonBlock width="24px" height="24px" radius="6px" />
-            <SkeletonBlock width="40px" height="10px" />
+  return (
+    <>
+      <style>{shimmerKeyframes}</style>
+      <div style={{ 
+        minHeight: "100vh", 
+        backgroundColor: bgColor,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px"
+      }}>
+        <div style={{ 
+          width: "100%", 
+          maxWidth: "400px", 
+          textAlign: "center" 
+        }}>
+          {/* Logo placeholder */}
+          <div style={{ marginBottom: "40px" }}>
+            <SkeletonItem width="120px" height="32px" borderRadius="8px" marginBottom="8px" />
           </div>
-        ))}
+          
+          {/* Card de login */}
+          <div style={{ 
+            backgroundColor: cardBg,
+            borderRadius: "16px",
+            padding: "32px 24px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
+          }}>
+            <SkeletonItem width="60%" height="24px" marginBottom="32px" />
+            <SkeletonItem height="48px" borderRadius="12px" marginBottom="16px" />
+            <SkeletonItem height="48px" borderRadius="12px" marginBottom="24px" />
+            <SkeletonItem height="48px" borderRadius="12px" marginBottom="16px" />
+            <SkeletonItem width="50%" height="16px" marginBottom="0" />
+          </div>
+        </div>
       </div>
-    </div>
-  </>
-);
+    </>
+  );
+};
 
-// ─── Auth loading skeleton (antes de saber se está autenticado) ───────────────
+// Skeleton para rotas PRIVADAS
+const PrivateSkeleton = () => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  
+  const bgColor = isDark ? "#121212" : "#f8f9fa";
+  const headerBg = isDark ? "#1e1e1e" : "#ffffff";
+  const cardBg = isDark ? "#2a2a2a" : "#ffffff";
+  const shimmerGradient = isDark 
+    ? "linear-gradient(90deg, #2a2a2a 0%, #3a3a3a 50%, #2a2a2a 100%)"
+    : "linear-gradient(90deg, #e8e8e8 0%, #f5f5f5 50%, #e8e8e8 100%)";
+
+  return (
+    <>
+      <style>{shimmerKeyframes}</style>
+      <div style={{ 
+        minHeight: "100vh", 
+        backgroundColor: bgColor,
+        display: "flex", 
+        flexDirection: "column" 
+      }}>
+        {/* Header */}
+        <div style={{ 
+          backgroundColor: headerBg,
+          borderBottom: `1px solid ${isDark ? "#2a2a2a" : "#eee"}`,
+          padding: "12px 16px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          position: "sticky",
+          top: 0,
+          zIndex: 100
+        }}>
+          <SkeletonItem width="100px" height="28px" borderRadius="6px" />
+          <SkeletonItem width="40px" height="40px" borderRadius="50%" />
+        </div>
+
+        {/* Main content */}
+        <div style={{ flex: 1, padding: "20px", maxWidth: "600px", margin: "0 auto", width: "100%" }}>
+          {/* Welcome section */}
+          <div style={{ marginBottom: "24px" }}>
+            <SkeletonItem width="70%" height="28px" marginBottom="12px" />
+            <SkeletonItem width="50%" height="20px" />
+          </div>
+
+          {/* Stats cards */}
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "repeat(2, 1fr)", 
+            gap: "12px",
+            marginBottom: "24px"
+          }}>
+            <div style={{ 
+              backgroundColor: cardBg,
+              borderRadius: "12px",
+              padding: "16px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
+            }}>
+              <SkeletonItem width="80%" height="20px" marginBottom="8px" />
+              <SkeletonItem width="40%" height="32px" borderRadius="8px" />
+            </div>
+            <div style={{ 
+              backgroundColor: cardBg,
+              borderRadius: "12px",
+              padding: "16px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
+            }}>
+              <SkeletonItem width="80%" height="20px" marginBottom="8px" />
+              <SkeletonItem width="40%" height="32px" borderRadius="8px" />
+            </div>
+          </div>
+
+          {/* List items */}
+          {[1, 2, 3].map((i) => (
+            <div 
+              key={i}
+              style={{
+                backgroundColor: cardBg,
+                borderRadius: "12px",
+                padding: "16px",
+                marginBottom: "12px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+                <SkeletonItem width="60%" height="20px" />
+                <SkeletonItem width="40px" height="20px" borderRadius="4px" />
+              </div>
+              <SkeletonItem width="90%" height="16px" marginBottom="8px" />
+              <SkeletonItem width="70%" height="16px" />
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom Navigation */}
+        <div style={{
+          backgroundColor: headerBg,
+          borderTop: `1px solid ${isDark ? "#2a2a2a" : "#eee"}`,
+          padding: "8px 16px",
+          display: "flex",
+          justifyContent: "space-around",
+          alignItems: "center",
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          maxWidth: "600px",
+          margin: "0 auto"
+        }}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} style={{ textAlign: "center", flex: 1 }}>
+              <div style={{ marginBottom: "4px" }}>
+                <SkeletonItem width="24px" height="24px" borderRadius="6px" marginBottom="0" />
+              </div>
+              <SkeletonItem width="40px" height="12px" borderRadius="4px" marginBottom="0" />
+            </div>
+          ))}
+        </div>
+        
+        {/* Padding bottom para não esconder conteúdo */}
+        <div style={{ height: "70px" }} />
+      </div>
+    </>
+  );
+};
+
+// ─── Auth loading skeleton ───────────────────────────────
 
 const AuthSkeleton = ({ isPrivate }) =>
   isPrivate ? <PrivateSkeleton /> : <PublicSkeleton />;
@@ -130,7 +262,7 @@ export const AppRoutes = () => {
   const { loading } = useAuth();
   usePageTitle();
 
-  // Loading global inicial — ainda não sabemos a rota destino
+  // Loading global inicial
   if (loading) return <PrivateSkeleton />;
 
   return (
