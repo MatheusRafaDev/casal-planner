@@ -2,7 +2,7 @@
 
 # dependencies
 node_modules/
-.env
+.envr
 # Expo
 .expo/
 dist/
