@@ -1,70 +1,154 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Animated, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Mail, ArrowLeft, Send, Key } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
+import api from '../../src/services/api';
 
 export default function RecuperarSenhaScreen() {
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
   const router = useRouter();
 
-  const handleRecuperar = () => {
-    if (!email) {
-      Alert.alert('Erro', 'Por favor, insira seu e-mail.');
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  const handleRecuperar = async () => {
+    if (!email.trim()) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert('E-mail obrigatório', 'Por favor, insira seu e-mail cadastrado.');
       return;
     }
-    Alert.alert('E-mail enviado', 'Se este e-mail estiver em nossa base, você receberá as instruções de recuperação em breve.', [
-      { text: 'OK', onPress: () => router.replace('/(auth)/login') }
-    ]);
+
+    setLoading(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    try {
+      await api.post('/auth/recuperar-senha', { email: email.trim().toLowerCase() }).catch(() => {});
+      // Always show success (security: don't reveal if email exists)
+      setSent(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {
+      setSent(true); // Still show success
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-8 pt-6">
-        <TouchableOpacity 
-          onPress={() => router.back()} 
-          className="w-12 h-12 bg-surface rounded-2xl items-center justify-center border border-border mb-10"
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#18181B' }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 28, paddingTop: 20, paddingBottom: 40 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <ArrowLeft size={24} color="#A78BFA" />
-        </TouchableOpacity>
-        
-        <View className="mb-10">
-          <View className="bg-primary/10 w-16 h-16 rounded-3xl items-center justify-center mb-6">
-            <Key size={32} color="#A78BFA" />
-          </View>
-          <Text className="text-3xl font-black text-white leading-tight">Esqueceu a{"\n"}sua senha?</Text>
-          <Text className="text-text-soft mt-4 text-lg">
-            Não se preocupe! Digite seu e-mail abaixo e enviaremos um link para você criar uma nova.
-          </Text>
-        </View>
-
-        <View className="bg-surface rounded-2xl border border-border px-5 flex-row items-center h-16 mb-10">
-          <Mail size={20} color="#71717A" />
-          <TextInput
-            placeholder="Seu e-mail cadastrado"
-            placeholderTextColor="#71717A"
-            className="flex-1 ml-3 text-white text-base"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
-        </View>
-
-        <TouchableOpacity 
-          onPress={handleRecuperar} 
-          className="bg-primary h-16 rounded-2xl flex-row items-center justify-center shadow-lg shadow-primary/20"
-        >
-          <Send size={20} color="white" className="mr-2" />
-          <Text className="text-white font-bold text-lg">Recuperar Acesso</Text>
-        </TouchableOpacity>
-
-        <View className="mt-auto items-center pb-8">
-          <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
-            <Text className="text-text-light font-medium">Lembrou a senha? <Text className="text-primary font-bold">Voltar ao Login</Text></Text>
+          {/* Back */}
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{ width: 40, height: 40, backgroundColor: '#27272A', borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#3F3F46', marginBottom: 32 }}
+          >
+            <ArrowLeft size={18} color="#FFFFFF" />
           </TouchableOpacity>
-        </View>
-      </ScrollView>
+
+          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+            {!sent ? (
+              <>
+                {/* Icon */}
+                <View style={{ width: 64, height: 64, borderRadius: 22, backgroundColor: '#A78BFA20', borderWidth: 1, borderColor: '#A78BFA30', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                  <Key size={28} color="#A78BFA" />
+                </View>
+
+                <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '900', lineHeight: 36, letterSpacing: -0.5, marginBottom: 12 }}>
+                  Esqueceu{'\n'}sua senha?
+                </Text>
+                <Text style={{ color: '#71717A', fontSize: 15, lineHeight: 22, fontWeight: '500', marginBottom: 32 }}>
+                  Não se preocupe! Insira seu e-mail abaixo e enviaremos um link para criar uma nova senha.
+                </Text>
+
+                {/* Email Field */}
+                <View style={{
+                  backgroundColor: '#27272A', borderRadius: 20, borderWidth: 1,
+                  borderColor: '#3F3F46', paddingHorizontal: 18, flexDirection: 'row',
+                  alignItems: 'center', height: 56, marginBottom: 24,
+                }}>
+                  <Mail size={18} color="#71717A" />
+                  <TextInput
+                    placeholder="Seu e-mail cadastrado"
+                    placeholderTextColor="#52525B"
+                    style={{ flex: 1, marginLeft: 12, color: '#FFFFFF', fontSize: 15, fontWeight: '500' }}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={email}
+                    onChangeText={setEmail}
+                    returnKeyType="go"
+                    onSubmitEditing={handleRecuperar}
+                  />
+                </View>
+
+                {/* CTA */}
+                <TouchableOpacity
+                  onPress={handleRecuperar}
+                  disabled={loading}
+                  activeOpacity={0.85}
+                  style={{
+                    backgroundColor: loading ? '#6D4FC2' : '#A78BFA',
+                    height: 56, borderRadius: 18,
+                    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+                    shadowColor: '#A78BFA', shadowOpacity: 0.35, shadowRadius: 14,
+                    shadowOffset: { width: 0, height: 5 }, elevation: 8,
+                  }}
+                >
+                  <Send size={18} color="white" style={{ marginRight: 8 }} />
+                  <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 17 }}>
+                    {loading ? 'Enviando...' : 'Recuperar Acesso'}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              /* Success State */
+              <View style={{ alignItems: 'center', marginTop: 40 }}>
+                <Text style={{ fontSize: 64, marginBottom: 20 }}>📬</Text>
+                <Text style={{ color: '#FFFFFF', fontSize: 24, fontWeight: '900', textAlign: 'center', marginBottom: 12 }}>
+                  E-mail enviado!
+                </Text>
+                <Text style={{ color: '#71717A', fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: 32, paddingHorizontal: 20 }}>
+                  Se o e-mail <Text style={{ color: '#A78BFA', fontWeight: '700' }}>{email}</Text> estiver cadastrado, você receberá as instruções em breve.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => router.replace('/(auth)/login')}
+                  style={{
+                    backgroundColor: '#A78BFA', height: 54, borderRadius: 18,
+                    paddingHorizontal: 32, alignItems: 'center', justifyContent: 'center',
+                    shadowColor: '#A78BFA', shadowOpacity: 0.35, shadowRadius: 14, shadowOffset: { width: 0, height: 5 },
+                  }}
+                >
+                  <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 16 }}>Voltar ao Login</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </Animated.View>
+
+          {!sent && (
+            <View style={{ flex: 1, justifyContent: 'flex-end', alignItems: 'center', marginTop: 32 }}>
+              <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
+                <Text style={{ color: '#71717A', fontSize: 14, fontWeight: '500' }}>
+                  Lembrou? <Text style={{ color: '#A78BFA', fontWeight: '800' }}>Voltar ao Login</Text>
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

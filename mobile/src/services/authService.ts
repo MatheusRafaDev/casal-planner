@@ -50,8 +50,12 @@ class AuthService {
       // Ignora erros de rede no logout
     } finally {
       await tokenStorage.remove();
-      this.usuarioCache = null;
+      this.clearCache();
     }
+  }
+
+  clearCache() {
+    this.usuarioCache = null;
   }
 
   async getUsuario(): Promise<Usuario | null> {
