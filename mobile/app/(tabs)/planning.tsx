@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CheckCircle2, Circle, Plus, Filter, Search, ShoppingBag } from 'lucide-react-native';
+import { CheckCircle2, Circle, Plus, Filter, Search, ShoppingBag, Tag } from 'lucide-react-native';
 import { itensService, Item } from '../../src/services/itensService';
 import { categoriasService, Categoria } from '../../src/services/categoriasService';
 import { ItemModal } from '../../src/components/ItemModal';

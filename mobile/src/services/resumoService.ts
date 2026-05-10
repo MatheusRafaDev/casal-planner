@@ -1,36 +1,36 @@
 import api from './api';
+import { Item } from './itensService';
 
-export interface ResumoData {
-  atual: {
-    totalGeral: number;
-    totalVR: number;
-    totalNormal: number;
-    totalComprados: number;
-    totalItens: number;
-    porCategoria: Record<string, number>;
-    quantidadePorCategoria: Record<string, number>;
-  };
-  comparativo: {
-    totalGeral: number;
-    totalVR: number;
-    totalNormal: number;
-    totalComprados: number;
-    percentualGeral: number;
-  };
+export interface ResumoPeriodo {
+  totalGeral: number;
+  totalVR: number;
+  totalNormal: number;
+  totalComprados: number;
+  totalItens: number;
+  porCategoria: Record<string, number>;
+  quantidadePorCategoria: Record<string, number>;
+}
+
+export interface Comparativo {
+  totalGeral: number;
+  totalVR: number;
+  totalNormal: number;
+  totalComprados: number;
+  percentualGeral: number;
+}
+
+export interface ResumoGeral {
+  atual: ResumoPeriodo;
+  comparativo: Comparativo;
 }
 
 class ResumoService {
-  async getResumo(): Promise<any> {
-    try {
-      const response = await api.get('/resumo');
-      return response.data;
-    } catch (error) {
-      console.error('❌ Erro ao buscar resumo:', error);
-      throw error;
-    }
+  async getResumo(): Promise<ResumoGeral> {
+    const response = await api.get('/resumo');
+    return response.data;
   }
 
-  formatarDados(data: any): ResumoData {
+  formatarDados(data: any): ResumoGeral {
     return {
       atual: {
         totalGeral: data.atual?.totalGeral || 0,
@@ -51,28 +51,7 @@ class ResumoService {
     };
   }
 
-  calcularResumoManual(itens: any[]): ResumoData {
-    if (!itens || !Array.isArray(itens)) {
-      return {
-        atual: {
-          totalGeral: 0,
-          totalVR: 0,
-          totalNormal: 0,
-          totalComprados: 0,
-          totalItens: 0,
-          porCategoria: {},
-          quantidadePorCategoria: {}
-        },
-        comparativo: {
-          totalGeral: 0,
-          totalVR: 0,
-          totalNormal: 0,
-          totalComprados: 0,
-          percentualGeral: 0
-        }
-      };
-    }
-
+  calcularResumoManual(itens: Item[]): ResumoGeral {
     const totalGeral = itens.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
     const totalVR = itens
       .filter(item => item.pagamento === 'vr')
@@ -86,7 +65,7 @@ class ResumoService {
     const quantidadePorCategoria: Record<string, number> = {};
 
     itens.forEach(item => {
-      const catId = item.categoriaId;
+      const catId = item.categoriaId || 'sem-categoria';
       const total = item.preco * item.quantidade;
 
       if (!porCategoria[catId]) {
@@ -118,29 +97,15 @@ class ResumoService {
     };
   }
 
-  async getResumoSeguro(itensFallback: any[] = []): Promise<ResumoData> {
+  async getResumoSeguro(itensFallback: Item[] = []): Promise<ResumoGeral> {
     try {
       const data = await this.getResumo();
       return this.formatarDados(data);
     } catch (error) {
+      console.warn('⚠️ Usando resumo calculado localmente.');
       return this.calcularResumoManual(itensFallback);
     }
   }
-
-  calcularComparativo(atual: any, anterior: any) {
-    const calcularVariacao = (atual: number, anterior: number) => {
-      if (anterior === 0) return atual > 0 ? 100 : 0;
-      return Number(((atual - anterior) / anterior * 100).toFixed(2));
-    };
-
-    return {
-      totalGeral: calcularVariacao(atual.totalGeral, anterior.totalGeral),
-      totalVR: calcularVariacao(atual.totalVR, anterior.totalVR),
-      totalNormal: calcularVariacao(atual.totalNormal, anterior.totalNormal),
-      totalComprados: calcularVariacao(atual.totalComprados, anterior.totalComprados),
-      percentualGeral: calcularVariacao(atual.totalGeral, (anterior.totalGeral + atual.totalGeral) / 2)
-    };
-  }
 }
 
-export default new ResumoService();
+export const resumoService = new ResumoService();

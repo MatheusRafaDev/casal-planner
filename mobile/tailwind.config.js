@@ -7,24 +7,19 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#1c1c1e', // Apple like dark
-          light: '#2c2c2e',
+          DEFAULT: '#A78BFA', // Purple from Web
+          dark: '#8B5CF6',
         },
-        accent: {
-          DEFAULT: '#0A84FF', // iOS blue
-          nubank: '#8A05BE',
-        },
-        background: {
-          DEFAULT: '#F2F2F7', // iOS grouped background light
-          dark: '#000000',
-        },
-        surface: {
-          DEFAULT: '#FFFFFF',
-          dark: '#1C1C1E',
+        secondary: '#F9A8D4', // Pink from Web
+        accent: '#FF6B6B',    // Accent from Web
+        background: '#18181B', // Dark background
+        surface: '#27272A',    // Card background
+        border: '#3F3F46',
+        text: {
+          DEFAULT: '#F4F4F5',
+          soft: '#D4D4D8',
+          light: '#71717A',
         }
-      },
-      fontFamily: {
-        sans: ['System', 'sans-serif'], 
       }
     },
   },

@@ -1,128 +1,113 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { X, Tag, Target, Palette } from 'lucide-react-native';
-import { Input } from './Input';
-import { Button } from './Button';
-import { Categoria } from '../services/categoriasService';
+import { Modal, View, Text, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { X, Check } from 'lucide-react-native';
+import { categoriasService, Categoria } from '../services/categoriasService';
 
 interface CategoryModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (categoria: Partial<Categoria>) => void;
+  onSave: (data: Partial<Categoria>) => void;
   categoria?: Categoria | null;
 }
 
-const COLORS = ['#0A84FF', '#FF3B30', '#34C759', '#FF9500', '#AF52DE', '#5856D6', '#FF2D55'];
-const ICONS = ['🛒', '🏠', '🚗', '🍔', '👗', '🎮', '💊', '✨', '📦'];
+const COLORS = ['#A78BFA', '#F9A8D4', '#F87171', '#FBBF24', '#34D399', '#60A5FA', '#F472B6', '#A1A1AA'];
+const ICONS = ['🛒', '🏠', '🧼', '🥩', '🍎', '🧴', '🔌', '📦', '🎁', '🐶'];
 
 export function CategoryModal({ visible, onClose, onSave, categoria }: CategoryModalProps) {
-  const [formData, setFormData] = useState<Partial<Categoria>>({
-    nome: '',
-    icon: '🛒',
-    bg: '#0A84FF',
-    metaOrcamento: 0,
-  });
-
-  const [metaString, setMetaString] = useState('');
+  const [nome, setNome] = useState('');
+  const [cor, setCor] = useState(COLORS[0]);
+  const [icone, setIcone] = useState(ICONS[0]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (categoria) {
-      setFormData(categoria);
-      setMetaString(categoria.metaOrcamento?.toString() || '');
+      setNome(categoria.nome);
+      setCor(categoria.cor || COLORS[0]);
+      setIcone(categoria.icone || ICONS[0]);
     } else {
-      setFormData({
-        nome: '',
-        icon: '🛒',
-        bg: '#0A84FF',
-        metaOrcamento: 0,
-      });
-      setMetaString('');
+      setNome('');
+      setCor(COLORS[0]);
+      setIcone(ICONS[0]);
     }
   }, [categoria, visible]);
 
-  const handleSave = () => {
-    if (!formData.nome) return;
-    onSave({
-      ...formData,
-      metaOrcamento: parseFloat(metaString.replace(',', '.')) || 0,
-    });
+  const handleSave = async () => {
+    if (!nome) {
+      Alert.alert('Erro', 'O nome da categoria é obrigatório');
+      return;
+    }
+
+    onSave({ nome, cor, icone });
     onClose();
   };
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View className="flex-1 bg-black/50 justify-end">
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <SafeAreaView className="bg-white rounded-t-[32px] max-h-[90%]">
-            <View className="p-6">
-              <View className="flex-row justify-between items-center mb-6">
-                <Text className="text-2xl font-bold text-primary">
-                  {categoria ? 'Editar Categoria' : 'Nova Categoria'}
-                </Text>
-                <TouchableOpacity onPress={onClose} className="bg-gray-100 p-2 rounded-full">
-                  <X size={20} color="#666" />
-                </TouchableOpacity>
+      <View className="flex-1 justify-end bg-black/70">
+        <View className="bg-surface h-[80%] rounded-t-[40px] border-t border-border">
+          <View className="flex-row justify-between items-center px-8 py-6 border-b border-border">
+            <Text className="text-2xl font-black text-white">{categoria ? 'Editar Categoria' : 'Nova Categoria'}</Text>
+            <TouchableOpacity onPress={onClose} className="bg-background/50 p-2 rounded-full">
+              <X size={20} color="#F4F4F5" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView className="px-8 pt-6">
+            <View className="space-y-8">
+              {/* Nome */}
+              <View>
+                <Text className="text-text-soft font-bold mb-3 ml-1">Nome da Categoria</Text>
+                <TextInput 
+                  placeholder="Ex: Mercado, Casa, Higiene..."
+                  placeholderTextColor="#71717A"
+                  className="bg-background h-16 rounded-2xl px-5 text-white border border-border text-lg"
+                  value={nome}
+                  onChangeText={setNome}
+                />
               </View>
 
-              <ScrollView showsVerticalScrollIndicator={false}>
-                <Input 
-                  label="Nome da Categoria *"
-                  placeholder="Ex: Supermercado, Casa, Lazer"
-                  value={formData.nome}
-                  onChangeText={(text) => setFormData({...formData, nome: text})}
-                  icon={<Tag size={20} color="#999" />}
-                />
-
-                <Input 
-                  label="Meta de Orçamento"
-                  placeholder="0,00"
-                  keyboardType="numeric"
-                  value={metaString}
-                  onChangeText={setMetaString}
-                  icon={<Target size={20} color="#999" />}
-                />
-
-                <Text className="text-gray-500 font-bold text-xs uppercase mb-3 ml-1 tracking-widest">Ícone</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
-                   {ICONS.map((icon) => (
-                     <TouchableOpacity 
-                       key={icon}
-                       onPress={() => setFormData({...formData, icon})}
-                       className={`w-14 h-14 rounded-2xl items-center justify-center mr-3 border-2 ${formData.icon === icon ? 'border-accent bg-blue-50' : 'border-gray-100 bg-gray-50'}`}
-                     >
-                       <Text className="text-2xl">{icon}</Text>
-                     </TouchableOpacity>
-                   ))}
-                </ScrollView>
-
-                <Text className="text-gray-500 font-bold text-xs uppercase mb-3 ml-1 tracking-widest">Cor de Destaque</Text>
-                <View className="flex-row flex-wrap mb-10">
-                   {COLORS.map((color) => (
-                     <TouchableOpacity 
-                       key={color}
-                       onPress={() => setFormData({...formData, bg: color})}
-                       className="p-1"
-                     >
-                       <View 
-                        style={{ backgroundColor: color }}
-                        className={`w-10 h-10 rounded-full border-2 ${formData.bg === color ? 'border-gray-400' : 'border-transparent'}`}
-                       />
-                     </TouchableOpacity>
-                   ))}
+              {/* Ícone */}
+              <View>
+                <Text className="text-text-soft font-bold mb-3 ml-1">Escolha um Ícone</Text>
+                <View className="flex-row flex-wrap justify-between">
+                  {ICONS.map(i => (
+                    <TouchableOpacity 
+                      key={i} 
+                      onPress={() => setIcone(i)}
+                      className={`w-[18%] aspect-square items-center justify-center rounded-2xl mb-3 border ${icone === i ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}
+                    >
+                      <Text className="text-2xl">{i}</Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
+              </View>
 
-                <Button 
-                  title={categoria ? "Salvar Categoria" : "Criar Categoria"} 
-                  onPress={handleSave}
-                  disabled={!formData.nome}
-                />
-                
-                <View className="h-10" />
-              </ScrollView>
+              {/* Cor */}
+              <View>
+                <Text className="text-text-soft font-bold mb-3 ml-1">Cor de Destaque</Text>
+                <View className="flex-row flex-wrap justify-between">
+                  {COLORS.map(c => (
+                    <TouchableOpacity 
+                      key={c} 
+                      onPress={() => setCor(c)}
+                      style={{ backgroundColor: c }}
+                      className={`w-[11%] aspect-square rounded-full mb-3 border-2 ${cor === c ? 'border-white' : 'border-transparent'}`}
+                    />
+                  ))}
+                </View>
+              </View>
+
+              <TouchableOpacity 
+                onPress={handleSave}
+                className="bg-primary h-16 rounded-2xl flex-row items-center justify-center mt-10 shadow-lg shadow-primary/20"
+              >
+                <Check size={24} color="white" className="mr-2" />
+                <Text className="text-white font-bold text-lg">Salvar Categoria</Text>
+              </TouchableOpacity>
             </View>
-          </SafeAreaView>
-        </KeyboardAvoidingView>
+            <View className="h-20" />
+          </ScrollView>
+        </View>
       </View>
     </Modal>
   );

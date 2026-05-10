@@ -13,26 +13,27 @@ function RootLayoutNav() {
     if (loading) return;
 
     const inAuthGroup = segments.includes('(auth)');
+    const inTabsGroup = segments.includes('(tabs)');
+    const isLandingPage = segments.length === 0 || (segments.length === 1 && segments[0] === '');
 
-    if (!estaAutenticado && !inAuthGroup) {
-      // Se não estiver logado e não estiver nas rotas de login, vai para login
-      router.replace('/(auth)/login');
-    } else if (estaAutenticado && inAuthGroup) {
-      // Se já estiver logado e tentar entrar no login, vai para home
+    if (estaAutenticado && (inAuthGroup || isLandingPage)) {
       router.replace('/(tabs)');
+    } else if (!estaAutenticado && inTabsGroup) {
+      router.replace('/(auth)/login');
     }
   }, [estaAutenticado, loading, segments]);
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F2F2F7' }}>
-        <ActivityIndicator size="large" color="#0A84FF" />
+      <View className="flex-1 justify-center items-center bg-background">
+        <ActivityIndicator size="large" color="#A78BFA" />
       </View>
     );
   }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
     </Stack>
@@ -42,7 +43,9 @@ function RootLayoutNav() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <RootLayoutNav />
+      <View className="flex-1 dark bg-background">
+        <RootLayoutNav />
+      </View>
     </AuthProvider>
   );
 }

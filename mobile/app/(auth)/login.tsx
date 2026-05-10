@@ -1,42 +1,35 @@
 import React, { useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../../src/context/AuthContext';
-import { Input } from '../../src/components/Input';
-import { Button } from '../../src/components/Button';
-import { Mail, Lock, User, Users, Heart } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from '../../src/context/AuthContext';
+import { Mail, Lock, ArrowRight } from 'lucide-react-native';
+import { Logo } from '../../src/components/Logo';
+import * as Haptics from 'expo-haptics';
 
 export default function LoginScreen() {
-  const [modo, setModo] = useState<'login' | 'registro'>('login');
-  const [isCasal, setIsCasal] = useState(false);
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, registrar, registrarCasal } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
 
-  const [formData, setFormData] = useState({
-    email: '',
-    senha: '',
-    nomeCompleto: '',
-    confirmarSenha: '',
-  });
+  const handleLogin = async () => {
+    if (!email || !senha) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert('Atenção', 'Por favor, preencha todos os campos.');
+      return;
+    }
 
-  const handleAction = async () => {
     setLoading(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
-      if (modo === 'login') {
-        const res = await login(formData.email, formData.senha);
-        if (res.success) {
-          router.replace('/(tabs)');
-        } else {
-          alert(res.error || 'Erro ao entrar');
-        }
-      } else {
-        // Registro simplificado para mobile por enquanto
-        alert('Funcionalidade de registro completa sendo integrada...');
-      }
-    } catch (error) {
-      console.error(error);
+      await login(email, senha);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.replace('/(tabs)');
+    } catch (error: any) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert('Falha ao entrar', 'Verifique suas credenciais e tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -44,103 +37,73 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
-        <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24, justifyContent: 'center' }}>
-          
-          <View className="items-center mb-10">
-            <View className="bg-accent-nubank p-4 rounded-3xl shadow-lg mb-4">
-              <Heart size={40} color="white" fill="white" />
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-8 pt-10 pb-10">
+          <View className="items-center mb-12">
+            <View className="mb-8">
+              <Logo size={100} />
             </View>
-            <Text className="text-3xl font-bold text-primary">CasalPlanner</Text>
-            <Text className="text-gray-500 mt-1">Organize a vida a dois</Text>
+            <Text className="text-3xl font-black text-white text-center">Acesse sua conta</Text>
+            <Text className="text-text-soft text-center mt-2 font-medium">Continue de onde parou</Text>
           </View>
 
-          <View className="flex-row bg-gray-200 p-1 rounded-2xl mb-8">
-            <TouchableOpacity 
-              onPress={() => setModo('login')}
-              className={`flex-1 py-3 rounded-xl items-center ${modo === 'login' ? 'bg-white shadow-sm' : ''}`}
-            >
-              <Text className={`font-semibold ${modo === 'login' ? 'text-primary' : 'text-gray-500'}`}>Login</Text>
+          <View className="space-y-4">
+            <View className="bg-surface/50 rounded-[22px] border border-border px-5 flex-row items-center h-16 mb-4">
+              <Mail size={20} color="#A78BFA" opacity={0.6} />
+              <TextInput
+                placeholder="E-mail"
+                placeholderTextColor="#71717A"
+                className="flex-1 ml-4 text-white text-base font-semibold"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                textContentType="emailAddress"
+                autoComplete="email"
+                value={email}
+                onChangeText={setEmail}
+              />
+            </View>
+
+            <View className="bg-surface/50 rounded-[22px] border border-border px-5 flex-row items-center h-16">
+              <Lock size={20} color="#A78BFA" opacity={0.6} />
+              <TextInput
+                placeholder="Senha"
+                placeholderTextColor="#71717A"
+                className="flex-1 ml-4 text-white text-base font-semibold"
+                secureTextEntry
+                textContentType="password"
+                autoComplete="password"
+                value={senha}
+                onChangeText={setSenha}
+              />
+            </View>
+
+            <TouchableOpacity onPress={() => router.push('/(auth)/recuperar-senha')} className="mt-4 self-end">
+              <Text className="text-primary font-bold">Esqueceu a senha?</Text>
             </TouchableOpacity>
+
             <TouchableOpacity 
-              onPress={() => router.push('/(auth)/register')}
-              className={`flex-1 py-3 rounded-xl items-center ${modo === 'registro' ? 'bg-white shadow-sm' : ''}`}
+              onPress={handleLogin}
+              disabled={loading}
+              activeOpacity={0.8}
+              className="bg-primary h-16 rounded-[22px] flex-row items-center justify-center mt-10 shadow-xl shadow-primary/30"
             >
-              <Text className={`font-semibold ${modo === 'registro' ? 'text-primary' : 'text-gray-500'}`}>Registrar</Text>
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <>
+                  <Text className="text-white font-black text-lg mr-2">Entrar agora</Text>
+                  <ArrowRight size={22} color="white" />
+                </>
+              )}
             </TouchableOpacity>
           </View>
 
-          {modo === 'registro' && (
-            <View className="mb-6 flex-row items-center bg-white p-4 rounded-2xl border border-gray-200">
-               <TouchableOpacity 
-                onPress={() => setIsCasal(!isCasal)}
-                className="flex-row items-center flex-1"
-              >
-                <View className={`w-6 h-6 rounded-md border-2 mr-3 items-center justify-center ${isCasal ? 'bg-accent border-accent' : 'border-gray-300'}`}>
-                  {isCasal && <View className="w-3 h-3 bg-white rounded-full" />}
-                </View>
-                <Users size={20} color={isCasal ? '#0A84FF' : '#999'} />
-                <Text className="ml-2 font-medium text-gray-700">Conta Casal</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {modo === 'registro' && !isCasal && (
-            <Input 
-              label="Nome Completo"
-              placeholder="Seu nome"
-              icon={<User size={20} color="#999" />}
-              value={formData.nomeCompleto}
-              onChangeText={(text) => setFormData({...formData, nomeCompleto: text})}
-            />
-          )}
-
-          <Input 
-            label="E-mail"
-            placeholder="seu@email.com"
-            autoCapitalize="none"
-            keyboardType="email-address"
-            icon={<Mail size={20} color="#999" />}
-            value={formData.email}
-            onChangeText={(text) => setFormData({...formData, email: text})}
-          />
-
-          <Input 
-            label="Senha"
-            placeholder="••••••"
-            secureTextEntry
-            icon={<Lock size={20} color="#999" />}
-            value={formData.senha}
-            onChangeText={(text) => setFormData({...formData, senha: text})}
-          />
-
-          {modo === 'registro' && (
-            <Input 
-              label="Confirmar Senha"
-              placeholder="••••••"
-              secureTextEntry
-              icon={<Lock size={20} color="#999" />}
-              value={formData.confirmarSenha}
-              onChangeText={(text) => setFormData({...formData, confirmarSenha: text})}
-            />
-          )}
-
-          {modo === 'login' && (
-            <TouchableOpacity className="self-end mb-6">
-              <Text className="text-accent font-medium">Esqueceu a senha?</Text>
+          <View className="mt-auto flex-row justify-center">
+            <Text className="text-text-soft font-medium">Não tem uma conta? </Text>
+            <TouchableOpacity onPress={() => router.push('/(auth)/registro')}>
+              <Text className="text-primary font-black">Cadastre-se grátis</Text>
             </TouchableOpacity>
-          )}
-
-          <Button 
-            title={modo === 'login' ? 'Entrar' : 'Criar Conta'} 
-            variant="primary" 
-            onPress={handleAction}
-            disabled={loading}
-          />
-
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
