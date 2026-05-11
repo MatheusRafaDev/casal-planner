@@ -15,6 +15,7 @@ import Home from "./pages/Home";
 import Inicio from "./pages/Inicio";
 import Login from "./pages/Login";
 import EsqueciSenha from "./pages/RecuperarSenha";
+import Estatisticas from "./pages/Estatisticas";
 
 // Hooks
 import usePageTitle from "./hooks/usePageTitle";
@@ -287,6 +288,9 @@ export const AppRoutes = () => {
       } />
       <Route path="/perfil" element={
         <PrivateRoute><PrivateLayout><Perfil /></PrivateLayout></PrivateRoute>
+      } />
+      <Route path="/estatisticas" element={
+        <PrivateRoute><PrivateLayout><Estatisticas /></PrivateLayout></PrivateRoute>
       } />
 
       {/* ── 404 ── */}

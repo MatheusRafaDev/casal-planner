@@ -40,11 +40,49 @@ const KNOWN_DOMAINS = {
   'lojas': 'lojasrenner.com.br',
 };
 
+const STORE_EMOJIS = {
+  'extra': '🛒',
+  'mercadolivre': '📦',
+  'amazon': '📦',
+  'magazine': '📦',
+  'magazineluiza': '📦',
+  'magalu': '📦',
+  'americanas': '🛒',
+  'shopee': '🛍️',
+  'aliexpress': '📦',
+  'kabum': '💻',
+  'pichau': '💻',
+  'terabyte': '💻',
+  'carrefour': '🛒',
+  'walmart': '🛒',
+  'casasbahia': '🛒',
+  'pontofrio': '🛒',
+  'submarino': '📦',
+  'fastshop': '💻',
+  'renner': '👕',
+  'riachuelo': '👕',
+  'cea': '👕',
+  'dafiti': '👟',
+  'netshoes': '👟',
+  'centauro': '⚽',
+  'madeiramadeira': '🪑',
+  'samsung': '📱',
+  'apple': '🍎',
+  'xiaomi': '📱',
+  'motorola': '📱',
+  'lg': '📺',
+  'leroy': '🏠',
+  'leroymerlin': '🏠',
+  'havan': '🛋️',
+  'tok': '🛋️',
+  'tokstok': '🛋️',
+  'whirlpool': '🏠',
+};
+
 const CACHE_KEY_PREFIX = 'storelogo_v2_';
 
 class StoreLogoService {
   constructor() {
-    // Cache em memória (rápido) + sessionStorage (persiste na sessão)
     this.memCache = new Map();
     this.pendingRequests = new Map();
     this._loadFromSession();
@@ -60,7 +98,7 @@ class StoreLogoService {
           if (domain) this.memCache.set(storeName, domain);
         }
       }
-    } catch (_) { /* sessionStorage pode estar bloqueado */ }
+    } catch (_) {}
   }
 
   _saveToSession(storeName, domain) {
@@ -76,6 +114,15 @@ class StoreLogoService {
       .replace(/[^a-z0-9]/g, '');
   }
 
+  getEmoji(storeName) {
+    if (!storeName) return '🏪';
+    const clean = this._normalizeName(storeName);
+    for (const [key, emoji] of Object.entries(STORE_EMOJIS)) {
+      if (clean.includes(key) || key.includes(clean)) return emoji;
+    }
+    return '🏪';
+  }
+
   inferDomain(storeName) {
     const clean = this._normalizeName(storeName);
     for (const [key, domain] of Object.entries(KNOWN_DOMAINS)) {
@@ -84,21 +131,22 @@ class StoreLogoService {
     return `${clean}.com.br`;
   }
 
-  // Retorna URL do favicon diretamente (síncrono) sem chamadas de rede extras
   getLogoUrl(storeName, size = 32) {
     if (!storeName) return null;
     const cached = this.memCache.get(storeName);
     const domain = cached || this.inferDomain(storeName);
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=${size}`;
+    try {
+      return `https://www.google.com/s2/favicons?domain=${domain}&sz=${size}`;
+    } catch {
+      return null;
+    }
   }
 
-  // Versão assíncrona para enriquecimento via IA (só se Groq key configurada)
   async fetchDomainWithAI(storeName) {
     if (!storeName) return null;
     if (this.memCache.has(storeName)) return this.memCache.get(storeName);
     if (this.pendingRequests.has(storeName)) return this.pendingRequests.get(storeName);
 
-    // Tenta inferir primeiro (síncrono, sem rede)
     const inferred = this.inferDomain(storeName);
     this.memCache.set(storeName, inferred);
     this._saveToSession(storeName, inferred);

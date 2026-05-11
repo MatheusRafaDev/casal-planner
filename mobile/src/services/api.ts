@@ -11,6 +11,8 @@ const BASE_URL = EXPO_API_URL.endsWith('/api') ? EXPO_API_URL : `${EXPO_API_URL}
 
 console.log('🌐 API URL:', BASE_URL);
 
+const API_TIMEOUT = 30000; // 30s (reduzido de 60s para alinhamento com frontend)
+
 // Helper para abstrair SecureStore vs localStorage
 const storage = {
   getItem: async (key: string) => {
@@ -57,7 +59,7 @@ export const pessoaStorage = {
 // ─── Instância Axios ───────────────────────────────────────
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 60000, // Aumentado para 60s (Render Cold Start)
+  timeout: API_TIMEOUT,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -73,16 +75,32 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ─── RESPONSE: tratamento de erro 401 ──────────────────────
+// ─── RESPONSE: tratamento de erro 401 + retry em 5xx ─────────────
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    const config = error.config;
+
     // Token inválido/expirado — limpa storage
     if (error.response?.status === 401) {
       await tokenStorage.remove();
       // Em um app real, aqui dispararíamos uma navegação para o Login
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+
+    // Retry automático em erro de rede ou 5xx (máx 2 tentativas)
+    if (!config || config._retryCount >= 2) return Promise.reject(error);
+    if (error.response && error.response.status < 500) return Promise.reject(error);
+
+    config._retryCount = (config._retryCount || 0) + 1;
+    const delay = 800 * Math.pow(2, config._retryCount - 1);
+    await new Promise((r) => setTimeout(r, delay));
+
+    if (__DEV__) {
+      console.warn(`🔄 Retry ${config._retryCount} em ${config.url}`);
+    }
+
+    return api(config);
   }
 );
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, RefreshControl,
-  ActivityIndicator, Alert, TextInput, Animated,
+  ActivityIndicator, Alert, TextInput, Animated, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Plus, Search, ChevronDown, ChevronUp, CheckCircle2, Edit2, Trash2, FolderPlus } from 'lucide-react-native';
@@ -31,6 +31,7 @@ function ItemCard({ item, onToggle, onPress, onDelete }: {
   item: Item; onToggle: () => void; onPress: () => void; onDelete: () => void;
 }) {
   const total = (Number(item.preco) || 0) * (Number(item.quantidade) || 0);
+  const hasImage = item.fotoUrl && item.fotoUrl.length > 0;
 
   const handleLongPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
@@ -50,6 +51,7 @@ function ItemCard({ item, onToggle, onPress, onDelete }: {
         flexDirection: 'row', alignItems: 'flex-start',
       }}
     >
+      {/* Checkbox */}
       <TouchableOpacity
         onPress={onToggle}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -62,6 +64,22 @@ function ItemCard({ item, onToggle, onPress, onDelete }: {
       >
         {item.comprado && <CheckCircle2 size={14} color="white" />}
       </TouchableOpacity>
+
+      {/* Imagem do produto (se existir) */}
+      {hasImage && (
+        <TouchableOpacity onPress={onPress} style={{ marginRight: 10 }}>
+          <View style={{
+            width: 44, height: 44, borderRadius: 8, overflow: 'hidden',
+            backgroundColor: '#3F3F46', borderWidth: 1, borderColor: '#3F3F46',
+          }}>
+            <Image
+              source={{ uri: item.fotoUrl }}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="cover"
+            />
+          </View>
+        </TouchableOpacity>
+      )}
 
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>

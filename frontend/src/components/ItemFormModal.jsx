@@ -37,11 +37,10 @@ const DEFAULT_FORM_DATA = {
   marca: "",
   preco: 0,
   quantidade: 1,
-  pagamento: "normal",
+pagamento: "normal",
   prioridade: "normal",
   categoriaId: null,
   loja: "",
-  linkProduto: "",
   fotoUrl: "",
 };
 
@@ -238,7 +237,7 @@ const ItemFormModal = ({
       submissionRef.current = false;
 
       if (isEditing && itemParaEditar) {
-        setFormData({
+setFormData({
           id:          itemParaEditar.id || null,
           nome:        itemParaEditar.nome || "",
           marca:       itemParaEditar.marca || "",
@@ -248,7 +247,6 @@ const ItemFormModal = ({
           prioridade:  itemParaEditar.prioridade || "normal",
           categoriaId: itemParaEditar.categoriaId || categoriaId,
           loja:        itemParaEditar.loja || "",
-          linkProduto: itemParaEditar.linkProduto || "",
           fotoUrl:     itemParaEditar.fotoUrl || "",
           createdAt:   itemParaEditar.createdAt || null,
         });
@@ -301,14 +299,17 @@ const ItemFormModal = ({
 
   const handleSelectProductItem = useCallback((item) => {
     if (isSubmitting || loading) return;
+    // Ao editar, não substitui foto já existente no item
+    const manterFoto = isEditing && itemParaEditar?.fotoUrl;
     setFormData(prev => ({
       ...prev,
       nome: item.nome, marca: item.marca, preco: item.preco,
-      loja: item.loja || "", linkProduto: item.linkProduto || "", fotoUrl: item.fotoUrl || "",
+      loja: item.loja || "",
+      fotoUrl: manterFoto ? prev.fotoUrl : (item.imagem || prev.fotoUrl || ""),
     }));
     setPrecoRaw(item.preco);
     handleChange("preco", item.preco, true);
-  }, [isSubmitting, loading, setPrecoRaw, handleChange]);
+  }, [isSubmitting, loading, isEditing, itemParaEditar, setPrecoRaw, handleChange]);
 
   const handleFieldChange = useCallback((fieldName, value) => {
     if (isSubmitting || loading) return;
@@ -377,7 +378,6 @@ const ItemFormModal = ({
         prioridade:  formData.prioridade || "normal",
         categoriaId: formData.categoriaId,
         loja:        formData.loja?.trim() || "",
-        linkProduto: formData.linkProduto?.trim() || "",
         fotoUrl:     formData.fotoUrl?.trim() || "",
       };
       if (isEditing && formData.id) dadosParaEnvio.id = formData.id;

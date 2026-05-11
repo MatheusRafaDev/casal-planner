@@ -74,7 +74,7 @@ export function ItemModal({ visible, onClose, onSave, item }: ItemModalProps) {
   const [formData, setFormData] = useState({
     nome: '', preco: '', quantidade: '1', categoriaId: '',
     prioridade: 'normal', pagamento: 'normal', loja: '',
-    marca: '', linkProduto: '', fotoUrl: '',
+    marca: '', fotoUrl: '',
   });
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [pesquisando, setPesquisando] = useState(false);
@@ -107,14 +107,13 @@ export function ItemModal({ visible, onClose, onSave, item }: ItemModalProps) {
           pagamento: item.pagamento || 'normal',
           loja: item.loja || '',
           marca: item.marca || '',
-          linkProduto: item.linkProduto || '',
           fotoUrl: item.fotoUrl || '',
         });
       } else {
         setFormData({
           nome: '', preco: '', quantidade: '1', categoriaId: '',
           prioridade: 'normal', pagamento: 'normal', loja: '',
-          marca: '', linkProduto: '', fotoUrl: '',
+          marca: '', fotoUrl: '',
         });
       }
       categoriasService.listarDoUsuario().then(cats => setCategorias(cats || []));
@@ -145,13 +144,14 @@ export function ItemModal({ visible, onClose, onSave, item }: ItemModalProps) {
 
   const selecionarPreco = (prod: any) => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    // Ao editar, não substitui foto já existente no item
+    const manterFoto = item?.fotoUrl;
     setFormData(prev => ({
       ...prev,
       preco: String(prod.preco || ''),
       loja: prod.loja || prev.loja,
       marca: prod.marca || prev.marca,
-      linkProduto: prod.link || prev.linkProduto,
-      fotoUrl: prod.imagem || prev.fotoUrl,
+      fotoUrl: manterFoto ? prev.fotoUrl : (prod.imagem || prev.fotoUrl || ''),
     }));
     setShowPainel(false);
   };
@@ -438,7 +438,6 @@ export function ItemModal({ visible, onClose, onSave, item }: ItemModalProps) {
           {/* Optional fields */}
           <LabeledInput icon={<Store size={13} color="#71717A" />} label="Loja" value={formData.loja} onChange={v => update('loja', v)} placeholder="Ex: Carrefour" />
           <LabeledInput icon={<Tag size={13} color="#71717A" />} label="Marca" value={formData.marca} onChange={v => update('marca', v)} placeholder="Ex: Nestlé" />
-          <LabeledInput icon={<ExternalLink size={13} color="#71717A" />} label="Link do Produto" value={formData.linkProduto} onChange={v => update('linkProduto', v)} placeholder="https://..." keyboardType="url" />
 
           <View style={{ height: 16 }} />
         </ScrollView>

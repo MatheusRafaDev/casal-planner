@@ -33,7 +33,7 @@ import {
 const FORM_DATA_VAZIO = {
   nome:"", marca:"", preco:0, quantidade:1,
   pagamento:"normal", prioridade:"normal",
-  loja:"", linkProduto:"", fotoUrl:"",
+  loja:"", fotoUrl: "",
 };
 
 const Planejamento = () => {
@@ -120,7 +120,6 @@ const Planejamento = () => {
       pagamento:  item.pagamento   || "normal",
       prioridade: item.prioridade  || "normal",
       loja:       item.loja        || "",
-      linkProduto:item.linkProduto  || "",
       fotoUrl:    item.fotoUrl     || "",
       categoriaId:item.categoriaId,
     });

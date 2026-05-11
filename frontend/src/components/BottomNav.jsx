@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, ClipboardList, User, LogOut } from 'lucide-react';
+import { Home, ClipboardList, BarChart3, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -15,7 +15,7 @@ import {
 const BottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { usuario, logout } = useAuth();
+  const { usuario } = useAuth();
   const { theme } = useTheme();
 
   if (!usuario) return null;
@@ -23,6 +23,7 @@ const BottomNav = () => {
   const items = [
     { path: '/inicio', icon: Home, label: 'Início' },
     { path: '/planejamento', icon: ClipboardList, label: 'Planejamento' },
+    { path: '/estatisticas', icon: BarChart3, label: 'Stats' },
     { path: '/perfil', icon: User, label: 'Perfil' },
   ];
 
@@ -48,14 +49,6 @@ const BottomNav = () => {
             </NavItem>
           );
         })}
-        <NavItem onClick={logout} theme={theme} $active={false}>
-          <NavIcon $active={false} theme={theme}>
-            <LogOut size={22} />
-          </NavIcon>
-          <NavLabel $active={false} theme={theme}>
-            Sair
-          </NavLabel>
-        </NavItem>
       </NavInner>
     </NavBar>
   );

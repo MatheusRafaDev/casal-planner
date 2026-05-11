@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, memo, useRef, useEffect } from "
 import { createPortal } from "react-dom";
 import {
   Plus, Trash2, Pencil, ChevronDown, ChevronUp,
-  ShoppingBag, Store, ExternalLink,
+  ShoppingBag, Store,
   ArrowUp, ArrowDown, AlertCircle, Clock, CheckCircle,
   Calendar, Filter, X, MoreHorizontal, Check, ImageOff,
 } from "lucide-react";
@@ -120,7 +120,7 @@ const MenuItem = memo(({ icon:Icon, label, onClick, color, hoverBg }) => {
 });
 
 // ─── ContextMenu ─────────────────────────────────────────────────────────────
-const ContextMenu = memo(({ anchorRef, item, onClose, onEdit, onDelete, onOpenLink, theme }) => {
+const ContextMenu = memo(({ anchorRef, item, onClose, onEdit, onDelete, theme }) => {
   const menuRef = useRef(null);
   const [pos, setPos] = useState({ x:-9999, y:-9999 });
   const [visible, setVisible] = useState(false);
@@ -168,7 +168,6 @@ const ContextMenu = memo(({ anchorRef, item, onClose, onEdit, onDelete, onOpenLi
   const items = [
     { icon:Pencil, label:"Editar item", onClick:()=>{ onEdit(); setTimeout(onClose,0); }, color:colors.text, hoverBg:colors.hover },
     { icon:Trash2, label:"Excluir item", onClick:()=>{ onDelete(); setTimeout(onClose,0); }, color:colors.danger, hoverBg:colors.dangerHover },
-    ...(item.linkProduto ? [{ icon:ExternalLink, label:"Abrir link", onClick:()=>{ onOpenLink(); setTimeout(onClose,0); }, color:colors.text, hoverBg:colors.hover }] : []),
   ];
 
   return (
@@ -184,7 +183,14 @@ const ContextMenu = memo(({ anchorRef, item, onClose, onEdit, onDelete, onOpenLi
 const StoreLogo = memo(({ storeName, size="small" }) => {
   const [err, setErr] = useState(false);
   const sz = size==="small" ? 12 : 16;
-  if (!storeName || err) return <S.StoreIconFallback size={size} theme={{}}><Store size={sz}/></S.StoreIconFallback>;
+  if (!storeName) return <S.StoreIconFallback size={size} theme={{}}><Store size={sz}/></S.StoreIconFallback>;
+  
+  // Se der erro no favicon, usa emoji da loja
+  if (err) {
+    const emoji = storeLogoService.getEmoji(storeName);
+    return <span style={{ fontSize: sz + 4 }} title={storeName}>{emoji}</span>;
+  }
+  
   return <S.StoreLogoImage src={storeLogoService.getLogoUrl(storeName, size==="small"?16:32)} alt={storeName} size={size} loading="lazy" onError={()=>setErr(true)}/>;
 });
 
@@ -302,7 +308,6 @@ const ItemCard = memo(({
     } else { resetSwipe(); }
   }, [swiping, resetSwipe, onToggleComprado, item.id]);
 
-  const openLink = useCallback(() => { if (item.linkProduto) window.open(item.linkProduto,"_blank","noopener,noreferrer"); }, [item.linkProduto]);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
   const editClick = useCallback(() => onEditItem(item.id), [onEditItem, item.id]);
   const delClick = useCallback(() => { setConfirmOpen(true); setMenuOpen(false); }, []);
@@ -373,7 +378,7 @@ const ItemCard = memo(({
           </S.ItemRow>
         </div>
       </div>
-      {menuOpen && <ContextMenu anchorRef={menuRef} item={item} onClose={closeMenu} onEdit={editClick} onDelete={delClick} onOpenLink={openLink} theme={theme} />}
+      {menuOpen && <ContextMenu anchorRef={menuRef} item={item} onClose={closeMenu} onEdit={editClick} onDelete={delClick} theme={theme} />}
       <ConfirmDialog isOpen={confirmOpen} onClose={()=>setConfirmOpen(false)} onConfirm={confirmDel} title="Excluir item" message={`Tem certeza que deseja excluir "${item.nome}"? Esta ação não pode ser desfeita.`} confirmText="Excluir" cancelText="Cancelar" theme={theme} type="danger"/>
     </>
   );
