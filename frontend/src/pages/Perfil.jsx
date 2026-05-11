@@ -6,9 +6,9 @@ import { useAuth } from "../context/AuthContext";
 import { useConfirm } from "../context/ConfirmContext";
 import usuarioService from "../services/usuarioService";
 import {
-  User, Heart, Lock, Trash2, Edit3, X, CheckCircle,
-  AlertCircle, Calendar, DollarSign, Mail, CreditCard,
-  Clock, Shield, ChevronRight, Eye, EyeOff
+  User, Heart, Lock, Trash2, Edit3, CheckCircle,
+  AlertCircle, DollarSign,
+  Clock, Shield, ChevronRight, Eye, EyeOff, LogOut
 } from "lucide-react";
 
 import {
@@ -20,16 +20,15 @@ import {
 import {
   PerfilContainer, Header, EditarButton, MensagemSucesso, MensagemErro,
   PerfilCard, AvatarSection, Avatar, AvatarPlaceholder, UserInfo, TypeBadge,
-  InfoContainer, InfoMembro, InfoRow, InfoGroup, Label, Valor, InfoGrid,
+  InfoContainer, InfoMembro, InfoGroup, Label, Valor, InfoGrid,
   RendaTotalCard, FormGroup, FormRow, Input, Small, FormActions,
   CancelarButton, SalvarButton, SectionTitle, AlterarSenhaButton,
-  LoadingSpinner, LoadingContainer, DataCriacao, Divider,
+  DataCriacao, Divider,
   ToggleContainer, ToggleInfo, ToggleLabel, ToggleSwitch, ToggleKnob,
   SkeletonAvatar, SkeletonText, SkeletonLine, SkeletonCard, SkeletonBadge,
-  Shimmer
 } from "../styles/pages/PerfilStyles";
 
-import { useScrollRestoration } from "../hooks/useScrollRestoration";
+
 
 const InfoField = ({ label, value, icon: Icon, destaque, theme }) => (
   <InfoGroup>
@@ -145,7 +144,7 @@ const PerfilSkeleton = ({ theme }) => {
 
 const Perfil = () => {
   const { theme, isDarkMode, toggleTheme } = useTheme();
-  const { usuario, atualizarUsuario, recarregarUsuario, logout, isCasal, pessoaQueLogou, loading: authLoading } = useAuth();
+  const { usuario, recarregarUsuario, logout, isCasal, pessoaQueLogou, loading: authLoading } = useAuth();
   const { showConfirm } = useConfirm();
 
   const [editando, setEditando] = useState(false);
@@ -155,7 +154,7 @@ const Perfil = () => {
   const [loading, setLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Estado para skeleton
 
-  const scrollRef = useScrollRestoration();
+
 
   const [meusDados, setMeusDados] = useState({
     nomeCompleto: "",
@@ -679,10 +678,18 @@ const Perfil = () => {
       {!editando && !editandoSenha && (
         <PerfilCard theme={theme}>
           <SectionTitle theme={theme}><AlertCircle size={16} /> Zona de Perigo</SectionTitle>
-          <AlterarSenhaButton $danger onClick={handleExcluirConta} theme={theme}>
-            <Trash2 size={16} /> Excluir minha conta permanentemente
-            <ChevronRight size={16} style={{ marginLeft: "auto" }} />
-          </AlterarSenhaButton>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <AlterarSenhaButton onClick={logout} theme={theme}>
+              <LogOut size={16} /> Sair da conta
+              <ChevronRight size={16} style={{ marginLeft: "auto" }} />
+            </AlterarSenhaButton>
+
+            <AlterarSenhaButton $danger onClick={handleExcluirConta} theme={theme}>
+              <Trash2 size={16} /> Excluir minha conta permanentemente
+              <ChevronRight size={16} style={{ marginLeft: "auto" }} />
+            </AlterarSenhaButton>
+          </div>
         </PerfilCard>
       )}
     </PerfilContainer>

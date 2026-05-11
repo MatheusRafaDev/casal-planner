@@ -33,7 +33,6 @@ import {
   LoginContainer,
   LoginCard,
   LogoWrapper,
-  Title,
   Subtitle,
   TabsContainer,
   Tab,
@@ -130,7 +129,7 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [senhaError, setSenhaError] = useState("");
-  const [passwordStrength, setPasswordStrength] = useState({
+  const [, setPasswordStrength] = useState({
     pessoa1: { isValid: false, errors: [] },
     pessoa2: { isValid: false, errors: [] },
   });
@@ -487,7 +486,7 @@ const Login = () => {
           <CasalPlannerLogo width={56} height={56} />
         </LogoWrapper>
 
-        <Title theme={theme}>CasalPlanner</Title>
+
         <Subtitle theme={theme}>Organize a vida a dois</Subtitle>
 
         <TabsContainer theme={theme}>

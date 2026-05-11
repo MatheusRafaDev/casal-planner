@@ -1,5 +1,5 @@
 // frontend/src/routes.jsx
-import React, { Suspense } from "react";
+import React from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { useTheme } from "./context/ThemeContext";
@@ -15,7 +15,7 @@ import Home from "./pages/Home";
 import Inicio from "./pages/Inicio";
 import Login from "./pages/Login";
 import EsqueciSenha from "./pages/RecuperarSenha";
-import Estatisticas from "./pages/Estatisticas";
+
 
 // Hooks
 import usePageTitle from "./hooks/usePageTitle";
@@ -51,10 +51,6 @@ const PublicSkeleton = () => {
   
   const bgColor = isDark ? "#1a1a1a" : "#ffffff";
   const cardBg = isDark ? "#2a2a2a" : "#f7f7f7";
-  const shimmerGradient = isDark 
-    ? "linear-gradient(90deg, #2a2a2a 0%, #3a3a3a 50%, #2a2a2a 100%)"
-    : "linear-gradient(90deg, #e8e8e8 0%, #f5f5f5 50%, #e8e8e8 100%)";
-
   return (
     <>
       <style>{shimmerKeyframes}</style>
@@ -103,10 +99,6 @@ const PrivateSkeleton = () => {
   const bgColor = isDark ? "#121212" : "#f8f9fa";
   const headerBg = isDark ? "#1e1e1e" : "#ffffff";
   const cardBg = isDark ? "#2a2a2a" : "#ffffff";
-  const shimmerGradient = isDark 
-    ? "linear-gradient(90deg, #2a2a2a 0%, #3a3a3a 50%, #2a2a2a 100%)"
-    : "linear-gradient(90deg, #e8e8e8 0%, #f5f5f5 50%, #e8e8e8 100%)";
-
   return (
     <>
       <style>{shimmerKeyframes}</style>
@@ -221,10 +213,6 @@ const PrivateSkeleton = () => {
   );
 };
 
-// ─── Auth loading skeleton ───────────────────────────────
-
-const AuthSkeleton = ({ isPrivate }) =>
-  isPrivate ? <PrivateSkeleton /> : <PublicSkeleton />;
 
 // ─── Route Guards ─────────────────────────────────────────────────────────────
 
@@ -289,9 +277,7 @@ export const AppRoutes = () => {
       <Route path="/perfil" element={
         <PrivateRoute><PrivateLayout><Perfil /></PrivateLayout></PrivateRoute>
       } />
-      <Route path="/estatisticas" element={
-        <PrivateRoute><PrivateLayout><Estatisticas /></PrivateLayout></PrivateRoute>
-      } />
+
 
       {/* ── 404 ── */}
       <Route path="*" element={<Navigate to="/" replace />} />

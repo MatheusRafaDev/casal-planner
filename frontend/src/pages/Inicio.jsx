@@ -6,8 +6,8 @@ import { categoriasService } from '../services/categoriasService';
 import { itensService } from '../services/itensService';
 import { formatarMoeda } from '../utils/formatters';
 import {
-  ShoppingCart, TrendingUp, CheckCircle, CreditCard,
-  ArrowRight, Heart, Sparkles, ClipboardList, AlertCircle,
+  ShoppingCart, CheckCircle,
+  AlertCircle,
   Target, Coffee, DollarSign
 } from 'lucide-react';
 import {
@@ -34,39 +34,30 @@ import {
   ProgressBar,
   ProgressFill,
   ProgressLabel,
-  QuickActions,
-  ActionCard,
-  ActionIcon,
-  ActionText,
-  SkeletonLine,
-  SkeletonCard,
   SkeletonStatCard,
   SkeletonCatRow,
-  HeartAnim,
   TipCard,
   TipContent,
   TipIcon,
-  TipTitle,
   TipText,
   ResumoGrid,
   ResumoCard,
   PrioridadeGrid,
   PrioridadeItem,
-  UrgencyBadge
 } from '../styles/pages/InicioStyles';
 
-import { useScrollRestoration } from '../hooks/useScrollRestoration';
+
 
 /* ── Componente ─────────────────────────────────────────────────────────────── */
 const Inicio = () => {
-  const navigate = useNavigate();
+
   const { usuario, isCasal, pessoaQueLogou } = useAuth();
   const { theme } = useTheme();
 
   const [categorias, setCategorias] = useState([]);
   const [itens, setItens] = useState([]);
   const [loading, setLoading] = useState(true);
-  const scrollRef = useScrollRestoration();
+
 
   // ✅ Função para obter o nome do usuário
   const getNome = useCallback(() => {
@@ -171,19 +162,7 @@ const Inicio = () => {
   });
 
   const urgenciaFalta = prioridades.urgente.falta;
-  const urgenciaItensPendentes = prioridades.urgente.itens.filter(i => !i.comprado).length;
 
-  // Top 3 itens urgentes
-  const itensUrgentes = itens
-    .filter(i => i.prioridade === 'urgente' && !i.comprado)
-    .sort((a, b) => (b.preco * b.quantidade) - (a.preco * a.quantidade))
-    .slice(0, 3);
-
-  // Itens normais pendentes (destaque)
-  const itensNormaisPendentes = itens
-    .filter(i => (i.prioridade === 'normal' || i.prioridade === 'media' || i.prioridade === 'alta') && !i.comprado)
-    .sort((a, b) => (b.preco * b.quantidade) - (a.preco * a.quantidade))
-    .slice(0, 3);
 
   /* Total por categoria */
   const porCategoria = categorias
