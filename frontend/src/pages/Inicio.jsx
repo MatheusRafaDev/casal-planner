@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+// Removed unused useNavigate
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { categoriasService } from '../services/categoriasService';
@@ -8,7 +8,7 @@ import { formatarMoeda } from '../utils/formatters';
 import {
   ShoppingCart, CheckCircle,
   AlertCircle,
-  Target, Coffee, DollarSign
+  Target, Coffee, DollarSign, Download
 } from 'lucide-react';
 import {
   Container,
@@ -181,13 +181,168 @@ const Inicio = () => {
     .filter(c => c.qtd > 0)
     .sort((a, b) => b.total - a.total);
 
+  const exportarParaExcel = async () => {
+    if (!itens || itens.length === 0) return;
+
+    try {
+      const ExcelJS = (await import('exceljs')).default;
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Planejamento');
+
+      // Título
+      worksheet.mergeCells('A1', 'H1');
+      const titleCell = worksheet.getCell('A1');
+      titleCell.value = 'Planejamento CasalPlanner';
+      titleCell.font = { name: 'Arial', size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+      titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8B5CF6' } };
+
+      // Cabeçalhos
+      const headers = ['Item', 'Categoria', 'Valor Unitário', 'Quantidade', 'Total', 'Status', 'Pagamento', 'Prioridade'];
+      const headerRow = worksheet.addRow(headers);
+      
+      headerRow.eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4C1D95' } };
+        cell.alignment = { horizontal: 'center' };
+      });
+
+      // Dados ordenados do mais caro pro mais barato
+      const itensOrdenados = [...itens].sort((a, b) => {
+        const totalA = a.preco * (a.quantidade || 1);
+        const totalB = b.preco * (b.quantidade || 1);
+        return totalB - totalA;
+      });
+
+      itensOrdenados.forEach((item) => {
+        const categoria = categorias.find(c => (c.id || c._id) === item.categoriaId);
+        const nomeCategoria = categoria ? categoria.nome : "Sem Categoria";
+        const total = item.preco * (item.quantidade || 1);
+        const pago = item.comprado ? "Pago" : "Pendente";
+        
+        const pagamentoStr = item.pagamento === 'vr' ? 'VR/VA' : 'Normal';
+        let prioridadeStr = 'Normal';
+        if (item.prioridade === 'urgente') prioridadeStr = 'Urgente';
+        else if (item.prioridade === 'pode_esperar') prioridadeStr = 'Pode Esperar';
+        
+        const row = worksheet.addRow([
+          item.nome,
+          nomeCategoria,
+          item.preco,
+          item.quantidade || 1,
+          total,
+          pago,
+          pagamentoStr,
+          prioridadeStr
+        ]);
+
+        // Formatação de valores
+        row.getCell(3).numFmt = '"R$" #,##0.00';
+        row.getCell(5).numFmt = '"R$" #,##0.00';
+        
+        // Alinhamentos
+        row.getCell(4).alignment = { horizontal: 'center' };
+        row.getCell(6).alignment = { horizontal: 'center' };
+        row.getCell(7).alignment = { horizontal: 'center' };
+        row.getCell(8).alignment = { horizontal: 'center' };
+
+        // Cores de Status
+        const statusCell = row.getCell(6);
+        if (item.comprado) {
+          statusCell.font = { color: { argb: 'FF10B981' }, bold: true };
+        } else {
+          statusCell.font = { color: { argb: 'FFF59E0B' }, bold: true };
+        }
+
+        // Cores de Prioridade
+        const prioridadeCell = row.getCell(8);
+        if (prioridadeStr === 'Urgente') {
+          prioridadeCell.font = { color: { argb: 'FFEF4444' }, bold: true };
+        } else if (prioridadeStr === 'Pode Esperar') {
+          prioridadeCell.font = { color: { argb: 'FF10B981' } };
+        }
+      });
+
+      // Ajustar largura das colunas
+      worksheet.columns = [
+        { width: 30 },
+        { width: 20 },
+        { width: 15 },
+        { width: 12 },
+        { width: 15 },
+        { width: 15 },
+        { width: 15 },
+        { width: 15 },
+      ];
+
+      // Totalizadores
+      worksheet.addRow([]);
+      
+      const addTotalRow = (label, value, color) => {
+        const r = worksheet.addRow(['', '', '', label, value, '', '', '']);
+        r.getCell(4).font = { bold: true };
+        r.getCell(4).alignment = { horizontal: 'right' };
+        r.getCell(5).numFmt = '"R$" #,##0.00';
+        r.getCell(5).font = { bold: true, color: color ? { argb: color } : undefined };
+      };
+
+      addTotalRow('TOTAL GERAL:', totalGeral);
+      addTotalRow('TOTAL PAGO:', totalPago, 'FF10B981');
+      addTotalRow('FALTA PAGAR:', totalFalta, 'FFF59E0B');
+
+      // Download
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `planejamento_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erro ao exportar Excel:', error);
+      alert('Ocorreu um erro ao gerar o arquivo Excel.');
+    }
+  };
+
   return (
     <Container>
       {/* Saudação */}
       <SectionTitle theme={theme}>Olá, {getNome()}! 👋</SectionTitle>
 
       {/* Resumo financeiro - Cards principais */}
-      <SectionTitle theme={theme}>Resumo do mês</SectionTitle>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <SectionTitle theme={theme}>Resumo do mês</SectionTitle>
+        {!loading && totalItens > 0 && (
+          <button 
+            onClick={exportarParaExcel}
+            style={{
+              background: theme.primary + '20',
+              color: theme.primary,
+              border: 'none',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = theme.primary;
+              e.currentTarget.style.color = theme.surface;
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = theme.primary + '20';
+              e.currentTarget.style.color = theme.primary;
+            }}
+          >
+            <Download size={14} /> Exportar Excel
+          </button>
+        )}
+      </div>
       <CardsGrid>
         {loading ? (
           <>
@@ -432,9 +587,33 @@ const Inicio = () => {
 
       {loading ? (
         <CatGrid>
-          <SkeletonCatRow theme={theme} />
-          <SkeletonCatRow theme={theme} />
-          <SkeletonCatRow theme={theme} />
+          <SkeletonCatRow theme={theme}>
+            <div />
+            <div>
+              <div />
+              <div><span /><span /></div>
+              <div />
+            </div>
+            <div />
+          </SkeletonCatRow>
+          <SkeletonCatRow theme={theme}>
+            <div />
+            <div>
+              <div />
+              <div><span /><span /></div>
+              <div />
+            </div>
+            <div />
+          </SkeletonCatRow>
+          <SkeletonCatRow theme={theme}>
+            <div />
+            <div>
+              <div />
+              <div><span /><span /></div>
+              <div />
+            </div>
+            <div />
+          </SkeletonCatRow>
         </CatGrid>
       ) : porCategoria.length === 0 ? (
         <InfoCard theme={theme} style={{ textAlign: 'center', color: theme.textLight, fontSize: '0.88rem' }}>
