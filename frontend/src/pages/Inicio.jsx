@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { categoriasService } from '../services/categoriasService';
 import { itensService } from '../services/itensService';
 import { formatarMoeda } from '../utils/formatters';
+import { exportarParaPDF } from '../utils/pdfExport';
 import {
   ShoppingCart, CheckCircle,
   AlertCircle,
@@ -314,33 +315,62 @@ const Inicio = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <SectionTitle theme={theme}>Resumo do mês</SectionTitle>
         {!loading && totalItens > 0 && (
-          <button 
-            onClick={exportarParaExcel}
-            style={{
-              background: theme.primary + '20',
-              color: theme.primary,
-              border: 'none',
-              padding: '6px 12px',
-              borderRadius: '8px',
-              fontSize: '0.75rem',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.background = theme.primary;
-              e.currentTarget.style.color = theme.surface;
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = theme.primary + '20';
-              e.currentTarget.style.color = theme.primary;
-            }}
-          >
-            <Download size={14} /> Exportar Excel
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button 
+              onClick={() => exportarParaPDF(itens, categorias, { totalGeral, totalPago, totalFalta })}
+              style={{
+                background: theme.primary + '20',
+                color: theme.primary,
+                border: 'none',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontSize: '0.75rem',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = theme.primary;
+                e.currentTarget.style.color = theme.surface;
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = theme.primary + '20';
+                e.currentTarget.style.color = theme.primary;
+              }}
+            >
+              <Download size={14} /> Exportar PDF
+            </button>
+            <button 
+              onClick={exportarParaExcel}
+              style={{
+                background: theme.primary + '20',
+                color: theme.primary,
+                border: 'none',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontSize: '0.75rem',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = theme.primary;
+                e.currentTarget.style.color = theme.surface;
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = theme.primary + '20';
+                e.currentTarget.style.color = theme.primary;
+              }}
+            >
+              <Download size={14} /> Exportar Excel
+            </button>
+          </div>
         )}
       </div>
       <CardsGrid>

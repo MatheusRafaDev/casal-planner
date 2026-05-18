@@ -30,24 +30,32 @@ const shimmerKeyframes = `
   }
 `;
 
-const SkeletonItem = ({ width, height, borderRadius = "8px", marginBottom = "0" }) => (
-  <div
-    style={{
-      width: width || "100%",
-      height: height || "16px",
-      borderRadius,
-      background: "linear-gradient(90deg, #e8e8e8 0%, #f5f5f5 50%, #e8e8e8 100%)",
-      backgroundSize: "200% 100%",
-      animation: "shimmer 1.2s ease-in-out infinite",
-      marginBottom,
-    }}
-  />
-);
+const SkeletonItem = ({ width, height, borderRadius = "8px", marginBottom = "0" }) => {
+  const { theme } = useTheme();
+  const isDark = theme !== "light";
+  const bg = isDark
+    ? "linear-gradient(90deg, #2a2a2a 0%, #3f3f46 50%, #2a2a2a 100%)"
+    : "linear-gradient(90deg, #e8e8e8 0%, #f5f5f5 50%, #e8e8e8 100%)";
+
+  return (
+    <div
+      style={{
+        width: width || "100%",
+        height: height || "16px",
+        borderRadius,
+        background: bg,
+        backgroundSize: "200% 100%",
+        animation: "shimmer 1.2s ease-in-out infinite",
+        marginBottom,
+      }}
+    />
+  );
+};
 
 // Skeleton para rotas PÚBLICAS
 const PublicSkeleton = () => {
   const { theme } = useTheme();
-  const isDark = theme === "dark";
+  const isDark = theme !== "light";
   
   const bgColor = isDark ? "#1a1a1a" : "#ffffff";
   const cardBg = isDark ? "#2a2a2a" : "#f7f7f7";
@@ -94,7 +102,7 @@ const PublicSkeleton = () => {
 // Skeleton para rotas PRIVADAS
 const PrivateSkeleton = () => {
   const { theme } = useTheme();
-  const isDark = theme === "dark";
+  const isDark = theme !== "light";
   
   const bgColor = isDark ? "#121212" : "#f8f9fa";
   const headerBg = isDark ? "#1e1e1e" : "#ffffff";

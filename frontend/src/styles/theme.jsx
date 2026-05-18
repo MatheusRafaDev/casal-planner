@@ -28,6 +28,9 @@ export const darkTheme = {
   border: '#3F3F46',        
   borderLight: '#52525B',    
   
+  skeleton: '#2a2a2a',
+  skeletonShimmer: '#3f3f46',
+  
 
   success: '#34D399',       
   warning: '#FBBF24',        
@@ -86,6 +89,9 @@ export const lightTheme = {
 
   border: '#E5E7EB',
   borderLight: '#F3F4F6',
+
+  skeleton: '#e8e8e8',
+  skeletonShimmer: '#f5f5f5',
 
 
   success: '#10B981',
