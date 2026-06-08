@@ -41,6 +41,7 @@ pagamento: "normal",
   prioridade: "normal",
   categoriaId: null,
   loja: "",
+  linkProduto: "",
   fotoUrl: "",
 };
 
@@ -247,6 +248,7 @@ setFormData({
           prioridade:  itemParaEditar.prioridade || "normal",
           categoriaId: itemParaEditar.categoriaId || categoriaId,
           loja:        itemParaEditar.loja || "",
+          linkProduto: itemParaEditar.linkProduto || "",
           fotoUrl:     itemParaEditar.fotoUrl || "",
           createdAt:   itemParaEditar.createdAt || null,
         });
@@ -303,9 +305,12 @@ setFormData({
     const manterFoto = isEditing && itemParaEditar?.fotoUrl;
     setFormData(prev => ({
       ...prev,
-      nome: item.nome, marca: item.marca, preco: item.preco,
-      loja: item.loja || "",
-      fotoUrl: manterFoto ? prev.fotoUrl : (item.imagem || prev.fotoUrl || ""),
+      nome: item.nome || prev.nome,
+      marca: item.marca || prev.marca,
+      preco: item.preco || prev.preco,
+      loja: item.loja || prev.loja || "",
+      linkProduto: item.linkProduto || prev.linkProduto || "",
+      fotoUrl: manterFoto ? prev.fotoUrl : (item.fotoUrl || prev.fotoUrl || ""),
     }));
     setPrecoRaw(item.preco);
     handleChange("preco", item.preco, true);
@@ -378,6 +383,7 @@ setFormData({
         prioridade:  formData.prioridade || "normal",
         categoriaId: formData.categoriaId,
         loja:        formData.loja?.trim() || "",
+        linkProduto: formData.linkProduto?.trim() || "",
         fotoUrl:     formData.fotoUrl?.trim() || "",
       };
       if (isEditing && formData.id) dadosParaEnvio.id = formData.id;
