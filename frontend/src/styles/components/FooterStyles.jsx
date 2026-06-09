@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { Heart } from 'lucide-react';
-import { ReactComponent as LogoSvg } from '../../assets/logo.svg';
+import { ReactComponent as LogoSvg } from '../../../logo.svg';
 
 export const FooterContainer = styled.footer`
   background: ${({ theme }) => theme.surface};

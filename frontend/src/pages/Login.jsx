@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import toast from "react-hot-toast";
-import { ReactComponent as CasalPlannerLogo } from "../assets/logo.svg";
+import { ReactComponent as CasalPlannerLogo } from "../logo.svg";
 import {
   LogIn,
   UserPlus,

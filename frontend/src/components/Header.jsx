@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { LogOut, User, ChevronDown, Home, ClipboardList, Sun, Moon } from 'lucide-react';
-import { ReactComponent as LogoIcon } from '../assets/logo.svg';
+import { ReactComponent as LogoIcon } from '../logo.svg';
 
 import {
   HeaderContainer,
