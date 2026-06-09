@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { categoriasService } from '../services/categoriasService';
 import { itensService } from '../services/itensService';
+import resumoService from '../services/resumoService';
 import { formatarMoeda } from '../utils/formatters';
 import { exportarParaPDF } from '../utils/pdfExport';
 import {
@@ -57,6 +58,7 @@ const Inicio = () => {
 
   const [categorias, setCategorias] = useState([]);
   const [itens, setItens] = useState([]);
+  const [resumoData, setResumoData] = useState(null);
   const [loading, setLoading] = useState(true);
 
 
@@ -80,13 +82,16 @@ const Inicio = () => {
     const carregar = async () => {
       setLoading(true);
       try {
-        const [cats, its] = await Promise.all([
+        const [resumo, cats, its] = await Promise.all([
+          resumoService.getResumo(),
           categoriasService.listarDoUsuario(),
           itensService.getAll(),
         ]);
+        setResumoData(resumoService.formatarDados(resumo));
         setCategorias(cats || []);
         setItens(its || []);
       } catch {
+        setResumoData(null);
         setCategorias([]);
         setItens([]);
       } finally {
@@ -97,13 +102,14 @@ const Inicio = () => {
   }, []);
 
   /* ========== CÁLCULOS DETALHADOS ========== */
-  
-  // Totais gerais
-  const totalGeral = itens.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
-  const totalVR = itens.filter(i => i.pagamento === 'vr').reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
-  const totalNormal = itens.filter(i => i.pagamento === 'normal').reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
-  const totalComprados = itens.filter(i => i.comprado).length;
-  const totalItens = itens.length;
+
+  // Use backend-calculated data when available, fallback to client-side calculation
+  const usarBackend = resumoData?.atual;
+  const totalGeral = usarBackend ? resumoData.atual.totalGeral : itens.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+  const totalVR = usarBackend ? resumoData.atual.totalVR : itens.filter(i => i.pagamento === 'vr').reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+  const totalNormal = usarBackend ? resumoData.atual.totalNormal : itens.filter(i => i.pagamento === 'normal').reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+  const totalComprados = usarBackend ? resumoData.atual.totalComprados : itens.filter(i => i.comprado).length;
+  const totalItens = usarBackend ? resumoData.atual.totalItens : itens.length;
   const pctComprados = totalItens > 0 ? Math.round((totalComprados / totalItens) * 100) : 0;
   
   // O que já foi pago vs falta
@@ -165,18 +171,35 @@ const Inicio = () => {
   const urgenciaFalta = prioridades.urgente.falta;
 
 
-  /* Total por categoria */
+  /* Total por categoria - use backend data when available */
   const porCategoria = categorias
     .map(cat => {
       const id = cat.id || cat._id;
-      const itscat = itens.filter(i => i.categoriaId === id);
+      let total, qtd, comprados, pago;
+
+      if (usarBackend && resumoData.atual.porCategoria[id]) {
+        // Use backend-calculated data
+        total = resumoData.atual.porCategoria[id] || 0;
+        qtd = resumoData.atual.quantidadePorCategoria[id] || 0;
+        const itscat = itens.filter(i => i.categoriaId === id);
+        comprados = itscat.filter(i => i.comprado).length;
+        pago = itscat.filter(i => i.comprado).reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+      } else {
+        // Fallback to client-side calculation
+        const itscat = itens.filter(i => i.categoriaId === id);
+        total = itscat.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+        qtd = itscat.length;
+        comprados = itscat.filter(i => i.comprado).length;
+        pago = itscat.filter(i => i.comprado).reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+      }
+
       return {
         ...cat,
         id,
-        total: itscat.reduce((acc, i) => acc + (i.preco * i.quantidade), 0),
-        qtd: itscat.length,
-        comprados: itscat.filter(i => i.comprado).length,
-        pago: itscat.filter(i => i.comprado).reduce((acc, i) => acc + (i.preco * i.quantidade), 0)
+        total,
+        qtd,
+        comprados,
+        pago
       };
     })
     .filter(c => c.qtd > 0)

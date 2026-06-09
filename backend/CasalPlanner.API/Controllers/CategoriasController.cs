@@ -203,7 +203,7 @@ public class CategoriasController : ControllerBase
                 return Unauthorized(new { message = "Usuário não autenticado" });
 
             var categoria = await _context.Categorias
-                .Find(c => c.Id == id && (c.UsuarioId == usuarioId || c.IsPadrao))
+                .Find(c => c.Id == id && c.UsuarioId == usuarioId)
                 .FirstOrDefaultAsync();
 
             if (categoria == null)
