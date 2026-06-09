@@ -272,8 +272,9 @@ namespace CasalPlanner.API.Services
                 updates.Add(update.Set(u => u.CasalInfo!.RendaMensalPessoa2, dto.RendaMensalPessoa2.Value));
             if (dto.RendaMensal.HasValue)
             {
-                var renda = (dto.RendaMensalPessoa1 ?? 0) + (dto.RendaMensalPessoa2 ?? 0);
-                updates.Add(update.Set(u => u.RendaMensal, renda));
+                var renda1 = dto.RendaMensalPessoa1 ?? usuario.CasalInfo?.RendaMensalPessoa1 ?? 0;
+                var renda2 = dto.RendaMensalPessoa2 ?? usuario.CasalInfo?.RendaMensalPessoa2 ?? 0;
+                updates.Add(update.Set(u => u.RendaMensal, renda1 + renda2));
             }
 
             updates.Add(update.Set(u => u.CasalInfo!.UpdatedAt, DateTime.UtcNow));

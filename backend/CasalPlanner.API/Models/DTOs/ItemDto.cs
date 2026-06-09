@@ -51,9 +51,9 @@ namespace CasalPlanner.API.Models.DTOs
         public string? Pagamento { get; set; }
         public string? Prioridade { get; set; }
 
-        public string Loja { get; set; } = string.Empty;
-        public string LinkProduto { get; set; } = string.Empty;
-        public string FotoUrl { get; set; } = string.Empty;
+        public string? Loja { get; set; }
+        public string? LinkProduto { get; set; }
+        public string? FotoUrl { get; set; }
     }
 
 

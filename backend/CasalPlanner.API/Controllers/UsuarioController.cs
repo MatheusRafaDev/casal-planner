@@ -58,7 +58,7 @@ public class UsuarioController : ControllerBase
             },
             new() {
                 Nome = "Quarto",
-                Bg = "#2c528",
+                Bg = "#2c5280",
                 Icon = "🛏️",
                 IsPadrao = true,
                 UsuarioId = usuarioId,
@@ -403,6 +403,9 @@ public class UsuarioController : ControllerBase
     [HttpPut("modo-escuro/{id}")]
     public async Task<IActionResult> AtualizarModoEscuro(string id, [FromBody] ModoEscuroDto dto)
     {
+        if (id != GetUsuarioId())
+            return Forbid();
+
         var update = Builders<Usuario>.Update.Set(u => u.ModoEscuro, dto.ModoEscuro);
         var result = await _context.Usuarios.UpdateOneAsync(u => u.Id == id, update);
 
@@ -559,6 +562,12 @@ public class UsuarioController : ControllerBase
         var nome = usuario.NomeCompleto ?? "Usuário";
         var isCasal = usuario.IsCasal;
         var casalInfo = usuario.CasalInfo;
+
+        // Deletar itens e categorias do usuário antes de deletar o usuário
+        await Task.WhenAll(
+            _context.Itens.DeleteManyAsync(i => i.UsuarioId == id),
+            _context.Categorias.DeleteManyAsync(c => c.UsuarioId == id)
+        );
 
         var result = await _context.Usuarios.DeleteOneAsync(u => u.Id == id);
 

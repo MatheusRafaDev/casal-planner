@@ -3,29 +3,42 @@ import api from './api';
 // Cache em memória do último resultado de listar/listarDoUsuario.
 // Evita que verificarNomeExistente e contarCategoriasDoUsuario disparem
 // requests extras quando as categorias já foram carregadas na sessão.
-let _cache = null;
-let _cacheTs = 0;
+let _cacheGeral = null;
+let _cacheTsGeral = 0;
+let _cacheUsuario = null;
+let _cacheTsUsuario = 0;
 const CACHE_TTL_MS = 30_000; // 30 s
 
-function isCacheValid() {
-  return _cache !== null && Date.now() - _cacheTs < CACHE_TTL_MS;
+function isCacheGeralValid() {
+  return _cacheGeral !== null && Date.now() - _cacheTsGeral < CACHE_TTL_MS;
 }
 
-function setCache(data) {
-  _cache  = data;
-  _cacheTs = Date.now();
+function isCacheUsuarioValid() {
+  return _cacheUsuario !== null && Date.now() - _cacheTsUsuario < CACHE_TTL_MS;
+}
+
+function setCacheGeral(data) {
+  _cacheGeral  = data;
+  _cacheTsGeral = Date.now();
+}
+
+function setCacheUsuario(data) {
+  _cacheUsuario  = data;
+  _cacheTsUsuario = Date.now();
 }
 
 export function invalidarCacheCategorias() {
-  _cache  = null;
-  _cacheTs = 0;
+  _cacheGeral  = null;
+  _cacheTsGeral = 0;
+  _cacheUsuario = null;
+  _cacheTsUsuario = 0;
 }
 
 export const categoriasService = {
   async listar() {
     try {
       const response = await api.get('/categorias');
-      setCache(response.data);
+      setCacheGeral(response.data);
       return response.data;
     } catch (error) {
       console.error('Erro ao listar categorias:', error);
@@ -36,7 +49,7 @@ export const categoriasService = {
   async listarDoUsuario() {
     try {
       const response = await api.get('/categorias/usuario');
-      setCache(response.data);
+      setCacheUsuario(response.data);
       return response.data;
     } catch (error) {
       console.error('Erro ao listar categorias do usuário:', error);
@@ -98,8 +111,8 @@ export const categoriasService = {
    */
   async verificarNomeExistente(nome, categoriaIdIgnorar = null) {
     try {
-      const categorias = isCacheValid()
-        ? _cache
+      const categorias = isCacheUsuarioValid()
+        ? _cacheUsuario
         : await this.listarDoUsuario();
 
       const nomeTrimmed = nome.trim().toLowerCase();
@@ -115,8 +128,8 @@ export const categoriasService = {
 
   async contarCategoriasDoUsuario() {
     try {
-      const categorias = isCacheValid()
-        ? _cache
+      const categorias = isCacheUsuarioValid()
+        ? _cacheUsuario
         : await this.listarDoUsuario();
       return categorias.length;
     } catch (error) {

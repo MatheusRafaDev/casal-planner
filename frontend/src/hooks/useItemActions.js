@@ -17,10 +17,14 @@ export const useItemActions = (theme, onToggleComprado, onUpdateItem, onDeleteIt
       itemType: 'item',
       message: `Tem certeza que deseja excluir o item "${item.nome}"?`,
       onConfirm: async () => {
-        await onDeleteItem(item.id);
+        try {
+          await onDeleteItem(item.id);
+        } catch (error) {
+          showToast.error('Erro ao excluir item', theme);
+        }
       }
     });
-  }, [onDeleteItem, showConfirm]);
+  }, [onDeleteItem, showConfirm, theme]);
 
   const handleEditItem = useCallback((item) => {
     onUpdateItem(item.id);
