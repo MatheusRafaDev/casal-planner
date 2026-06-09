@@ -1,6 +1,5 @@
 import styled from 'styled-components';
 import { Heart } from 'lucide-react';
-import { ReactComponent as LogoSvg } from '../../../logo.svg';
 
 export const FooterContainer = styled.footer`
   background: ${({ theme }) => theme.surface};
@@ -31,10 +30,9 @@ export const LogoSection = styled.div`
   gap: 0.5rem;
 `;
 
-export const LogoIcon = styled(LogoSvg)`
+export const LogoIcon = styled.img`
   width: 30px;
   height: 30px;
-  fill: ${({ theme }) => theme.primary};
 `;
 
 export const LogoText = styled.span`

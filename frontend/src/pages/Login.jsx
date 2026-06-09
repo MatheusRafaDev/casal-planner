@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import toast from "react-hot-toast";
-import { ReactComponent as CasalPlannerLogo } from "../logo.svg";
+import CasalPlannerLogo from "../assets/logo.png";
 import {
   LogIn,
   UserPlus,
@@ -483,7 +483,7 @@ const Login = () => {
     <LoginContainer theme={theme}>
       <LoginCard theme={theme}>
         <LogoWrapper>
-          <CasalPlannerLogo width={56} height={56} />
+          <img src={CasalPlannerLogo} alt="CasalPlanner" width={56} height={56} />
         </LogoWrapper>
 
 

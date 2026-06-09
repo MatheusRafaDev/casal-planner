@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { LogOut, User, ChevronDown, Home, ClipboardList, Sun, Moon } from 'lucide-react';
-import { ReactComponent as LogoIcon } from '../logo.svg';
+import logoIcon from '../assets/logo.png';
 
 import {
   HeaderContainer,
@@ -80,7 +80,7 @@ const Header = () => {
       <HeaderContainer theme={theme}>
         <HeaderContent>
           <Logo onClick={() => navigate('/')} theme={theme}>
-            <LogoIcon width={30} height={30} />
+            <img src={logoIcon} alt="CasalPlanner" width={30} height={30} />
             <span>CasalPlanner</span>
           </Logo>
           <UserSection>
@@ -98,7 +98,7 @@ const Header = () => {
     <HeaderContainer theme={theme}>
       <HeaderContent>
         <Logo onClick={() => navigate('/inicio')} theme={theme}>
-          <LogoIcon width={32} height={32} />
+          <img src={logoIcon} alt="CasalPlanner" width={32} height={32} />
           <span>CasalPlanner</span>
         </Logo>
 

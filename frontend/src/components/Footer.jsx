@@ -1,4 +1,5 @@
 import React from 'react';
+import logoPng from '../assets/logo.png';
 import {
   FooterContainer,
   FooterContent,
@@ -17,7 +18,7 @@ const FooterSimple = () => {
     <FooterContainer>
       <FooterContent>
         <LogoSection>
-          <LogoIcon />
+          <LogoIcon src={logoPng} alt="CasalPlanner" />
           <LogoText>CasalPlanner</LogoText>
         </LogoSection>
 
