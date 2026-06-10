@@ -5,6 +5,7 @@ using CasalPlanner.API.Services;
 using CasalPlanner.API.Models.DTOs;
 using CasalPlanner.API.Models;
 using CasalPlanner.API.Data;
+using CasalPlanner.API.Helpers;
 using MongoDB.Driver;
 using System.Security.Claims;
 
@@ -66,6 +67,12 @@ namespace CasalPlanner.API.Controllers
                     return Unauthorized(new { message = "Senha inválida" });
                 }
 
+                await _context.Usuarios.UpdateOneAsync(
+                    u => u.Id == usuario.Id,
+                    Builders<Usuario>.Update.Set(u => u.LastLoginAt, DateTime.UtcNow)
+                );
+                usuario.LastLoginAt = DateTime.UtcNow;
+
                 // Gera JWT
                 string token = isCasal
                     ? _authService.GerarTokenCasal(usuario, pessoa)
@@ -73,81 +80,17 @@ namespace CasalPlanner.API.Controllers
 
                 _logger.LogInformation("Login realizado com sucesso: {Email}", dto.Email);
 
-                // ========== CONSTRUIR RESPOSTA COMPLETA SEM SENHA ==========
-                
-                if (usuario.TipoConta == TipoConta.Casal && usuario.CasalInfo != null)
-                {
-                    // Converter DateTime para string de forma segura
-                    string dataNascimentoPessoa1 = usuario.CasalInfo.DataNascimentoPessoa1 == DateTime.MinValue
-                        ? null
-                        : usuario.CasalInfo.DataNascimentoPessoa1.ToString("yyyy-MM-dd");
-                    
-                    string dataNascimentoPessoa2 = usuario.CasalInfo.DataNascimentoPessoa2 == DateTime.MinValue
-                        ? null
-                        : usuario.CasalInfo.DataNascimentoPessoa2.ToString("yyyy-MM-dd");
+                var usuarioMapeado = isCasal
+                    ? UsuarioMapper.MapearCasal(usuario, pessoa)
+                    : UsuarioMapper.MapearIndividual(usuario);
 
-                    // Resposta para conta CASAL
-                    return Ok(new
-                    {
-                        success = true,
-                        message = "Login realizado com sucesso",
-                        token,
-                        usuario = new
-                        {
-                            id = usuario.Id,
-                            tipoConta = "Casal",
-                            isCasal = true,
-                            modoEscuro = usuario.ModoEscuro,
-                            rendaMensal = usuario.RendaMensal,
-                            createdAt = usuario.CreatedAt,
-                            lastLoginAt = usuario.LastLoginAt,
-                            pessoaLogada = pessoa,
-                            pessoa1 = new
-                            {
-                                nomeCompleto = usuario.CasalInfo.NomeCompletoPessoa1,
-                                email = usuario.CasalInfo.EmailPessoa1,
-                                cpf = usuario.CasalInfo.CPFPessoa1,
-                                dataNascimento = dataNascimentoPessoa1,
-                                rendaMensal = usuario.CasalInfo.RendaMensalPessoa1
-                            },
-                            pessoa2 = new
-                            {
-                                nomeCompleto = usuario.CasalInfo.NomeCompletoPessoa2,
-                                email = usuario.CasalInfo.EmailPessoa2,
-                                cpf = usuario.CasalInfo.CPFPessoa2,
-                                dataNascimento = dataNascimentoPessoa2,
-                                rendaMensal = usuario.CasalInfo.RendaMensalPessoa2
-                            }
-                        }
-                    });
-                }
-                else
+                return Ok(new
                 {
-                    // DataNascimento é DateTime? (nullable) - pode usar ?.
-                    string dataNascimento = usuario.DataNascimento?.ToString("yyyy-MM-dd");
-
-                    // Resposta para conta INDIVIDUAL
-                    return Ok(new
-                    {
-                        success = true,
-                        message = "Login realizado com sucesso",
-                        token,
-                        usuario = new
-                        {
-                            id = usuario.Id,
-                            nomeCompleto = usuario.NomeCompleto,
-                            email = usuario.Email,
-                            cpf = usuario.CPF,
-                            dataNascimento = dataNascimento,
-                            rendaMensal = usuario.RendaMensal,
-                            tipoConta = "Individual",
-                            isCasal = false,
-                            modoEscuro = usuario.ModoEscuro,
-                            createdAt = usuario.CreatedAt,
-                            lastLoginAt = usuario.LastLoginAt
-                        }
-                    });
-                }
+                    success = true,
+                    message = "Login realizado com sucesso",
+                    token,
+                    usuario = usuarioMapeado
+                });
             }
             catch (Exception ex)
             {
@@ -177,66 +120,11 @@ namespace CasalPlanner.API.Controllers
             if (usuario == null)
                 return NotFound();
 
-            if (usuario.TipoConta == TipoConta.Casal && usuario.CasalInfo != null)
-            {
-                // Converter DateTime para string de forma segura
-                string dataNascimentoPessoa1 = usuario.CasalInfo.DataNascimentoPessoa1 == DateTime.MinValue
-                    ? null
-                    : usuario.CasalInfo.DataNascimentoPessoa1.ToString("yyyy-MM-dd");
-                
-                string dataNascimentoPessoa2 = usuario.CasalInfo.DataNascimentoPessoa2 == DateTime.MinValue
-                    ? null
-                    : usuario.CasalInfo.DataNascimentoPessoa2.ToString("yyyy-MM-dd");
+            var usuarioMapeado = usuario.TipoConta == TipoConta.Casal
+                ? UsuarioMapper.MapearCasal(usuario)
+                : UsuarioMapper.MapearIndividual(usuario);
 
-                return Ok(new
-                {
-                    id = usuario.Id,
-                    nomeCompleto = usuario.NomeCompleto,
-                    email = usuario.Email,
-                    tipoConta = "Casal",
-                    isCasal = true,
-                    modoEscuro = usuario.ModoEscuro,
-                    rendaMensal = usuario.RendaMensal,
-                    createdAt = usuario.CreatedAt,
-                    casalInfo = new
-                    {
-                        pessoa1 = new
-                        {
-                            nomeCompleto = usuario.CasalInfo.NomeCompletoPessoa1,
-                            email = usuario.CasalInfo.EmailPessoa1,
-                            cpf = usuario.CasalInfo.CPFPessoa1,
-                            dataNascimento = dataNascimentoPessoa1,
-                            rendaMensal = usuario.CasalInfo.RendaMensalPessoa1
-                        },
-                        pessoa2 = new
-                        {
-                            nomeCompleto = usuario.CasalInfo.NomeCompletoPessoa2,
-                            email = usuario.CasalInfo.EmailPessoa2,
-                            cpf = usuario.CasalInfo.CPFPessoa2,
-                            dataNascimento = dataNascimentoPessoa2,
-                            rendaMensal = usuario.CasalInfo.RendaMensalPessoa2
-                        }
-                    }
-                });
-            }
-
-            // DataNascimento é DateTime? (nullable) - pode usar ?.
-            string dataNascimento = usuario.DataNascimento?.ToString("yyyy-MM-dd");
-
-            return Ok(new
-            {
-                id = usuario.Id,
-                nomeCompleto = usuario.NomeCompleto,
-                email = usuario.Email,
-                cpf = usuario.CPF,
-                dataNascimento = dataNascimento,
-                rendaMensal = usuario.RendaMensal,
-                tipoConta = "Individual",
-                isCasal = false,
-                modoEscuro = usuario.ModoEscuro,
-                createdAt = usuario.CreatedAt,
-                lastLoginAt = usuario.LastLoginAt
-            });
+            return Ok(usuarioMapeado);
         }
     }
 }

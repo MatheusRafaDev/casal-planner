@@ -6,7 +6,10 @@ const TOKEN_KEY = 'casal_planner_token';
 const PESSOA_KEY = 'casal_planner_pessoa';
 
 // No Expo, as variáveis de ambiente devem começar com EXPO_PUBLIC_
-const EXPO_API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+const EXPO_API_URL = process.env.EXPO_PUBLIC_API_URL;
+if (!EXPO_API_URL) {
+  throw new Error('EXPO_PUBLIC_API_URL não está configurada. Defina no arquivo .env antes de buildar.');
+}
 const BASE_URL = EXPO_API_URL.endsWith('/api') ? EXPO_API_URL : `${EXPO_API_URL}/api`;
 
 console.log('🌐 API URL:', BASE_URL);

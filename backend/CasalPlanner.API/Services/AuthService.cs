@@ -95,6 +95,9 @@ namespace CasalPlanner.API.Services
         {
             try
             {
+                if (string.Equals(dto.EmailPessoa1, dto.EmailPessoa2, StringComparison.OrdinalIgnoreCase))
+                    return null;
+
                 var existe1 = await _context.Usuarios
                     .Find(u => u.Email == dto.EmailPessoa1 ||
                               (u.CasalInfo != null && u.CasalInfo.EmailPessoa1 == dto.EmailPessoa1) ||
@@ -270,7 +273,7 @@ namespace CasalPlanner.API.Services
                 updates.Add(update.Set(u => u.CasalInfo!.DataNascimentoPessoa2, dto.DataNascimentoPessoa2.Value));
             if (dto.RendaMensalPessoa2.HasValue)
                 updates.Add(update.Set(u => u.CasalInfo!.RendaMensalPessoa2, dto.RendaMensalPessoa2.Value));
-            if (dto.RendaMensal.HasValue)
+            if (dto.RendaMensalPessoa1.HasValue || dto.RendaMensalPessoa2.HasValue)
             {
                 var renda1 = dto.RendaMensalPessoa1 ?? usuario.CasalInfo?.RendaMensalPessoa1 ?? 0;
                 var renda2 = dto.RendaMensalPessoa2 ?? usuario.CasalInfo?.RendaMensalPessoa2 ?? 0;
@@ -407,8 +410,7 @@ namespace CasalPlanner.API.Services
             var senhaHash = BCrypt.Net.BCrypt.HashPassword(novaSenha, workFactor: 12);
             
             var update = Builders<Usuario>.Update
-                .Set(u => u.SenhaHash, senhaHash)
-                .Set(u => u.LastLoginAt, null);
+                .Set(u => u.SenhaHash, senhaHash);
 
             var result = await _context.Usuarios.UpdateOneAsync(
                 u => u.Id == usuarioId && u.TipoConta == TipoConta.Individual,
@@ -609,14 +611,12 @@ namespace CasalPlanner.API.Services
             if (pessoa == "pessoa1")
             {
                 update = Builders<Usuario>.Update
-                    .Set(u => u.CasalInfo!.SenhaHashPessoa1, senhaHash)
-                    .Set(u => u.LastLoginAt, null);
+                    .Set(u => u.CasalInfo!.SenhaHashPessoa1, senhaHash);
             }
             else if (pessoa == "pessoa2")
             {
                 update = Builders<Usuario>.Update
-                    .Set(u => u.CasalInfo!.SenhaHashPessoa2, senhaHash)
-                    .Set(u => u.LastLoginAt, null);
+                    .Set(u => u.CasalInfo!.SenhaHashPessoa2, senhaHash);
             }
             else
             {

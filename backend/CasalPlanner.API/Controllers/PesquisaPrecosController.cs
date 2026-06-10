@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using CasalPlanner.API.Services;
 
 namespace CasalPlanner.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class PesquisaPrecosController : ControllerBase

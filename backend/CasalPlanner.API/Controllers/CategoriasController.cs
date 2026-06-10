@@ -127,10 +127,7 @@ public class CategoriasController : ControllerBase
 
             var filterExistente = Builders<Categoria>.Filter.And(
                 Builders<Categoria>.Filter.Eq(c => c.Id, id),
-                Builders<Categoria>.Filter.Or(
-                    Builders<Categoria>.Filter.Eq(c => c.UsuarioId, usuarioId),
-                    Builders<Categoria>.Filter.Eq(c => c.IsPadrao, true)
-                )
+                Builders<Categoria>.Filter.Eq(c => c.UsuarioId, usuarioId)
             );
 
             var categoriaExistente = await _context.Categorias
@@ -169,10 +166,7 @@ public class CategoriasController : ControllerBase
 
             var filterUpdate = Builders<Categoria>.Filter.And(
                 Builders<Categoria>.Filter.Eq(c => c.Id, id),
-                Builders<Categoria>.Filter.Or(
-                    Builders<Categoria>.Filter.Eq(c => c.UsuarioId, usuarioId),
-                    Builders<Categoria>.Filter.Eq(c => c.IsPadrao, true)
-                )
+                Builders<Categoria>.Filter.Eq(c => c.UsuarioId, usuarioId)
             );
 
             var categoriaAtualizada = await _context.Categorias.FindOneAndUpdateAsync<Categoria>(

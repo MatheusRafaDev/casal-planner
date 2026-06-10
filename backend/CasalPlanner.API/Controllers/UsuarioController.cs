@@ -3,6 +3,7 @@ using CasalPlanner.API.Models;
 using CasalPlanner.API.Models.DTOs;
 using CasalPlanner.API.Services;
 using CasalPlanner.API.Data;
+using CasalPlanner.API.Helpers;
 using MongoDB.Driver;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
@@ -85,58 +86,6 @@ public class UsuarioController : ControllerBase
         await _context.Categorias.InsertManyAsync(categoriasPadrao);
     }
 
-    // ========== MÉTODOS DE MAPEAMENTO SEGUROS ==========
-
-    private object MapearUsuarioIndividualParaResposta(Usuario usuario)
-    {
-        return new
-        {
-            id = usuario.Id,
-            nomeCompleto = usuario.NomeCompleto,
-            email = usuario.Email,
-            cpf = usuario.CPF,
-            dataNascimento = usuario.DataNascimento,
-            rendaMensal = usuario.RendaMensal,
-            tipoConta = "Individual",
-            isCasal = false,
-            modoEscuro = usuario.ModoEscuro,
-            createdAt = usuario.CreatedAt,
-            lastLoginAt = usuario.LastLoginAt
-        };
-    }
-
-    private object MapearUsuarioCasalParaResposta(Usuario usuario, string? pessoaQueLogou = null, string? emailLogado = null)
-    {
-        // Criar uma cópia segura do CasalInfo sem os hashes de senha
-        var casalInfoSeguro = usuario.CasalInfo == null ? null : new
-        {
-            usuario.CasalInfo.NomeCompletoPessoa1,
-            usuario.CasalInfo.EmailPessoa1,
-            usuario.CasalInfo.CPFPessoa1,
-            usuario.CasalInfo.DataNascimentoPessoa1,
-            usuario.CasalInfo.RendaMensalPessoa1,
-            usuario.CasalInfo.NomeCompletoPessoa2,
-            usuario.CasalInfo.EmailPessoa2,
-            usuario.CasalInfo.CPFPessoa2,
-            usuario.CasalInfo.DataNascimentoPessoa2,
-            usuario.CasalInfo.RendaMensalPessoa2,
-            usuario.CasalInfo.CreatedAt,
-            usuario.CasalInfo.UpdatedAt
-        };
-
-        return new
-        {
-            id = usuario.Id,
-            tipoConta = "Casal",
-            isCasal = true,
-            rendaMensal = usuario.RendaMensal,
-            casalInfo = casalInfoSeguro,
-            modoEscuro = usuario.ModoEscuro,
-            createdAt = usuario.CreatedAt,
-            lastLoginAt = usuario.LastLoginAt
-        };
-    }
-
     // ========== ENDPOINTS PÚBLICOS (REGISTRO) ==========
 
     [AllowAnonymous]
@@ -161,20 +110,7 @@ public class UsuarioController : ControllerBase
             success = true,
             message = "Registro realizado com sucesso",
             token = token,
-            usuario = new
-            {
-                id = usuario.Id!,
-                nomeCompleto = usuario.NomeCompleto ?? "",
-                email = usuario.Email ?? "",
-                cpf = usuario.CPF,
-                dataNascimento = usuario.DataNascimento?.ToString("yyyy-MM-dd"),
-                rendaMensal = usuario.RendaMensal,
-                tipoConta = usuario.TipoConta.ToString(),
-                isCasal = usuario.IsCasal,
-                modoEscuro = usuario.ModoEscuro,
-                createdAt = usuario.CreatedAt,
-                lastLoginAt = usuario.LastLoginAt
-            }
+            usuario = UsuarioMapper.MapearIndividual(usuario)
         });
     }
 
@@ -215,32 +151,7 @@ public class UsuarioController : ControllerBase
             success = true,
             message = "Registro de casal realizado com sucesso",
             token = token,
-            usuario = new
-            {
-                id = usuario.Id!,
-                tipoConta = "Casal",
-                isCasal = true,
-                modoEscuro = true,
-                rendaMensal = usuario.RendaMensal,
-                createdAt = usuario.CreatedAt,
-                pessoaLogada = "pessoa1",
-                pessoa1 = new
-                {
-                    nomeCompleto = usuario.CasalInfo?.NomeCompletoPessoa1,
-                    email = usuario.CasalInfo?.EmailPessoa1,
-                    cpf = usuario.CasalInfo?.CPFPessoa1,
-                    dataNascimento = usuario.CasalInfo?.DataNascimentoPessoa1.ToString("yyyy-MM-dd"),
-                    rendaMensal = usuario.CasalInfo?.RendaMensalPessoa1
-                },
-                pessoa2 = new
-                {
-                    nomeCompleto = usuario.CasalInfo?.NomeCompletoPessoa2,
-                    email = usuario.CasalInfo?.EmailPessoa2,
-                    cpf = usuario.CasalInfo?.CPFPessoa2,
-                    dataNascimento = usuario.CasalInfo?.DataNascimentoPessoa2.ToString("yyyy-MM-dd"),
-                    rendaMensal = usuario.CasalInfo?.RendaMensalPessoa2
-                }
-            }
+            usuario = UsuarioMapper.MapearCasal(usuario, "pessoa1")
         });
     }
     [Authorize]
@@ -255,51 +166,11 @@ public class UsuarioController : ControllerBase
         if (usuario == null)
             return NotFound();
 
-        if (usuario.TipoConta == TipoConta.Casal)
-        {
-            // Safely access CasalInfo with null-conditional operator
-            var casalInfo = usuario.CasalInfo;
+        var usuarioMapeado = usuario.TipoConta == TipoConta.Casal
+            ? UsuarioMapper.MapearCasal(usuario)
+            : UsuarioMapper.MapearIndividual(usuario);
 
-            return Ok(new
-            {
-                usuario.Id,
-                usuario.NomeCompleto,
-                usuario.Email,
-                usuario.TipoConta,
-                usuario.IsCasal,
-                usuario.ModoEscuro,
-                usuario.RendaMensal,
-                CasalInfo = casalInfo == null ? null : new
-                {
-                    casalInfo.NomeCompletoPessoa1,
-                    casalInfo.EmailPessoa1,
-                    casalInfo.CPFPessoa1,
-                    DataNascimentoPessoa1 = casalInfo.DataNascimentoPessoa1.ToString("yyyy-MM-dd"),
-                    casalInfo.RendaMensalPessoa1,
-                    casalInfo.NomeCompletoPessoa2,
-                    casalInfo.EmailPessoa2,
-                    casalInfo.CPFPessoa2,
-                    DataNascimentoPessoa2 = casalInfo.DataNascimentoPessoa2.ToString("yyyy-MM-dd"),
-                    casalInfo.RendaMensalPessoa2,
-                    casalInfo.CreatedAt
-                }
-            });
-        }
-        else
-        {
-            return Ok(new
-            {
-                usuario.Id,
-                usuario.NomeCompleto,
-                usuario.Email,
-                usuario.TipoConta,
-                usuario.IsCasal,
-                usuario.ModoEscuro,
-                usuario.RendaMensal,
-                usuario.CPF,
-                DataNascimento = usuario.DataNascimento?.ToString("yyyy-MM-dd")
-            });
-        }
+        return Ok(usuarioMapeado);
     }
 
     [Authorize]

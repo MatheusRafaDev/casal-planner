@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using CasalPlanner.API.Models.Validations;
 
 namespace CasalPlanner.API.Models.DTOs
 {
@@ -31,8 +32,7 @@ namespace CasalPlanner.API.Models.DTOs
         public string Senha { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "CPF é obrigatório")]
-        [RegularExpression(@"^\d{3}\.\d{3}\.\d{3}-\d{2}$|^\d{11}$", 
-            ErrorMessage = "CPF inválido. Use formato 000.000.000-00 ou 00000000000")]
+        [CpfValido(ErrorMessage = "CPF inválido")]
         public string CPF { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Data de nascimento é obrigatória")]
@@ -63,7 +63,7 @@ namespace CasalPlanner.API.Models.DTOs
         public string SenhaPessoa1 { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "CPF da primeira pessoa é obrigatório")]
-        [RegularExpression(@"^\d{3}\.\d{3}\.\d{3}-\d{2}$|^\d{11}$")]
+        [CpfValido(ErrorMessage = "CPF inválido")]
         public string CPFPessoa1 { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Data de nascimento da primeira pessoa é obrigatória")]
@@ -88,7 +88,7 @@ namespace CasalPlanner.API.Models.DTOs
         public string SenhaPessoa2 { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "CPF da segunda pessoa é obrigatório")]
-        [RegularExpression(@"^\d{3}\.\d{3}\.\d{3}-\d{2}$|^\d{11}$")]
+        [CpfValido(ErrorMessage = "CPF inválido")]
         public string CPFPessoa2 { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Data de nascimento da segunda pessoa é obrigatória")]
