@@ -4,25 +4,20 @@ namespace CasalPlanner.API.Models.Validations
 {
     public class CpfValidoAttribute : ValidationAttribute
     {
-        public override ValidationResult? IsValid(object? value)
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
             if (value == null || string.IsNullOrEmpty(value.ToString()))
                 return new ValidationResult("CPF é obrigatório");
 
             var cpf = value.ToString()!;
-
-            // Remove pontos, traços e espaços
             var cpfLimpo = new string(cpf.Where(char.IsDigit).ToArray());
 
-            // Verifica se tem exatamente 11 dígitos
             if (cpfLimpo.Length != 11)
                 return new ValidationResult("CPF deve ter 11 dígitos");
 
-            // Rejeita CPFs com todos os dígitos iguais
             if (cpfLimpo.Distinct().Count() == 1)
                 return new ValidationResult("CPF inválido");
 
-            // Calcula e valida o 1º dígito verificador
             var soma = 0;
             for (int i = 0; i < 9; i++)
                 soma += int.Parse(cpfLimpo[i].ToString()) * (10 - i);
@@ -33,7 +28,6 @@ namespace CasalPlanner.API.Models.Validations
             if (digito1 != int.Parse(cpfLimpo[9].ToString()))
                 return new ValidationResult("CPF inválido");
 
-            // Calcula e valida o 2º dígito verificador
             soma = 0;
             for (int i = 0; i < 10; i++)
                 soma += int.Parse(cpfLimpo[i].ToString()) * (11 - i);
