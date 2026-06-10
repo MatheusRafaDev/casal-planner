@@ -4,7 +4,7 @@ namespace CasalPlanner.API.Models.Validations
 {
     public class CpfValidoAttribute : ValidationAttribute
     {
-        protected override ValidationResult? IsValid(object? value)
+        public override ValidationResult? IsValid(object? value)
         {
             if (value == null || string.IsNullOrEmpty(value.ToString()))
                 return new ValidationResult("CPF é obrigatório");
