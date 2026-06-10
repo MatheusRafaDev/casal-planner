@@ -51,7 +51,7 @@ const WishlistPublica = () => {
   };
 
   const handleCancelarReserva = async (itemId) => {
-    if (!confirm('Tem certeza que deseja cancelar esta reserva?')) return;
+    if (!window.confirm('Tem certeza que deseja cancelar esta reserva?')) return;
     try {
       await wishlistService.cancelarReserva(slug, itemId, nomePresente);
       await loadWishlist();
