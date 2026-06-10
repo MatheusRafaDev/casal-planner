@@ -11,10 +11,12 @@ namespace CasalPlanner.API.Controllers
     public class WishlistController : ControllerBase
     {
         private readonly IWishlistService _wishlistService;
+        private readonly ILogger<WishlistController> _logger;
 
-        public WishlistController(IWishlistService wishlistService)
+        public WishlistController(IWishlistService wishlistService, ILogger<WishlistController> logger)
         {
             _wishlistService = wishlistService;
+            _logger = logger;
         }
 
         private string GetUsuarioId()
@@ -36,7 +38,8 @@ namespace CasalPlanner.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                _logger.LogError(ex, "Erro ao obter wishlist pública por slug");
+                return BadRequest(new { error = "Erro ao buscar wishlist. Tente novamente mais tarde." });
             }
         }
 
@@ -53,7 +56,8 @@ namespace CasalPlanner.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                _logger.LogError(ex, "Erro ao reservar item");
+                return BadRequest(new { error = "Erro ao reservar item. Tente novamente mais tarde." });
             }
         }
 
@@ -70,7 +74,8 @@ namespace CasalPlanner.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                _logger.LogError(ex, "Erro ao cancelar reserva");
+                return BadRequest(new { error = "Erro ao cancelar reserva. Tente novamente mais tarde." });
             }
         }
 
@@ -92,7 +97,8 @@ namespace CasalPlanner.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                _logger.LogError(ex, "Erro ao obter wishlist privada do usuário");
+                return BadRequest(new { error = "Erro ao buscar wishlist. Tente novamente mais tarde." });
             }
         }
 
@@ -112,11 +118,13 @@ namespace CasalPlanner.API.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { error = ex.Message });
+                _logger.LogError(ex, "Erro de argumento ao criar wishlist");
+                return BadRequest(new { error = "Dados inválidos para criar wishlist." });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                _logger.LogError(ex, "Erro ao criar wishlist");
+                return BadRequest(new { error = "Erro ao criar wishlist. Tente novamente mais tarde." });
             }
         }
 
@@ -138,7 +146,8 @@ namespace CasalPlanner.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                _logger.LogError(ex, "Erro ao atualizar wishlist");
+                return BadRequest(new { error = "Erro ao atualizar wishlist. Tente novamente mais tarde." });
             }
         }
 
@@ -153,7 +162,8 @@ namespace CasalPlanner.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                _logger.LogError(ex, "Erro ao verificar disponibilidade de slug");
+                return BadRequest(new { error = "Erro ao verificar disponibilidade. Tente novamente mais tarde." });
             }
         }
     }

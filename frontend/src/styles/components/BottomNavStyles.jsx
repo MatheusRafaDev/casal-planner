@@ -9,11 +9,15 @@ export const NavBar = styled.nav`
     bottom: 0;
     left: 0;
     right: 0;
+    /* CORREÇÃO iPhone: safe area inset para home indicator */
     padding-bottom: env(safe-area-inset-bottom, 0px);
     background: ${p => p.theme.surface};
     border-top: 1px solid ${p => p.theme.border};
     box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.08);
     z-index: 80;
+    /* CORREÇÃO iPhone: efeito de blur nativo iOS */
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    backdrop-filter: blur(12px) saturate(180%);
   }
 `;
 
@@ -38,6 +42,8 @@ export const NavItem = styled.button`
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   position: relative;
+  /* CORREÇÃO iPhone: tap target mínimo de 44px (HIG Apple) */
+  min-height: 44px;
 
   &:active {
     background: ${p => p.$active 

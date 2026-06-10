@@ -75,8 +75,10 @@ export const SkeletonBadge = styled(Shimmer)`
 // ─── Layout ──────────────────────────────────────────────────────────────────
 
 export const PerfilContainer = styled.div`
+  /* CORREÇÃO iPhone: sequência completa de fallback para viewport height */
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
   background: ${p => p.theme.background};
   padding: 2rem 1.5rem 4rem;
   max-width: 1200px;
@@ -84,10 +86,12 @@ export const PerfilContainer = styled.div`
   animation: ${fadeUp} 0.4s ease both;
 
   @media (max-width: 768px) { 
-    padding: 1.25rem 1rem calc(60px + env(safe-area-inset-bottom, 0px) + 1.25rem); 
+    /* CORREÇÃO iPhone: safe area inset para conteúdo mobile com BottomNav */
+    padding: 1.25rem 1rem calc(60px + env(safe-area-inset-bottom, 16px) + 1.25rem); 
   }
   @media (max-width: 640px) { 
-    padding: 1rem 0.875rem calc(60px + env(safe-area-inset-bottom, 0px) + 1rem); 
+    /* CORREÇÃO iPhone: safe area inset para conteúdo mobile com BottomNav */
+    padding: 1rem 0.875rem calc(60px + env(safe-area-inset-bottom, 16px) + 1rem); 
   }
 `;
 
@@ -393,7 +397,8 @@ export const Input = styled.input`
   background: ${p => p.theme.background};
   border: 1.5px solid ${p => p.theme.border};
   border-radius: 0.75rem;
-  font-size: 0.9375rem;
+  /* CORREÇÃO iPhone: font-size 16px evita zoom automático no iOS */
+  font-size: 16px !important;
   color: ${p => p.theme.text};
   transition: all 0.18s ease;
   box-sizing: border-box;

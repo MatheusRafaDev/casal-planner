@@ -95,7 +95,7 @@ namespace CasalPlanner.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro no login para {Email}", dto.Email);
-                return StatusCode(500, new { success = false, message = "Erro interno no servidor", error = ex.Message });
+                return StatusCode(500, new { success = false, message = "Erro interno no servidor" });
             }
         }
 

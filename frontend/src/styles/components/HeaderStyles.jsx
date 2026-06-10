@@ -247,10 +247,14 @@ export const HeaderContainer = styled.header`
   position: sticky;
   top: 0;
   z-index: 90;
+  /* CORREÇÃO iPhone: safe area inset para notch/dynamic island */
   padding-top: env(safe-area-inset-top, 0px);
   background: ${props => props.theme.surface};
   border-bottom: 1px solid ${props => props.theme.border};
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  /* CORREÇÃO iPhone: efeito de blur nativo iOS */
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  backdrop-filter: blur(12px) saturate(180%);
 
   /* Esconde completamente no mobile */
   @media (max-width: 768px) {

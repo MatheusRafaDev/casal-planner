@@ -15,12 +15,14 @@ namespace CasalPlanner.API.Controllers
         private readonly GroqService _groqService;
         private readonly IResumoService _resumoService;
         private readonly MongoDbContext _context;
+        private readonly ILogger<GroqController> _logger;
 
-        public GroqController(GroqService groqService, IResumoService resumoService, MongoDbContext context)
+        public GroqController(GroqService groqService, IResumoService resumoService, MongoDbContext context, ILogger<GroqController> logger)
         {
             _groqService = groqService;
             _resumoService = resumoService;
             _context = context;
+            _logger = logger;
         }
 
         private string GetUsuarioId()
@@ -52,7 +54,8 @@ namespace CasalPlanner.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                _logger.LogError(ex, "Erro ao sugerir itens por cômodo");
+                return BadRequest(new { error = "Erro ao gerar sugestões. Tente novamente mais tarde." });
             }
         }
 
@@ -79,7 +82,8 @@ namespace CasalPlanner.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                _logger.LogError(ex, "Erro ao detectar duplicata");
+                return BadRequest(new { error = "Erro ao detectar duplicata. Tente novamente mais tarde." });
             }
         }
 
@@ -96,7 +100,8 @@ namespace CasalPlanner.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                _logger.LogError(ex, "Erro ao estimar orçamento");
+                return BadRequest(new { error = "Erro ao estimar orçamento. Tente novamente mais tarde." });
             }
         }
 
@@ -127,7 +132,8 @@ namespace CasalPlanner.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                _logger.LogError(ex, "Erro ao gerar resumo do enxoval");
+                return BadRequest(new { error = "Erro ao gerar resumo. Tente novamente mais tarde." });
             }
         }
     }

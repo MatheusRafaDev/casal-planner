@@ -19,8 +19,10 @@ const pulse = keyframes`
 // ─── Layout ──────────────────────────────────────────────────────────────────
 
 export const Container = styled.div`
+  /* CORREÇÃO iPhone: sequência completa de fallback para viewport height */
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -212,7 +214,8 @@ export const Input = styled.input`
   background: ${p => p.theme.background};
   border: 1.5px solid ${p => p.error ? p.theme.error : p.theme.border};
   border-radius: 0.875rem;
-  font-size: 0.9375rem;
+  /* CORREÇÃO iPhone: font-size 16px evita zoom automático no iOS */
+  font-size: 16px !important;
   color: ${p => p.theme.text};
   transition: all 0.18s ease;
   box-sizing: border-box;

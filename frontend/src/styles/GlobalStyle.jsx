@@ -12,8 +12,8 @@ const GlobalStyle = createGlobalStyle`
     /* Impede o iOS de aumentar fonte ao rotacionar */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    /* Usa toda a tela incluindo notch/dynamic island */
-    height: -webkit-fill-available;
+    /* CORREÇÃO iPhone: html deve usar height: 100%, não -webkit-fill-available */
+    height: 100%;
   }
 
   body {
@@ -25,8 +25,9 @@ const GlobalStyle = createGlobalStyle`
     color: ${({ theme }) => theme?.text || '#333'};
     transition: background-color 0.3s, color 0.3s;
     overflow-x: hidden;
-    /* Compatível com iOS: altura mínima real da viewport */
+    /* CORREÇÃO iPhone: sequência completa de fallback para viewport height */
     min-height: 100vh;
+    min-height: 100dvh;
     min-height: -webkit-fill-available;
     /* NÃO coloca padding-bottom aqui — o MainContent já cuida */
   }

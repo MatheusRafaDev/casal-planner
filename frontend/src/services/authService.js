@@ -29,6 +29,7 @@ class AuthService {
 
       return response.data;
     } catch (error) {
+      console.error('Erro ao fazer login:', error);
       throw error;
     }
   }

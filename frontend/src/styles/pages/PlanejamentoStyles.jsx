@@ -20,13 +20,17 @@ export const skeletonPulse = keyframes`
 
 // Container principal — SEM animation aqui, era a causa do scroll reset
 export const PlanejamentoContainer = styled.div`
+  /* CORREÇÃO iPhone: sequência completa de fallback para viewport height */
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
   background: ${props => props.theme?.background || "#f8fafc"};
   padding: 1rem;
 
   @media (max-width: 768px) {
     padding: 0.75rem;
+    /* CORREÇÃO iPhone: safe area inset para conteúdo mobile com BottomNav */
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 16px) + 1rem);
   }
 `;
 

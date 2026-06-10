@@ -5,8 +5,10 @@ export const LoadingScreen = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  height: 100dvh;
+  /* CORREÇÃO iPhone: sequência completa de fallback para viewport height */
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
   background: ${props => props.theme.background};
   color: ${props => props.theme.primary};
   font-size: 1.2rem;
@@ -24,10 +26,13 @@ export const LoadingScreen = styled.div`
 `;
 
 export const AppContainer = styled.div`
+  /* CORREÇÃO iPhone: sequência completa de fallback para viewport height */
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
   background: ${({ theme }) => theme.background};
   transition: background 0.3s ease;
+  /* CORREÇÃO iPhone: removido overflow: hidden para não cortar conteúdo quando teclado sobe */
 `;
 
 export const MainContent = styled.main`
@@ -37,10 +42,14 @@ export const MainContent = styled.main`
 
   @media (max-width: 768px) {
     padding: 1rem 15px;
+    /* CORREÇÃO iPhone: safe area inset para conteúdo mobile com BottomNav */
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 16px) + 0.75rem);
   }
 
   @media (max-width: 480px) {
     padding: 0.75rem 12px;
+    /* CORREÇÃO iPhone: safe area inset para conteúdo mobile com BottomNav */
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 16px) + 0.75rem);
   }
 `;
 
@@ -64,7 +73,8 @@ export const PageTransition = styled.div`
 export const ScrollContainer = styled.div`
   scroll-behavior: smooth;
   overflow-y: auto;
-  max-height: calc(100vh - 80px);
+  /* CORREÇÃO iPhone: usar dvh para recalcular quando teclado sobe */
+  max-height: calc(100dvh - 80px);
 
   &::-webkit-scrollbar {
     width: 8px;

@@ -2,10 +2,17 @@ import styled from 'styled-components';
 
 
 export const Container = styled.div`
+  /* CORREÇÃO iPhone: sequência completa de fallback para viewport height */
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
   background: ${props => props.theme.background};
   color: ${props => props.theme.text};
+  
+  @media (max-width: 768px) {
+    /* CORREÇÃO iPhone: safe area inset para conteúdo mobile com BottomNav */
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 16px) + 0.75rem);
+  }
 `;
 
 

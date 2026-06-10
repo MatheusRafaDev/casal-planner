@@ -139,8 +139,13 @@ export const categoriasService = {
   },
 
   async reordenar(categoriaIds) {
-    const response = await api.put('/categorias/reordenar', { categoriaIds });
-    invalidarCacheCategorias();
-    return response.data;
+    try {
+      const response = await api.put('/categorias/reordenar', { categoriaIds });
+      invalidarCacheCategorias();
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao reordenar categorias:', error);
+      throw error;
+    }
   },
 };

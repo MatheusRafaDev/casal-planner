@@ -27,7 +27,8 @@ export const ModalContainer = styled.div`
   border-radius: 1.5rem;
   width: 90%;
   max-width: 500px;
-  max-height: 100vh;
+  /* CORREÇÃO iPhone: usar dvh para recalcular quando teclado sobe */
+  max-height: 100dvh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -49,7 +50,8 @@ export const ModalContainer = styled.div`
     width: 100%;
     max-width: 100%;
     border-radius: 1.5rem 1.5rem 0 0;
-    max-height: 90vh;
+    /* CORREÇÃO iPhone: usar dvh para recalcular quando teclado sobe */
+    max-height: 90dvh;
     animation: slideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
 
     @keyframes slideUp {

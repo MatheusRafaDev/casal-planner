@@ -39,13 +39,16 @@ const StyledThemeWrapper = () => {
         <AppRoutes />
       </ConfirmProvider>
       <Toaster 
-        position="top-right"
+        /* CORREÇÃO iPhone: top-center evita notch, top-right fica atrás */
+        position="top-center"
         toastOptions={{
           style: {
             background: theme.surface,
             color: theme.text,
           },
         }}
+        /* CORREÇÃO iPhone: safe area inset para notch/dynamic island */
+        containerStyle={{ top: 'max(16px, env(safe-area-inset-top, 16px))' }}
       />
     </StyledThemeProvider>
   );

@@ -1,8 +1,10 @@
 import styled from 'styled-components';
 
 export const LoginContainer = styled.div`
+  /* CORREÇÃO iPhone: sequência completa de fallback para viewport height */
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -16,8 +18,10 @@ export const LoginCard = styled.div`
   padding: 2rem;
   width: 100%;
   max-width: 500px;
+  /* CORREÇÃO iPhone: usar dvh para recalcular quando teclado sobe */
   max-height: 90dvh;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* CORREÇÃO iPhone: safe area inset para home indicator */
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
   overflow-y: auto;
   box-shadow: ${props => props.theme.shadowCard};
   animation: slideUp 0.3s ease;

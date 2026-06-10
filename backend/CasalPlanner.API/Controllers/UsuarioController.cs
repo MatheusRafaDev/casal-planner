@@ -99,8 +99,15 @@ public class UsuarioController : ControllerBase
         // Criar categorias padrão para o novo usuário
         await CriarCategoriasPadrao(usuario.Id!);
 
-        // ENVIAR EMAIL DE BOAS-VINDAS
-        await _emailService.EnviarEmailBoasVindas(usuario.Email!, usuario.NomeCompleto ?? "Usuário", false);
+        // ENVIAR EMAIL DE BOAS-VINDAS (não interrompe o registro se falhar)
+        try
+        {
+            await _emailService.EnviarEmailBoasVindas(usuario.Email!, usuario.NomeCompleto ?? "Usuário", false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao enviar email de boas-vindas para {Email}", usuario.Email);
+        }
 
         var token = _authService.GerarToken(usuario);
 
@@ -129,18 +136,32 @@ public class UsuarioController : ControllerBase
 
         await CriarCategoriasPadrao(usuario.Id!);
 
-        // ENVIAR EMAIL DE BOAS-VINDAS PARA AMBAS AS PESSOAS
+        // ENVIAR EMAIL DE BOAS-VINDAS PARA AMBAS AS PESSOAS (não interrompe o registro se falhar)
         if (usuario.CasalInfo != null)
         {
-            await _emailService.EnviarEmailBoasVindas(
-                usuario.CasalInfo.EmailPessoa1,
-                usuario.CasalInfo.NomeCompletoPessoa1 ?? "Usuário",
-                true);
+            try
+            {
+                await _emailService.EnviarEmailBoasVindas(
+                    usuario.CasalInfo.EmailPessoa1,
+                    usuario.CasalInfo.NomeCompletoPessoa1 ?? "Usuário",
+                    true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao enviar email de boas-vindas para pessoa1: {Email}", usuario.CasalInfo.EmailPessoa1);
+            }
 
-            await _emailService.EnviarEmailBoasVindas(
-                usuario.CasalInfo.EmailPessoa2,
-                usuario.CasalInfo.NomeCompletoPessoa2 ?? "Usuário",
-                true);
+            try
+            {
+                await _emailService.EnviarEmailBoasVindas(
+                    usuario.CasalInfo.EmailPessoa2,
+                    usuario.CasalInfo.NomeCompletoPessoa2 ?? "Usuário",
+                    true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao enviar email de boas-vindas para pessoa2: {Email}", usuario.CasalInfo.EmailPessoa2);
+            }
         }
 
         var token = _authService.GerarTokenCasal(usuario, "pessoa1");

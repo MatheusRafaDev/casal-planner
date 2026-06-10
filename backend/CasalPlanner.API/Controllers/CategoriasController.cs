@@ -53,7 +53,7 @@ public class CategoriasController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao buscar categorias");
-            return StatusCode(500, new { error = ex.Message });
+            return StatusCode(500, new { error = "Erro ao buscar categorias. Tente novamente mais tarde." });
         }
     }
 
@@ -82,7 +82,7 @@ public class CategoriasController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao buscar categoria {Id}", id);
-            return StatusCode(500, new { error = ex.Message });
+            return StatusCode(500, new { error = "Erro ao buscar categoria. Tente novamente mais tarde." });
         }
     }
 
@@ -112,7 +112,7 @@ public class CategoriasController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao criar categoria");
-            return StatusCode(500, new { error = ex.Message });
+            return StatusCode(500, new { error = "Erro ao criar categoria. Tente novamente mais tarde." });
         }
     }
 
@@ -183,7 +183,7 @@ public class CategoriasController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao atualizar categoria {Id}", id);
-            return StatusCode(500, new { error = ex.Message });
+            return StatusCode(500, new { error = "Erro ao atualizar categoria. Tente novamente mais tarde." });
         }
     }
 
@@ -214,7 +214,7 @@ public class CategoriasController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao deletar categoria {Id}", id);
-            return StatusCode(500, new { error = ex.Message });
+            return StatusCode(500, new { error = "Erro ao deletar categoria. Tente novamente mais tarde." });
         }
     }
 
@@ -236,7 +236,7 @@ public class CategoriasController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao buscar categorias do usuário");
-            return StatusCode(500, new { error = ex.Message });
+            return StatusCode(500, new { error = "Erro ao buscar categorias. Tente novamente mais tarde." });
         }
     }
 
@@ -271,7 +271,7 @@ public class CategoriasController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao reordenar categorias");
-            return StatusCode(500, new { error = ex.Message });
+            return StatusCode(500, new { error = "Erro ao reordenar categorias. Tente novamente mais tarde." });
         }
     }
 }
