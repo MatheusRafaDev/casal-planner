@@ -47,7 +47,7 @@
 
 ## 🎯 Sobre o Projeto
 
-O **Casal Planner** nasceu de uma necessidade real: organizar as compras de quem está montando a primeira casa. O app permite que duas pessoas (ou uma só) planejem, acompanhem e controlem gastos domésticos de forma colaborativa, com suporte a dois tipos de pagamento — dinheiro normal e VR/VA — e um painel de pesquisa de preços que usa IA para validar produtos e lojas em tempo real.
+O **Casal Planner** nasceu de uma necessidade real: organizar as compras de quem está montando a primeira casa. O app permite que duas pessoas (ou uma só) planejem, acompanhem e controlem gastos domésticos de forma colaborativa, com suporte a dois tipos de pagamento dinheiro normal e VR/VA e um painel de pesquisa de preços que usa IA para validar produtos e lojas em tempo real.
 
 **Público-alvo:**
 - Casais montando a primeira casa
