@@ -7,7 +7,6 @@ using CasalPlanner.API.Helpers;
 using MongoDB.Driver;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using CasalPlanner.API.Models.DTOs.CasalPlanner.API.Models.DTOs;
 
 namespace CasalPlanner.API.Controllers;
 
