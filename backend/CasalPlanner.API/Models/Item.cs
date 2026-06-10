@@ -30,4 +30,10 @@ public class Item
     public string Loja { get; set; } = string.Empty;
     public string LinkProduto { get; set; } = "";
     public string FotoUrl { get; set; } = "";
+
+    public string Origem { get; set; } = "comprado";
+    public string? OrigemDescricao { get; set; }
+    public string Fase { get; set; } = "primeiro_mes";
+    public List<ItemVariante> Variantes { get; set; } = new();
+    public string? VarianteSelecionadaId { get; set; }
 }

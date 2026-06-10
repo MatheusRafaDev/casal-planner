@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, ClipboardList, User } from 'lucide-react';
+import { Home, ClipboardList, User, Gift } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -23,7 +23,7 @@ const BottomNav = () => {
   const items = [
     { path: '/inicio', icon: Home, label: 'Início' },
     { path: '/planejamento', icon: ClipboardList, label: 'Planejamento' },
-
+    { path: '/wishlist', icon: Gift, label: 'Presentes' },
     { path: '/perfil', icon: User, label: 'Perfil' },
   ];
 

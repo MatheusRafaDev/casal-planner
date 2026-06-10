@@ -136,6 +136,20 @@ namespace CasalPlanner.API.Controllers
             catch (UnauthorizedAccessException) { return Unauthorized(); }
             catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
         }
+
+        [HttpPut("{id}/variantes")]
+        public async Task<IActionResult> AtualizarVariantes(string id, [FromBody] AtualizarVariantesDto dto)
+        {
+            try
+            {
+                var usuarioId = GetUsuarioId();
+                var item = await _itemService.AtualizarVariantes(id, dto.Variantes, dto.VarianteSelecionadaId, usuarioId);
+                if (item == null) return NotFound();
+                return Ok(item);
+            }
+            catch (UnauthorizedAccessException) { return Unauthorized(); }
+            catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
+        }
     }
 }
 

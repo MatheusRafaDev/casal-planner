@@ -28,6 +28,11 @@ namespace CasalPlanner.API.Models.DTOs
         public string LinkProduto { get; set; } = string.Empty;
         public string FotoUrl { get; set; } = string.Empty;
 
+        public string Origem { get; set; } = "comprado";
+        public string? OrigemDescricao { get; set; }
+        public string Fase { get; set; } = "primeiro_mes";
+        public List<ItemVariante> Variantes { get; set; } = new();
+        public string? VarianteSelecionadaId { get; set; }
     }
 
     public class UpdateCompradoDto
@@ -54,6 +59,11 @@ namespace CasalPlanner.API.Models.DTOs
         public string? Loja { get; set; }
         public string? LinkProduto { get; set; }
         public string? FotoUrl { get; set; }
+        public string? Origem { get; set; }
+        public string? OrigemDescricao { get; set; }
+        public string? Fase { get; set; }
+        public List<ItemVariante>? Variantes { get; set; }
+        public string? VarianteSelecionadaId { get; set; }
     }
 
 
@@ -85,6 +95,12 @@ namespace CasalPlanner.API.Models.DTOs
     public class UpdateCategoriaDto
     {
         public string CategoriaId { get; set; } = string.Empty;
+    }
+
+    public class AtualizarVariantesDto
+    {
+        public List<ItemVariante> Variantes { get; set; } = new();
+        public string? VarianteSelecionadaId { get; set; }
     }
 
 }

@@ -14,15 +14,22 @@ const ResumoCards = ({ resumo = {}, theme = {} }) => {
   const totalVR = resumo.totalVR ?? 0;
   const vrPago = resumo.vrPago ?? 0;
   const vrRestante = resumo.vrRestante ?? totalVR - vrPago;
-  
+
   const totalNormal = resumo.totalNormal ?? 0;
   const normalPago = resumo.normalPago ?? 0;
   const normalRestante = resumo.normalRestante ?? totalNormal - normalPago;
-  
+
   const totalGeral = resumo.totalGeral ?? totalVR + totalNormal;
   const totalPago = resumo.totalPago ?? vrPago + normalPago;
   const totalRestante = resumo.totalRestante ?? totalGeral - totalPago;
   const totalComprados = resumo.totalComprados ?? 0;
+
+  // Extrair valores do enxoval
+  const enxoval = resumo.enxoval ?? {};
+  const percentualConcluido = enxoval.percentualConcluido ?? 0;
+  const totalEconomizado = enxoval.totalEconomizado ?? 0;
+  const porFase = enxoval.porFase ?? {};
+  const porOrigem = enxoval.porOrigem ?? {};
 
   // Cores do tema (com fallbacks)
   const colors = {
@@ -58,6 +65,31 @@ const ResumoCards = ({ resumo = {}, theme = {} }) => {
   const IconCheck = () => (
     <S.IconSm viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M20 6L9 17l-5-5" />
+    </S.IconSm>
+  );
+
+  const IconProgress = () => (
+    <S.IconSm viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 6v6l4 2" />
+    </S.IconSm>
+  );
+
+  const IconGift = () => (
+    <S.IconSm viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M20 12v10H4V12" />
+      <path d="M2 7h20v5H2z" />
+      <path d="M12 22V7" />
+      <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+      <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+    </S.IconSm>
+  );
+
+  const IconBox = () => (
+    <S.IconSm viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+      <line x1="12" y1="22.08" x2="12" y2="12" />
     </S.IconSm>
   );
 
@@ -162,6 +194,100 @@ const ResumoCards = ({ resumo = {}, theme = {} }) => {
           <S.InfoLabel>📦 Itens comprados</S.InfoLabel>
           <S.InfoValue $color={colors.info}>
             {totalComprados} itens
+          </S.InfoValue>
+        </S.InfoRow>
+      </S.CardFull>
+
+      {/* Card Progresso */}
+      <S.Card $color={colors.primary}>
+        <S.CardTitle>
+          <IconProgress />
+          Progresso
+          <S.Badge $color={colors.primary}>Enxoval</S.Badge>
+        </S.CardTitle>
+
+        <S.MainValue $color={colors.primary}>
+          <span>{fmt(percentualConcluido)}%</span>
+        </S.MainValue>
+
+        <S.Divider />
+
+        <S.InfoRow>
+          <S.InfoLabel>Concluído</S.InfoLabel>
+          <S.InfoValue $color={colors.success}>
+            {fmt(percentualConcluido)}%
+          </S.InfoValue>
+        </S.InfoRow>
+
+        <S.InfoRow>
+          <S.InfoLabel>⏱️ Restante</S.InfoLabel>
+          <S.InfoValue $color={colors.warning}>
+            {fmt(100 - percentualConcluido)}%
+          </S.InfoValue>
+        </S.InfoRow>
+      </S.Card>
+
+      {/* Card Economia */}
+      <S.Card $color={colors.success}>
+        <S.CardTitle>
+          <IconGift />
+          Economia
+          <S.Badge $color={colors.success}>Presentes</S.Badge>
+        </S.CardTitle>
+
+        <S.MainValue $color={colors.success}>
+          <span>R$ </span>{fmt(totalEconomizado)}
+        </S.MainValue>
+
+        <S.Divider />
+
+        <S.InfoRow>
+          <S.InfoLabel>🎁 Economizado</S.InfoLabel>
+          <S.InfoValue $color={colors.success}>
+            R$ {fmt(totalEconomizado)}
+          </S.InfoValue>
+        </S.InfoRow>
+
+        <S.InfoRow>
+          <S.InfoLabel>📊 Origem</S.InfoLabel>
+          <S.InfoValue $color={colors.info}>
+            {porOrigem.presente ? porOrigem.presente.quantidade : 0} presentes
+          </S.InfoValue>
+        </S.InfoRow>
+      </S.Card>
+
+      {/* Card Por Fase */}
+      <S.CardFull $color={colors.info}>
+        <S.CardTitle>
+          <IconBox />
+          Por Fase
+        </S.CardTitle>
+
+        <S.InfoRow>
+          <S.InfoLabel>📦 1º mês</S.InfoLabel>
+          <S.InfoValue $color={colors.primary}>
+            {porFase.primeiro_mes ? fmt(porFase.primeiro_mes.total) : 'R$ 0,00'}
+          </S.InfoValue>
+        </S.InfoRow>
+
+        <S.InfoRow>
+          <S.InfoLabel>📦 2º mês</S.InfoLabel>
+          <S.InfoValue $color={colors.primary}>
+            {porFase.segundo_mes ? fmt(porFase.segundo_mes.total) : 'R$ 0,00'}
+          </S.InfoValue>
+        </S.InfoRow>
+
+        <S.InfoRow>
+          <S.InfoLabel>📦 3º mês</S.InfoLabel>
+          <S.InfoValue $color={colors.primary}>
+            {porFase.terceiro_mes ? fmt(porFase.terceiro_mes.total) : 'R$ 0,00'}
+          </S.InfoValue>
+        </S.InfoRow>
+
+        <S.InfoRow>
+          <S.InfoLabel>📅 Depois</S.InfoLabel>
+          <S.InfoValue $color={colors.primary}>
+            {porFase.depois ? fmt(porFase.depois.total) : 'R$ 0,00'}
           </S.InfoValue>
         </S.InfoRow>
       </S.CardFull>

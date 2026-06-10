@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { itensService } from '../services/itensService';
+import { groqService } from '../services/groqService';
 import { useItemValidation } from '../hooks/useItemValidation';
 import { usePriceFormat } from '../hooks/usePriceFormat';
 import { showToast } from '../utils/toastUtils';
@@ -43,6 +44,11 @@ pagamento: "normal",
   loja: "",
   linkProduto: "",
   fotoUrl: "",
+  origem: "comprado",
+  origemDescricao: "",
+  fase: "primeiro_mes",
+  variantes: [],
+  varianteSelecionadaId: null,
 };
 
 const PRIORIDADE_LABEL = {
@@ -54,6 +60,20 @@ const PRIORIDADE_LABEL = {
 const PAGAMENTO_LABEL = {
   normal: { label: "Normal", emoji: "💵", color: "#3b82f6", bg: "#3b82f618" },
   vr:     { label: "VR/VA",  emoji: "🍽️", color: "#f59e0b", bg: "#f59e0b18" },
+};
+
+const ORIGEM_LABEL = {
+  comprado: { label: "Comprar", emoji: "🛒", color: "#3b82f6", bg: "#3b82f618" },
+  presente: { label: "Presente", emoji: "🎁", color: "#ec4899", bg: "#ec489918" },
+  herdado: { label: "Herdado", emoji: "🏠", color: "#8b5cf6", bg: "#8b5cf618" },
+  alugado: { label: "Alugar", emoji: "🔑", color: "#f59e0b", bg: "#f59e0b18" },
+};
+
+const FASE_LABEL = {
+  primeiro_mes: { label: "1º mês", emoji: "📦", color: "#3b82f6", bg: "#3b82f618" },
+  segundo_mes: { label: "2º mês", emoji: "📦", color: "#8b5cf6", bg: "#8b5cf618" },
+  terceiro_mes: { label: "3º mês", emoji: "📦", color: "#ec4899", bg: "#ec489918" },
+  depois: { label: "Depois", emoji: "📅", color: "#6b7280", bg: "#6b728018" },
 };
 
 const fmtData = (iso) =>
@@ -213,6 +233,9 @@ const ItemFormModal = ({
   const submissionRef = useRef(false);
   const nomeInputRef = useRef(null);
   const mountedRef = useRef(true);
+  const [duplicataAlert, setDuplicataAlert] = useState(null);
+  const [showVariantes, setShowVariantes] = useState(false);
+  const debounceRef = useRef(null);
 
   const {
     errors, touched, validarFormulario, handleBlur,
@@ -251,6 +274,11 @@ setFormData({
           linkProduto: itemParaEditar.linkProduto || "",
           fotoUrl:     itemParaEditar.fotoUrl || "",
           createdAt:   itemParaEditar.createdAt || null,
+          origem:      itemParaEditar.origem || "comprado",
+          origemDescricao: itemParaEditar.origemDescricao || "",
+          fase:        itemParaEditar.fase || "primeiro_mes",
+          variantes:   itemParaEditar.variantes || [],
+          varianteSelecionadaId: itemParaEditar.varianteSelecionadaId || null,
         });
         if (itemParaEditar.preco !== undefined && itemParaEditar.preco !== null) {
           setPrecoRaw(Number(itemParaEditar.preco) || 0);
@@ -348,6 +376,29 @@ setFormData({
     handleBlur("preco", formData.preco);
   }, [isSubmitting, loading, handlePriceBlur, handleBlur, formData.preco]);
 
+  const handleNomeChange = useCallback((e) => {
+    const value = e.target.value;
+    handleInputChange(e);
+    setDuplicataAlert(null);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      if (value.trim().length >= 3) {
+        try {
+          const result = await groqService.detectarDuplicata(value.trim());
+          if (result && result.detectado) {
+            setDuplicataAlert({
+              message: result.mensagem || `Possível duplicata: ${result.itemSimilar}`,
+              itemSimilar: result.itemSimilar
+            });
+          }
+        } catch (err) {
+          console.error("Erro ao detectar duplicata:", err);
+        }
+      }
+    }, 800);
+  }, [handleInputChange]);
+
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     if (isSubmitting || loading || submissionRef.current) return;
@@ -385,6 +436,11 @@ setFormData({
         loja:        formData.loja?.trim() || "",
         linkProduto: formData.linkProduto?.trim() || "",
         fotoUrl:     formData.fotoUrl?.trim() || "",
+        origem:      formData.origem || "comprado",
+        origemDescricao: formData.origemDescricao?.trim() || "",
+        fase:        formData.fase || "primeiro_mes",
+        variantes:   formData.variantes || [],
+        varianteSelecionadaId: formData.varianteSelecionadaId || null,
       };
       if (isEditing && formData.id) dadosParaEnvio.id = formData.id;
 
@@ -435,7 +491,7 @@ setFormData({
               <Input
                 ref={nomeInputRef}
                 type="text" name="nome" value={formData.nome || ""}
-                onChange={handleInputChange}
+                onChange={handleNomeChange}
                 onBlur={() => handleBlur('nome', formData.nome)}
                 placeholder="Ex: iPhone 15, Camisa Polo, Livro..."
                 theme={theme}
@@ -443,6 +499,23 @@ setFormData({
                 maxLength={100} disabled={loading || isSubmitting} autoComplete="off"
               />
               {errors.nome && touched.nome && <ErrorMessage theme={theme}>{errors.nome}</ErrorMessage>}
+              {duplicataAlert && (
+                <div style={{
+                  marginTop: "0.5rem",
+                  padding: "0.6rem 0.8rem",
+                  borderRadius: "0.4rem",
+                  background: "#fef3c7",
+                  border: "1px solid #f59e0b",
+                  fontSize: "0.85rem",
+                  color: "#92400e",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "0.5rem",
+                }}>
+                  <span style={{ fontSize: "1rem" }}>⚠️</span>
+                  <span>{duplicataAlert.message}</span>
+                </div>
+              )}
             </FormGroup>
 
             {/* Marca + Preço */}
@@ -532,6 +605,74 @@ setFormData({
                 </Select>
               </FormGroup>
             </TwoColumnGrid>
+
+            {/* Origem + Fase */}
+            <TwoColumnGrid>
+              <FormGroup>
+                <Label theme={theme}>Como vai adquirir?</Label>
+                <Select value={formData.origem || "comprado"} onChange={e => handleFieldChange("origem", e.target.value)}
+                  theme={theme} disabled={loading || isSubmitting}>
+                  <option value="comprado">🛒 Comprar</option>
+                  <option value="presente">🎁 Presente</option>
+                  <option value="herdado">🏠 Herdado</option>
+                  <option value="alugado">🔑 Alugar</option>
+                </Select>
+              </FormGroup>
+
+              <FormGroup>
+                <Label theme={theme}>Fase da mudança</Label>
+                <Select value={formData.fase || "primeiro_mes"} onChange={e => handleFieldChange("fase", e.target.value)}
+                  theme={theme} disabled={loading || isSubmitting}>
+                  <option value="primeiro_mes">📦 1º mês</option>
+                  <option value="segundo_mes">📦 2º mês</option>
+                  <option value="terceiro_mes">📦 3º mês</option>
+                  <option value="depois">📅 Depois</option>
+                </Select>
+              </FormGroup>
+            </TwoColumnGrid>
+
+            {/* Origem Descrição (apenas se não for comprado) */}
+            {formData.origem !== "comprado" && (
+              <FormGroup>
+                <Label theme={theme}>Descrição da origem</Label>
+                <Input
+                  type="text" name="origemDescricao" value={formData.origemDescricao || ""}
+                  onChange={handleInputChange}
+                  placeholder={formData.origem === "presente" ? "Quem vai presentear?" : "Mais detalhes..."}
+                  theme={theme}
+                  maxLength={200} disabled={loading || isSubmitting} autoComplete="off"
+                />
+              </FormGroup>
+            )}
+
+            {/* Variantes - Collapsible */}
+            <FormGroup>
+              <div style={{
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                marginBottom: "0.5rem", cursor: "pointer",
+              }} onClick={() => setShowVariantes(!showVariantes)}>
+                <Label theme={theme} style={{ margin: 0, cursor: "pointer" }}>
+                  Comparar versões {formData.variantes?.length > 0 ? `(${formData.variantes.length})` : ""}
+                </Label>
+                <span style={{ fontSize: "1.2rem", color: theme?.text || "#666" }}>
+                  {showVariantes ? "−" : "+"}
+                </span>
+              </div>
+              {showVariantes && (
+                <div style={{
+                  padding: "1rem", borderRadius: "0.5rem",
+                  background: theme?.bg || "#f9fafb",
+                  border: `1px solid ${theme?.border || "#e5e7eb"}`,
+                }}>
+                  <p style={{ fontSize: "0.85rem", color: theme?.textSecondary || "#6b7280", marginBottom: "0.5rem" }}>
+                    Adicione diferentes versões para comparar preços e características.
+                  </p>
+                  <p style={{ fontSize: "0.8rem", color: theme?.textSecondary || "#6b7280" }}>
+                    (Funcionalidade em breve)
+                  </p>
+                </div>
+              )}
+            </FormGroup>
 
             {/* Botões */}
             <ModalButtons>

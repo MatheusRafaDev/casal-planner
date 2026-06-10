@@ -197,6 +197,7 @@ builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IResumoService, ResumoService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IRecuperarSenhaService, RecuperarSenhaService>();
+builder.Services.AddScoped<IWishlistService, WishlistService>();
 
 builder.Services.AddMemoryCache(); 
 builder.Services.AddControllers();
@@ -385,6 +386,26 @@ try
                 .Descending(c => c.IsPadrao)
                 .Ascending(c => c.Nome),
             new CreateIndexOptions { Name = "idx_categorias_usuario_padrao_nome", Background = true }),
+    });
+
+    await dbContext.Wishlists.Indexes.CreateManyAsync(new[]
+    {
+        new CreateIndexModel<WishlistPublica>(
+            Builders<WishlistPublica>.IndexKeys.Ascending(w => w.Slug),
+            new CreateIndexOptions { Name = "idx_wishlist_slug", Unique = true, Background = true }),
+        new CreateIndexModel<WishlistPublica>(
+            Builders<WishlistPublica>.IndexKeys.Ascending(w => w.UsuarioId),
+            new CreateIndexOptions { Name = "idx_wishlist_usuarioId", Background = true }),
+    });
+
+    await dbContext.Itens.Indexes.CreateManyAsync(new[]
+    {
+        new CreateIndexModel<Item>(
+            Builders<Item>.IndexKeys.Ascending(i => i.Origem),
+            new CreateIndexOptions { Name = "idx_itens_origem", Background = true }),
+        new CreateIndexModel<Item>(
+            Builders<Item>.IndexKeys.Ascending(i => i.Fase),
+            new CreateIndexOptions { Name = "idx_itens_fase", Background = true }),
     });
 
     Console.WriteLine("✅ Índices verificados com sucesso");

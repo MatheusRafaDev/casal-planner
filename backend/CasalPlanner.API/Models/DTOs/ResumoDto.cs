@@ -12,6 +12,10 @@ namespace CasalPlanner.API.Models.DTOs
         public int TotalItens { get; set; }
         public Dictionary<string, decimal> PorCategoria { get; set; } = new();
         public Dictionary<string, int> QuantidadePorCategoria { get; set; } = new();
+        public Dictionary<string, decimal> PorFase { get; set; } = new();
+        public Dictionary<string, decimal> PorOrigem { get; set; } = new();
+        public decimal TotalEconomizado { get; set; }
+        public decimal PercentualConcluido { get; set; }
     }
 
     public class ComparativoDto
@@ -23,9 +27,21 @@ namespace CasalPlanner.API.Models.DTOs
         public decimal PercentualGeral { get; set; }
     }
 
+    public class ResumoEnxovalDto
+    {
+        public decimal? MetaGlobalEnxoval { get; set; }
+        public decimal PercentualMetaGlobal { get; set; }
+        public decimal TotalRestanteParaMeta { get; set; }
+        public int TotalItensComprados { get; set; }
+        public int TotalItensPendentes { get; set; }
+        public string? FaseComMaisGasto { get; set; }
+        public decimal TotalEconomizadoComPresentes { get; set; }
+    }
+
     public class ResumoResponseDto
     {
         public ResumoDto Atual { get; set; } = new();
         public ComparativoDto Comparativo { get; set; } = new();
+        public ResumoEnxovalDto Enxoval { get; set; } = new();
     }
 }

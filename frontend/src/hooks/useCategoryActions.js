@@ -29,7 +29,7 @@ export const useCategoryActions = (categoria, itens, theme, onDeleteCategoria, o
     if (onEditCategoria) {
       onEditCategoria(categoria);
     }
-  }, [categoria, theme, onEditCategoria]);
+  }, [categoria, onEditCategoria]);
 
   return {
     handleDeleteCategoria,

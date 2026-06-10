@@ -242,7 +242,7 @@ namespace CasalPlanner.API.Controllers
         private static string ExtractLink(JsonElement item)
         {
             if (item.TryGetProperty("link", out var link) && 
-                !link.GetString()?.Contains("google.com/shopping") == true)
+                link.GetString()?.Contains("google.com/shopping") == false)
                 return link.GetString() ?? "";
             
             if (item.TryGetProperty("product_link", out var productLink))

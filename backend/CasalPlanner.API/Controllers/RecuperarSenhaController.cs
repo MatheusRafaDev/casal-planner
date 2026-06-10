@@ -6,6 +6,7 @@ using CasalPlanner.API.Models.DTOs;
 using CasalPlanner.API.Services;
 using CasalPlanner.API.Data;
 using MongoDB.Driver;
+using System.Security.Cryptography;
 
 namespace CasalPlanner.API.Controllers;
 
@@ -513,11 +514,8 @@ public class RecuperarSenhaController : ControllerBase
     /// <summary>
     /// Gerar código de 6 dígitos
     /// </summary>
-    private string GerarCodigoVerificacao()
-    {
-        var random = new Random();
-        return random.Next(100000, 999999).ToString();
-    }
+    private string GerarCodigoVerificacao() =>
+        (RandomNumberGenerator.GetInt32(100000, 1000000)).ToString();
 
     /// <summary>
     /// Gerar token único

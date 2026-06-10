@@ -11,6 +11,7 @@ public class MongoDbContext
     private readonly IMongoCollection<Usuario> _usuarios;
     private readonly IMongoCollection<Categoria> _categorias;
     private readonly IMongoCollection<Item> _itens;
+    private readonly IMongoCollection<WishlistPublica> _wishlists;
 
     public MongoDbContext(IOptions<MongoDBSettings> settings)
     {
@@ -20,11 +21,13 @@ public class MongoDbContext
         _usuarios = _database.GetCollection<Usuario>("Usuarios");
         _categorias = _database.GetCollection<Categoria>("Categorias");
         _itens = _database.GetCollection<Item>("Itens");
+        _wishlists = _database.GetCollection<WishlistPublica>("Wishlists");
     }
 
     public IMongoCollection<Usuario> Usuarios => _usuarios;
     public IMongoCollection<Categoria> Categorias => _categorias;
     public IMongoCollection<Item> Itens => _itens;
+    public IMongoCollection<WishlistPublica> Wishlists => _wishlists;
 
     public async Task SeedDataAsync()
     {
@@ -120,7 +123,7 @@ public class MongoDbContext
             },
             new() {
                 Nome = "Quarto",
-                Bg = "#2c528",
+                Bg = "#2c5280",
                 Icon = "🛏️",
                 IsPadrao = true,
                 UsuarioId = casal.Id!,

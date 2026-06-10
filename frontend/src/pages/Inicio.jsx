@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { categoriasService } from '../services/categoriasService';
 import { itensService } from '../services/itensService';
+import { groqService } from '../services/groqService';
 import resumoService from '../services/resumoService';
 import { formatarMoeda } from '../utils/formatters';
 import { exportarParaPDF } from '../utils/pdfExport';
@@ -60,6 +61,10 @@ const Inicio = () => {
   const [itens, setItens] = useState([]);
   const [resumoData, setResumoData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sugestoesIA, setSugestoesIA] = useState(null);
+  const [resumoNarrativo, setResumoNarrativo] = useState(null);
+  const [estimativaComodo, setEstimativaComodo] = useState(null);
+  const [loadingAI, setLoadingAI] = useState(false);
 
 
   // ✅ Função para obter o nome do usuário
@@ -100,6 +105,40 @@ const Inicio = () => {
     };
     carregar();
   }, []);
+
+  // Load AI features after initial data is loaded
+  useEffect(() => {
+    if (!loading && itens.length > 0 && !loadingAI) {
+      const carregarAI = async () => {
+        setLoadingAI(true);
+        try {
+          // Get AI suggestions for the first category
+          const primeiraCategoria = categorias[0];
+          if (primeiraCategoria) {
+            const itensNomes = itens.filter(i => i.categoriaId === primeiraCategoria.id).map(i => i.nome);
+            const sugestoes = await groqService.sugerirItens(primeiraCategoria.nome);
+            setSugestoesIA(sugestoes);
+          }
+
+          // Get narrative summary
+          const resumo = await groqService.gerarResumoEnxoval();
+          setResumoNarrativo(resumo?.resumo);
+
+          // Get room estimate for the first category
+          if (primeiraCategoria) {
+            const cidade = usuario?.enderecoNovaCasa?.cidade || 'São Paulo';
+            const estimativa = await groqService.estimarOrcamento(primeiraCategoria.nome, cidade);
+            setEstimativaComodo(estimativa);
+          }
+        } catch (err) {
+          console.error('Erro ao carregar recursos IA:', err);
+        } finally {
+          setLoadingAI(false);
+        }
+      };
+      carregarAI();
+    }
+  }, [loading, itens, categorias, usuario]);
 
   /* ========== CÁLCULOS DETALHADOS ========== */
 
@@ -633,6 +672,71 @@ const Inicio = () => {
             </TipText>
           </TipContent>
         </TipCard>
+      )}
+
+      {/* AI Narrative Summary */}
+      {!loading && resumoNarrativo && (
+        <TipCard theme={theme}>
+          <TipIcon>🤖</TipIcon>
+          <TipContent>
+            <TipText theme={theme} style={{ fontStyle: 'italic' }}>
+              {resumoNarrativo}
+            </TipText>
+          </TipContent>
+        </TipCard>
+      )}
+
+      {/* AI Suggestions */}
+      {!loading && sugestoesIA && sugestoesIA.itens && sugestoesIA.itens.length > 0 && (
+        <InfoCard theme={theme}>
+          <SectionTitle theme={theme} style={{ marginBottom: '0.4rem' }}>✨ Sugestões de IA</SectionTitle>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {sugestoesIA.itens.slice(0, 4).map((item, idx) => (
+              <div key={idx} style={{
+                padding: '0.5rem',
+                background: theme.bg,
+                borderRadius: '0.5rem',
+                border: `1px solid ${theme.border}`,
+                fontSize: '0.85rem'
+              }}>
+                <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{item.nome}</div>
+                <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem', color: theme.textLight }}>
+                  <span>{item.categoria}</span>
+                  <span>•</span>
+                  <span>R$ {item.precoMedioEstimado?.toFixed(2) || '---'}</span>
+                  <span>•</span>
+                  <span>{item.prioridade}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </InfoCard>
+      )}
+
+      {/* Room Estimate */}
+      {!loading && estimativaComodo && (
+        <InfoCard theme={theme}>
+          <SectionTitle theme={theme} style={{ marginBottom: '0.4rem' }}>🏠 Estimativa por cômodo</SectionTitle>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: theme.bg, borderRadius: '0.5rem' }}>
+              <span style={{ fontSize: '0.85rem' }}>Básico</span>
+              <span style={{ fontWeight: 600 }}>R$ {estimativaComodo.faixaBasica?.toFixed(2) || '---'}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: theme.bg, borderRadius: '0.5rem' }}>
+              <span style={{ fontSize: '0.85rem' }}>Médio</span>
+              <span style={{ fontWeight: 600 }}>R$ {estimativaComodo.faixaMedia?.toFixed(2) || '---'}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: theme.bg, borderRadius: '0.5rem' }}>
+              <span style={{ fontSize: '0.85rem' }}>Premium</span>
+              <span style={{ fontWeight: 600 }}>R$ {estimativaComodo.faixaPremium?.toFixed(2) || '---'}</span>
+            </div>
+            {estimativaComodo.observacao && (
+              <div style={{ fontSize: '0.75rem', color: theme.textLight, fontStyle: 'italic' }}>
+                {estimativaComodo.observacao}
+              </div>
+            )}
+          </div>
+        </InfoCard>
       )}
 
       {/* Total por categoria */}

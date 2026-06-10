@@ -61,6 +61,8 @@ const Planejamento = () => {
   const [itens, setItens]           = useState([]);
   const [loading, setLoading]       = useState(true);
   const [filter, setFilter]         = useState("all");
+  const [filtroFase, setFiltroFase] = useState(null);
+  const [filtroOrigem, setFiltroOrigem] = useState(null);
 
   const [itemModal, setItemModal] = useState({ isOpen:false, categoriaId:null, itemId:null });
   const [categoriaModal, setCategoriaModal] = useState({ isOpen:false, categoria:null, isEditing:false });
@@ -109,10 +111,29 @@ const Planejamento = () => {
 
   // ─── Memo ────────────────────────────────────────────────────────────────
   const itensFiltrados = useMemo(() => {
-    if (filter==="all") return itens;
-    if (filter==="comprado") return itens.filter(i=>i.comprado===true);
-    return itens.filter(i=>i.pagamento===(filter==="vrva"?"vr":"normal"));
-  }, [itens, filter]);
+    let filtered = itens;
+
+    // Filter by payment type
+    if (filter==="all") {
+      // no filter
+    } else if (filter==="comprado") {
+      filtered = filtered.filter(i=>i.comprado===true);
+    } else {
+      filtered = filtered.filter(i=>i.pagamento===(filter==="vrva"?"vr":"normal"));
+    }
+
+    // Filter by fase
+    if (filtroFase) {
+      filtered = filtered.filter(i=>i.fase===filtroFase);
+    }
+
+    // Filter by origem
+    if (filtroOrigem) {
+      filtered = filtered.filter(i=>i.origem===filtroOrigem);
+    }
+
+    return filtered;
+  }, [itens, filter, filtroFase, filtroOrigem]);
 
   
 
@@ -121,8 +142,8 @@ const Planejamento = () => {
     const payload = { ...dadosDoModal, categoriaId: dadosDoModal.categoriaId || itemModal.categoriaId };
 
     if (itemModal.itemId) {
-      await itensService.update(itemModal.itemId, payload);
-      setItens(prev => prev.map(i => i.id===itemModal.itemId ? {...i,...payload} : i));
+      const atualizado = await itensService.update(itemModal.itemId, payload);
+      setItens(prev => prev.map(i => i.id === itemModal.itemId ? atualizado : i));
     } else {
       const novo = await itensService.create(payload);
       setItens(prev => [novo, ...prev]);
@@ -220,11 +241,9 @@ const Planejamento = () => {
     const newCategorias = arrayMove(categorias, oldIndex, newIndex);
     setCategorias(newCategorias);
 
-    // Update order in database
+    // Update order in database using bulk reordenar endpoint
     try {
-      await Promise.all(newCategorias.map((cat, index) => 
-        categoriasService.update(cat.id, { ...cat, ordem: index })
-      ));
+      await categoriasService.reordenar(newCategorias.map(c => c.id));
     } catch (error) {
       console.error('Failed to update category order:', error);
       // Revert on error
@@ -299,7 +318,7 @@ const Planejamento = () => {
   return (
     <PlanejamentoContainer theme={theme}>
       
-      <Filtros filter={filter} setFilter={setFilter} onAddCategory={handleAddCategoria} theme={theme}/>
+      <Filtros filter={filter} setFilter={setFilter} onAddCategory={handleAddCategoria} theme={theme} filtroFase={filtroFase} setFiltroFase={setFiltroFase} filtroOrigem={filtroOrigem} setFiltroOrigem={setFiltroOrigem}/>
 
       {categorias.length === 0 ? (
         <EmptyStateContainer>

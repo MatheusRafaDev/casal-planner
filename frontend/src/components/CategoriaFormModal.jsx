@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import * as Styled from '../styles/components/CategoriaFormModalStyles';
+import { categoriasService } from '../services/categoriasService';
+import { showToast } from '../utils/toastUtils';
 
 // ========== 24 EMOJIS PADRÃO (menores e mais compactos) ==========
 const ICONS = [
@@ -194,12 +196,12 @@ const CategoriaFormModal = ({
     setTouched({ nome: true, metaOrcamento: true });
     
     if (!isNomeValid) {
-      alert('Por favor, preencha o nome da categoria');
+      showToast.error('Por favor, preencha o nome da categoria', theme);
       return;
     }
     
     if (!isMetaValid) {
-      alert('Meta de orçamento deve ser maior que zero');
+      showToast.error('Meta de orçamento deve ser maior que zero', theme);
       return;
     }
 
@@ -219,24 +221,23 @@ const CategoriaFormModal = ({
         metaOrcamento: metaValue,
       };
 
-      // Simular API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      console.log('Categoria salva:', categoriaData);
-      
-      const successMsg = isEditing 
-        ? `Categoria "${name}" atualizada com sucesso!` 
-        : `Categoria "${name}" criada com sucesso!`;
-      alert(successMsg);
+      let resultado;
+      if (isEditing) {
+        resultado = await categoriasService.update(categoriaParaEditar.id, categoriaData);
+        showToast.success(`Categoria "${name}" atualizada com sucesso!`, theme);
+      } else {
+        resultado = await categoriasService.create(categoriaData);
+        showToast.success(`Categoria "${name}" criada com sucesso!`, theme);
+      }
 
       if (onCategoryAdded) {
-        onCategoryAdded(categoriaData, isEditing);
+        onCategoryAdded(resultado, isEditing);
       }
 
       handleClose();
     } catch (error) {
       console.error('Erro ao salvar categoria:', error);
-      alert(`Erro ao ${isEditing ? 'atualizar' : 'criar'} categoria. Tente novamente.`);
+      showToast.error(`Erro ao ${isEditing ? 'atualizar' : 'criar'} categoria. Tente novamente.`, theme);
     } finally {
       setLoading(false);
     }

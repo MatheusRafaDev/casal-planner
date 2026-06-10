@@ -39,8 +39,15 @@ namespace CasalPlanner.API.Services
                         { "Pagamento",   1 },
                         { "Comprado",    1 },
                         { "Quantidade",  1 },
+                        { "Origem",      1 },
+                        { "Fase",        1 },
                         { "ValorTotal",  new BsonDocument("$multiply",
                             new BsonArray { "$Preco", "$Quantidade" }) },
+                        { "IsMesAtual", new BsonDocument("$and",
+                            new BsonArray {
+                                new BsonDocument("$gte", new BsonArray { "$CreatedAt", new BsonDateTime(inicioMesPassado) }),
+                                new BsonDocument("$lt",  new BsonArray { "$CreatedAt", new BsonDateTime(hoje) })
+                            }) },
                         { "IsMesPassado", new BsonDocument("$and",
                             new BsonArray {
                                 new BsonDocument("$gte", new BsonArray { "$CreatedAt", new BsonDateTime(inicioMesPassado) }),
@@ -75,6 +82,28 @@ namespace CasalPlanner.API.Services
                                 { "ValorTotal",  "$ValorTotal"  },
                                 { "Quantidade",  "$Quantidade"  },
                             }) },
+                        { "PorFase",        new BsonDocument("$push", new BsonDocument
+                            {
+                                { "Fase",        "$Fase"        },
+                                { "ValorTotal",  "$ValorTotal"  },
+                            }) },
+                        { "PorOrigem",      new BsonDocument("$push", new BsonDocument
+                            {
+                                { "Origem",      "$Origem"      },
+                                { "ValorTotal",  "$ValorTotal"  },
+                            }) },
+
+                        // Mês atual
+                        { "MA_TotalGeral",     new BsonDocument("$sum", new BsonDocument("$cond",
+                            new BsonArray { "$IsMesAtual", "$ValorTotal", 0 })) },
+                        { "MA_TotalVR",        new BsonDocument("$sum", new BsonDocument("$cond",
+                            new BsonArray { new BsonDocument("$and", new BsonArray { "$IsMesAtual",
+                                new BsonDocument("$eq", new BsonArray { "$Pagamento", "vr" }) }), "$ValorTotal", 0 })) },
+                        { "MA_TotalNormal",    new BsonDocument("$sum", new BsonDocument("$cond",
+                            new BsonArray { new BsonDocument("$and", new BsonArray { "$IsMesAtual",
+                                new BsonDocument("$eq", new BsonArray { "$Pagamento", "normal" }) }), "$ValorTotal", 0 })) },
+                        { "MA_TotalComprados", new BsonDocument("$sum", new BsonDocument("$cond",
+                            new BsonArray { new BsonDocument("$and", new BsonArray { "$IsMesAtual", "$Comprado" }), 1, 0 })) },
 
                         // Mês passado
                         { "MP_TotalGeral",     new BsonDocument("$sum", new BsonDocument("$cond",
@@ -97,10 +126,32 @@ namespace CasalPlanner.API.Services
                 var cursor = await _context.Itens.AggregateAsync<BsonDocument>(pipeline);
                 var doc    = await cursor.FirstOrDefaultAsync();
 
+                var resumoDto = doc == null ? new ResumoDto() : MontarResumoDto(doc);
+                var comparativoDto = doc == null ? new ComparativoDto() : MontarComparativoDto(doc);
+
+                // Buscar MetaGlobalEnxoval do usuário e montar ResumoEnxovalDto
+                var usuario = await _context.Usuarios.Find(u => u.Id == usuarioId).FirstOrDefaultAsync();
+                var metaGlobalEnxoval = usuario?.MetaGlobalEnxoval;
+                var percentualMetaGlobal = metaGlobalEnxoval > 0 ? Math.Round(resumoDto.TotalGeral / metaGlobalEnxoval.Value * 100, 2) : 0;
+                var totalRestanteParaMeta = Math.Max(0, (metaGlobalEnxoval ?? 0) - resumoDto.TotalGeral);
+                var faseComMaisGasto = resumoDto.PorFase.OrderByDescending(kv => kv.Value).FirstOrDefault().Key;
+
+                var resumoEnxovalDto = new ResumoEnxovalDto
+                {
+                    MetaGlobalEnxoval = metaGlobalEnxoval,
+                    PercentualMetaGlobal = percentualMetaGlobal,
+                    TotalRestanteParaMeta = totalRestanteParaMeta,
+                    TotalItensComprados = resumoDto.TotalComprados,
+                    TotalItensPendentes = resumoDto.TotalItens - resumoDto.TotalComprados,
+                    FaseComMaisGasto = faseComMaisGasto,
+                    TotalEconomizadoComPresentes = resumoDto.TotalEconomizado
+                };
+
                 return new ResumoResponseDto
                 {
-                    Atual       = doc == null ? new ResumoDto()      : MontarResumoDto(doc),
-                    Comparativo = doc == null ? new ComparativoDto() : MontarComparativoDto(doc),
+                    Atual       = resumoDto,
+                    Comparativo = comparativoDto,
+                    Enxoval     = resumoEnxovalDto
                 };
             }
             catch (Exception ex)
@@ -116,6 +167,8 @@ namespace CasalPlanner.API.Services
         {
             var porCategoria           = new Dictionary<string, decimal>();
             var quantidadePorCategoria = new Dictionary<string, int>();
+            var porFase                = new Dictionary<string, decimal>();
+            var porOrigem              = new Dictionary<string, decimal>();
 
             if (doc.TryGetValue("PorCategoria", out var arr) && arr is BsonArray items)
             {
@@ -144,25 +197,88 @@ namespace CasalPlanner.API.Services
                 }
             }
 
+            if (doc.TryGetValue("PorFase", out var faseArr) && faseArr is BsonArray faseItems)
+            {
+                foreach (var element in faseItems)
+                {
+                    if (element is not BsonDocument item) continue;
+
+                    var faseVal = item.GetValue("Fase", BsonNull.Value);
+                    if (faseVal.IsBsonNull) continue;
+                    var fase = faseVal.AsString;
+                    if (string.IsNullOrEmpty(fase)) continue;
+
+                    var valor = ToDecimal(item.GetValue("ValorTotal", 0));
+
+                    if (porFase.ContainsKey(fase))
+                    {
+                        porFase[fase] += valor;
+                    }
+                    else
+                    {
+                        porFase[fase] = valor;
+                    }
+                }
+            }
+
+            if (doc.TryGetValue("PorOrigem", out var origemArr) && origemArr is BsonArray origemItems)
+            {
+                foreach (var element in origemItems)
+                {
+                    if (element is not BsonDocument item) continue;
+
+                    var origemVal = item.GetValue("Origem", BsonNull.Value);
+                    if (origemVal.IsBsonNull) continue;
+                    var origem = origemVal.AsString;
+                    if (string.IsNullOrEmpty(origem)) continue;
+
+                    var valor = ToDecimal(item.GetValue("ValorTotal", 0));
+
+                    if (porOrigem.ContainsKey(origem))
+                    {
+                        porOrigem[origem] += valor;
+                    }
+                    else
+                    {
+                        porOrigem[origem] = valor;
+                    }
+                }
+            }
+
+            var totalGeral = ToDecimal(doc.GetValue("TotalGeral", 0));
+            var totalComprados = doc.GetValue("TotalComprados", 0).ToInt32();
+            var totalItens = doc.GetValue("TotalItens", 0).ToInt32();
+
+            // Calcular TotalEconomizado (soma de itens que não foram comprados pelo casal)
+            var totalEconomizado = porOrigem.ContainsKey("presente") ? porOrigem["presente"] : 0m;
+
+            // Calcular PercentualConcluido
+            var percentualConcluido = totalItens > 0 
+                ? Math.Round((decimal)totalComprados / totalItens * 100, 2) 
+                : 0m;
+
             return new ResumoDto
             {
-                TotalGeral             = ToDecimal(doc.GetValue("TotalGeral",    0)),
+                TotalGeral             = totalGeral,
                 TotalVR                = ToDecimal(doc.GetValue("TotalVR",       0)),
                 TotalNormal            = ToDecimal(doc.GetValue("TotalNormal",   0)),
-                // TotalComprados e TotalItens são int no DTO
-                TotalComprados         = doc.GetValue("TotalComprados", 0).ToInt32(),
-                TotalItens             = doc.GetValue("TotalItens",     0).ToInt32(),
+                TotalComprados         = totalComprados,
+                TotalItens             = totalItens,
                 PorCategoria           = porCategoria,
                 QuantidadePorCategoria = quantidadePorCategoria,
+                PorFase                = porFase,
+                PorOrigem              = porOrigem,
+                TotalEconomizado       = totalEconomizado,
+                PercentualConcluido    = percentualConcluido,
             };
         }
 
         private static ComparativoDto MontarComparativoDto(BsonDocument doc)
         {
-            var atualGeral  = ToDecimal(doc.GetValue("TotalGeral",       0));
-            var atualVR     = ToDecimal(doc.GetValue("TotalVR",          0));
-            var atualNormal = ToDecimal(doc.GetValue("TotalNormal",      0));
-            var atualComp   = ToDecimal(doc.GetValue("TotalComprados",   0));
+            var atualGeral  = ToDecimal(doc.GetValue("MA_TotalGeral",    0));
+            var atualVR     = ToDecimal(doc.GetValue("MA_TotalVR",       0));
+            var atualNormal = ToDecimal(doc.GetValue("MA_TotalNormal",   0));
+            var atualComp   = ToDecimal(doc.GetValue("MA_TotalComprados",0));
 
             var mpGeral     = ToDecimal(doc.GetValue("MP_TotalGeral",    0));
             var mpVR        = ToDecimal(doc.GetValue("MP_TotalVR",       0));

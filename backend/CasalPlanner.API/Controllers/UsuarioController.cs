@@ -422,6 +422,8 @@ public class UsuarioController : ControllerBase
     [HttpDelete("usuario/{id}")]
     public async Task<IActionResult> ExcluirConta(string id)
     {
+        if (id != GetUsuarioId()) return Forbid();
+
         // Buscar usuário antes de excluir para ter os dados do email
         var usuario = await _context.Usuarios.Find(u => u.Id == id).FirstOrDefaultAsync();
 
