@@ -34,6 +34,8 @@ namespace CasalPlanner.API.Models
 
         public CasalInfo? CasalInfo { get; set; }
 
+        public decimal? MetaGlobalEnxoval { get; set; }
+
         public bool ModoEscuro { get; set; } = true;
     }
 
