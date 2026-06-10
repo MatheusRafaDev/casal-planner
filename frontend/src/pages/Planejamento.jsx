@@ -2,6 +2,23 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  TouchSensor,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 import CategoriaCard from "../components/CategoriaCard";
 import CategoriaFormModal from "../components/CategoriaFormModal";
@@ -51,6 +68,23 @@ const Planejamento = () => {
 
   const draggedItemIdRef = useRef(null);
   const savedScrollRef   = useRef(0);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const saveScroll    = useCallback(() => { savedScrollRef.current = window.scrollY; }, []);
   const restoreScroll = useCallback(() => { requestAnimationFrame(() => window.scrollTo({ top:savedScrollRef.current, behavior:"instant" })); }, []);
@@ -174,6 +208,30 @@ const Planejamento = () => {
     }
   }, [itens, saveScroll, restoreScroll]);
 
+  const handleCategoryDragEnd = useCallback(async (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = categorias.findIndex(c => c.id === active.id);
+    const newIndex = categorias.findIndex(c => c.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const newCategorias = arrayMove(categorias, oldIndex, newIndex);
+    setCategorias(newCategorias);
+
+    // Update order in database
+    try {
+      await Promise.all(newCategorias.map((cat, index) => 
+        categoriasService.update(cat.id, { ...cat, ordem: index })
+      ));
+    } catch (error) {
+      console.error('Failed to update category order:', error);
+      // Revert on error
+      setCategorias(categorias);
+    }
+  }, [categorias]);
+
   // ─── Categoria ───────────────────────────────────────────────────────────
   const handleAddCategoria = useCallback(() => setCategoriaModal({ isOpen:true, categoria:null, isEditing:false }), []);
 
@@ -218,7 +276,7 @@ const Planejamento = () => {
       <PlanejamentoContainer theme={theme}>
         <SkeletonWelcomeSection theme={theme}/>
         <div style={{marginBottom:"1.5rem"}}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"1rem"}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(140px, 1fr))",gap:"1rem"}}>
             {[1,2,3,4].map(n=>(
               <div key={n} style={{background:theme.border,borderRadius:"1rem",padding:"1rem",animation:"pulse 1.5s ease-in-out infinite"}}>
                 <div style={{width:"32px",height:"32px",background:theme.surface,borderRadius:"0.75rem",marginBottom:"0.75rem"}}/>
@@ -250,26 +308,37 @@ const Planejamento = () => {
           <EmptyStateButton onClick={handleAddCategoria}>Criar categoria</EmptyStateButton>
         </EmptyStateContainer>
       ) : (
-        <CategoriesGrid>
-          {categorias.map(categoria => (
-            <CategoriaCard
-              key={categoria.id}
-              categoria={categoria}
-              itens={itensFiltrados.filter(i => i.categoriaId === categoria.id)}
-              onAddItem={handleAddItem}
-              onUpdateItem={handleEditItem}
-              onDeleteItem={handleDeleteItem}
-              onDeleteCategoria={handleDeleteCategoria}
-              onEditCategoria={handleEditCategoria}
-              onToggleComprado={handleToggleComprado}
-              onItemDragStart={handleItemDragStart}
-              onItemDragEnd={handleItemDragEnd}
-              onItemDrop={handleItemDrop}
-              draggedItemId={draggedItemIdRef.current ? String(draggedItemIdRef.current) : null}
-              theme={theme}
-            />
-          ))}
-        </CategoriesGrid>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleCategoryDragEnd}
+        >
+          <SortableContext
+            items={categorias.map(c => c.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <CategoriesGrid>
+              {categorias.map(categoria => (
+                <CategoriaCard
+                  key={categoria.id}
+                  categoria={categoria}
+                  itens={itensFiltrados.filter(i => i.categoriaId === categoria.id)}
+                  onAddItem={handleAddItem}
+                  onUpdateItem={handleEditItem}
+                  onDeleteItem={handleDeleteItem}
+                  onDeleteCategoria={handleDeleteCategoria}
+                  onEditCategoria={handleEditCategoria}
+                  onToggleComprado={handleToggleComprado}
+                  onItemDragStart={handleItemDragStart}
+                  onItemDragEnd={handleItemDragEnd}
+                  onItemDrop={handleItemDrop}
+                  draggedItemId={draggedItemIdRef.current ? String(draggedItemIdRef.current) : null}
+                  theme={theme}
+                />
+              ))}
+            </CategoriesGrid>
+          </SortableContext>
+        </DndContext>
       )}
 
       <ItemFormModal

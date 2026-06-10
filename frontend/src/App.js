@@ -6,6 +6,7 @@ import isPropValid from '@emotion/is-prop-valid';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { useAuth } from "./context/AuthContext";  
+import useNetworkStatus from './hooks/useNetworkStatus';
 // Contexts
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
@@ -30,6 +31,7 @@ const ThemeWrapper = ({ children }) => {
 
 const StyledThemeWrapper = () => {
   const { theme } = useTheme();
+  useNetworkStatus();
   return (
     <StyledThemeProvider theme={theme}>
       <GlobalStyle />

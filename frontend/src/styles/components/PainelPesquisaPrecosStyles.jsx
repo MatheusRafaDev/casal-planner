@@ -60,6 +60,12 @@ export const Panel = styled.div`
   overflow: hidden;
   animation: ${fadeSlide} 0.2s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 480px) {
+    max-height: 80dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 `;
 
 export const PanelHeader = styled.div`

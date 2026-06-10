@@ -37,6 +37,7 @@ export const MainContent = styled.main`
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
+  padding-top: 1.5rem;
 
   @media (max-width: 1024px) {
     padding: 1.5rem;
@@ -44,6 +45,7 @@ export const MainContent = styled.main`
 
   @media (max-width: 768px) {
     padding: 0.5rem;
+    padding-top: 0.5rem;
     /* Espaço para o BottomNav (60px) + safe area */
     padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px) + 0.5rem);
   }

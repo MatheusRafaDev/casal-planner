@@ -113,20 +113,6 @@ export const CategoriesGrid = styled.div`
   }
 `;
 
-// Drag wrapper
-export const DragCardWrapper = styled.div`
-  transition: all 0.3s ease;
-  opacity: ${props => (props.$isDragging ? 0.5 : 1)};
-  transform: ${props => props.$isDragOver ? 'scale(1.02)' : 'scale(1)'};
-  border: ${props => props.$isDragOver ? `2px dashed ${props.theme?.primary || "#3b82f6"}` : 'none'};
-  border-radius: 1.25rem;
-  cursor: grab;
-  height: 100%;
-  position: relative;
-
-  &:active { cursor: grabbing; }
-`;
-
 // Empty State
 export const EmptyStateContainer = styled.div`
   display: flex;

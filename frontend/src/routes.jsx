@@ -194,6 +194,7 @@ const PrivateSkeleton = () => {
           backgroundColor: headerBg,
           borderTop: `1px solid ${isDark ? "#2a2a2a" : "#eee"}`,
           padding: "8px 16px",
+          paddingBottom: "calc(8px + env(safe-area-inset-bottom, 0px))",
           display: "flex",
           justifyContent: "space-around",
           alignItems: "center",

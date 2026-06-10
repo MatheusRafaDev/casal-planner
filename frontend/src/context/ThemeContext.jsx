@@ -26,6 +26,9 @@ export const ThemeProvider = ({ children, isLogado }) => {
     if (isLogado) {
       localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
     }
+    const meta = document.querySelector('meta[name="theme-color"]:not([media])') 
+      || document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', isDarkMode ? '#18181B' : '#F9FAFB');
   }, [isDarkMode, isLogado]);
 
   const toggleTheme = () => {

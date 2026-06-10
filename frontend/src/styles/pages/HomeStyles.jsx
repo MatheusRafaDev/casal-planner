@@ -131,6 +131,7 @@ export const HeroButton = styled.button`
   @media (max-width: 480px) {
     width: 100%;
     justify-content: center;
+    min-height: 48px;
     font-size: 15px;
     padding: 14px 20px;
   }

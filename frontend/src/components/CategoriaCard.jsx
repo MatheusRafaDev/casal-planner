@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useCallback, memo, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   Plus, Trash2, Pencil, ChevronDown, ChevronUp,
   ShoppingBag, Store,
@@ -395,6 +397,21 @@ const CategoriaCard = ({
   onItemDragStart, onItemDragEnd, onItemDrop,
   draggedItemId, theme, onToggleComprado, isLoading = false,
 }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: categoria.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   const [expanded, setExpanded] = useState(true);
   const [dragOver, setDragOver] = useState(false);
   const [sortBy, setSortBy] = useState("preco");
@@ -494,10 +511,18 @@ const CategoriaCard = ({
 
   return (
     <>
-      <S.CardContainer theme={theme} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop} $isDragOver={dragOver}>
+      <S.CardContainer 
+        ref={setNodeRef}
+        style={style}
+        theme={theme} 
+        onDragOver={onDragOver} 
+        onDragLeave={onDragLeave} 
+        onDrop={onDrop} 
+        $isDragOver={dragOver}
+      >
         <S.CardHeader color={categoria.bg} theme={theme}>
           <S.HeaderLeft>
-            <S.DragHandle theme={theme}/>
+            <S.DragHandle theme={theme} {...attributes} {...listeners} />
             <S.Icon>{categoria.icon}</S.Icon>
             <S.TitleSection>
               <S.Title theme={theme}>{categoria.nome}</S.Title>

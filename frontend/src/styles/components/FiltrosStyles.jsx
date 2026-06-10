@@ -52,10 +52,10 @@ export const FilterButton = styled.button`
   @media (max-width: 640px) {
     flex: 1;
     text-align: center;
-    min-height: 40px;
+    min-height: 44px;
     font-size: 0.78rem;
     border-radius: 9999px;
-    padding: 0.4rem 0.5rem;
+    padding: 0.5rem 0.75rem;
   }
 
   ${(props) => {
