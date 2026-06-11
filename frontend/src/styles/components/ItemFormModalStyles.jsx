@@ -52,6 +52,7 @@ export const ModalContainer = styled.div`
     border-radius: 1.5rem 1.5rem 0 0;
     /* CORREÇÃO iPhone: usar dvh para recalcular quando teclado sobe */
     max-height: 90dvh;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     animation: slideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
 
     @keyframes slideUp {
@@ -300,7 +301,7 @@ export const QuantidadeInput = styled.input`
     margin: 0;
   }
 
-  input[type=number] {
+  &[type=number] {
     -moz-appearance: textfield;
   }
 `;
@@ -340,6 +341,7 @@ export const ModalButtons = styled.div`
   @media (max-width: 480px) {
     flex-direction: column-reverse;
     gap: 0.5rem;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 `;
 

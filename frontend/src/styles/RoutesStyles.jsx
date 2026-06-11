@@ -29,7 +29,7 @@ export const AppContainer = styled.div`
   flex-direction: column;
   background: ${({ theme }) => theme.background};
   transition: background 0.3s ease;
-  overflow: hidden;
+  overflow-x: hidden;
 `;
 
 export const MainContent = styled.main`
@@ -45,7 +45,7 @@ export const MainContent = styled.main`
 
   @media (max-width: 768px) {
     padding: 0.5rem;
-    padding-top: 0.5rem;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
     /* Espaço para o BottomNav (60px) + safe area */
     padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px) + 0.5rem);
   }

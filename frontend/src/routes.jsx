@@ -33,9 +33,8 @@ const shimmerKeyframes = `
 `;
 
 const SkeletonItem = ({ width, height, borderRadius = "8px", marginBottom = "0" }) => {
-  const { theme } = useTheme();
-  const isDark = theme !== "light";
-  const bg = isDark
+  const { isDarkMode } = useTheme();
+  const bg = isDarkMode
     ? "linear-gradient(90deg, #2a2a2a 0%, #3f3f46 50%, #2a2a2a 100%)"
     : "linear-gradient(90deg, #e8e8e8 0%, #f5f5f5 50%, #e8e8e8 100%)";
 
@@ -56,11 +55,10 @@ const SkeletonItem = ({ width, height, borderRadius = "8px", marginBottom = "0" 
 
 // Skeleton para rotas PÚBLICAS
 const PublicSkeleton = () => {
-  const { theme } = useTheme();
-  const isDark = theme !== "light";
+  const { isDarkMode } = useTheme();
   
-  const bgColor = isDark ? "#1a1a1a" : "#ffffff";
-  const cardBg = isDark ? "#2a2a2a" : "#f7f7f7";
+  const bgColor = isDarkMode ? "#1a1a1a" : "#ffffff";
+  const cardBg = isDarkMode ? "#2a2a2a" : "#f7f7f7";
   return (
     <>
       <style>{shimmerKeyframes}</style>
@@ -103,12 +101,11 @@ const PublicSkeleton = () => {
 
 // Skeleton para rotas PRIVADAS
 const PrivateSkeleton = () => {
-  const { theme } = useTheme();
-  const isDark = theme !== "light";
+  const { isDarkMode } = useTheme();
   
-  const bgColor = isDark ? "#121212" : "#f8f9fa";
-  const headerBg = isDark ? "#1e1e1e" : "#ffffff";
-  const cardBg = isDark ? "#2a2a2a" : "#ffffff";
+  const bgColor = isDarkMode ? "#121212" : "#f8f9fa";
+  const headerBg = isDarkMode ? "#1e1e1e" : "#ffffff";
+  const cardBg = isDarkMode ? "#2a2a2a" : "#ffffff";
   return (
     <>
       <style>{shimmerKeyframes}</style>
@@ -121,7 +118,7 @@ const PrivateSkeleton = () => {
         {/* Header */}
         <div style={{ 
           backgroundColor: headerBg,
-          borderBottom: `1px solid ${isDark ? "#2a2a2a" : "#eee"}`,
+          borderBottom: `1px solid ${isDarkMode ? "#2a2a2a" : "#eee"}`,
           padding: "12px 16px",
           display: "flex",
           alignItems: "center",
@@ -194,7 +191,7 @@ const PrivateSkeleton = () => {
         {/* Bottom Navigation */}
         <div style={{
           backgroundColor: headerBg,
-          borderTop: `1px solid ${isDark ? "#2a2a2a" : "#eee"}`,
+          borderTop: `1px solid ${isDarkMode ? "#2a2a2a" : "#eee"}`,
           padding: "8px 16px",
           paddingBottom: "calc(8px + env(safe-area-inset-bottom, 0px))",
           display: "flex",

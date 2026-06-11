@@ -612,8 +612,6 @@ const Home = () => {
 
   const [featRef, featVisible] = useInView();
   const [stepsRef, stepsVisible] = useInView();
-  const [testRef, testVisible] = useInView();
-  const [ctaRef, ctaVisible] = useInView();
 
   const go = (modo) => navigate('/login', { state: { modo } });
 

@@ -52,6 +52,7 @@ export const ModalContainer = styled.div`
     border-radius: 1.25rem 1.25rem 0 0;
     /* CORREÇÃO iPhone: usar dvh para recalcular quando teclado sobe */
     max-height: 85dvh;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     animation: slideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
 
     @keyframes slideUp {

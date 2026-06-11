@@ -60,7 +60,6 @@ namespace CasalPlanner.API.Services
                 FotoUrl = dto.FotoUrl,
                 Origem = dto.Origem ?? "comprado",
                 OrigemDescricao = dto.OrigemDescricao,
-                Fase = dto.Fase ?? "primeiro_mes",
                 Variantes = dto.Variantes ?? new(),
                 VarianteSelecionadaId = dto.VarianteSelecionadaId
             };
@@ -112,9 +111,6 @@ namespace CasalPlanner.API.Services
 
             if (dto.OrigemDescricao != null)
                 updates.Add(update.Set(i => i.OrigemDescricao, dto.OrigemDescricao));
-
-            if (!string.IsNullOrEmpty(dto.Fase))
-                updates.Add(update.Set(i => i.Fase, dto.Fase));
 
             if (dto.Variantes != null)
                 updates.Add(update.Set(i => i.Variantes, dto.Variantes));

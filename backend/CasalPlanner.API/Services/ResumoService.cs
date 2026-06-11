@@ -40,7 +40,7 @@ namespace CasalPlanner.API.Services
                         { "Comprado",    1 },
                         { "Quantidade",  1 },
                         { "Origem",      1 },
-                        { "Fase",        1 },
+
                         { "ValorTotal",  new BsonDocument("$multiply",
                             new BsonArray { "$Preco", "$Quantidade" }) },
                         { "IsMesAtual", new BsonDocument("$and",
@@ -82,11 +82,7 @@ namespace CasalPlanner.API.Services
                                 { "ValorTotal",  "$ValorTotal"  },
                                 { "Quantidade",  "$Quantidade"  },
                             }) },
-                        { "PorFase",        new BsonDocument("$push", new BsonDocument
-                            {
-                                { "Fase",        "$Fase"        },
-                                { "ValorTotal",  "$ValorTotal"  },
-                            }) },
+
                         { "PorOrigem",      new BsonDocument("$push", new BsonDocument
                             {
                                 { "Origem",      "$Origem"      },
@@ -134,8 +130,6 @@ namespace CasalPlanner.API.Services
                 var metaGlobalEnxoval = usuario?.MetaGlobalEnxoval;
                 var percentualMetaGlobal = metaGlobalEnxoval > 0 ? Math.Round(resumoDto.TotalGeral / metaGlobalEnxoval.Value * 100, 2) : 0;
                 var totalRestanteParaMeta = Math.Max(0, (metaGlobalEnxoval ?? 0) - resumoDto.TotalGeral);
-                var faseComMaisGasto = resumoDto.PorFase.OrderByDescending(kv => kv.Value).FirstOrDefault().Key;
-
                 var resumoEnxovalDto = new ResumoEnxovalDto
                 {
                     MetaGlobalEnxoval = metaGlobalEnxoval,
@@ -143,7 +137,6 @@ namespace CasalPlanner.API.Services
                     TotalRestanteParaMeta = totalRestanteParaMeta,
                     TotalItensComprados = resumoDto.TotalComprados,
                     TotalItensPendentes = resumoDto.TotalItens - resumoDto.TotalComprados,
-                    FaseComMaisGasto = faseComMaisGasto,
                     TotalEconomizadoComPresentes = resumoDto.TotalEconomizado
                 };
 
@@ -167,7 +160,7 @@ namespace CasalPlanner.API.Services
         {
             var porCategoria           = new Dictionary<string, decimal>();
             var quantidadePorCategoria = new Dictionary<string, int>();
-            var porFase                = new Dictionary<string, decimal>();
+
             var porOrigem              = new Dictionary<string, decimal>();
 
             if (doc.TryGetValue("PorCategoria", out var arr) && arr is BsonArray items)
@@ -197,29 +190,7 @@ namespace CasalPlanner.API.Services
                 }
             }
 
-            if (doc.TryGetValue("PorFase", out var faseArr) && faseArr is BsonArray faseItems)
-            {
-                foreach (var element in faseItems)
-                {
-                    if (element is not BsonDocument item) continue;
 
-                    var faseVal = item.GetValue("Fase", BsonNull.Value);
-                    if (faseVal.IsBsonNull) continue;
-                    var fase = faseVal.AsString;
-                    if (string.IsNullOrEmpty(fase)) continue;
-
-                    var valor = ToDecimal(item.GetValue("ValorTotal", 0));
-
-                    if (porFase.ContainsKey(fase))
-                    {
-                        porFase[fase] += valor;
-                    }
-                    else
-                    {
-                        porFase[fase] = valor;
-                    }
-                }
-            }
 
             if (doc.TryGetValue("PorOrigem", out var origemArr) && origemArr is BsonArray origemItems)
             {
@@ -266,7 +237,7 @@ namespace CasalPlanner.API.Services
                 TotalItens             = totalItens,
                 PorCategoria           = porCategoria,
                 QuantidadePorCategoria = quantidadePorCategoria,
-                PorFase                = porFase,
+
                 PorOrigem              = porOrigem,
                 TotalEconomizado       = totalEconomizado,
                 PercentualConcluido    = percentualConcluido,

@@ -30,7 +30,6 @@ namespace CasalPlanner.API.Models.DTOs
 
         public string Origem { get; set; } = "comprado";
         public string? OrigemDescricao { get; set; }
-        public string Fase { get; set; } = "primeiro_mes";
         public List<ItemVariante> Variantes { get; set; } = new();
         public string? VarianteSelecionadaId { get; set; }
     }
@@ -61,7 +60,6 @@ namespace CasalPlanner.API.Models.DTOs
         public string? FotoUrl { get; set; }
         public string? Origem { get; set; }
         public string? OrigemDescricao { get; set; }
-        public string? Fase { get; set; }
         public List<ItemVariante>? Variantes { get; set; }
         public string? VarianteSelecionadaId { get; set; }
     }

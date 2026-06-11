@@ -28,7 +28,6 @@ const ResumoCards = ({ resumo = {}, theme = {} }) => {
   const enxoval = resumo.enxoval ?? {};
   const percentualConcluido = enxoval.percentualConcluido ?? 0;
   const totalEconomizado = enxoval.totalEconomizado ?? 0;
-  const porFase = enxoval.porFase ?? {};
   const porOrigem = enxoval.porOrigem ?? {};
 
   // Cores do tema (com fallbacks)
@@ -256,41 +255,6 @@ const ResumoCards = ({ resumo = {}, theme = {} }) => {
         </S.InfoRow>
       </S.Card>
 
-      {/* Card Por Fase */}
-      <S.CardFull $color={colors.info}>
-        <S.CardTitle>
-          <IconBox />
-          Por Fase
-        </S.CardTitle>
-
-        <S.InfoRow>
-          <S.InfoLabel>📦 1º mês</S.InfoLabel>
-          <S.InfoValue $color={colors.primary}>
-            {porFase.primeiro_mes ? fmt(porFase.primeiro_mes.total) : 'R$ 0,00'}
-          </S.InfoValue>
-        </S.InfoRow>
-
-        <S.InfoRow>
-          <S.InfoLabel>📦 2º mês</S.InfoLabel>
-          <S.InfoValue $color={colors.primary}>
-            {porFase.segundo_mes ? fmt(porFase.segundo_mes.total) : 'R$ 0,00'}
-          </S.InfoValue>
-        </S.InfoRow>
-
-        <S.InfoRow>
-          <S.InfoLabel>📦 3º mês</S.InfoLabel>
-          <S.InfoValue $color={colors.primary}>
-            {porFase.terceiro_mes ? fmt(porFase.terceiro_mes.total) : 'R$ 0,00'}
-          </S.InfoValue>
-        </S.InfoRow>
-
-        <S.InfoRow>
-          <S.InfoLabel>📅 Depois</S.InfoLabel>
-          <S.InfoValue $color={colors.primary}>
-            {porFase.depois ? fmt(porFase.depois.total) : 'R$ 0,00'}
-          </S.InfoValue>
-        </S.InfoRow>
-      </S.CardFull>
     </S.Grid>
   );
 };

@@ -88,7 +88,7 @@ namespace CasalPlanner.API.Controllers
                 var usuarioId = GetUsuarioId();
                 var wishlist = await _wishlistService.ObterPrivadaPorUsuario(usuarioId);
                 if (wishlist == null)
-                    return NotFound();
+                    return NoContent();
                 return Ok(wishlist);
             }
             catch (UnauthorizedAccessException)

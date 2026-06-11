@@ -3,13 +3,8 @@ import ReactDOM from 'react-dom';
 import * as Styled from '../styles/components/CategoriaFormModalStyles';
 import { categoriasService } from '../services/categoriasService';
 import { showToast } from '../utils/toastUtils';
-
-// ========== 24 EMOJIS PADRÃO (menores e mais compactos) ==========
-const ICONS = [
-  '🏠', '🛒', '🍕', '🚗', '💳', '💰', '🎓', '💊',
-  '👕', '🎮', '✈️', '🏥', '🛁', '🍳', '🧼', '🛏️',
-  '🛋️', '📦', '🐶', '🎁', '⚡', '📱', '💻', '🎵'
-];
+import DynamicIcon from './DynamicIcon';
+import { ICONS } from '../constants/categoryConstants';
 
 // ========== 20 CORES FIXAS (mais compactas) ==========
 const FIXED_COLORS = [
@@ -72,7 +67,7 @@ const CategoriaFormModal = ({
 }) => {
   const [name, setName] = useState('');
   const [color, setColor] = useState(FIXED_COLORS[0]);
-  const [icon, setIcon] = useState('🏠');
+  const [icon, setIcon] = useState('Home');
   const [metaOrcamento, setMetaOrcamento] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -89,7 +84,7 @@ const CategoriaFormModal = ({
   const resetForm = () => {
     setName('');
     setColor(FIXED_COLORS[0]);
-    setIcon('🏠');
+    setIcon('Home');
     setMetaOrcamento('');
     setErrors({});
     setTouched({});
@@ -100,7 +95,7 @@ const CategoriaFormModal = ({
   useEffect(() => {
     if (isOpen && isEditing && categoriaParaEditar) {
       setName(categoriaParaEditar.nome || '');
-      setIcon(categoriaParaEditar.icon || '🏠');
+      setIcon(categoriaParaEditar.icon || categoriaParaEditar.icone || categoriaParaEditar.emoji || 'Home');
       const metaValue = categoriaParaEditar.metaOrcamento != null ? categoriaParaEditar.metaOrcamento : '';
       setMetaOrcamento(metaValue);
       if (categoriaParaEditar.bg) {
@@ -305,7 +300,7 @@ const CategoriaFormModal = ({
                   aria-label={`Ícone ${ic}`}
                   aria-pressed={icon === ic}
                 >
-                  {ic}
+                  <DynamicIcon name={ic} size={20} />
                 </Styled.IconButton>
               ))}
             </Styled.IconsGrid>

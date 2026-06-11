@@ -42,12 +42,14 @@ export const MainContent = styled.main`
 
   @media (max-width: 768px) {
     padding: 1rem 15px;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
     /* CORREÇÃO iPhone: safe area inset para conteúdo mobile com BottomNav */
     padding-bottom: calc(60px + env(safe-area-inset-bottom, 16px) + 0.75rem);
   }
 
   @media (max-width: 480px) {
     padding: 0.75rem 12px;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
     /* CORREÇÃO iPhone: safe area inset para conteúdo mobile com BottomNav */
     padding-bottom: calc(60px + env(safe-area-inset-bottom, 16px) + 0.75rem);
   }

@@ -403,9 +403,6 @@ try
         new CreateIndexModel<Item>(
             Builders<Item>.IndexKeys.Ascending(i => i.Origem),
             new CreateIndexOptions { Name = "idx_itens_origem", Background = true }),
-        new CreateIndexModel<Item>(
-            Builders<Item>.IndexKeys.Ascending(i => i.Fase),
-            new CreateIndexOptions { Name = "idx_itens_fase", Background = true }),
     });
 
     Console.WriteLine("✅ Índices verificados com sucesso");

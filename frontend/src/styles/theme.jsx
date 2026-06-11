@@ -99,14 +99,23 @@ export const lightTheme = {
   error: '#EF4444',
   info: '#3B82F6',
 
-
+  vrva: '#8B5CF6',
+  vrvaLight: '#F3E8FF',
+  normal: '#EC4899',
+  normalLight: '#FCE7F3',
 
   gradient: 'linear-gradient(135deg, #A78BFA 0%, #F9A8D4 100%)',
-  gradientSoft: 'linear-gradient(135deg, #27272A 0%, #18181B 100%)',
-  gradientAccent: 'linear-gradient(135deg, #FF6B6B 0%, #A78BFA 100%)',
+  gradientSoft: 'linear-gradient(135deg, #F3F4F6 0%, #FFFFFF 100%)',
+  gradientAccent: 'linear-gradient(135deg, #EF4444 0%, #A78BFA 100%)',
 
+  shadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+  shadowHover: '0 10px 15px rgba(0, 0, 0, 0.1)',
   shadowCard: '0 4px 12px rgba(0,0,0,0.05)',
+
   radius: '8px',
+  radiusSm: '4px',
+  radiusLg: '12px',
+  radiusFull: '9999px',
 };
 
 

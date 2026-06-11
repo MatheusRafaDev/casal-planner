@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 // Removed unused useNavigate
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -11,7 +11,7 @@ import { exportarParaPDF } from '../utils/pdfExport';
 import {
   ShoppingCart, CheckCircle,
   AlertCircle,
-  Target, Coffee, DollarSign, Download
+  Target, Coffee, DollarSign, Download, Box
 } from 'lucide-react';
 import {
   Container,
@@ -106,25 +106,21 @@ const Inicio = () => {
     carregar();
   }, []);
 
+  const aiRequested = useRef(false);
+
   // Load AI features after initial data is loaded
   useEffect(() => {
-    if (!loading && itens.length > 0 && !loadingAI) {
+    if (!loading && itens.length > 0 && !aiRequested.current) {
+      aiRequested.current = true;
       const carregarAI = async () => {
         setLoadingAI(true);
         try {
-          // Get AI suggestions for the first category
-          const primeiraCategoria = categorias[0];
-          if (primeiraCategoria) {
-            const itensNomes = itens.filter(i => i.categoriaId === primeiraCategoria.id).map(i => i.nome);
-            const sugestoes = await groqService.sugerirItens(primeiraCategoria.nome);
-            setSugestoesIA(sugestoes);
-          }
-
           // Get narrative summary
           const resumo = await groqService.gerarResumoEnxoval();
           setResumoNarrativo(resumo?.resumo);
-
+          
           // Get room estimate for the first category
+          const primeiraCategoria = categorias[0];
           if (primeiraCategoria) {
             const cidade = usuario?.enderecoNovaCasa?.cidade || 'São Paulo';
             const estimativa = await groqService.estimarOrcamento(primeiraCategoria.nome, cidade);
@@ -284,9 +280,9 @@ const Inicio = () => {
         const pago = item.comprado ? "Pago" : "Pendente";
         
         const pagamentoStr = item.pagamento === 'vr' ? 'VR/VA' : 'Normal';
-        let prioridadeStr = 'Normal';
-        if (item.prioridade === 'urgente') prioridadeStr = 'Urgente';
-        else if (item.prioridade === 'pode_esperar') prioridadeStr = 'Pode Esperar';
+        let prioridadeStr = 'Próximas compras';
+        if (item.prioridade === 'urgente') prioridadeStr = 'Primeira necessidade';
+        else if (item.prioridade === 'pode_esperar') prioridadeStr = 'Mais para frente';
         
         const row = worksheet.addRow([
           item.nome,
@@ -319,9 +315,9 @@ const Inicio = () => {
 
         // Cores de Prioridade
         const prioridadeCell = row.getCell(8);
-        if (prioridadeStr === 'Urgente') {
+        if (prioridadeStr === 'Primeira necessidade') {
           prioridadeCell.font = { color: { argb: 'FFEF4444' }, bold: true };
-        } else if (prioridadeStr === 'Pode Esperar') {
+        } else if (prioridadeStr === 'Mais para frente') {
           prioridadeCell.font = { color: { argb: 'FF10B981' } };
         }
       });
@@ -371,7 +367,7 @@ const Inicio = () => {
   return (
     <Container>
       {/* Saudação */}
-      <SectionTitle theme={theme}>Olá, {getNome()}! 👋</SectionTitle>
+      <SectionTitle theme={theme}>Olá, {getNome()}!</SectionTitle>
 
       {/* Resumo financeiro - Cards principais */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -392,7 +388,8 @@ const Inicio = () => {
                 alignItems: 'center',
                 gap: '6px',
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                minHeight: '36px'
               }}
               onMouseOver={(e) => {
                 e.currentTarget.style.background = theme.primary;
@@ -419,7 +416,8 @@ const Inicio = () => {
                 alignItems: 'center',
                 gap: '6px',
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                minHeight: '36px'
               }}
               onMouseOver={(e) => {
                 e.currentTarget.style.background = theme.primary;
@@ -479,7 +477,7 @@ const Inicio = () => {
       {/* Resumo por Tipo de Pagamento */}
       {!loading && totalGeral > 0 && (
         <>
-          <SectionTitle theme={theme}>💳 Por tipo de pagamento</SectionTitle>
+          <SectionTitle theme={theme}>Por tipo de pagamento</SectionTitle>
           <ResumoGrid>
             <ResumoCard theme={theme} color={theme.vrva}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
@@ -492,10 +490,10 @@ const Inicio = () => {
                 {formatarMoeda(pagamentoVR.total)}
               </div>
               <div style={{ fontSize: '0.75rem', color: theme.textLight, marginBottom: '0.5rem' }}>
-                ✅ Pago: {formatarMoeda(pagamentoVR.pago)}
+                Pago: {formatarMoeda(pagamentoVR.pago)}
               </div>
               <div style={{ fontSize: '0.75rem', color: theme.warning }}>
-                ⚠️ Falta: {formatarMoeda(pagamentoVR.falta)}
+                Falta: {formatarMoeda(pagamentoVR.falta)}
               </div>
               <div style={{ width: '100%', height: '4px', background: theme.border, borderRadius: '2px', marginTop: '0.75rem', overflow: 'hidden' }}>
                 <div style={{ width: `${pagamentoVR.total > 0 ? (pagamentoVR.pago / pagamentoVR.total) * 100 : 0}%`, height: '100%', background: theme.vrva, transition: 'width 0.3s' }} />
@@ -513,10 +511,10 @@ const Inicio = () => {
                 {formatarMoeda(pagamentoNormal.total)}
               </div>
               <div style={{ fontSize: '0.75rem', color: theme.textLight, marginBottom: '0.5rem' }}>
-                ✅ Pago: {formatarMoeda(pagamentoNormal.pago)}
+                Pago: {formatarMoeda(pagamentoNormal.pago)}
               </div>
               <div style={{ fontSize: '0.75rem', color: theme.warning }}>
-                ⚠️ Falta: {formatarMoeda(pagamentoNormal.falta)}
+                Falta: {formatarMoeda(pagamentoNormal.falta)}
               </div>
               <div style={{ width: '100%', height: '4px', background: theme.border, borderRadius: '2px', marginTop: '0.75rem', overflow: 'hidden' }}>
                 <div style={{ width: `${pagamentoNormal.total > 0 ? (pagamentoNormal.pago / pagamentoNormal.total) * 100 : 0}%`, height: '100%', background: theme.secondary, transition: 'width 0.3s' }} />
@@ -530,7 +528,7 @@ const Inicio = () => {
       {!loading && (urgenciaFalta > 0 || prioridades.normal.total > 0 || prioridades.pode_esperar.total > 0) && (
         <>
           <SectionTitle theme={theme}>
-            🎯 Resumo por prioridade
+            Resumo por prioridade
           </SectionTitle>
 
           <PrioridadeGrid>
@@ -538,7 +536,7 @@ const Inicio = () => {
             {prioridades.urgente.total > 0 && (
               <PrioridadeItem key="urgente" color={theme.error}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span style={{ fontWeight: 600 }}>🔴 Urgente</span>
+                  <span style={{ fontWeight: 600 }}>Primeira necessidade</span>
                   <span style={{ fontSize: '0.75rem' }}>
                     {prioridades.urgente.total > 0 
                       ? ((prioridades.urgente.pago / prioridades.urgente.total) * 100).toFixed(0) 
@@ -549,10 +547,10 @@ const Inicio = () => {
                   {formatarMoeda(prioridades.urgente.total)}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: theme.textLight }}>
-                  ✅ Pago: {formatarMoeda(prioridades.urgente.pago)}
+                  Pago: {formatarMoeda(prioridades.urgente.pago)}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: prioridades.urgente.falta > 0 ? theme.warning : theme.success }}>
-                  ⚠️ Falta: {formatarMoeda(prioridades.urgente.falta)}
+                  Falta: {formatarMoeda(prioridades.urgente.falta)}
                 </div>
                 <div style={{ width: '100%', height: '3px', background: theme.border, borderRadius: '2px', marginTop: '0.5rem', overflow: 'hidden' }}>
                   <div style={{ 
@@ -569,7 +567,7 @@ const Inicio = () => {
             {prioridades.normal.total > 0 && (
               <PrioridadeItem key="normal" color={theme.primary}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span style={{ fontWeight: 600 }}>🟡 Normal</span>
+                  <span style={{ fontWeight: 600 }}>Próximas compras</span>
                   <span style={{ fontSize: '0.75rem' }}>
                     {prioridades.normal.total > 0 
                       ? ((prioridades.normal.pago / prioridades.normal.total) * 100).toFixed(0) 
@@ -580,10 +578,10 @@ const Inicio = () => {
                   {formatarMoeda(prioridades.normal.total)}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: theme.textLight }}>
-                  ✅ Pago: {formatarMoeda(prioridades.normal.pago)}
+                  Pago: {formatarMoeda(prioridades.normal.pago)}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: prioridades.normal.falta > 0 ? theme.warning : theme.success }}>
-                  ⚠️ Falta: {formatarMoeda(prioridades.normal.falta)}
+                  Falta: {formatarMoeda(prioridades.normal.falta)}
                 </div>
                 <div style={{ width: '100%', height: '3px', background: theme.border, borderRadius: '2px', marginTop: '0.5rem', overflow: 'hidden' }}>
                   <div style={{ 
@@ -600,7 +598,7 @@ const Inicio = () => {
             {prioridades.pode_esperar.total > 0 && (
               <PrioridadeItem key="pode_esperar" color={theme.success}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span style={{ fontWeight: 600 }}>🟢 Pode esperar</span>
+                  <span style={{ fontWeight: 600 }}>Mais para frente</span>
                   <span style={{ fontSize: '0.75rem' }}>
                     {prioridades.pode_esperar.total > 0 
                       ? ((prioridades.pode_esperar.pago / prioridades.pode_esperar.total) * 100).toFixed(0) 
@@ -611,10 +609,10 @@ const Inicio = () => {
                   {formatarMoeda(prioridades.pode_esperar.total)}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: theme.textLight }}>
-                  ✅ Pago: {formatarMoeda(prioridades.pode_esperar.pago)}
+                  Pago: {formatarMoeda(prioridades.pode_esperar.pago)}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: prioridades.pode_esperar.falta > 0 ? theme.warning : theme.success }}>
-                  ⚠️ Falta: {formatarMoeda(prioridades.pode_esperar.falta)}
+                  Falta: {formatarMoeda(prioridades.pode_esperar.falta)}
                 </div>
                 <div style={{ width: '100%', height: '3px', background: theme.border, borderRadius: '2px', marginTop: '0.5rem', overflow: 'hidden' }}>
                   <div style={{ 
@@ -658,17 +656,19 @@ const Inicio = () => {
       {/* Dica inteligente */}
       {!loading && totalItens > 0 && (
         <TipCard theme={theme}>
-          <TipIcon>💡</TipIcon>
+          <TipIcon>
+            <Target size={20} color={theme.primary} />
+          </TipIcon>
           <TipContent>
            
             <TipText theme={theme}>
               {urgenciaFalta > 0 
-                ? `🎯 Foco total! Você ainda precisa de ${formatarMoeda(urgenciaFalta)} em itens URGENTES. Priorize essas compras primeiro!`
+                ? `Foco total! Você ainda precisa de ${formatarMoeda(urgenciaFalta)} em itens de primeira necessidade. Priorize essas compras primeiro!`
                 : prioridades.normal.falta > 0
-                  ? `📋 Continue organizando! Faltam ${formatarMoeda(prioridades.normal.falta)} em itens de prioridade normal.`
+                  ? `Continue organizando! Faltam ${formatarMoeda(prioridades.normal.falta)} em itens de próximas compras.`
                   : totalFalta > 0
-                    ? `👍 Bom progresso! Apenas ${formatarMoeda(totalFalta)} restante para completar seu planejamento.`
-                    : `🏆 Parabéns! Você já pagou TUDO que planejou! 🎉`}
+                    ? `Bom progresso! Apenas ${formatarMoeda(totalFalta)} restante para completar seu planejamento.`
+                    : `Parabéns! Você já pagou TUDO que planejou!`}
             </TipText>
           </TipContent>
         </TipCard>
@@ -677,7 +677,9 @@ const Inicio = () => {
       {/* AI Narrative Summary */}
       {!loading && resumoNarrativo && (
         <TipCard theme={theme}>
-          <TipIcon>🤖</TipIcon>
+          <TipIcon>
+            <Target size={20} color={theme.primary} />
+          </TipIcon>
           <TipContent>
             <TipText theme={theme} style={{ fontStyle: 'italic' }}>
               {resumoNarrativo}
@@ -686,47 +688,20 @@ const Inicio = () => {
         </TipCard>
       )}
 
-      {/* AI Suggestions */}
-      {!loading && sugestoesIA && sugestoesIA.itens && sugestoesIA.itens.length > 0 && (
-        <InfoCard theme={theme}>
-          <SectionTitle theme={theme} style={{ marginBottom: '0.4rem' }}>✨ Sugestões de IA</SectionTitle>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {sugestoesIA.itens.slice(0, 4).map((item, idx) => (
-              <div key={idx} style={{
-                padding: '0.5rem',
-                background: theme.bg,
-                borderRadius: '0.5rem',
-                border: `1px solid ${theme.border}`,
-                fontSize: '0.85rem'
-              }}>
-                <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{item.nome}</div>
-                <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem', color: theme.textLight }}>
-                  <span>{item.categoria}</span>
-                  <span>•</span>
-                  <span>R$ {item.precoMedioEstimado?.toFixed(2) || '---'}</span>
-                  <span>•</span>
-                  <span>{item.prioridade}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </InfoCard>
-      )}
-
       {/* Room Estimate */}
       {!loading && estimativaComodo && (
         <InfoCard theme={theme}>
-          <SectionTitle theme={theme} style={{ marginBottom: '0.4rem' }}>🏠 Estimativa por cômodo</SectionTitle>
+          <SectionTitle theme={theme} style={{ marginBottom: '0.4rem' }}>Estimativa por cômodo</SectionTitle>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: theme.bg, borderRadius: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: theme.surface, borderRadius: '0.5rem' }}>
               <span style={{ fontSize: '0.85rem' }}>Básico</span>
               <span style={{ fontWeight: 600 }}>R$ {estimativaComodo.faixaBasica?.toFixed(2) || '---'}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: theme.bg, borderRadius: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: theme.surface, borderRadius: '0.5rem' }}>
               <span style={{ fontSize: '0.85rem' }}>Médio</span>
               <span style={{ fontWeight: 600 }}>R$ {estimativaComodo.faixaMedia?.toFixed(2) || '---'}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: theme.bg, borderRadius: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: theme.surface, borderRadius: '0.5rem' }}>
               <span style={{ fontSize: '0.85rem' }}>Premium</span>
               <span style={{ fontWeight: 600 }}>R$ {estimativaComodo.faixaPremium?.toFixed(2) || '---'}</span>
             </div>
@@ -740,7 +715,7 @@ const Inicio = () => {
       )}
 
       {/* Total por categoria */}
-      <SectionTitle theme={theme}>📊 Total por categoria</SectionTitle>
+      <SectionTitle theme={theme}>Total por categoria</SectionTitle>
 
       {loading ? (
         <CatGrid>
@@ -785,14 +760,14 @@ const Inicio = () => {
             return (
               <CatRow key={cat.id} theme={theme}>
                 <CatEmoji bg={cat.cor || cat.corFundo || theme.primary + '25'} theme={theme}>
-                  {cat.icone || cat.emoji || '📦'}
+                  {cat.icone || <Box size={24} color={theme.primary} />}
                 </CatEmoji>
                 <CatInfo theme={theme}>
                   <h3>{cat.nome}</h3>
                   <div>
                     <CatChip theme={theme}>{cat.qtd} {cat.qtd === 1 ? 'item' : 'itens'}</CatChip>
                     <CatChip theme={theme}>✓ {cat.comprados} comprado{cat.comprados !== 1 ? 's' : ''}</CatChip>
-                    <CatChip theme={theme}>💰 {pctFinanceiroCat.toFixed(0)}% pago</CatChip>
+                    <CatChip theme={theme}>{pctFinanceiroCat.toFixed(0)}% pago</CatChip>
                   </div>
                   <CatBar theme={theme}>
                     <CatBarFill pct={pctOrcamento} theme={theme} style={{ background: theme.primary }} />

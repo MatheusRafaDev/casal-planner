@@ -11,11 +11,23 @@ export const COLORS = [
 ];
 
 export const ICONS = [
-  '🏠', '🍳', '🛋️', '🛏️', '🚿', '🧺', '📦', '🛒',
-  '🔨', '🧼', '📺', '☕', '🍎', '🧸', '🐶', '🌱',
-  '🚪', '💼', '🎮', '🪑', '🖼️', '🧴', '🧻', '🔧',
-  '💳', '🐱', '🪴', '📚', '🧣', '🪞', '🧽', '📋'
+  'Home', 'ShoppingCart', 'Pizza', 'Car', 'CreditCard', 'Coins', 'GraduationCap', 'Pill',
+  'Shirt', 'Gamepad2', 'Plane', 'HeartPulse', 'Bath', 'Utensils', 'Droplet', 'BedDouble',
+  'Armchair', 'Package', 'Dog', 'Gift', 'Zap', 'Smartphone', 'Laptop', 'Music',
+  'Coffee', 'Apple', 'Briefcase', 'Wrench', 'Book', 'Mirror'
 ];
+
+export const EMOJI_TO_LUCIDE_MAP = {
+  '🏠': 'Home', '🛒': 'ShoppingCart', '🍕': 'Pizza', '🚗': 'Car', '💳': 'CreditCard',
+  '💰': 'Coins', '🎓': 'GraduationCap', '💊': 'Pill', '👕': 'Shirt', '🎮': 'Gamepad2',
+  '✈️': 'Plane', '🏥': 'HeartPulse', '🛁': 'Bath', '🍳': 'Utensils', '🧼': 'Droplet',
+  '🛏️': 'BedDouble', '🛋️': 'Armchair', '📦': 'Package', '🐶': 'Dog', '🎁': 'Gift',
+  '⚡': 'Zap', '📱': 'Smartphone', '💻': 'Laptop', '🎵': 'Music',
+  '📺': 'Tv', '☕': 'Coffee', '🍎': 'Apple', '🧸': 'Smile', '🌱': 'Leaf',
+  '🚪': 'DoorClosed', '💼': 'Briefcase', '🪑': 'Armchair', '🖼️': 'Image', '🧴': 'Droplets',
+  '🧻': 'Scroll', '🔧': 'Wrench', '🐱': 'Cat', '🪴': 'Flower2', '📚': 'Book',
+  '🧣': 'Shirt', '🪞': 'Monitor', '🧽': 'Sponge', '📋': 'ClipboardList'
+};
 
 export const hslToHex = (h, s, l) => {
   l /= 100;

@@ -6,6 +6,7 @@ import { useItemValidation } from '../hooks/useItemValidation';
 import { usePriceFormat } from '../hooks/usePriceFormat';
 import { showToast } from '../utils/toastUtils';
 import PainelPesquisaPrecos from "./PainelPesquisaPrecos";
+import { AlertCircle, AlertTriangle, CheckCircle, CreditCard, Wallet, ShoppingCart, Gift, ExternalLink } from "lucide-react";
 
 import {
   Overlay,
@@ -38,48 +39,32 @@ const DEFAULT_FORM_DATA = {
   marca: "",
   preco: 0,
   quantidade: 1,
-pagamento: "normal",
+  pagamento: "normal",
   prioridade: "normal",
   categoriaId: null,
   loja: "",
   linkProduto: "",
   fotoUrl: "",
-  origem: "comprado",
-  origemDescricao: "",
-  fase: "primeiro_mes",
+  parcelas: 1,
   variantes: [],
   varianteSelecionadaId: null,
 };
 
 const PRIORIDADE_LABEL = {
-  urgente:      { label: "Urgente",       emoji: "🔴", color: "#ef4444", bg: "#ef444418" },
-  normal:       { label: "Normal",        emoji: "🟡", color: "#f59e0b", bg: "#f59e0b18" },
-  pode_esperar: { label: "Pode esperar",  emoji: "🟢", color: "#22c55e", bg: "#22c55e18" },
+  urgente:      { label: "Primeira necessidade", color: "#ef4444", bg: "#ef444418", icon: <AlertCircle size={14} /> },
+  normal:       { label: "Próximas compras",      color: "#f59e0b", bg: "#f59e0b18", icon: <AlertTriangle size={14} /> },
+  pode_esperar: { label: "Mais para frente",    color: "#22c55e", bg: "#22c55e18", icon: <CheckCircle size={14} /> },
 };
 
 const PAGAMENTO_LABEL = {
-  normal: { label: "Normal", emoji: "💵", color: "#3b82f6", bg: "#3b82f618" },
-  vr:     { label: "VR/VA",  emoji: "🍽️", color: "#f59e0b", bg: "#f59e0b18" },
-};
-
-const ORIGEM_LABEL = {
-  comprado: { label: "Comprar", emoji: "🛒", color: "#3b82f6", bg: "#3b82f618" },
-  presente: { label: "Presente", emoji: "🎁", color: "#ec4899", bg: "#ec489918" },
-  herdado: { label: "Herdado", emoji: "🏠", color: "#8b5cf6", bg: "#8b5cf618" },
-  alugado: { label: "Alugar", emoji: "🔑", color: "#f59e0b", bg: "#f59e0b18" },
-};
-
-const FASE_LABEL = {
-  primeiro_mes: { label: "1º mês", emoji: "📦", color: "#3b82f6", bg: "#3b82f618" },
-  segundo_mes: { label: "2º mês", emoji: "📦", color: "#8b5cf6", bg: "#8b5cf618" },
-  terceiro_mes: { label: "3º mês", emoji: "📦", color: "#ec4899", bg: "#ec489918" },
-  depois: { label: "Depois", emoji: "📅", color: "#6b7280", bg: "#6b728018" },
+  normal: { label: "Normal", color: "#3b82f6", bg: "#3b82f618", icon: <CreditCard size={14} /> },
+  vr:     { label: "VR/VA",  color: "#f59e0b", bg: "#f59e0b18", icon: <Wallet size={14} /> },
 };
 
 const fmtData = (iso) =>
   iso ? new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
 
-const ReadOnlyBadge = ({ children, color, bg, emoji }) => (
+const ReadOnlyBadge = ({ children, color, bg, icon }) => (
   <span style={{
     display: "inline-flex", alignItems: "center", gap: "0.3rem",
     padding: "0.3rem 0.7rem", borderRadius: "999px",
@@ -88,7 +73,7 @@ const ReadOnlyBadge = ({ children, color, bg, emoji }) => (
     border: `1px solid ${color ? color + "40" : "#e5e7eb"}`,
     whiteSpace: "nowrap",
   }}>
-    {emoji && <span>{emoji}</span>}
+    {icon && <span style={{ display: "flex", alignItems: "center" }}>{icon}</span>}
     {children}
   </span>
 );
@@ -261,7 +246,7 @@ const ItemFormModal = ({
       submissionRef.current = false;
 
       if (isEditing && itemParaEditar) {
-setFormData({
+        setFormData({
           id:          itemParaEditar.id || null,
           nome:        itemParaEditar.nome || "",
           marca:       itemParaEditar.marca || "",
@@ -276,7 +261,6 @@ setFormData({
           createdAt:   itemParaEditar.createdAt || null,
           origem:      itemParaEditar.origem || "comprado",
           origemDescricao: itemParaEditar.origemDescricao || "",
-          fase:        itemParaEditar.fase || "primeiro_mes",
           variantes:   itemParaEditar.variantes || [],
           varianteSelecionadaId: itemParaEditar.varianteSelecionadaId || null,
         });
@@ -436,9 +420,7 @@ setFormData({
         loja:        formData.loja?.trim() || "",
         linkProduto: formData.linkProduto?.trim() || "",
         fotoUrl:     formData.fotoUrl?.trim() || "",
-        origem:      formData.origem || "comprado",
-        origemDescricao: formData.origemDescricao?.trim() || "",
-        fase:        formData.fase || "primeiro_mes",
+        parcelas:    Number(formData.parcelas) || 1,
         variantes:   formData.variantes || [],
         varianteSelecionadaId: formData.varianteSelecionadaId || null,
       };
@@ -512,7 +494,7 @@ setFormData({
                   alignItems: "flex-start",
                   gap: "0.5rem",
                 }}>
-                  <span style={{ fontSize: "1rem" }}>⚠️</span>
+                  <AlertTriangle size={18} />
                   <span>{duplicataAlert.message}</span>
                 </div>
               )}
@@ -562,6 +544,30 @@ setFormData({
               {errors.quantidade && touched.quantidade && <ErrorMessage theme={theme}>{errors.quantidade}</ErrorMessage>}
             </FormGroup>
 
+            {/* Parcelas */}
+            <FormGroup>
+              <Label theme={theme}>Parcelas</Label>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                <Select
+                  value={formData.parcelas || 1}
+                  onChange={e => handleFieldChange("parcelas", parseInt(e.target.value) || 1)}
+                  theme={theme} disabled={loading || isSubmitting}
+                  style={{ flex: 1 }}
+                >
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map(num => (
+                    <option key={num} value={num}>
+                      {num === 1 ? 'À vista (1x)' : `${num}x`}
+                    </option>
+                  ))}
+                </Select>
+                {formData.parcelas > 1 && formData.preco > 0 && (
+                  <div style={{ fontSize: "0.85rem", color: theme?.textLight, flex: 1 }}>
+                    {formData.parcelas}x de R$ {((formData.preco * (formData.quantidade || 1)) / formData.parcelas).toFixed(2).replace('.', ',')}
+                  </div>
+                )}
+              </div>
+            </FormGroup>
+
             {/* Loja */}
             <FormGroup>
               <Label theme={theme}>Loja</Label>
@@ -572,6 +578,51 @@ setFormData({
                 maxLength={100} disabled={loading || isSubmitting} autoComplete="off"
               />
               {errors.loja && touched.loja && <ErrorMessage theme={theme}>{errors.loja}</ErrorMessage>}
+            </FormGroup>
+
+            {/* Link do Produto */}
+            <FormGroup>
+              <Label theme={theme}>Link do produto</Label>
+              <div style={{ position: "relative" }}>
+                <Input
+                  type="url" name="linkProduto" value={formData.linkProduto || ""}
+                  onChange={handleInputChange}
+                  placeholder="https://..." theme={theme}
+                  maxLength={500} disabled={loading || isSubmitting} autoComplete="off"
+                  style={{ paddingRight: formData.linkProduto ? "40px" : "1rem" }}
+                />
+                {formData.linkProduto && (
+                  <a 
+                    href={formData.linkProduto} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{
+                      position: "absolute",
+                      right: "12px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: theme?.primary || "#3b82f6"
+                    }}
+                    title="Abrir link do produto"
+                  >
+                    <ExternalLink size={18} />
+                  </a>
+                )}
+              </div>
+            </FormGroup>
+
+            {/* URL da Foto */}
+            <FormGroup>
+              <Label theme={theme}>URL da foto</Label>
+              <Input
+                type="url" name="fotoUrl" value={formData.fotoUrl || ""}
+                onChange={handleInputChange}
+                placeholder="https://..." theme={theme}
+                maxLength={500} disabled={loading || isSubmitting} autoComplete="off"
+              />
             </FormGroup>
 
             {/* Pesquisa de preços */}
@@ -590,8 +641,8 @@ setFormData({
                 <Label theme={theme}>Pagamento</Label>
                 <Select value={formData.pagamento || "normal"} onChange={e => handleFieldChange("pagamento", e.target.value)}
                   theme={theme} disabled={loading || isSubmitting}>
-                  <option value="normal">💵 Normal</option>
-                  <option value="vr">🍽️ VR/VA</option>
+                  <option value="normal">Normal (Dinheiro/Cartão)</option>
+                  <option value="vr">VR / VA</option>
                 </Select>
               </FormGroup>
 
@@ -599,51 +650,12 @@ setFormData({
                 <Label theme={theme}>Prioridade</Label>
                 <Select value={formData.prioridade || "normal"} onChange={e => handleFieldChange("prioridade", e.target.value)}
                   theme={theme} disabled={loading || isSubmitting}>
-                  <option value="urgente">🔴 Urgente</option>
-                  <option value="normal">🟡 Normal</option>
-                  <option value="pode_esperar">🟢 Pode esperar</option>
+                  <option value="urgente">Primeira necessidade</option>
+                  <option value="normal">Próximas compras</option>
+                  <option value="pode_esperar">Mais para frente</option>
                 </Select>
               </FormGroup>
             </TwoColumnGrid>
-
-            {/* Origem + Fase */}
-            <TwoColumnGrid>
-              <FormGroup>
-                <Label theme={theme}>Como vai adquirir?</Label>
-                <Select value={formData.origem || "comprado"} onChange={e => handleFieldChange("origem", e.target.value)}
-                  theme={theme} disabled={loading || isSubmitting}>
-                  <option value="comprado">🛒 Comprar</option>
-                  <option value="presente">🎁 Presente</option>
-                  <option value="herdado">🏠 Herdado</option>
-                  <option value="alugado">🔑 Alugar</option>
-                </Select>
-              </FormGroup>
-
-              <FormGroup>
-                <Label theme={theme}>Fase da mudança</Label>
-                <Select value={formData.fase || "primeiro_mes"} onChange={e => handleFieldChange("fase", e.target.value)}
-                  theme={theme} disabled={loading || isSubmitting}>
-                  <option value="primeiro_mes">📦 1º mês</option>
-                  <option value="segundo_mes">📦 2º mês</option>
-                  <option value="terceiro_mes">📦 3º mês</option>
-                  <option value="depois">📅 Depois</option>
-                </Select>
-              </FormGroup>
-            </TwoColumnGrid>
-
-            {/* Origem Descrição (apenas se não for comprado) */}
-            {formData.origem !== "comprado" && (
-              <FormGroup>
-                <Label theme={theme}>Descrição da origem</Label>
-                <Input
-                  type="text" name="origemDescricao" value={formData.origemDescricao || ""}
-                  onChange={handleInputChange}
-                  placeholder={formData.origem === "presente" ? "Quem vai presentear?" : "Mais detalhes..."}
-                  theme={theme}
-                  maxLength={200} disabled={loading || isSubmitting} autoComplete="off"
-                />
-              </FormGroup>
-            )}
 
             {/* Variantes - Collapsible */}
             <FormGroup>
@@ -662,14 +674,7 @@ setFormData({
                 <div style={{
                   padding: "1rem", borderRadius: "0.5rem",
                   background: theme?.bg || "#f9fafb",
-                  border: `1px solid ${theme?.border || "#e5e7eb"}`,
                 }}>
-                  <p style={{ fontSize: "0.85rem", color: theme?.textSecondary || "#6b7280", marginBottom: "0.5rem" }}>
-                    Adicione diferentes versões para comparar preços e características.
-                  </p>
-                  <p style={{ fontSize: "0.8rem", color: theme?.textSecondary || "#6b7280" }}>
-                    (Funcionalidade em breve)
-                  </p>
                 </div>
               )}
             </FormGroup>

@@ -61,7 +61,6 @@ const Planejamento = () => {
   const [itens, setItens]           = useState([]);
   const [loading, setLoading]       = useState(true);
   const [filter, setFilter]         = useState("all");
-  const [filtroFase, setFiltroFase] = useState(null);
   const [filtroOrigem, setFiltroOrigem] = useState(null);
 
   const [itemModal, setItemModal] = useState({ isOpen:false, categoriaId:null, itemId:null });
@@ -122,18 +121,13 @@ const Planejamento = () => {
       filtered = filtered.filter(i=>i.pagamento===(filter==="vrva"?"vr":"normal"));
     }
 
-    // Filter by fase
-    if (filtroFase) {
-      filtered = filtered.filter(i=>i.fase===filtroFase);
-    }
-
     // Filter by origem
     if (filtroOrigem) {
       filtered = filtered.filter(i=>i.origem===filtroOrigem);
     }
 
     return filtered;
-  }, [itens, filter, filtroFase, filtroOrigem]);
+  }, [itens, filter, filtroOrigem]);
 
   
 
@@ -318,7 +312,7 @@ const Planejamento = () => {
   return (
     <PlanejamentoContainer theme={theme}>
       
-      <Filtros filter={filter} setFilter={setFilter} onAddCategory={handleAddCategoria} theme={theme} filtroFase={filtroFase} setFiltroFase={setFiltroFase} filtroOrigem={filtroOrigem} setFiltroOrigem={setFiltroOrigem}/>
+      <Filtros filter={filter} setFilter={setFilter} onAddCategory={handleAddCategoria} theme={theme} filtroOrigem={filtroOrigem} setFiltroOrigem={setFiltroOrigem}/>
 
       {categorias.length === 0 ? (
         <EmptyStateContainer>

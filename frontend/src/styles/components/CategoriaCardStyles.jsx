@@ -827,7 +827,7 @@ export const ShowMoreButton = styled.button`
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
-  padding: 0.6rem;
+  padding: 0.6rem 1rem;
   margin-top: 0.5rem;
   background: ${({ theme }) => `${theme?.primary || "#3b82f6"}10`};
   border: 1px solid ${({ theme }) => `${theme?.primary || "#3b82f6"}30`};
@@ -850,7 +850,7 @@ export const ShowLessButton = styled.button`
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
-  padding: 0.6rem;
+  padding: 0.6rem 1rem;
   margin-top: 0.5rem;
   background: ${({ theme }) => `${theme?.textSoft || "#94a3b8"}10`};
   border: 1px solid ${({ theme }) => `${theme?.textSoft || "#94a3b8"}30`};
