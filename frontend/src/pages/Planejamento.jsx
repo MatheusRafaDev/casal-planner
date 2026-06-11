@@ -2,56 +2,30 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  TouchSensor,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
-import CategoriaCard from "../components/CategoriaCard";
 import CategoriaFormModal from "../components/CategoriaFormModal";
-import Filtros from "../components/Filtros";
 import ItemFormModal from "../components/ItemFormModal";
+
+// New components
+import PlanningSidebar from "../components/PlanningSidebar";
+import PlanningHeader from "../components/PlanningHeader";
+import PlanningSummaryCards from "../components/PlanningSummaryCards";
+import PlanningCategoriesPanel from "../components/PlanningCategoriesPanel";
+import PlanningItemList from "../components/PlanningItemList";
+import AddItemWizard from "../components/AddItemWizard";
+import PlanningMobile from "../components/PlanningMobile";
 
 import { categoriasService } from "../services/categoriasService";
 import { itensService } from "../services/itensService";
 
 import {
   PlanejamentoContainer,
-  WelcomeSection,
-  WelcomeTitle,
-  WelcomeSubtitle,
-  LoadingContainer,
-  LoadingSpinner,
-  CategoriesGrid,
-  EmptyStateContainer,
-  EmptyStateIcon,
-  EmptyStateTitle,
-  EmptyStateButton,
   SkeletonWelcomeSection,
   SkeletonCategoriesGrid,
   SkeletonCategoryCard,
 } from "../styles/pages/PlanejamentoStyles";
 
-
-
-const FORM_DATA_VAZIO = {
-  nome:"", marca:"", preco:0, quantidade:1,
-  pagamento:"normal", prioridade:"normal",
-  loja:"", fotoUrl: "",
-};
+import * as MainLayout from "../styles/pages/PlanejamentoMainLayoutStyles";
 
 const Planejamento = () => {
   const { theme }   = useTheme();
@@ -60,32 +34,16 @@ const Planejamento = () => {
   const [categorias, setCategorias] = useState([]);
   const [itens, setItens]           = useState([]);
   const [loading, setLoading]       = useState(true);
-  const [filter, setFilter]         = useState("all");
-  const [filtroOrigem, setFiltroOrigem] = useState(null);
 
   const [itemModal, setItemModal] = useState({ isOpen:false, categoriaId:null, itemId:null });
   const [categoriaModal, setCategoriaModal] = useState({ isOpen:false, categoria:null, isEditing:false });
-  const [formData, setFormData] = useState(FORM_DATA_VAZIO);
 
-  const draggedItemIdRef = useRef(null);
+  // New state for new components
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [filterActive, setFilterActive] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
   const savedScrollRef   = useRef(0);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 250,
-        tolerance: 5,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
   const saveScroll    = useCallback(() => { savedScrollRef.current = window.scrollY; }, []);
   const restoreScroll = useCallback(() => { requestAnimationFrame(() => window.scrollTo({ top:savedScrollRef.current, behavior:"instant" })); }, []);
@@ -112,22 +70,28 @@ const Planejamento = () => {
   const itensFiltrados = useMemo(() => {
     let filtered = itens;
 
-    // Filter by payment type
-    if (filter==="all") {
-      // no filter
-    } else if (filter==="comprado") {
-      filtered = filtered.filter(i=>i.comprado===true);
-    } else {
-      filtered = filtered.filter(i=>i.pagamento===(filter==="vrva"?"vr":"normal"));
-    }
-
-    // Filter by origem
-    if (filtroOrigem) {
-      filtered = filtered.filter(i=>i.origem===filtroOrigem);
+    // Filter by selected category
+    if (selectedCategory) {
+      filtered = filtered.filter(i => i.categoriaId === selectedCategory);
     }
 
     return filtered;
-  }, [itens, filter, filtroOrigem]);
+  }, [itens, selectedCategory]);
+
+  // Calculate summary data
+  const resumo = useMemo(() => {
+    const totalGeral = itens.reduce((acc, item) => acc + (item.preco * item.quantidade || 0), 0);
+    const totalPago = itens.filter(i => i.comprado).reduce((acc, item) => acc + (item.preco * item.quantidade || 0), 0);
+    const totalComprados = itens.filter(i => i.comprado).length;
+    const totalItens = itens.length;
+
+    return {
+      totalGeral,
+      totalPago,
+      totalComprados,
+      totalItens,
+    };
+  }, [itens]);
 
   
 
@@ -146,32 +110,14 @@ const Planejamento = () => {
 
   const handleCloseItemModal = useCallback(() => {
     setItemModal({ isOpen:false, categoriaId:null, itemId:null });
-    setFormData(FORM_DATA_VAZIO);
     restoreScroll();
   }, [restoreScroll]);
-
-  const handleAddItem = useCallback((categoriaId) => {
-    saveScroll();
-    setFormData({ ...FORM_DATA_VAZIO, categoriaId });
-    setItemModal({ isOpen:true, categoriaId, itemId:null });
-  }, [saveScroll]);
 
   const handleEditItem = useCallback((itemId) => {
     const item = itens.find(i => i.id === itemId);
     if (!item) return;
     saveScroll();
     setItemModal({ isOpen:true, categoriaId:item.categoriaId, itemId });
-    setFormData({
-      nome:       item.nome        || "",
-      marca:      item.marca       || "",
-      preco:      Number(item.preco) || 0,
-      quantidade: item.quantidade  || 1,
-      pagamento:  item.pagamento   || "normal",
-      prioridade: item.prioridade  || "normal",
-      loja:       item.loja        || "",
-      fotoUrl:    item.fotoUrl     || "",
-      categoriaId:item.categoriaId,
-    });
   }, [itens, saveScroll]);
 
   const handleDeleteItem = useCallback(async (id) => {
@@ -186,6 +132,47 @@ const Planejamento = () => {
       restoreScroll();
     }
   }, [itens, saveScroll, restoreScroll]);
+
+  const handleQuantityChange = useCallback(async (itemId, newQuantity) => {
+    const item = itens.find(i => i.id === itemId);
+    if (!item) return;
+    saveScroll();
+    const anterior = item.quantidade;
+    setItens(prev => prev.map(i => i.id === itemId ? { ...i, quantidade: newQuantity } : i));
+    restoreScroll();
+    try {
+      await itensService.update(itemId, { ...item, quantidade: newQuantity });
+    } catch {
+      setItens(prev => prev.map(i => i.id === itemId ? { ...i, quantidade: anterior } : i));
+      restoreScroll();
+    }
+  }, [itens, saveScroll, restoreScroll]);
+
+  const handleOpenWizard = useCallback(() => {
+    setWizardOpen(true);
+  }, []);
+
+  const handleCloseWizard = useCallback(() => {
+    setWizardOpen(false);
+  }, []);
+
+  const handleWizardSave = useCallback(async (dados) => {
+    try {
+      const novo = await itensService.create(dados);
+      setItens(prev => [novo, ...prev]);
+      handleCloseWizard();
+    } catch (error) {
+      console.error('Error saving item from wizard:', error);
+    }
+  }, [handleCloseWizard]);
+
+  const handleToggleFilters = useCallback(() => {
+    setFilterActive(prev => !prev);
+  }, []);
+
+  const handleSelectCategory = useCallback((categoriaId) => {
+    setSelectedCategory(categoriaId);
+  }, []);
 
   const handleToggleComprado = useCallback(async (itemId) => {
     const itemAtual = itens.find(i => i.id === itemId);
@@ -202,56 +189,8 @@ const Planejamento = () => {
     }
   }, [itens, saveScroll, restoreScroll]);
 
-  // ─── Drag & Drop ─────────────────────────────────────────────────────────
-  const handleItemDragStart = useCallback(id  => { draggedItemIdRef.current = String(id); }, []);
-  const handleItemDragEnd   = useCallback(()  => { draggedItemIdRef.current = null; }, []);
-
-  const handleItemDrop = useCallback(async (novaCategoriaId) => {
-    const itemId = draggedItemIdRef.current;
-    if (!itemId) return;
-    const item = itens.find(i => String(i.id)===String(itemId));
-    if (!item || String(item.categoriaId)===String(novaCategoriaId)) return;
-    saveScroll();
-    const anterior = item.categoriaId;
-    setItens(prev => prev.map(i => String(i.id)===String(itemId) ? {...i, categoriaId:novaCategoriaId} : i));
-    restoreScroll();
-    try {
-      await itensService.updateCategoria(String(itemId), novaCategoriaId);
-    } catch {
-      setItens(prev => prev.map(i => String(i.id)===String(itemId) ? {...i, categoriaId:anterior} : i));
-      restoreScroll();
-    }
-  }, [itens, saveScroll, restoreScroll]);
-
-  const handleCategoryDragEnd = useCallback(async (event) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = categorias.findIndex(c => c.id === active.id);
-    const newIndex = categorias.findIndex(c => c.id === over.id);
-
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    const newCategorias = arrayMove(categorias, oldIndex, newIndex);
-    setCategorias(newCategorias);
-
-    // Update order in database using bulk reordenar endpoint
-    try {
-      await categoriasService.reordenar(newCategorias.map(c => c.id));
-    } catch (error) {
-      console.error('Failed to update category order:', error);
-      // Revert on error
-      setCategorias(categorias);
-    }
-  }, [categorias]);
-
   // ─── Categoria ───────────────────────────────────────────────────────────
   const handleAddCategoria = useCallback(() => setCategoriaModal({ isOpen:true, categoria:null, isEditing:false }), []);
-
-  const handleEditCategoria = useCallback((categoria) => {
-    saveScroll();
-    setCategoriaModal({ isOpen:true, categoria, isEditing:true });
-  }, [saveScroll]);
 
   const handleCloseCategoriaModal = useCallback(() => {
     setCategoriaModal({ isOpen:false, categoria:null, isEditing:false });
@@ -266,22 +205,6 @@ const Planejamento = () => {
     }
     restoreScroll();
   }, [restoreScroll]);
-
-  const handleDeleteCategoria = useCallback(async (id) => {
-    saveScroll();
-    const backup = [...categorias];
-    setCategorias(prev => prev.filter(c => c.id !== id));
-    setItens(prev => prev.filter(i => i.categoriaId !== id));
-    restoreScroll();
-    try {
-      await categoriasService.delete(id);
-    } catch {
-      setCategorias(backup);
-      const its = await itensService.getAll().catch(() => itens);
-      setItens(Array.isArray(its) ? its : itens);
-      restoreScroll();
-    }
-  }, [categorias, itens, saveScroll, restoreScroll]);
 
   // ─── UI ──────────────────────────────────────────────────────────────────
   if (loading) {
@@ -310,50 +233,54 @@ const Planejamento = () => {
   }
 
   return (
-    <PlanejamentoContainer theme={theme}>
-      
-      <Filtros filter={filter} setFilter={setFilter} onAddCategory={handleAddCategoria} theme={theme} filtroOrigem={filtroOrigem} setFiltroOrigem={setFiltroOrigem}/>
+    <>
+      {/* Desktop Layout */}
+      <MainLayout.DesktopLayout>
+        <PlanningSidebar resumo={resumo} />
+        
+        <MainLayout.MainContent>
+          <PlanningHeader 
+            onAddItem={handleOpenWizard}
+            onToggleFilters={handleToggleFilters}
+            filterActive={filterActive}
+          />
+          
+          <PlanningSummaryCards resumo={resumo} />
+          
+          <MainLayout.ContentArea>
+            <PlanningCategoriesPanel 
+              categorias={categorias}
+              itens={itens}
+              onAddCategory={handleAddCategoria}
+              onSelectCategory={handleSelectCategory}
+              selectedCategory={selectedCategory}
+            />
+            
+            <PlanningItemList 
+              itens={itensFiltrados}
+              onToggleComprado={handleToggleComprado}
+              onEditItem={handleEditItem}
+              onDeleteItem={handleDeleteItem}
+              onQuantityChange={handleQuantityChange}
+            />
+          </MainLayout.ContentArea>
+        </MainLayout.MainContent>
+      </MainLayout.DesktopLayout>
 
-      {categorias.length === 0 ? (
-        <EmptyStateContainer>
-          <EmptyStateIcon>🏠</EmptyStateIcon>
-          <EmptyStateTitle>Comece criando uma categoria</EmptyStateTitle>
-          <EmptyStateButton onClick={handleAddCategoria}>Criar categoria</EmptyStateButton>
-        </EmptyStateContainer>
-      ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleCategoryDragEnd}
-        >
-          <SortableContext
-            items={categorias.map(c => c.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            <CategoriesGrid>
-              {categorias.map(categoria => (
-                <CategoriaCard
-                  key={categoria.id}
-                  categoria={categoria}
-                  itens={itensFiltrados.filter(i => i.categoriaId === categoria.id)}
-                  onAddItem={handleAddItem}
-                  onUpdateItem={handleEditItem}
-                  onDeleteItem={handleDeleteItem}
-                  onDeleteCategoria={handleDeleteCategoria}
-                  onEditCategoria={handleEditCategoria}
-                  onToggleComprado={handleToggleComprado}
-                  onItemDragStart={handleItemDragStart}
-                  onItemDragEnd={handleItemDragEnd}
-                  onItemDrop={handleItemDrop}
-                  draggedItemId={draggedItemIdRef.current ? String(draggedItemIdRef.current) : null}
-                  theme={theme}
-                />
-              ))}
-            </CategoriesGrid>
-          </SortableContext>
-        </DndContext>
-      )}
+      {/* Mobile Layout */}
+      <PlanningMobile 
+        resumo={resumo}
+        categorias={categorias}
+        itens={itensFiltrados}
+        onAddItem={handleOpenWizard}
+        onToggleFilters={handleToggleFilters}
+        onSelectCategory={handleSelectCategory}
+        onToggleComprado={handleToggleComprado}
+        onEditItem={handleEditItem}
+        onDeleteItem={handleDeleteItem}
+      />
 
+      {/* Modals */}
       <ItemFormModal
         isOpen={itemModal.isOpen}
         onClose={handleCloseItemModal}
@@ -372,7 +299,14 @@ const Planejamento = () => {
         isEditing={categoriaModal.isEditing}
         theme={theme}
       />
-    </PlanejamentoContainer>
+
+      <AddItemWizard
+        isOpen={wizardOpen}
+        onClose={handleCloseWizard}
+        categorias={categorias}
+        onSave={handleWizardSave}
+      />
+    </>
   );
 };
 
