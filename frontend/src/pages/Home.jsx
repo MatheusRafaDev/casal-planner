@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import Header from '../components/Header';
 import Footer from '../components/Footer';
+import CasalPlannerLogo from '../assets/logo.png';
 import {
   Heart, ArrowRight, ShoppingCart, Users, BarChart3, CheckCircle,
   Star, Shield, Zap, Target, Gift, TrendingUp, Clock, Sparkles,
@@ -71,6 +71,104 @@ const Page = styled.div`
   overflow-x: hidden;
   font-family: 'Segoe UI', system-ui, sans-serif;
 `;
+
+// HEADER
+const HeaderWrapper = styled.header`
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5%;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  background: ${p => p.$scrolled ? p.theme.surface + 'e6' : 'transparent'};
+  backdrop-filter: ${p => p.$scrolled ? 'blur(10px)' : 'none'};
+  border-bottom: 1px solid ${p => p.$scrolled ? p.theme.border : 'transparent'};
+  box-shadow: ${p => p.$scrolled ? '0 4px 20px rgba(0,0,0,0.05)' : 'none'};
+`;
+
+const Logo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: ${p => p.theme.text};
+  cursor: pointer;
+
+  svg {
+    color: ${p => p.theme.primary};
+  }
+`;
+
+const NavLinks = styled.nav`
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
+const NavLink = styled.a`
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: ${p => p.theme.textSoft};
+  text-decoration: none;
+  transition: color 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    color: ${p => p.theme.primary};
+  }
+`;
+
+const HeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const HeaderBtnLogin = styled.button`
+  background: transparent;
+  color: ${p => p.theme.text};
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s;
+
+  &:hover {
+    color: ${p => p.theme.primary};
+  }
+
+  @media (max-width: 480px) {
+    display: none;
+  }
+`;
+
+const HeaderBtnCTA = styled.button`
+  background: ${p => p.theme.primary};
+  color: #fff;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px ${p => p.theme.primary}40;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px ${p => p.theme.primary}50;
+    filter: brightness(1.05);
+  }
+`;
+
 
 // HERO
 const HeroWrapper = styled.section`
@@ -612,12 +710,46 @@ const Home = () => {
 
   const [featRef, featVisible] = useInView();
   const [stepsRef, stepsVisible] = useInView();
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const go = (modo) => navigate('/login', { state: { modo } });
 
+  const scrollToSection = (e, id) => {
+    e.preventDefault();
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <Page theme={theme}>
-      <Header />
+      <HeaderWrapper theme={theme} $scrolled={scrolled}>
+        <Logo theme={theme} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <img src={CasalPlannerLogo} alt="CasalPlanner" width={28} height={28} style={{ borderRadius: 7 }} />
+          CasalPlanner
+        </Logo>
+        <NavLinks theme={theme}>
+          <NavLink theme={theme} onClick={(e) => scrollToSection(e, 'features')}>Funcionalidades</NavLink>
+          <NavLink theme={theme} onClick={(e) => scrollToSection(e, 'como-funciona')}>Como funciona</NavLink>
+        </NavLinks>
+        <HeaderActions theme={theme}>
+          <HeaderBtnLogin theme={theme} onClick={() => go('login')}>
+            Entrar
+          </HeaderBtnLogin>
+          <HeaderBtnCTA theme={theme} onClick={() => go('registro')}>
+            Começar grátis
+          </HeaderBtnCTA>
+        </HeaderActions>
+      </HeaderWrapper>
 
       {/* ── HERO ── */}
       <HeroWrapper>
@@ -679,7 +811,7 @@ const Home = () => {
       </TrustBar>
 
       {/* ── FEATURES ── */}
-      <Section ref={featRef}>
+      <Section ref={featRef} id="features">
         <AnimatedBlock $visible={featVisible}>
           <SectionLabel theme={theme}><Sparkles size={13} /> Funcionalidades</SectionLabel>
           <SectionTitle theme={theme}>Tudo que vocês <em>precisam</em></SectionTitle>
@@ -703,7 +835,7 @@ const Home = () => {
       </Section>
 
       {/* ── COMO FUNCIONA ── */}
-      <Section ref={stepsRef} style={{ paddingTop: '2rem' }}>
+      <Section ref={stepsRef} id="como-funciona" style={{ paddingTop: '2rem' }}>
         <AnimatedBlock $visible={stepsVisible}>
           <SectionLabel theme={theme}><Clock size={13} /> Como funciona</SectionLabel>
           <SectionTitle theme={theme}>Comece em <em>4 passos</em></SectionTitle>

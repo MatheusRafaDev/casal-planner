@@ -352,6 +352,10 @@ const Login = () => {
           setLoading(false);
           return;
         }
+
+        toast.success("Login realizado com sucesso!", { duration: 3000 });
+        navigate("/inicio");
+        return;
       } else {
         if (isCasal) {
           if (
@@ -419,6 +423,8 @@ const Login = () => {
           }
 
           toast.success("Casal registrado com sucesso! 🎉", { duration: 3000 });
+          navigate("/inicio");
+          return;
         } else {
           if (
             !formData.nomeCompleto ||
@@ -459,6 +465,10 @@ const Login = () => {
             setLoading(false);
             return;
           }
+
+          toast.success("Usuário registrado com sucesso! 🎉", { duration: 3000 });
+          navigate("/inicio");
+          return;
         }
       }
     } catch (err) {

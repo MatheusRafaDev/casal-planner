@@ -26,9 +26,9 @@ namespace CasalPlanner.API.Models.DTOs
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Senha é obrigatória")]
-        [MinLength(6, ErrorMessage = "A senha deve ter no mínimo 6 caracteres")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$", 
-            ErrorMessage = "A senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número")]
+        [MinLength(8, ErrorMessage = "A senha deve ter no mínimo 8 caracteres")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$",
+            ErrorMessage = "A senha deve conter letra maiúscula, minúscula, número e caractere especial")]
         public string Senha { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "CPF é obrigatório")]
@@ -58,8 +58,9 @@ namespace CasalPlanner.API.Models.DTOs
         public string EmailPessoa1 { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Senha da primeira pessoa é obrigatória")]
-        [MinLength(6, ErrorMessage = "A senha deve ter no mínimo 6 caracteres")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$")]
+        [MinLength(8, ErrorMessage = "A senha deve ter no mínimo 8 caracteres")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$",
+            ErrorMessage = "A senha deve conter letra maiúscula, minúscula, número e caractere especial")]
         public string SenhaPessoa1 { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "CPF da primeira pessoa é obrigatório")]
@@ -83,8 +84,9 @@ namespace CasalPlanner.API.Models.DTOs
         public string EmailPessoa2 { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Senha da segunda pessoa é obrigatória")]
-        [MinLength(6, ErrorMessage = "A senha deve ter no mínimo 6 caracteres")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$")]
+        [MinLength(8, ErrorMessage = "A senha deve ter no mínimo 8 caracteres")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$",
+            ErrorMessage = "A senha deve conter letra maiúscula, minúscula, número e caractere especial")]
         public string SenhaPessoa2 { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "CPF da segunda pessoa é obrigatório")]

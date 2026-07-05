@@ -2,10 +2,8 @@ import styled from 'styled-components';
 
 
 export const Container = styled.div`
-  /* CORREÇÃO iPhone: sequência completa de fallback para viewport height */
-  min-height: 100vh;
-  min-height: 100dvh;
-  min-height: -webkit-fill-available;
+  flex: 1;
+  width: 100%;
   background: ${props => props.theme.background};
   color: ${props => props.theme.text};
   

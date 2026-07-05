@@ -115,12 +115,7 @@ class StoreLogoService {
   }
 
   getEmoji(storeName) {
-    if (!storeName) return '🏪';
-    const clean = this._normalizeName(storeName);
-    for (const [key, emoji] of Object.entries(STORE_EMOJIS)) {
-      if (clean.includes(key) || key.includes(clean)) return emoji;
-    }
-    return '🏪';
+    return '';
   }
 
   inferDomain(storeName) {

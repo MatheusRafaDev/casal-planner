@@ -199,7 +199,6 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IRecuperarSenhaService, RecuperarSenhaService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 
-builder.Services.AddMemoryCache(); 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -238,45 +237,6 @@ if (builder.Environment.IsDevelopment())
 // ===== BUILD =====
 var app = builder.Build();
 
-// ===== 8. MIDDLEWARE PARA LOG DE CORS =====
-app.Use(async (context, next) =>
-{
-    var origin = context.Request.Headers["Origin"].ToString();
-    var method = context.Request.Method;
-    var path = context.Request.Path;
-    var ip = context.Connection.RemoteIpAddress?.ToString();
-    
-    // Log de requisições CORS
-    if (!string.IsNullOrEmpty(origin))
-    {
-        Console.WriteLine($"📡 [{DateTime.Now:HH:mm:ss}] {method} {path} - Origem: {origin} | IP: {ip}");
-        
-        // Verifica se a origem é permitida
-        var isAllowed = allowedOriginsList.Contains(origin) || 
-                       (builder.Environment.IsDevelopment() && origin.StartsWith("http://192.168."));
-        
-        if (isAllowed)
-        {
-            context.Response.Headers.Add("Access-Control-Allow-Origin", origin);
-            context.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
-        }
-        else
-        {
-            Console.WriteLine($"⚠️ Origem não permitida pelo CORS: {origin}");
-        }
-    }
-    
-    // Responde imediatamente para requisições OPTIONS (preflight)
-    if (context.Request.Method == "OPTIONS")
-    {
-        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
-        context.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
-        context.Response.StatusCode = 200;
-        return;
-    }
-    
-    await next();
-});
 
 // ===== 9. HEADERS DE SEGURANÇA =====
 app.Use(async (context, next) =>

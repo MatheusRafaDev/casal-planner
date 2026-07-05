@@ -14,7 +14,6 @@ namespace CasalPlanner.API.Services
         Task<Item?> AtualizarComprado(string id, bool comprado, string usuarioId);
         Task<bool> DeletarItem(string id, string usuarioId);
         Task<List<Item>> GetItensByCategoria(string categoriaId, string usuarioId);
-        Task<Item?> AtualizarVariantes(string id, List<ItemVariante> variantes, string? varianteSelecionadaId, string usuarioId);
     }
 
     public class ItemService : IItemService
@@ -58,10 +57,7 @@ namespace CasalPlanner.API.Services
                 Loja = dto.Loja,
                 LinkProduto = dto.LinkProduto,
                 FotoUrl = dto.FotoUrl,
-                Origem = dto.Origem ?? "comprado",
-                OrigemDescricao = dto.OrigemDescricao,
-                Variantes = dto.Variantes ?? new(),
-                VarianteSelecionadaId = dto.VarianteSelecionadaId
+                Origem = dto.Origem ?? "comprado"
             };
 
             await _context.Itens.InsertOneAsync(item);
@@ -108,15 +104,6 @@ namespace CasalPlanner.API.Services
 
             if (!string.IsNullOrEmpty(dto.Origem))
                 updates.Add(update.Set(i => i.Origem, dto.Origem));
-
-            if (dto.OrigemDescricao != null)
-                updates.Add(update.Set(i => i.OrigemDescricao, dto.OrigemDescricao));
-
-            if (dto.Variantes != null)
-                updates.Add(update.Set(i => i.Variantes, dto.Variantes));
-
-            if (dto.VarianteSelecionadaId != null)
-                updates.Add(update.Set(i => i.VarianteSelecionadaId, dto.VarianteSelecionadaId));
 
             if (updates.Count == 0)
                 return await GetItemById(id, usuarioId);
@@ -174,26 +161,6 @@ namespace CasalPlanner.API.Services
             return await _context.Itens
                 .Find(i => i.CategoriaId == categoriaId && i.UsuarioId == usuarioId)
                 .ToListAsync();
-        }
-
-        public async Task<Item?> AtualizarVariantes(string id, List<ItemVariante> variantes, string? varianteSelecionadaId, string usuarioId)
-        {
-            var filter = Builders<Item>.Filter.And(
-                Builders<Item>.Filter.Eq(i => i.Id, id),
-                Builders<Item>.Filter.Eq(i => i.UsuarioId, usuarioId)
-            );
-
-            var update = Builders<Item>.Update
-                .Set(i => i.Variantes, variantes)
-                .Set(i => i.VarianteSelecionadaId, varianteSelecionadaId)
-                .Set(i => i.UpdatedAt, DateTime.UtcNow);
-
-            var options = new FindOneAndUpdateOptions<Item>
-            {
-                ReturnDocument = ReturnDocument.After
-            };
-
-            return await _context.Itens.FindOneAndUpdateAsync(filter, update, options);
         }
     }
 }

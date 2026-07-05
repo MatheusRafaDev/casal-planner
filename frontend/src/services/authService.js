@@ -66,9 +66,14 @@ class AuthService {
       const response = await api.get('/auth/me');
       const d = response.data;
 
-      // Recupera a pessoa logada que foi salva no login
-      // (o /me não a retorna pois o JWT não carrega essa info)
-      const pessoaQueLogou = pessoaStorage.get();
+      // O backend agora retorna pessoaLogada via JWT claim
+      // Usa o valor do backend se disponível, senão fallback para localStorage
+      const pessoaQueLogou = d.pessoaLogada || d.pessoaQueLogou || pessoaStorage.get();
+
+      // Atualiza localStorage se o backend retornou um valor válido
+      if (d.pessoaLogada || d.pessoaQueLogou) {
+        pessoaStorage.set(pessoaQueLogou);
+      }
 
       const normalizado = this.#normalizar(d, pessoaQueLogou);
       this.#usuarioCache = normalizado;

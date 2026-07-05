@@ -136,6 +136,7 @@ const ProductItem = ({ item, isSelected, onSelect }) => {
           <S.ProductTitle>{item.nome}</S.ProductTitle>
 
           <S.StoreInfo>
+            {item.logo_loja && <S.StoreLogo src={item.logo_loja} alt={item.loja} />}
             <S.StoreName>{item.loja}</S.StoreName>
 
             {isMarketplace && <S.MarketplaceBadge>🛍️ Marketplace</S.MarketplaceBadge>}
@@ -144,6 +145,7 @@ const ProductItem = ({ item, isSelected, onSelect }) => {
 
           {item.marca && (
             <S.BrandInfo>
+              {item.logo_marca && <S.BrandLogo src={item.logo_marca} alt={item.marca} />}
               {item.marca}
             </S.BrandInfo>
           )}
@@ -207,11 +209,15 @@ const PainelPesquisaPrecos = ({
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
   const [selectedItemId, setSelectedItemId] = useState(null);
+  const [query, setQuery] = useState(nome || '');
 
   const abortRef = useRef(null);
   const isSelectingRef = useRef(false);
 
-  const query = useMemo(() => `${nome}`.trim(), [nome]);
+  // Atualiza a busca inicial caso o nome do formulário mude (antes de o usuário editar)
+  useEffect(() => {
+    if (nome) setQuery(nome);
+  }, [nome]);
 
   // ---------- Search ----------
   const handleSearch = useCallback(async () => {
@@ -304,9 +310,9 @@ const PainelPesquisaPrecos = ({
   if (!expanded) {
     return (
       <S.Wrapper>
-        <S.TriggerButton onClick={() => setExpanded(true)}>
+        <S.TriggerButton type="button" onClick={() => setExpanded(true)}>
           <IconSearch />
-          Pesquisar preços
+          Pesquisar preços online
         </S.TriggerButton>
       </S.Wrapper>
     );
@@ -317,7 +323,7 @@ const PainelPesquisaPrecos = ({
       <S.Panel>
         <S.PanelHeader>
           <S.Title>
-             Pesquisar preços
+             Pesquisar online
             {results.length > 0 && <S.ResultCount>{results.length} produtos</S.ResultCount>}
           </S.Title>
           <S.CloseButton onClick={() => setExpanded(false)}>✕</S.CloseButton>
@@ -327,8 +333,10 @@ const PainelPesquisaPrecos = ({
           <S.SearchSection>
             <S.SearchInput 
               value={query} 
-              disabled 
-              placeholder="Produto buscado..."
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="Nome do produto ou modelo..."
+              autoFocus
             />
             <S.SearchButton onClick={handleSearch} disabled={loading}>
               {loading ? (
@@ -337,7 +345,7 @@ const PainelPesquisaPrecos = ({
                   Buscando...
                 </>
               ) : (
-                'Buscar novamente'
+                <><IconSearch /> Buscar</>
               )}
             </S.SearchButton>
           </S.SearchSection>

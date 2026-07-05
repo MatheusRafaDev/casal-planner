@@ -6,7 +6,7 @@ import { useItemValidation } from '../hooks/useItemValidation';
 import { usePriceFormat } from '../hooks/usePriceFormat';
 import { showToast } from '../utils/toastUtils';
 import PainelPesquisaPrecos from "./PainelPesquisaPrecos";
-import { AlertCircle, AlertTriangle, CheckCircle, CreditCard, Wallet, ShoppingCart, Gift, ExternalLink } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle, CreditCard, Wallet, ShoppingCart, Gift, ExternalLink, Tag, Box, DollarSign, Package, Calendar, Store, Zap, Clock, Hourglass, Banknote, UtensilsCrossed } from "lucide-react";
 
 import {
   Overlay,
@@ -29,8 +29,10 @@ import {
   QuantidadeWrapper,
   QuantidadeButton,
   QuantidadeInput,
-  TwoColumnGrid,
-  ScrollContent
+  TwoColumnGrid, SingleColumnGrid, SectionDivider,
+  ScrollContent,
+  OptionGroup,
+  OptionBtn
 } from '../styles/components/ItemFormModalStyles';
 
 const DEFAULT_FORM_DATA = {
@@ -46,8 +48,7 @@ const DEFAULT_FORM_DATA = {
   linkProduto: "",
   fotoUrl: "",
   parcelas: 1,
-  variantes: [],
-  varianteSelecionadaId: null,
+  origem: "comprado",
 };
 
 const PRIORIDADE_LABEL = {
@@ -210,7 +211,8 @@ const ItemFormModal = ({
   theme,
   itemParaEditar = null,
   isEditing = false,
-  categoriaId = null
+  categoriaId = null,
+  categorias = []
 }) => {
   const [formData, setFormData] = useState(DEFAULT_FORM_DATA);
   const [loading, setLoading] = useState(false);
@@ -219,7 +221,7 @@ const ItemFormModal = ({
   const nomeInputRef = useRef(null);
   const mountedRef = useRef(true);
   const [duplicataAlert, setDuplicataAlert] = useState(null);
-  const [showVariantes, setShowVariantes] = useState(false);
+  const [showLinksModal, setShowLinksModal] = useState(false);
   const debounceRef = useRef(null);
 
   const {
@@ -263,6 +265,7 @@ const ItemFormModal = ({
           origemDescricao: itemParaEditar.origemDescricao || "",
           variantes:   itemParaEditar.variantes || [],
           varianteSelecionadaId: itemParaEditar.varianteSelecionadaId || null,
+          parcelas:    itemParaEditar.pagamento === 'vr' ? 1 : (itemParaEditar.parcelas || 1),
         });
         if (itemParaEditar.preco !== undefined && itemParaEditar.preco !== null) {
           setPrecoRaw(Number(itemParaEditar.preco) || 0);
@@ -330,7 +333,13 @@ const ItemFormModal = ({
 
   const handleFieldChange = useCallback((fieldName, value) => {
     if (isSubmitting || loading) return;
-    setFormData(prev => ({ ...prev, [fieldName]: value }));
+    setFormData(prev => {
+      const next = { ...prev, [fieldName]: value };
+      if (fieldName === 'pagamento' && value === 'vr') {
+        next.parcelas = 1;
+      }
+      return next;
+    });
     handleChange(fieldName, value, touched[fieldName]);
   }, [isSubmitting, loading, handleChange, touched]);
 
@@ -387,7 +396,7 @@ const ItemFormModal = ({
     e.preventDefault();
     if (isSubmitting || loading || submissionRef.current) return;
 
-    const allTouched = { nome: true, marca: true, preco: true, quantidade: true };
+    const allTouched = { nome: true, marca: true, preco: true, quantidade: true, categoriaId: true };
     setTouched(allTouched);
 
     const novosErros = validarFormulario(formData, precoFormatado);
@@ -396,6 +405,12 @@ const ItemFormModal = ({
     if (formData.preco <= 0) {
       setErrors(prev => ({ ...prev, preco: "Preço deve ser maior que zero" }));
       showToast.error("Preço deve ser maior que zero", theme);
+      return;
+    }
+
+    if (!formData.categoriaId) {
+      setErrors(prev => ({ ...prev, categoriaId: "Selecione uma categoria" }));
+      showToast.error("Selecione uma categoria para o item", theme);
       return;
     }
 
@@ -421,8 +436,7 @@ const ItemFormModal = ({
         linkProduto: formData.linkProduto?.trim() || "",
         fotoUrl:     formData.fotoUrl?.trim() || "",
         parcelas:    Number(formData.parcelas) || 1,
-        variantes:   formData.variantes || [],
-        varianteSelecionadaId: formData.varianteSelecionadaId || null,
+        origem:      formData.origem || "comprado",
       };
       if (isEditing && formData.id) dadosParaEnvio.id = formData.id;
 
@@ -448,12 +462,85 @@ const ItemFormModal = ({
     }
   }, [isSubmitting, loading, formData, precoFormatado, setTouched, validarFormulario, setErrors, theme, onSave, isEditing, handleClose]);
 
+  const handleKeyDownForm = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
+      e.preventDefault();
+    }
+  };
+
   const handleButtonClick = useCallback((e) => {
     if (isSubmitting || loading || submissionRef.current) e.preventDefault();
   }, [isSubmitting, loading]);
 
+  const [linksTemp, setLinksTemp] = useState({ linkProduto: "", fotoUrl: "" });
+
+  const openLinksModal = () => {
+    setLinksTemp({ linkProduto: formData.linkProduto || "", fotoUrl: formData.fotoUrl || "" });
+    setShowLinksModal(true);
+  };
+
+  const saveLinksModal = () => {
+    handleFieldChange("linkProduto", linksTemp.linkProduto);
+    handleFieldChange("fotoUrl", linksTemp.fotoUrl);
+    setShowLinksModal(false);
+  };
+
   const modalContent = (
-    <Overlay theme={theme} onClick={handleClose}>
+    <Overlay theme={theme}>
+      {showLinksModal && (
+        <div style={{
+          position: "absolute", inset: 0, zIndex: 999999, background: "rgba(0,0,0,0.6)",
+          display: "flex", alignItems: "center", justifyContent: "center", padding: "20px"
+        }} onClick={() => setShowLinksModal(false)}>
+          <div style={{
+            background: theme?.surface || "#fff", width: "100%", maxWidth: "400px", borderRadius: "16px",
+            padding: "24px", boxShadow: "0 20px 60px rgba(0,0,0,0.3)"
+          }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: "0 0 16px 0", color: theme?.text }}>Links e Mídia</h3>
+            
+            <FormGroup>
+              <Label theme={theme}>Link do produto</Label>
+              <Input
+                type="url" value={linksTemp.linkProduto}
+                onChange={e => setLinksTemp(p => ({...p, linkProduto: e.target.value}))}
+                placeholder="https://..." theme={theme}
+                style={{ marginBottom: "16px" }}
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <Label theme={theme}>URL da foto</Label>
+              <Input
+                type="url" value={linksTemp.fotoUrl}
+                onChange={e => setLinksTemp(p => ({...p, fotoUrl: e.target.value}))}
+                placeholder="https://..." theme={theme}
+                style={{ marginBottom: "16px" }}
+              />
+              {linksTemp.fotoUrl && (
+                <div style={{ marginTop: "12px", width: "100%", height: "120px", borderRadius: "8px", overflow: "hidden", background: theme?.surface2 || "#f3f4f6" }}>
+                  <img src={linksTemp.fotoUrl} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={(e) => { e.target.style.display = 'none'; }} />
+                </div>
+              )}
+            </FormGroup>
+
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "24px" }}>
+              <button type="button" onClick={() => setShowLinksModal(false)} style={{
+                padding: "10px 16px", borderRadius: "8px", border: `1px solid ${theme?.border || "#e5e7eb"}`,
+                background: "transparent", color: theme?.text, cursor: "pointer", fontWeight: 600
+              }}>
+                Cancelar
+              </button>
+              <button type="button" onClick={saveLinksModal} style={{
+                padding: "10px 16px", borderRadius: "8px", border: "none",
+                background: theme?.primary || "#3b82f6", color: "#fff", cursor: "pointer", fontWeight: 600
+              }}>
+                Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ModalContainer theme={theme} onClick={e => e.stopPropagation()}>
         <SheetHandle theme={theme} />
         <Header theme={theme}>
@@ -462,23 +549,23 @@ const ItemFormModal = ({
         </Header>
 
         <ScrollContent>
-          <Form onSubmit={handleSubmit}>
+          <Form onSubmit={handleSubmit} onKeyDown={handleKeyDownForm}>
 
             {/* ── Foto grande (hero) — só aparece quando há fotoUrl ── */}
             <ProductHero formData={formData} theme={theme} isEditing={isEditing} />
 
             {/* Nome */}
             <FormGroup>
-              <Label theme={theme}>Nome do item *</Label>
+              <Label theme={theme} style={{ display: 'flex', alignItems: 'center' }}><Tag size={16} style={{ marginRight: '6px', opacity: 0.7 }} /> Nome do item *</Label>
               <Input
                 ref={nomeInputRef}
                 type="text" name="nome" value={formData.nome || ""}
                 onChange={handleNomeChange}
                 onBlur={() => handleBlur('nome', formData.nome)}
-                placeholder="Ex: iPhone 15, Camisa Polo, Livro..."
+                placeholder=""
                 theme={theme}
                 style={{ borderColor: errors.nome && touched.nome ? '#dc3545' : undefined }}
-                maxLength={100} disabled={loading || isSubmitting} autoComplete="off"
+                maxLength={300} disabled={loading || isSubmitting} autoComplete="off"
               />
               {errors.nome && touched.nome && <ErrorMessage theme={theme}>{errors.nome}</ErrorMessage>}
               {duplicataAlert && (
@@ -500,58 +587,91 @@ const ItemFormModal = ({
               )}
             </FormGroup>
 
-            {/* Marca + Preço */}
+            {/* Marca + Loja */}
             <TwoColumnGrid>
               <FormGroup>
-                <Label theme={theme}>Marca</Label>
+                <Label theme={theme} style={{ display: 'flex', alignItems: 'center' }}><Box size={16} style={{ marginRight: '6px', opacity: 0.7 }} /> Marca</Label>
                 <Input
                   type="text" name="marca" value={formData.marca || ""}
                   onChange={handleInputChange} onBlur={() => handleBlur('marca', formData.marca)}
-                  placeholder="Ex: Apple, Nike, Amazon" theme={theme}
+                  placeholder="" theme={theme}
                   maxLength={50} disabled={loading || isSubmitting} autoComplete="off"
                 />
                 {errors.marca && touched.marca && <ErrorMessage theme={theme}>{errors.marca}</ErrorMessage>}
               </FormGroup>
 
               <FormGroup>
-                <Label theme={theme}>Preço *</Label>
+                <Label theme={theme} style={{ display: 'flex', alignItems: 'center' }}><Store size={16} style={{ marginRight: '6px', opacity: 0.7 }} /> Loja</Label>
+                <Input
+                  type="text" name="loja" value={formData.loja || ""}
+                  onChange={handleInputChange} onBlur={() => handleBlur('loja', formData.loja)}
+                  placeholder="" theme={theme}
+                  maxLength={100} disabled={loading || isSubmitting} autoComplete="off"
+                />
+                {errors.loja && touched.loja && <ErrorMessage theme={theme}>{errors.loja}</ErrorMessage>}
+              </FormGroup>
+            </TwoColumnGrid>
+
+            {/* Preço + Quantidade */}
+            <TwoColumnGrid>
+              <FormGroup>
+                <Label theme={theme} style={{ display: 'flex', alignItems: 'center' }}><DollarSign size={16} style={{ marginRight: '6px', opacity: 0.7 }} /> Preço Unitário *</Label>
                 <Input
                   type="tel" name="preco" value={precoFormatado}
                   onChange={handlePrecoChange} onBlur={handlePrecoBlur}
-                  placeholder="R$ 0,00" theme={theme}
+                  placeholder="" theme={theme}
                   style={{ borderColor: errors.preco && touched.preco ? '#dc3545' : undefined }}
                   disabled={loading || isSubmitting} inputMode="decimal"
                 />
                 {errors.preco && touched.preco && <ErrorMessage theme={theme}>{errors.preco}</ErrorMessage>}
               </FormGroup>
+
+              <FormGroup>
+                <Label theme={theme} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ display: 'flex', alignItems: 'center' }}>
+                    <Package size={16} style={{ marginRight: '6px', opacity: 0.7 }} /> Quantidade
+                  </span>
+                </Label>
+                <QuantidadeWrapper>
+                  <QuantidadeButton type="button" onClick={() => handleQuantidadeChange(-1)}
+                    disabled={loading || isSubmitting || formData.quantidade <= 1} theme={theme}>−</QuantidadeButton>
+                  <QuantidadeInput
+                    type="number" name="quantidade" value={formData.quantidade || 1}
+                    onChange={e => { const v = parseInt(e.target.value) || 1; handleFieldChange("quantidade", Math.max(1, Math.min(999999, v))); }}
+                    onBlur={() => handleBlur('quantidade', formData.quantidade)}
+                    min="1" max="999999" step="1" theme={theme} disabled={loading || isSubmitting}
+                  />
+                  <QuantidadeButton type="button" onClick={() => handleQuantidadeChange(1)}
+                    disabled={loading || isSubmitting} theme={theme}>+</QuantidadeButton>
+                </QuantidadeWrapper>
+                {errors.quantidade && touched.quantidade && <ErrorMessage theme={theme}>{errors.quantidade}</ErrorMessage>}
+              </FormGroup>
             </TwoColumnGrid>
 
-            {/* Quantidade */}
+            {/* Categoria */}
             <FormGroup>
-              <Label theme={theme}>Quantidade</Label>
-              <QuantidadeWrapper>
-                <QuantidadeButton type="button" onClick={() => handleQuantidadeChange(-1)}
-                  disabled={loading || isSubmitting || formData.quantidade <= 1} theme={theme}>−</QuantidadeButton>
-                <QuantidadeInput
-                  type="number" name="quantidade" value={formData.quantidade || 1}
-                  onChange={e => { const v = parseInt(e.target.value) || 1; handleFieldChange("quantidade", Math.max(1, Math.min(999999, v))); }}
-                  onBlur={() => handleBlur('quantidade', formData.quantidade)}
-                  min="1" max="999999" step="1" theme={theme} disabled={loading || isSubmitting}
-                />
-                <QuantidadeButton type="button" onClick={() => handleQuantidadeChange(1)}
-                  disabled={loading || isSubmitting} theme={theme}>+</QuantidadeButton>
-              </QuantidadeWrapper>
-              {errors.quantidade && touched.quantidade && <ErrorMessage theme={theme}>{errors.quantidade}</ErrorMessage>}
+              <Label theme={theme} style={{ display: 'flex', alignItems: 'center' }}><Box size={16} style={{ marginRight: '6px', opacity: 0.7 }} /> Categoria</Label>
+              <Select
+                name="categoriaId"
+                value={formData.categoriaId || ""}
+                onChange={e => handleFieldChange("categoriaId", e.target.value)}
+                theme={theme} disabled={loading || isSubmitting}
+              >
+                <option value="" disabled>Selecione uma categoria</option>
+                {categorias?.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.nome}</option>
+                ))}
+              </Select>
             </FormGroup>
 
             {/* Parcelas */}
             <FormGroup>
-              <Label theme={theme}>Parcelas</Label>
+              <Label theme={theme} style={{ display: 'flex', alignItems: 'center' }}><Calendar size={16} style={{ marginRight: '6px', opacity: 0.7 }} /> Parcelas</Label>
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                 <Select
                   value={formData.parcelas || 1}
                   onChange={e => handleFieldChange("parcelas", parseInt(e.target.value) || 1)}
-                  theme={theme} disabled={loading || isSubmitting}
+                  theme={theme} disabled={loading || isSubmitting || formData.pagamento === 'vr'}
                   style={{ flex: 1 }}
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map(num => (
@@ -568,62 +688,38 @@ const ItemFormModal = ({
               </div>
             </FormGroup>
 
-            {/* Loja */}
+
+
+            {/* Origem */}
             <FormGroup>
-              <Label theme={theme}>Loja</Label>
-              <Input
-                type="text" name="loja" value={formData.loja || ""}
-                onChange={handleInputChange} onBlur={() => handleBlur('loja', formData.loja)}
-                placeholder="Onde comprou? Ex: Mercado Livre, Amazon, Shopee" theme={theme}
-                maxLength={100} disabled={loading || isSubmitting} autoComplete="off"
-              />
-              {errors.loja && touched.loja && <ErrorMessage theme={theme}>{errors.loja}</ErrorMessage>}
+              <Label theme={theme} style={{ display: 'flex', alignItems: 'center' }}><ShoppingCart size={16} style={{ marginRight: '6px', opacity: 0.7 }} /> Origem</Label>
+              <OptionGroup>
+                <OptionBtn
+                  type="button"
+                  theme={theme}
+                  $active={formData.origem === 'comprado'}
+                  $color="#6366f1"
+                  disabled={loading || isSubmitting}
+                  onClick={() => handleFieldChange('origem', 'comprado')}
+                >
+                  <ShoppingCart size={15} />
+                  Comprado
+                </OptionBtn>
+                <OptionBtn
+                  type="button"
+                  theme={theme}
+                  $active={formData.origem === 'presente'}
+                  $color="#ec4899"
+                  disabled={loading || isSubmitting}
+                  onClick={() => handleFieldChange('origem', 'presente')}
+                >
+                  <Gift size={15} />
+                  Presente
+                </OptionBtn>
+              </OptionGroup>
             </FormGroup>
 
-            {/* Link do Produto */}
-            <FormGroup>
-              <Label theme={theme}>Link do produto</Label>
-              <div style={{ position: "relative" }}>
-                <Input
-                  type="url" name="linkProduto" value={formData.linkProduto || ""}
-                  onChange={handleInputChange}
-                  placeholder="https://..." theme={theme}
-                  maxLength={500} disabled={loading || isSubmitting} autoComplete="off"
-                  style={{ paddingRight: formData.linkProduto ? "40px" : "1rem" }}
-                />
-                {formData.linkProduto && (
-                  <a 
-                    href={formData.linkProduto} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    style={{
-                      position: "absolute",
-                      right: "12px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: theme?.primary || "#3b82f6"
-                    }}
-                    title="Abrir link do produto"
-                  >
-                    <ExternalLink size={18} />
-                  </a>
-                )}
-              </div>
-            </FormGroup>
 
-            {/* URL da Foto */}
-            <FormGroup>
-              <Label theme={theme}>URL da foto</Label>
-              <Input
-                type="url" name="fotoUrl" value={formData.fotoUrl || ""}
-                onChange={handleInputChange}
-                placeholder="https://..." theme={theme}
-                maxLength={500} disabled={loading || isSubmitting} autoComplete="off"
-              />
-            </FormGroup>
 
             {/* Pesquisa de preços */}
             <PainelPesquisaPrecos
@@ -638,49 +734,81 @@ const ItemFormModal = ({
             {/* Pagamento + Prioridade */}
             <TwoColumnGrid>
               <FormGroup>
-                <Label theme={theme}>Pagamento</Label>
-                <Select value={formData.pagamento || "normal"} onChange={e => handleFieldChange("pagamento", e.target.value)}
-                  theme={theme} disabled={loading || isSubmitting}>
-                  <option value="normal">Normal (Dinheiro/Cartão)</option>
-                  <option value="vr">VR / VA</option>
-                </Select>
+                <Label theme={theme} style={{ display: 'flex', alignItems: 'center' }}><CreditCard size={16} style={{ marginRight: '6px', opacity: 0.7 }} /> Pagamento</Label>
+                <OptionGroup>
+                  <OptionBtn
+                    type="button"
+                    theme={theme}
+                    $active={(formData.pagamento || 'normal') === 'normal'}
+                    $color="#10b981"
+                    disabled={loading || isSubmitting}
+                    onClick={() => handleFieldChange('pagamento', 'normal')}
+                  >
+                    <Banknote size={15} />
+                    Normal (Dinheiro/Cartão)
+                  </OptionBtn>
+                  <OptionBtn
+                    type="button"
+                    theme={theme}
+                    $active={formData.pagamento === 'vr'}
+                    $color="#f59e0b"
+                    disabled={loading || isSubmitting}
+                    onClick={() => handleFieldChange('pagamento', 'vr')}
+                  >
+                    <UtensilsCrossed size={15} />
+                    VR / VA
+                  </OptionBtn>
+                </OptionGroup>
               </FormGroup>
 
               <FormGroup>
-                <Label theme={theme}>Prioridade</Label>
-                <Select value={formData.prioridade || "normal"} onChange={e => handleFieldChange("prioridade", e.target.value)}
-                  theme={theme} disabled={loading || isSubmitting}>
-                  <option value="urgente">Primeira necessidade</option>
-                  <option value="normal">Próximas compras</option>
-                  <option value="pode_esperar">Mais para frente</option>
-                </Select>
+                <Label theme={theme} style={{ display: 'flex', alignItems: 'center' }}><AlertCircle size={16} style={{ marginRight: '6px', opacity: 0.7 }} /> Prioridade</Label>
+                <OptionGroup>
+                  <OptionBtn
+                    type="button"
+                    theme={theme}
+                    $active={formData.prioridade === 'urgente'}
+                    $color="#ef4444"
+                    disabled={loading || isSubmitting}
+                    onClick={() => handleFieldChange('prioridade', 'urgente')}
+                  >
+                    <Zap size={15} />
+                    Primeira necessidade
+                  </OptionBtn>
+                  <OptionBtn
+                    type="button"
+                    theme={theme}
+                    $active={(formData.prioridade || 'normal') === 'normal'}
+                    $color="#f59e0b"
+                    disabled={loading || isSubmitting}
+                    onClick={() => handleFieldChange('prioridade', 'normal')}
+                  >
+                    <Clock size={15} />
+                    Próximas compras
+                  </OptionBtn>
+                  <OptionBtn
+                    type="button"
+                    theme={theme}
+                    $active={formData.prioridade === 'pode_esperar'}
+                    $color="#22c55e"
+                    disabled={loading || isSubmitting}
+                    onClick={() => handleFieldChange('prioridade', 'pode_esperar')}
+                  >
+                    <Hourglass size={15} />
+                    Mais para frente
+                  </OptionBtn>
+                </OptionGroup>
               </FormGroup>
             </TwoColumnGrid>
 
-            {/* Variantes - Collapsible */}
-            <FormGroup>
-              <div style={{
-                display: "flex", justifyContent: "space-between", alignItems: "center",
-                marginBottom: "0.5rem", cursor: "pointer",
-              }} onClick={() => setShowVariantes(!showVariantes)}>
-                <Label theme={theme} style={{ margin: 0, cursor: "pointer" }}>
-                  Comparar versões {formData.variantes?.length > 0 ? `(${formData.variantes.length})` : ""}
-                </Label>
-                <span style={{ fontSize: "1.2rem", color: theme?.text || "#666" }}>
-                  {showVariantes ? "−" : "+"}
-                </span>
-              </div>
-              {showVariantes && (
-                <div style={{
-                  padding: "1rem", borderRadius: "0.5rem",
-                  background: theme?.bg || "#f9fafb",
-                }}>
-                </div>
-              )}
-            </FormGroup>
 
             {/* Botões */}
             <ModalButtons>
+              {formData.preco > 0 && (
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', fontSize: '1.1rem', fontWeight: 700, color: theme?.text || '#111' }}>
+                  Total: R$ {((formData.preco * (formData.quantidade || 1))).toFixed(2).replace('.', ',')}
+                </div>
+              )}
               <CancelarButton type="button" onClick={handleClose} disabled={loading || isSubmitting} theme={theme}>
                 Cancelar
               </CancelarButton>

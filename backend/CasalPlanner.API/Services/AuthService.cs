@@ -96,7 +96,7 @@ namespace CasalPlanner.API.Services
             try
             {
                 if (string.Equals(dto.EmailPessoa1, dto.EmailPessoa2, StringComparison.OrdinalIgnoreCase))
-                    return null;
+                    throw new EmailsIguaisException();
 
                 var existe1 = await _context.Usuarios
                     .Find(u => u.Email == dto.EmailPessoa1 ||

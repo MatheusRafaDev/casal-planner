@@ -20,7 +20,6 @@ body {
   overflow-x: hidden;
   /* Compatível com iOS: min-height real */
   min-height: 100vh;
-  min-height: -webkit-fill-available;
 }
 
 code {

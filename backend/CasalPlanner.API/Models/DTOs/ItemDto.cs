@@ -29,8 +29,9 @@ namespace CasalPlanner.API.Models.DTOs
         public string FotoUrl { get; set; } = string.Empty;
 
         public string Origem { get; set; } = "comprado";
-        public string? OrigemDescricao { get; set; }
-        public List<ItemVariante> Variantes { get; set; } = new();
+        public string OrigemDescricao { get; set; } = "";
+        public int Parcelas { get; set; } = 1;
+        public List<string> Variantes { get; set; } = new List<string>();
         public string? VarianteSelecionadaId { get; set; }
     }
 
@@ -60,7 +61,8 @@ namespace CasalPlanner.API.Models.DTOs
         public string? FotoUrl { get; set; }
         public string? Origem { get; set; }
         public string? OrigemDescricao { get; set; }
-        public List<ItemVariante>? Variantes { get; set; }
+        public int? Parcelas { get; set; }
+        public List<string>? Variantes { get; set; }
         public string? VarianteSelecionadaId { get; set; }
     }
 
@@ -88,17 +90,15 @@ namespace CasalPlanner.API.Models.DTOs
         public string Loja { get; set; } = string.Empty;
         public string LinkProduto { get; set; } = string.Empty;
         public string FotoUrl { get; set; } = string.Empty;
+        public string Origem { get; set; } = "comprado";
+        public string OrigemDescricao { get; set; } = "";
+        public int Parcelas { get; set; } = 1;
+        public List<string> Variantes { get; set; } = new List<string>();
+        public string? VarianteSelecionadaId { get; set; }
     }
 
     public class UpdateCategoriaDto
     {
         public string CategoriaId { get; set; } = string.Empty;
     }
-
-    public class AtualizarVariantesDto
-    {
-        public List<ItemVariante> Variantes { get; set; } = new();
-        public string? VarianteSelecionadaId { get; set; }
-    }
-
 }

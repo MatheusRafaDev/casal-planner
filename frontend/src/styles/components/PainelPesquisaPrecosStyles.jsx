@@ -24,19 +24,25 @@ export const TriggerButton = styled.button`
   gap: 0.5rem;
   width: 100%;
   padding: 0.75rem 1rem;
-  background: ${p => p.theme.surface};
-  border: 1px solid ${p => p.theme.border};
+  background: linear-gradient(
+    135deg,
+    ${p => p.theme.primary}12 0%,
+    ${p => p.theme.primary}06 100%
+  );
+  border: 1px dashed ${p => p.theme.primary}66;
   border-radius: 12px;
-  color: ${p => p.theme.text};
+  color: ${p => p.theme.primary};
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
 
   &:hover {
+    background: ${p => p.theme.primary}18;
     border-color: ${p => p.theme.primary};
-    background: ${p => p.theme.hover};
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px ${p => p.theme.primary}20;
   }
 `;
 
@@ -119,7 +125,7 @@ export const CloseButton = styled.button`
 
 export const PanelBody = styled.div`
   padding: 1rem;
-  max-height: 560px;
+  max-height: 420px;
   overflow-y: auto;
 
   &::-webkit-scrollbar { width: 6px; }
@@ -132,44 +138,58 @@ export const PanelBody = styled.div`
 
 // ========== Search ==========
 export const SearchSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 1rem;
-`;
-
-export const SearchInput = styled.input`
-  width: 100%;
-  padding: 0.7rem 0.875rem;
   background: ${p => p.theme.background};
   border: 1px solid ${p => p.theme.border};
   border-radius: 10px;
+  padding: 0.2rem 0.2rem 0.2rem 0.75rem;
+  transition: border-color 0.15s;
+
+  &:focus-within {
+    border-color: ${p => p.theme.primary};
+  }
+`;
+
+export const SearchInput = styled.input`
+  flex: 1;
+  padding: 0.55rem 0;
+  background: transparent;
+  border: none;
   color: ${p => p.theme.text};
   font-size: 0.875rem;
-  margin-bottom: 0.5rem;
+  outline: none;
+
+  &::placeholder {
+    color: ${p => p.theme.textSoft};
+  }
 
   &:disabled {
-    background: ${p => p.theme.surface};
     color: ${p => p.theme.textSoft};
   }
 `;
 
 export const SearchButton = styled.button`
-  width: 100%;
-  padding: 0.6rem 1rem;
+  padding: 0.5rem 1rem;
   background: ${p => p.theme.primary};
   color: white;
   border: none;
-  border-radius: 10px;
-  font-size: 0.875rem;
+  border-radius: 7px;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  white-space: nowrap;
+  flex-shrink: 0;
 
   &:hover:not(:disabled) {
-    background: ${p => p.theme.primaryDark};
-    transform: translateY(-1px);
+    filter: brightness(1.1);
   }
   &:disabled {
     opacity: 0.6;
@@ -274,7 +294,7 @@ export const ProductsList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  max-height: 380px;
+  max-height: 500px;
   overflow-y: auto;
   padding-right: 0.25rem;
 
@@ -513,6 +533,13 @@ export const StoreName = styled.span`
   color: ${p => p.theme.textSoft};
 `;
 
+export const StoreLogo = styled.img`
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  border-radius: 3px;
+`;
+
 export const MarketplaceBadge = styled.span`
   font-size: 0.55rem;
   font-weight: 600;
@@ -537,6 +564,16 @@ export const BrandInfo = styled.div`
   font-size: 0.6rem;
   color: ${p => p.theme.primary};
   margin-top: 0.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+`;
+
+export const BrandLogo = styled.img`
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
+  border-radius: 2px;
 `;
 
 export const RatingInfo = styled.div`

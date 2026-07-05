@@ -21,8 +21,9 @@ namespace CasalPlanner.API.Services
             try
             {
                 var hoje               = DateTime.UtcNow;
-                var inicioMesPassado   = hoje.AddMonths(-1);
-                var inicioMesRetrasado = hoje.AddMonths(-2);
+                var inicioMesAtual    = new DateTime(hoje.Year, hoje.Month, 1);
+                var inicioMesPassado   = inicioMesAtual.AddMonths(-1);
+                var inicioMesRetrasado = inicioMesAtual.AddMonths(-2);
 
                 // Uma única agregação no MongoDB: filtra, calcula e agrupa no servidor.
                 // Antes: ToListAsync() carregava todos os itens em memória e filtrava
@@ -45,13 +46,13 @@ namespace CasalPlanner.API.Services
                             new BsonArray { "$Preco", "$Quantidade" }) },
                         { "IsMesAtual", new BsonDocument("$and",
                             new BsonArray {
-                                new BsonDocument("$gte", new BsonArray { "$CreatedAt", new BsonDateTime(inicioMesPassado) }),
+                                new BsonDocument("$gte", new BsonArray { "$CreatedAt", new BsonDateTime(inicioMesAtual) }),
                                 new BsonDocument("$lt",  new BsonArray { "$CreatedAt", new BsonDateTime(hoje) })
                             }) },
                         { "IsMesPassado", new BsonDocument("$and",
                             new BsonArray {
                                 new BsonDocument("$gte", new BsonArray { "$CreatedAt", new BsonDateTime(inicioMesPassado) }),
-                                new BsonDocument("$lt",  new BsonArray { "$CreatedAt", new BsonDateTime(hoje) })
+                                new BsonDocument("$lt",  new BsonArray { "$CreatedAt", new BsonDateTime(inicioMesAtual) })
                             }) },
                         { "IsMesRetrasado", new BsonDocument("$and",
                             new BsonArray {
@@ -70,7 +71,7 @@ namespace CasalPlanner.API.Services
                         { "TotalVR",        new BsonDocument("$sum", new BsonDocument("$cond",
                             new BsonArray { new BsonDocument("$eq", new BsonArray { "$Pagamento", "vr" }), "$ValorTotal", 0 })) },
                         { "TotalNormal",    new BsonDocument("$sum", new BsonDocument("$cond",
-                            new BsonArray { new BsonDocument("$eq", new BsonArray { "$Pagamento", "normal" }), "$ValorTotal", 0 })) },
+                            new BsonArray { new BsonDocument("$ne", new BsonArray { "$Pagamento", "vr" }), "$ValorTotal", 0 })) },
                         { "TotalComprados", new BsonDocument("$sum", new BsonDocument("$cond",
                             new BsonArray { "$Comprado", 1, 0 })) },
                         { "TotalItens",     new BsonDocument("$sum", 1) },
@@ -97,7 +98,7 @@ namespace CasalPlanner.API.Services
                                 new BsonDocument("$eq", new BsonArray { "$Pagamento", "vr" }) }), "$ValorTotal", 0 })) },
                         { "MA_TotalNormal",    new BsonDocument("$sum", new BsonDocument("$cond",
                             new BsonArray { new BsonDocument("$and", new BsonArray { "$IsMesAtual",
-                                new BsonDocument("$eq", new BsonArray { "$Pagamento", "normal" }) }), "$ValorTotal", 0 })) },
+                                new BsonDocument("$ne", new BsonArray { "$Pagamento", "vr" }) }), "$ValorTotal", 0 })) },
                         { "MA_TotalComprados", new BsonDocument("$sum", new BsonDocument("$cond",
                             new BsonArray { new BsonDocument("$and", new BsonArray { "$IsMesAtual", "$Comprado" }), 1, 0 })) },
 
@@ -109,7 +110,7 @@ namespace CasalPlanner.API.Services
                                 new BsonDocument("$eq", new BsonArray { "$Pagamento", "vr" }) }), "$ValorTotal", 0 })) },
                         { "MP_TotalNormal",    new BsonDocument("$sum", new BsonDocument("$cond",
                             new BsonArray { new BsonDocument("$and", new BsonArray { "$IsMesPassado",
-                                new BsonDocument("$eq", new BsonArray { "$Pagamento", "normal" }) }), "$ValorTotal", 0 })) },
+                                new BsonDocument("$ne", new BsonArray { "$Pagamento", "vr" }) }), "$ValorTotal", 0 })) },
                         { "MP_TotalComprados", new BsonDocument("$sum", new BsonDocument("$cond",
                             new BsonArray { new BsonDocument("$and", new BsonArray { "$IsMesPassado", "$Comprado" }), 1, 0 })) },
 

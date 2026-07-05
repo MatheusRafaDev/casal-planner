@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 using MongoDB.Driver;
 using CasalPlanner.API.Models;
 using CasalPlanner.API.Models.DTOs;
@@ -23,7 +24,8 @@ public class CategoriasController : ControllerBase
     }
 
     private string? GetUsuarioId() =>
-        User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? User.FindFirst("sub")?.Value;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Categoria>>> GetCategorias()
@@ -32,7 +34,10 @@ public class CategoriasController : ControllerBase
         {
             var usuarioId = GetUsuarioId();
             if (string.IsNullOrEmpty(usuarioId))
+            {
+                _logger.LogWarning("GetCategorias: usuarioId is null or empty");
                 return Unauthorized(new { message = "Usuário não autenticado" });
+            }
 
             var filter = Builders<Categoria>.Filter.Or(
                 Builders<Categoria>.Filter.Eq(c => c.UsuarioId, null),

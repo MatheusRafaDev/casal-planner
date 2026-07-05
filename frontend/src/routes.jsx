@@ -5,8 +5,9 @@ import { useAuth } from "./context/AuthContext";
 import { useTheme } from "./context/ThemeContext";
 
 // Components
-import Header from "./components/Header";
+
 import BottomNav from "./components/BottomNav";
+import Sidebar from "./components/Sidebar";
 
 // Pages
 import Planejamento from "./pages/Planejamento";
@@ -21,7 +22,7 @@ import WishlistPublica from "./pages/WishlistPublica";
 
 // Hooks
 import usePageTitle from "./hooks/usePageTitle";
-import { AppContainer, MainContent, PageWrapper } from "./styles/RoutesStyles";
+import { AppContainer, MainContent, MainWrapper, PageWrapper } from "./styles/RoutesStyles";
 
 // ─── Skeleton 2.0 - Mais profissional ─────────────────────────────────────────
 
@@ -104,7 +105,7 @@ const PrivateSkeleton = () => {
   const { isDarkMode } = useTheme();
   
   const bgColor = isDarkMode ? "#121212" : "#f8f9fa";
-  const headerBg = isDarkMode ? "#1e1e1e" : "#ffffff";
+  const sidebarBg = isDarkMode ? "#1e1e1e" : "#ffffff";
   const cardBg = isDarkMode ? "#2a2a2a" : "#ffffff";
   return (
     <>
@@ -113,109 +114,89 @@ const PrivateSkeleton = () => {
         minHeight: "100vh", 
         backgroundColor: bgColor,
         display: "flex", 
-        flexDirection: "column" 
+        flexDirection: "row" 
       }}>
-        {/* Header */}
+        {/* Sidebar skeleton (desktop only) */}
         <div style={{ 
-          backgroundColor: headerBg,
-          borderBottom: `1px solid ${isDarkMode ? "#2a2a2a" : "#eee"}`,
-          padding: "12px 16px",
+          width: "230px",
+          minWidth: "230px",
+          backgroundColor: sidebarBg,
+          borderRight: `1px solid ${isDarkMode ? "#2a2a2a" : "#eee"}`,
+          padding: "20px 16px",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          position: "sticky",
-          top: 0,
-          zIndex: 100
-        }}>
-          <SkeletonItem width="100px" height="28px" borderRadius="6px" />
-          <SkeletonItem width="40px" height="40px" borderRadius="50%" />
+          flexDirection: "column",
+          gap: "12px"
+        }} className="skeleton-sidebar">
+          <style>{`@media(max-width:768px){.skeleton-sidebar{display:none!important}}`}</style>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+            <SkeletonItem width="34px" height="34px" borderRadius="8px" />
+            <SkeletonItem width="110px" height="20px" />
+          </div>
+          {[1,2,3,4].map(i => (
+            <SkeletonItem key={i} width="100%" height="36px" borderRadius="8px" />
+          ))}
         </div>
 
-        {/* Main content */}
-        <div style={{ flex: 1, padding: "20px", maxWidth: "600px", margin: "0 auto", width: "100%" }}>
-          {/* Welcome section */}
-          <div style={{ marginBottom: "24px" }}>
-            <SkeletonItem width="70%" height="28px" marginBottom="12px" />
-            <SkeletonItem width="50%" height="20px" />
-          </div>
-
-          {/* Stats cards */}
+        {/* Main area */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          {/* Topbar skeleton */}
           <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: "repeat(2, 1fr)", 
-            gap: "12px",
-            marginBottom: "24px"
+            backgroundColor: sidebarBg,
+            borderBottom: `1px solid ${isDarkMode ? "#2a2a2a" : "#eee"}`,
+            padding: "16px 28px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between"
           }}>
-            <div style={{ 
-              backgroundColor: cardBg,
-              borderRadius: "12px",
-              padding: "16px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
-            }}>
-              <SkeletonItem width="80%" height="20px" marginBottom="8px" />
-              <SkeletonItem width="40%" height="32px" borderRadius="8px" />
-            </div>
-            <div style={{ 
-              backgroundColor: cardBg,
-              borderRadius: "12px",
-              padding: "16px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
-            }}>
-              <SkeletonItem width="80%" height="20px" marginBottom="8px" />
-              <SkeletonItem width="40%" height="32px" borderRadius="8px" />
+            <div>
+              <SkeletonItem width="160px" height="24px" marginBottom="6px" />
+              <SkeletonItem width="220px" height="14px" />
             </div>
           </div>
 
-          {/* List items */}
-          {[1, 2, 3].map((i) => (
-            <div 
-              key={i}
-              style={{
-                backgroundColor: cardBg,
-                borderRadius: "12px",
-                padding: "16px",
-                marginBottom: "12px",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
-                <SkeletonItem width="60%" height="20px" />
-                <SkeletonItem width="40px" height="20px" borderRadius="4px" />
-              </div>
-              <SkeletonItem width="90%" height="16px" marginBottom="8px" />
-              <SkeletonItem width="70%" height="16px" />
+          {/* Content */}
+          <div style={{ flex: 1, padding: "24px 28px", width: "100%" }}>
+            <div style={{ marginBottom: "24px" }}>
+              <SkeletonItem width="70%" height="28px" marginBottom="12px" />
+              <SkeletonItem width="50%" height="20px" />
             </div>
-          ))}
-        </div>
 
-        {/* Bottom Navigation */}
-        <div style={{
-          backgroundColor: headerBg,
-          borderTop: `1px solid ${isDarkMode ? "#2a2a2a" : "#eee"}`,
-          padding: "8px 16px",
-          paddingBottom: "calc(8px + env(safe-area-inset-bottom, 0px))",
-          display: "flex",
-          justifyContent: "space-around",
-          alignItems: "center",
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          maxWidth: "600px",
-          margin: "0 auto"
-        }}>
-          {[1, 2, 3].map((i) => (
-            <div key={i} style={{ textAlign: "center", flex: 1 }}>
-              <div style={{ marginBottom: "4px" }}>
-                <SkeletonItem width="24px" height="24px" borderRadius="6px" marginBottom="0" />
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: "repeat(2, 1fr)", 
+              gap: "12px",
+              marginBottom: "24px"
+            }}>
+              <div style={{ backgroundColor: cardBg, borderRadius: "12px", padding: "16px" }}>
+                <SkeletonItem width="80%" height="20px" marginBottom="8px" />
+                <SkeletonItem width="40%" height="32px" borderRadius="8px" />
               </div>
-              <SkeletonItem width="40px" height="12px" borderRadius="4px" marginBottom="0" />
+              <div style={{ backgroundColor: cardBg, borderRadius: "12px", padding: "16px" }}>
+                <SkeletonItem width="80%" height="20px" marginBottom="8px" />
+                <SkeletonItem width="40%" height="32px" borderRadius="8px" />
+              </div>
             </div>
-          ))}
+
+            {[1, 2, 3].map((i) => (
+              <div 
+                key={i}
+                style={{
+                  backgroundColor: cardBg,
+                  borderRadius: "12px",
+                  padding: "16px",
+                  marginBottom: "12px",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+                  <SkeletonItem width="60%" height="20px" />
+                  <SkeletonItem width="40px" height="20px" borderRadius="4px" />
+                </div>
+                <SkeletonItem width="90%" height="16px" marginBottom="8px" />
+                <SkeletonItem width="70%" height="16px" />
+              </div>
+            ))}
+          </div>
         </div>
-        
-        {/* Padding bottom para não esconder conteúdo */}
-        <div style={{ height: "70px" }} />
       </div>
     </>
   );
@@ -244,10 +225,12 @@ const PrivateLayout = ({ children }) => {
   const location = useLocation();
   return (
     <AppContainer>
-      <Header />
-      <MainContent>
-        <PageWrapper key={location.pathname}>{children}</PageWrapper>
-      </MainContent>
+      <Sidebar />
+      <MainWrapper>
+        <MainContent>
+          <PageWrapper key={location.pathname}>{children}</PageWrapper>
+        </MainContent>
+      </MainWrapper>
       <BottomNav />
     </AppContainer>
   );

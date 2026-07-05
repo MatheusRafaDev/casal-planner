@@ -27,3 +27,18 @@ public class EstimativaComodoDto
     public decimal FaixaPremium { get; set; }
     public string? Observacao { get; set; }
 }
+
+public class ProdutoPrecoDto
+{
+    public string Nome { get; set; } = string.Empty;
+    public decimal Preco { get; set; }
+    public string Loja { get; set; } = string.Empty;
+    public bool IsTrusted { get; set; }
+    public bool IsMarketplace { get; set; }
+}
+
+public class AnalisarPrecosRequestDto
+{
+    public string NomeProduto { get; set; } = string.Empty;
+    public List<ProdutoPrecoDto> Produtos { get; set; } = new();
+}

@@ -7,6 +7,7 @@ using CasalPlanner.API.Helpers;
 using MongoDB.Driver;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace CasalPlanner.API.Controllers;
 
@@ -33,7 +34,9 @@ public class UsuarioController : ControllerBase
 
     private string GetUsuarioId()
     {
-        return User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+        return User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("sub")?.Value
+            ?? string.Empty;
     }
 
     private async Task CriarCategoriasPadrao(string usuarioId)
@@ -43,7 +46,7 @@ public class UsuarioController : ControllerBase
             new() {
                 Nome = "Cozinha",
                 Bg = "#2c5e2c",
-                Icon = "🍳",
+                Icon = "Utensils",
                 IsPadrao = true,
                 UsuarioId = usuarioId,
                 CreatedAt = DateTime.UtcNow
@@ -51,7 +54,7 @@ public class UsuarioController : ControllerBase
             new() {
                 Nome = "Sala",
                 Bg = "#b84a2c",
-                Icon = "🛋️",
+                Icon = "Armchair",
                 IsPadrao = true,
                 UsuarioId = usuarioId,
                 CreatedAt = DateTime.UtcNow
@@ -59,15 +62,15 @@ public class UsuarioController : ControllerBase
             new() {
                 Nome = "Quarto",
                 Bg = "#2c5280",
-                Icon = "🛏️",
+                Icon = "BedDouble",
                 IsPadrao = true,
                 UsuarioId = usuarioId,
                 CreatedAt = DateTime.UtcNow
             },
             new() {
                 Nome = "Banheiro",
-                Bg = "#e2d9ed",
-                Icon = "🛁",
+                Bg = "#6b5ea8",
+                Icon = "Bath",
                 IsPadrao = true,
                 UsuarioId = usuarioId,
                 CreatedAt = DateTime.UtcNow
@@ -75,7 +78,7 @@ public class UsuarioController : ControllerBase
             new() {
                 Nome = "Lavanderia",
                 Bg = "#97266d",
-                Icon = "🧼",
+                Icon = "Droplet",
                 IsPadrao = true,
                 UsuarioId = usuarioId,
                 CreatedAt = DateTime.UtcNow
@@ -83,6 +86,7 @@ public class UsuarioController : ControllerBase
         };
 
         await _context.Categorias.InsertManyAsync(categoriasPadrao);
+
     }
 
     // ========== ENDPOINTS PÚBLICOS (REGISTRO) ==========
@@ -129,7 +133,16 @@ public class UsuarioController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var usuario = await _authService.RegistrarCasal(dto);
+        Usuario? usuario;
+        try
+        {
+            usuario = await _authService.RegistrarCasal(dto);
+        }
+        catch (EmailsIguaisException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+
         if (usuario == null)
             return BadRequest(new { message = "Um dos emails já está cadastrado" });
 
@@ -187,7 +200,7 @@ public class UsuarioController : ControllerBase
             return NotFound();
 
         var usuarioMapeado = usuario.TipoConta == TipoConta.Casal
-            ? UsuarioMapper.MapearCasal(usuario)
+            ? UsuarioMapper.MapearCasal(usuario, User.FindFirst("PessoaLogada")?.Value)
             : UsuarioMapper.MapearIndividual(usuario);
 
         return Ok(usuarioMapeado);

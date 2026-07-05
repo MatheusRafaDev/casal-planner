@@ -1,6 +1,8 @@
 import { createGlobalStyle } from 'styled-components';
 
 const GlobalStyle = createGlobalStyle`
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
   *, *::before, *::after {
     margin: 0;
     padding: 0;
@@ -12,24 +14,28 @@ const GlobalStyle = createGlobalStyle`
     /* Impede o iOS de aumentar fonte ao rotacionar */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    /* CORREÇÃO iPhone: html deve usar height: 100%, não -webkit-fill-available */
     height: 100%;
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI',
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI',
       'Roboto', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: ${({ theme }) => theme?.background || '#fafafa'};
-    color: ${({ theme }) => theme?.text || '#333'};
-    transition: background-color 0.3s, color 0.3s;
+    background-color: ${({ theme }) => theme?.background || '#111113'};
+    color: ${({ theme }) => theme?.text || '#f4f4f5'};
+    transition: background-color 0.2s, color 0.2s;
     overflow-x: hidden;
-    /* CORREÇÃO iPhone: sequência completa de fallback para viewport height */
     min-height: 100vh;
     min-height: 100dvh;
     min-height: -webkit-fill-available;
-    /* NÃO coloca padding-bottom aqui — o MainContent já cuida */
+  }
+
+  #root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   /* ===== iOS: remove highlight ao tocar ===== */
@@ -47,9 +53,9 @@ const GlobalStyle = createGlobalStyle`
 
   /* ===== Previne zoom no iOS ao focar inputs ===== */
   input, select, textarea {
+    font-family: 'Inter', sans-serif;
     font-size: 16px !important;
     -webkit-tap-highlight-color: transparent;
-    /* Scroll momentum nativo no iOS */
     -webkit-overflow-scrolling: touch;
   }
 
@@ -64,9 +70,9 @@ const GlobalStyle = createGlobalStyle`
   select:-webkit-autofill,
   select:-webkit-autofill:hover,
   select:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0 1000px ${({ theme }) => theme?.surface || '#ffffff'} inset !important;
-    -webkit-text-fill-color: ${({ theme }) => theme?.text || '#333333'} !important;
-    caret-color: ${({ theme }) => theme?.text || '#333333'} !important;
+    -webkit-box-shadow: 0 0 0 1000px ${({ theme }) => theme?.surface2 || '#212124'} inset !important;
+    -webkit-text-fill-color: ${({ theme }) => theme?.text || '#f4f4f5'} !important;
+    caret-color: ${({ theme }) => theme?.primary || '#8b5cf6'} !important;
     transition: background-color 5000s ease-in-out 0s;
   }
 
@@ -91,28 +97,20 @@ const GlobalStyle = createGlobalStyle`
     min-height: 100vh;
     min-height: 100dvh;
     font-size: 1.2rem;
-    color: ${({ theme }) => theme?.textSoft || '#666'};
+    color: ${({ theme }) => theme?.textSoft || '#a1a1aa'};
   }
 
-  /* ===== Scrollbar desktop ===== */
-  @media (min-width: 769px) {
-    ::-webkit-scrollbar { width: 10px; height: 10px; }
-    ::-webkit-scrollbar-track {
-      background: ${({ theme }) => theme?.borderLight || '#f0f0f0'};
-      border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: ${({ theme }) => theme?.primary || '#A78BFA'};
-      border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: ${({ theme }) => theme?.primaryDark || '#8B5CF6'};
-    }
+  /* ===== Scrollbar global moderna ===== */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track {
+    background: transparent;
   }
-
-  /* ===== Mobile: scrollbar minúscula ===== */
-  @media (max-width: 768px) {
-    ::-webkit-scrollbar { width: 3px; height: 3px; }
+  ::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme?.borderLight || '#3f3f46'};
+    border-radius: 6px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: ${({ theme }) => theme?.textSoft || '#a1a1aa'};
   }
 
   /* ===== Animações globais ===== */
@@ -131,6 +129,12 @@ const GlobalStyle = createGlobalStyle`
     to   { transform: translateY(0);    opacity: 1; }
   }
 
+  /* ===== Toaster Media Queries ===== */
+  @media (max-width: 900px) {
+    .toast-container {
+      display: none !important;
+    }
+  }
 `;
 
 export default GlobalStyle;

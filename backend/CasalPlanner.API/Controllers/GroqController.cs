@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 using CasalPlanner.API.Services;
 using CasalPlanner.API.Models.DTOs;
 using CasalPlanner.API.Data;
@@ -29,6 +30,7 @@ namespace CasalPlanner.API.Controllers
         private string GetUsuarioId()
         {
             return User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst("sub")?.Value
                 ?? throw new UnauthorizedAccessException("Usuário não autenticado");
         }
 

@@ -5,6 +5,22 @@ import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 
+// Extrai a mensagem de erro da resposta da API, cobrindo tanto o formato
+// { message: "..." } (erros de negócio) quanto o formato automático do
+// ASP.NET [ApiController] para falhas de validação: { errors: { Campo: ["msg"] } }.
+const extrairMensagemErro = (error, fallback) => {
+  const data = error?.response?.data;
+  if (!data) return fallback;
+  if (data.message) return data.message;
+  if (data.errors) {
+    const primeiraLista = Object.values(data.errors)[0];
+    if (Array.isArray(primeiraLista) && primeiraLista.length > 0) {
+      return primeiraLista[0];
+    }
+  }
+  return fallback;
+};
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context)
@@ -46,7 +62,7 @@ export const AuthProvider = ({ children }) => {
       console.error("❌ Erro no login:", error);
       return {
         success: false,
-        error: error.response?.data?.message || "Erro ao fazer login",
+        error: extrairMensagemErro(error, "Erro ao fazer login"),
       };
     }
   };
@@ -61,7 +77,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.message || "Erro ao registrar",
+        error: extrairMensagemErro(error, "Erro ao registrar"),
       };
     }
   };
@@ -70,13 +86,15 @@ export const AuthProvider = ({ children }) => {
     try {
       const resp = await usuarioService.registrarCasal(dados);
       if (resp) {
-        return await login(dados.emailPessoa1, dados.senhaPessoa1);
+        // O endpoint já retorna token e dados completos, não precisa fazer login novamente
+        setUsuario(resp.usuario);
+        return { success: true };
       }
       return { success: false, error: "Resposta inválida" };
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.message || "Erro ao registrar casal",
+        error: extrairMensagemErro(error, "Erro ao registrar casal"),
       };
     }
   };
@@ -112,7 +130,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.message || "Erro ao atualizar perfil",
+        error: extrairMensagemErro(error, "Erro ao atualizar perfil"),
       };
     }
   };
@@ -125,7 +143,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.message || "Erro ao atualizar perfil",
+        error: extrairMensagemErro(error, "Erro ao atualizar perfil"),
       };
     }
   };
@@ -138,7 +156,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.message || "Erro ao atualizar modo escuro",
+        error: extrairMensagemErro(error, "Erro ao atualizar modo escuro"),
       };
     }
   };
@@ -150,7 +168,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.message || "Erro ao alterar senha",
+        error: extrairMensagemErro(error, "Erro ao alterar senha"),
       };
     }
   };
@@ -163,7 +181,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.message || "Erro ao excluir conta",
+        error: extrairMensagemErro(error, "Erro ao excluir conta"),
       };
     }
   };

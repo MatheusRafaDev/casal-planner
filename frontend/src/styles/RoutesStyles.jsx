@@ -14,7 +14,9 @@ export const LoadingScreen = styled.div`
 
 export const PageWrapper = styled.div`
   width: 100%;
-  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 
   @keyframes fadeSlide {
     from { opacity: 0; transform: translateY(8px); }
@@ -22,39 +24,59 @@ export const PageWrapper = styled.div`
   }
 `;
 
+/* ─── App Container: horizontal on desktop ─────────────── */
 export const AppContainer = styled.div`
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   background: ${({ theme }) => theme.background};
   transition: background 0.3s ease;
-  overflow-x: hidden;
+  overflow: hidden; /* Prevents whole page scroll */
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 `;
 
+/* ─── Main wrapper: flex column right of sidebar ───────── */
+export const MainWrapper = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+
+  @media (max-width: 768px) {
+    height: auto;
+    flex: 1;
+  }
+`;
+
+/* ─── Main content area ────────────────────────────────── */
 export const MainContent = styled.main`
   flex: 1;
   width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding-top: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 
   @media (max-width: 1024px) {
     padding: 1.5rem;
   }
 
   @media (max-width: 768px) {
-    padding: 0.5rem;
+    padding: 0rem;
     padding-top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
     /* Espaço para o BottomNav (60px) + safe area */
-    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px) + 0.5rem);
+    padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px) + 0.5rem);
   }
 `;
 
 export const PageTransition = styled.div`
   width: 100%;
   height: 100%;
-
 
   @keyframes fadeSlide {
     from { opacity: 0; transform: translateY(8px); }

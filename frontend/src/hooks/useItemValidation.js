@@ -49,6 +49,24 @@ export const useItemValidation = () => {
         }
         return '';
 
+      case 'loja':
+        if (valor && valor.length > 100) {
+          return 'Loja deve ter no máximo 100 caracteres';
+        }
+        return '';
+
+      case 'fotoUrl':
+        if (valor && valor.length > 500) {
+          return 'URL da foto deve ter no máximo 500 caracteres';
+        }
+        return '';
+
+      case 'categoriaId':
+        if (!valor) {
+          return 'Selecione uma categoria';
+        }
+        return '';
+
       default:
         return '';
     }
@@ -60,8 +78,9 @@ export const useItemValidation = () => {
       marca: validarCampo('marca', formData.marca),
       preco: validarCampo('preco', formData.preco),
       quantidade: validarCampo('quantidade', formData.quantidade),
-      Loja: validarCampo('loja', formData.loja),
-      urlFoto: validarCampo('fotoUrl', formData.fotoUrl),
+      categoriaId: validarCampo('categoriaId', formData.categoriaId),
+      loja: validarCampo('loja', formData.loja),
+      fotoUrl: validarCampo('fotoUrl', formData.fotoUrl),
     };
   }, [validarCampo]);
 

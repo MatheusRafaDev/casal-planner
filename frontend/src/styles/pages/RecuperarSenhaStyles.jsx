@@ -19,10 +19,7 @@ const pulse = keyframes`
 // ─── Layout ──────────────────────────────────────────────────────────────────
 
 export const Container = styled.div`
-  /* CORREÇÃO iPhone: sequência completa de fallback para viewport height */
-  min-height: 100vh;
-  min-height: 100dvh;
-  min-height: -webkit-fill-available;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;

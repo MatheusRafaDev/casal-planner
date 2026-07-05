@@ -1,26 +1,23 @@
 /**
- * useResumo — mantido por compatibilidade, mas o Planejamento.jsx
- * agora calcula o resumo localmente via resumoService.calcularResumoManual()
- * sem precisar de requests extras de rede.
+ * useResumo — calcula o resumo local a partir da lista de itens em memória.
  *
- * Se você precisar do comparativo real do backend (mês anterior),
- * pode chamar resumoService.getResumo() aqui e combinar com o estado local.
+ * Mantém compatibilidade com o Planejamento.jsx sem requests extras,
+ * retornando a estrutura completa { atual, comparativo, enxoval } usada
+ * também por ResumoCards e resumoService.formatarDados().
  */
 import { useMemo } from 'react';
 import resumoService from '../services/resumoService';
 
 export const useResumo = (itens = []) => {
-  const dados = useMemo(() => {
-    return resumoService.calcularResumoManual(itens);
-  }, [itens]);
+  const dados = useMemo(
+    () => resumoService.calcularResumoManual(itens),
+    [itens]
+  );
 
   return {
-    resumo: dados.atual,
-    comparativo: dados.comparativo,
+    resumo: dados,        // { atual, comparativo, enxoval }
     loading: false,
     error: null,
-    usandoFallback: true,
     refetch: () => {},
   };
 };
-

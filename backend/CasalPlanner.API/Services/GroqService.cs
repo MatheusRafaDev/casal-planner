@@ -8,11 +8,18 @@ namespace CasalPlanner.API.Services
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly string _apiKey;
+        private readonly ILogger<GroqService> _logger;
 
-        public GroqService(IHttpClientFactory httpClientFactory)
+        public GroqService(IHttpClientFactory httpClientFactory, ILogger<GroqService> logger)
         {
             _httpClientFactory = httpClientFactory;
+            _logger = logger;
             _apiKey = Environment.GetEnvironmentVariable("GROQ_API_KEY") ?? "";
+
+            if (string.IsNullOrEmpty(_apiKey))
+            {
+                _logger.LogWarning("GROQ_API_KEY não configurada. Recursos de IA estarão desabilitados.");
+            }
         }
 
         public async Task<(string Marca, string NomeValidado)> ValidateProductAsync(string productName, string userSearch)
@@ -52,25 +59,32 @@ namespace CasalPlanner.API.Services
 
             var requestBody = new
             {
-                model = "llama-3.1-8b-instant",
-                temperature = 0.1,
+                model = "llama-3.3-70b-versatile",
+                temperature = 0.05,
+                max_tokens = 120,
                 response_format = new { type = "json_object" },
                 messages = new[]
                 {
                     new 
                     { 
                         role = "system", 
-                        content = @"Extraia a MARCA e o NOME VALIDADO do produto.
-Responda APENAS com JSON:
+                        content = @"Você é especialista em produtos brasileiros. Dado o nome de um produto, identifique a marca e normalize o nome para uma busca eficaz no Google Shopping Brasil.
+
+Regras:
+- Corrija erros de ortografia e abreviações (ex: 'iphone 15 pro maxim' → 'iPhone 15 Pro Max')
+- Identifique a marca correta (Apple, Samsung, LG, Xiaomi, Motorola, Sony, Dell, HP, Lenovo, Acer, Philips, etc.)
+- O nomeValidado deve ser o nome oficial do produto, conciso e sem redundâncias
+- Não inclua a marca no nomeValidado se ela já vai ser adicionada separadamente
+- Responda APENAS com JSON válido:
 {
-    ""marca"": ""nome da marca ou vazio"",
-    ""nomeValidado"": ""nome limpo do produto""
+    ""marca"": ""Nome da marca ou vazio se não identificada"",
+    ""nomeValidado"": ""Nome oficial e limpo do produto""
 }"
                     },
                     new 
                     { 
                         role = "user", 
-                        content = $"Produto: '{productName}'\nBusca: '{userSearch}'" 
+                        content = $"Produto digitado: '{productName}'\nBusca original do usuário: '{userSearch}'" 
                     }
                 }
             };
@@ -166,7 +180,15 @@ Responda APENAS com JSON:
         private string ExtractBrandFallback(string productName)
         {
             var marcas = new[] { "Apple", "Samsung", "LG", "Xiaomi", "Motorola", "Nokia",
-                                  "Sony", "Philips", "Dell", "HP", "Lenovo", "Acer" };
+                                 "Sony", "Philips", "Dell", "HP", "Lenovo", "Acer", "Asus",
+                                 "Positivo", "Multilaser", "Braun", "Bosch", "Electrolux",
+                                 "Tramontina", "Mondial", "Cadence", "Panasonic", "JBL",
+                                 "Bose", "Logitech", "Razer", "HyperX", "Corsair",
+                                 "Intel", "AMD", "Nvidia", "WD", "Seagate", "Kingston",
+                                 "Brastemp", "Consul", "Arno", "Philco", "Britânia", "Oster", 
+                                 "Midea", "TCL", "AOC", "Walita", "Black+Decker", "Fischer", 
+                                 "Suggar", "Mueller", "Dako", "Atlas", "Gree", "Daikin", 
+                                 "Elgin", "Wap", "KitchenAid", "Mallory" };
 
             foreach (var marca in marcas)
             {

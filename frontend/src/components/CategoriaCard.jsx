@@ -190,10 +190,10 @@ const StoreLogo = memo(({ storeName, size="small" }) => {
   const sz = size==="small" ? 12 : 16;
   if (!storeName) return <S.StoreIconFallback size={size} theme={{}}><Store size={sz}/></S.StoreIconFallback>;
   
-  // Se der erro no favicon, usa emoji da loja
+  // Se der erro no favicon, usa ícone padrão
   if (err) {
-    const emoji = storeLogoService.getEmoji(storeName);
-    return <span style={{ fontSize: sz + 4 }} title={storeName}>{emoji}</span>;
+    return <S.StoreIconFallback size={size} theme={{}}><Store size={sz}/></S.StoreIconFallback>;
+
   }
   
   return <S.StoreLogoImage src={storeLogoService.getLogoUrl(storeName, size==="small"?16:32)} alt={storeName} size={size} loading="lazy" onError={()=>setErr(true)}/>;
@@ -540,10 +540,10 @@ const CategoriaCard = ({
         onDrop={onDrop} 
         $isDragOver={dragOver}
       >
-        <S.CardHeader color={categoria.bg} theme={theme}>
+        <S.CardHeader theme={theme}>
           <S.HeaderLeft>
             <S.DragHandle theme={theme} {...attributes} {...listeners} />
-            <S.Icon><DynamicIcon name={categoria.icon || categoria.icone || categoria.emoji} size={22} color={categoria.bg || theme?.text} /></S.Icon>
+            <S.Icon><DynamicIcon name={categoria.icon || categoria.icone} size={22} color={theme?.text} /></S.Icon>
             <S.TitleSection>
               <S.Title theme={theme}>{categoria.nome}</S.Title>
               <S.Subtitle>

@@ -8,6 +8,7 @@ using CasalPlanner.API.Data;
 using CasalPlanner.API.Helpers;
 using MongoDB.Driver;
 using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace CasalPlanner.API.Controllers
 {
@@ -30,7 +31,9 @@ namespace CasalPlanner.API.Controllers
         }
 
         private string GetUsuarioId() =>
-            User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("sub")?.Value
+            ?? string.Empty;
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
@@ -120,8 +123,11 @@ namespace CasalPlanner.API.Controllers
             if (usuario == null)
                 return NotFound();
 
+            // Get pessoaLogada from JWT token for casal accounts
+            var pessoaLogada = User.FindFirst("PessoaLogada")?.Value;
+
             var usuarioMapeado = usuario.TipoConta == TipoConta.Casal
-                ? UsuarioMapper.MapearCasal(usuario)
+                ? UsuarioMapper.MapearCasal(usuario, pessoaLogada)
                 : UsuarioMapper.MapearIndividual(usuario);
 
             return Ok(usuarioMapeado);

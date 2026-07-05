@@ -46,9 +46,9 @@ export const exportarParaPDF = (itens, categorias, totais) => {
 
     const pagamentoStr = item.pagamento === "vr" ? "VR/VA" : "Normal";
     
-    let prioridadeObj = { text: "Normal" };
-    if (item.prioridade === "urgente") prioridadeObj = { text: "Urgente", color: "#EF4444", bold: true };
-    else if (item.prioridade === "pode_esperar") prioridadeObj = { text: "Pode Esperar", color: "#10B981" };
+    let prioridadeObj = { text: "Próximas compras", color: "#F59E0B" };
+    if (item.prioridade === "urgente") prioridadeObj = { text: "Primeira necessidade", color: "#EF4444", bold: true };
+    else if (item.prioridade === "pode_esperar") prioridadeObj = { text: "Mais para frente", color: "#22C55E" };
 
     const fillColor = index % 2 === 0 ? "#F9FAFB" : "#FFFFFF"; // Zebrado
 

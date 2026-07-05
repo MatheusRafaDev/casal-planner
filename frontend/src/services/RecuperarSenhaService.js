@@ -1,14 +1,14 @@
 // services/recuperarSenhaService.js
 import api from './api';
-
+import { storageService } from './storageService';
 
 class RecuperarSenhaService {
   constructor() {
     this.baseURL = '/RecuperarSenha'; // Controller name
     this.storageKeys = {
-      recoveryEmail: '@CasalPlanner:recoveryEmail',
-      recoveryToken: '@CasalPlanner:recoveryToken',
-      recoveryStep: '@CasalPlanner:recoveryStep'
+      recoveryEmail: 'recoveryEmail',
+      recoveryToken: 'recoveryToken',
+      recoveryStep: 'recoveryStep'
     };
   }
 
@@ -297,62 +297,34 @@ class RecuperarSenhaService {
    * Storage methods
    */
   salvarEmailRecuperacao(email) {
-    try {
-      localStorage.setItem(this.storageKeys.recoveryEmail, email);
-    } catch (error) {
-      console.error('Erro ao salvar email:', error);
-    }
+    storageService.setItem(this.storageKeys.recoveryEmail, email);
   }
 
   obterEmailRecuperacao() {
-    try {
-      return localStorage.getItem(this.storageKeys.recoveryEmail);
-    } catch (error) {
-      return null;
-    }
+    return storageService.getItem(this.storageKeys.recoveryEmail);
   }
 
   salvarTokenRecuperacao(token) {
-    try {
-      localStorage.setItem(this.storageKeys.recoveryToken, token);
-    } catch (error) {
-      console.error('Erro ao salvar token:', error);
-    }
+    storageService.setItem(this.storageKeys.recoveryToken, token);
   }
 
   obterTokenRecuperacao() {
-    try {
-      return localStorage.getItem(this.storageKeys.recoveryToken);
-    } catch (error) {
-      return null;
-    }
+    return storageService.getItem(this.storageKeys.recoveryToken);
   }
 
   salvarStepRecuperacao(step) {
-    try {
-      localStorage.setItem(this.storageKeys.recoveryStep, step.toString());
-    } catch (error) {
-      console.error('Erro ao salvar step:', error);
-    }
+    storageService.setItem(this.storageKeys.recoveryStep, step.toString());
   }
 
   obterStepRecuperacao() {
-    try {
-      const step = localStorage.getItem(this.storageKeys.recoveryStep);
-      return step ? parseInt(step) : 1;
-    } catch (error) {
-      return 1;
-    }
+    const step = storageService.getItem(this.storageKeys.recoveryStep);
+    return step ? parseInt(step) : 1;
   }
 
   limparDadosRecuperacao() {
-    try {
-      localStorage.removeItem(this.storageKeys.recoveryEmail);
-      localStorage.removeItem(this.storageKeys.recoveryToken);
-      localStorage.removeItem(this.storageKeys.recoveryStep);
-    } catch (error) {
-      console.error('Erro ao limpar dados:', error);
-    }
+    storageService.removeItem(this.storageKeys.recoveryEmail);
+    storageService.removeItem(this.storageKeys.recoveryToken);
+    storageService.removeItem(this.storageKeys.recoveryStep);
   }
 
   /**

@@ -169,7 +169,6 @@ const PlanningItemList = ({ itens, onToggleComprado, onEditItem, onDeleteItem, o
 
         {filteredItens.length === 0 && (
           <S.EmptyState theme={theme}>
-            <S.EmptyIcon>📦</S.EmptyIcon>
             <S.EmptyText>Nenhum item encontrado</S.EmptyText>
           </S.EmptyState>
         )}

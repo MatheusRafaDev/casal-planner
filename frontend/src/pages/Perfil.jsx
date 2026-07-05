@@ -389,6 +389,7 @@ const Perfil = () => {
       isDanger: true,
       confirmText: 'Sim, excluir minha conta',
       cancelText: 'Cancelar',
+      theme,
       onConfirm: async () => {
         setLoading(true);
         try {

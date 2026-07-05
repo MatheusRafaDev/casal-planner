@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 using CasalPlanner.API.Services;
 using CasalPlanner.API.Models.DTOs;
 
@@ -12,15 +13,18 @@ namespace CasalPlanner.API.Controllers
     public class ItensController : ControllerBase
     {
         private readonly IItemService _itemService;
+        private readonly ILogger<ItensController> _logger;
 
-        public ItensController(IItemService itemService)
+        public ItensController(IItemService itemService, ILogger<ItensController> logger)
         {
             _itemService = itemService;
+            _logger = logger;
         }
 
         private string GetUsuarioId()
         {
             return User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst("sub")?.Value
                 ?? throw new UnauthorizedAccessException("Usuário não autenticado");
         }
 
@@ -33,8 +37,15 @@ namespace CasalPlanner.API.Controllers
                 var itens = await _itemService.GetItensByUsuarioId(usuarioId);
                 return Ok(itens);
             }
-            catch (UnauthorizedAccessException) { return Unauthorized(); }
-            catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
+            catch (UnauthorizedAccessException ex) 
+            { 
+                return Unauthorized(new { error = ex.Message }); 
+            }
+            catch (Exception ex) 
+            { 
+                _logger.LogError(ex, "Erro ao buscar itens para usuário {UsuarioId}", GetUsuarioId());
+                return StatusCode(500, new { error = "Erro interno ao buscar itens." }); 
+            }
         }
 
         [HttpGet("{id}")]
@@ -132,20 +143,6 @@ namespace CasalPlanner.API.Controllers
                 var usuarioId = GetUsuarioId();
                 var itens = await _itemService.GetItensByCategoria(categoriaId, usuarioId);
                 return Ok(itens);
-            }
-            catch (UnauthorizedAccessException) { return Unauthorized(); }
-            catch (Exception ex) { return BadRequest(new { error = ex.Message }); }
-        }
-
-        [HttpPut("{id}/variantes")]
-        public async Task<IActionResult> AtualizarVariantes(string id, [FromBody] AtualizarVariantesDto dto)
-        {
-            try
-            {
-                var usuarioId = GetUsuarioId();
-                var item = await _itemService.AtualizarVariantes(id, dto.Variantes, dto.VarianteSelecionadaId, usuarioId);
-                if (item == null) return NotFound();
-                return Ok(item);
             }
             catch (UnauthorizedAccessException) { return Unauthorized(); }
             catch (Exception ex) { return BadRequest(new { error = ex.Message }); }

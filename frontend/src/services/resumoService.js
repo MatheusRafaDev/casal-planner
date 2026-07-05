@@ -2,8 +2,8 @@ import api from './api';
 
 class ResumoService {
   /**
-   * Busca os dados de resumo do backend
-   * @returns {Promise<Object>} Dados de resumo e comparativo
+   * Busca os dados de resumo do backend (ResumoResponseDto).
+   * @returns {Promise<ResumoResponseDto>}
    */
   async getResumo() {
     try {
@@ -15,87 +15,95 @@ class ResumoService {
     }
   }
 
-  
-
   /**
-   * Formata os dados do resumo para o componente
-   * @param {Object} data - Dados brutos do backend
-   * @returns {Object} Dados formatados
+   * Normaliza a resposta do backend para o formato esperado pelos componentes.
+   * O backend retorna { atual, comparativo, enxoval } — este método garante
+   * defaults seguros para todos os campos.
+   * @param {Object} data - ResumoResponseDto do backend
+   * @returns {Object}
    */
   formatarDados(data) {
     return {
       atual: {
-        totalGeral: data.atual?.totalGeral || 0,
-        totalVR: data.atual?.totalVR || 0,
-        totalNormal: data.atual?.totalNormal || 0,
-        totalComprados: data.atual?.totalComprados || 0,
-        totalItens: data.atual?.totalItens || 0,
-        porCategoria: data.atual?.porCategoria || {},
-        quantidadePorCategoria: data.atual?.quantidadePorCategoria || {}
+        totalGeral: data.atual?.totalGeral ?? 0,
+        totalVR: data.atual?.totalVR ?? 0,
+        totalNormal: data.atual?.totalNormal ?? 0,
+        totalComprados: data.atual?.totalComprados ?? 0,
+        totalItens: data.atual?.totalItens ?? 0,
+        porCategoria: data.atual?.porCategoria ?? {},
+        quantidadePorCategoria: data.atual?.quantidadePorCategoria ?? {},
+        porOrigem: data.atual?.porOrigem ?? {},
+        totalEconomizado: data.atual?.totalEconomizado ?? 0,
+        percentualConcluido: data.atual?.percentualConcluido ?? 0,
       },
       comparativo: {
-        totalGeral: data.comparativo?.totalGeral || 0,
-        totalVR: data.comparativo?.totalVR || 0,
-        totalNormal: data.comparativo?.totalNormal || 0,
-        totalComprados: data.comparativo?.totalComprados || 0,
-        percentualGeral: data.comparativo?.percentualGeral || 0
-      }
+        totalGeral: data.comparativo?.totalGeral ?? 0,
+        totalVR: data.comparativo?.totalVR ?? 0,
+        totalNormal: data.comparativo?.totalNormal ?? 0,
+        totalComprados: data.comparativo?.totalComprados ?? 0,
+        percentualGeral: data.comparativo?.percentualGeral ?? 0,
+      },
+      enxoval: {
+        metaGlobalEnxoval: data.enxoval?.metaGlobalEnxoval ?? null,
+        percentualMetaGlobal: data.enxoval?.percentualMetaGlobal ?? 0,
+        totalRestanteParaMeta: data.enxoval?.totalRestanteParaMeta ?? 0,
+        totalItensComprados: data.enxoval?.totalItensComprados ?? 0,
+        totalItensPendentes: data.enxoval?.totalItensPendentes ?? 0,
+        totalEconomizadoComPresentes: data.enxoval?.totalEconomizadoComPresentes ?? 0,
+      },
     };
   }
 
   /**
-   * Calcula resumo manualmente a partir de uma lista de itens (fallback)
-   * @param {Array} itens - Lista de itens
-   * @returns {Object} Resumo calculado
+   * Calcula o resumo localmente a partir de uma lista de itens.
+   * Usado como fallback quando o backend não está disponível,
+   * ou para manter os cards sincronizados com o estado local sem requests extras.
+   *
+   * Retorna a mesma estrutura de formatarDados() para que os componentes
+   * possam consumir ambas as fontes de forma intercambiável.
+   *
+   * @param {Array} itens
+   * @returns {{ atual: Object, comparativo: Object, enxoval: Object }}
    */
-  calcularResumoManual(itens) {
-    if (!itens || !Array.isArray(itens)) {
-      return {
-        atual: {
-          totalGeral: 0,
-          totalVR: 0,
-          totalNormal: 0,
-          totalComprados: 0,
-          totalItens: 0,
-          porCategoria: {},
-          quantidadePorCategoria: {}
-        },
-        comparativo: {
-          totalGeral: 0,
-          totalVR: 0,
-          totalNormal: 0,
-          totalComprados: 0,
-          percentualGeral: 0
-        }
-      };
+  calcularResumoManual(itens = []) {
+    if (!Array.isArray(itens) || itens.length === 0) {
+      return this._resumoVazio();
     }
 
-    // Calcular totais
-    const totalGeral = itens.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+    const totalGeral = itens.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
     const totalVR = itens
       .filter(item => item.pagamento === 'vr')
-      .reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+      .reduce((acc, item) => acc + item.preco * item.quantidade, 0);
     const totalNormal = itens
-      .filter(item => item.pagamento === 'normal')
-      .reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
-    const totalComprados = itens.filter(item => item.comprado).length;
+      .filter(item => item.pagamento !== 'vr')
+      .reduce((acc, item) => acc + item.preco * item.quantidade, 0);
 
-    // Calcular por categoria
+    const totalComprados = itens.filter(item => item.comprado).length;
+    const totalItens = itens.length;
+    const percentualConcluido = totalItens > 0
+      ? Math.round((totalComprados / totalItens) * 100 * 100) / 100
+      : 0;
+
+    // Agrupa por categoria
     const porCategoria = {};
     const quantidadePorCategoria = {};
-
     itens.forEach(item => {
       const catId = item.categoriaId;
-      const total = item.preco * item.quantidade;
-
-      if (!porCategoria[catId]) {
-        porCategoria[catId] = 0;
-        quantidadePorCategoria[catId] = 0;
-      }
-
-      porCategoria[catId] += total;
-      quantidadePorCategoria[catId] += item.quantidade;
+      const valor = item.preco * item.quantidade;
+      porCategoria[catId] = (porCategoria[catId] ?? 0) + valor;
+      quantidadePorCategoria[catId] = (quantidadePorCategoria[catId] ?? 0) + item.quantidade;
     });
+
+    // Agrupa por origem (ex: 'presente', 'proprio')
+    const porOrigem = {};
+    itens.forEach(item => {
+      const origem = item.origem;
+      if (!origem) return;
+      const valor = item.preco * item.quantidade;
+      porOrigem[origem] = (porOrigem[origem] ?? 0) + valor;
+    });
+
+    const totalEconomizado = porOrigem['presente'] ?? 0;
 
     return {
       atual: {
@@ -103,52 +111,80 @@ class ResumoService {
         totalVR,
         totalNormal,
         totalComprados,
-        totalItens: itens.length,
+        totalItens,
         porCategoria,
-        quantidadePorCategoria
+        quantidadePorCategoria,
+        porOrigem,
+        totalEconomizado,
+        percentualConcluido,
       },
       comparativo: {
-        totalGeral: 0,
-        totalVR: 0,
-        totalNormal: 0,
-        totalComprados: 0,
-        percentualGeral: 0
-      }
+        totalGeral: 0, totalVR: 0, totalNormal: 0,
+        totalComprados: 0, percentualGeral: 0,
+      },
+      enxoval: {
+        metaGlobalEnxoval: null,
+        percentualMetaGlobal: 0,
+        totalRestanteParaMeta: 0,
+        totalItensComprados: totalComprados,
+        totalItensPendentes: totalItens - totalComprados,
+        totalEconomizadoComPresentes: totalEconomizado,
+      },
     };
   }
 
   /**
-   * Busca resumo ou calcula manualmente como fallback
-   * @param {Array} itensFallback - Lista de itens para fallback
-   * @returns {Promise<Object>} Dados do resumo
+   * Busca resumo do backend; em caso de falha usa o fallback local.
+   * @param {Array} itensFallback
+   * @returns {Promise<Object>}
    */
   async getResumoSeguro(itensFallback = []) {
     try {
       const data = await this.getResumo();
       return this.formatarDados(data);
-    } catch (error) {
+    } catch {
       return this.calcularResumoManual(itensFallback);
     }
   }
 
   /**
-   * Calcula comparativo entre dois períodos
-   * @param {Object} atual - Resumo atual
-   * @param {Object} anterior - Resumo anterior
-   * @returns {Object} Comparativo
+   * Calcula a variação percentual entre dois períodos.
+   * @param {Object} atual
+   * @param {Object} anterior
+   * @returns {Object}
    */
   calcularComparativo(atual, anterior) {
-    const calcularVariacao = (atual, anterior) => {
-      if (anterior === 0) return atual > 0 ? 100 : 0;
-      return Number(((atual - anterior) / anterior * 100).toFixed(2));
+    const variacao = (a, b) => {
+      if (b === 0) return a > 0 ? 100 : 0;
+      return Number(((a - b) / b * 100).toFixed(2));
     };
-
     return {
-      totalGeral: calcularVariacao(atual.totalGeral, anterior.totalGeral),
-      totalVR: calcularVariacao(atual.totalVR, anterior.totalVR),
-      totalNormal: calcularVariacao(atual.totalNormal, anterior.totalNormal),
-      totalComprados: calcularVariacao(atual.totalComprados, anterior.totalComprados),
-      percentualGeral: calcularVariacao(atual.totalGeral, (anterior.totalGeral + atual.totalGeral) / 2)
+      totalGeral: variacao(atual.totalGeral, anterior.totalGeral),
+      totalVR: variacao(atual.totalVR, anterior.totalVR),
+      totalNormal: variacao(atual.totalNormal, anterior.totalNormal),
+      totalComprados: variacao(atual.totalComprados, anterior.totalComprados),
+      percentualGeral: variacao(atual.totalGeral, (anterior.totalGeral + atual.totalGeral) / 2),
+    };
+  }
+
+  /** Estrutura vazia para evitar repetição de literais espalhados. */
+  _resumoVazio() {
+    return {
+      atual: {
+        totalGeral: 0, totalVR: 0, totalNormal: 0,
+        totalComprados: 0, totalItens: 0,
+        porCategoria: {}, quantidadePorCategoria: {},
+        porOrigem: {}, totalEconomizado: 0, percentualConcluido: 0,
+      },
+      comparativo: {
+        totalGeral: 0, totalVR: 0, totalNormal: 0,
+        totalComprados: 0, percentualGeral: 0,
+      },
+      enxoval: {
+        metaGlobalEnxoval: null, percentualMetaGlobal: 0,
+        totalRestanteParaMeta: 0, totalItensComprados: 0,
+        totalItensPendentes: 0, totalEconomizadoComPresentes: 0,
+      },
     };
   }
 }

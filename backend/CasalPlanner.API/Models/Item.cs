@@ -3,6 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace CasalPlanner.API.Models;
 
+[BsonIgnoreExtraElements]
 public class Item
 {
     [BsonId]
@@ -32,7 +33,8 @@ public class Item
     public string FotoUrl { get; set; } = "";
 
     public string Origem { get; set; } = "comprado";
-    public string? OrigemDescricao { get; set; }
-    public List<ItemVariante> Variantes { get; set; } = new();
+    public string OrigemDescricao { get; set; } = "";
+    public int Parcelas { get; set; } = 1;
+    public List<string> Variantes { get; set; } = new List<string>();
     public string? VarianteSelecionadaId { get; set; }
 }

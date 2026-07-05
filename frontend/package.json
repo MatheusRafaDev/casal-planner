@@ -12,6 +12,7 @@
     "axios": "^1.6.0",
     "exceljs": "^4.4.0",
     "lucide-react": "^0.575.0",
+    "mongodb": "^7.3.0",
     "pdfmake": "^0.3.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

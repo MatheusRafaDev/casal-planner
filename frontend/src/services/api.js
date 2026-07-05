@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { storageService } from './storageService';
 
-const TOKEN_KEY = 'casal_planner_token';
-const PESSOA_KEY = 'casal_planner_pessoa';
+const TOKEN_KEY = 'token';
+const PESSOA_KEY = 'pessoa';
 
 if (!process.env.REACT_APP_API_URL) {
   console.error('❌ REACT_APP_API_URL não está definida. Configure a variável de ambiente.');
@@ -9,19 +10,19 @@ if (!process.env.REACT_APP_API_URL) {
 
 // ─── Helpers de token ──────────────────────────────────────
 export const tokenStorage = {
-  get:    ()        => localStorage.getItem(TOKEN_KEY),
-  set:    (token)   => localStorage.setItem(TOKEN_KEY, token),
-  remove: ()        => { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(PESSOA_KEY); },
-  exists: ()        => !!localStorage.getItem(TOKEN_KEY),
+  get:    ()        => storageService.getItem(TOKEN_KEY),
+  set:    (token)   => storageService.setItem(TOKEN_KEY, token),
+  remove: ()        => { storageService.removeItem(TOKEN_KEY); storageService.removeItem(PESSOA_KEY); },
+  exists: ()        => !!storageService.getItem(TOKEN_KEY),
 };
 
 // Persiste qual pessoa do casal está logada (pessoa1 | pessoa2 | null)
 export const pessoaStorage = {
-  get:    ()       => localStorage.getItem(PESSOA_KEY) || null,
+  get:    ()       => storageService.getItem(PESSOA_KEY) || null,
   set:    (pessoa) => pessoa
-    ? localStorage.setItem(PESSOA_KEY, pessoa)
-    : localStorage.removeItem(PESSOA_KEY),
-  remove: ()       => localStorage.removeItem(PESSOA_KEY),
+    ? storageService.setItem(PESSOA_KEY, pessoa)
+    : storageService.removeItem(PESSOA_KEY),
+  remove: ()       => storageService.removeItem(PESSOA_KEY),
 };
 
 // ─── Instância Axios ───────────────────────────────────────
@@ -40,7 +41,7 @@ api.interceptors.request.use(
     }
 
     if (process.env.NODE_ENV === 'development') {
-      //console.log(`📤 ${config.method?.toUpperCase()} ${config.url}`);
+      // debug message removed
     }
     return config;
   },
@@ -74,7 +75,7 @@ api.interceptors.response.use(
     await new Promise((r) => setTimeout(r, delay));
 
     if (process.env.NODE_ENV === 'development') {
-      console.warn(`🔄 Retry ${config._retryCount} em ${config.url}`);
+      // debug message removed
     }
 
     return api(config);

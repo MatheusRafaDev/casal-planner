@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using CasalPlanner.API.Services;
 using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace CasalPlanner.API.Controllers
 {
@@ -21,7 +22,9 @@ namespace CasalPlanner.API.Controllers
 
         private string GetUsuarioId()
         {
-            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst("sub")?.Value
+                ?? string.Empty;
         }
 
         [HttpGet]

@@ -43,7 +43,7 @@ export const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-left: 4px solid ${(props) => props.color || props.theme?.primary || "#3b82f6"};
+  border-left: 4px solid ${(props) => props.theme?.primary || "#3b82f6"};
   background: ${(props) => props.theme?.surface || "#f8fafc"};
   border-bottom: 1px solid ${(props) => props.theme?.border || "#e5e7eb"};
 `;
@@ -272,7 +272,7 @@ export const ItemsList = styled.div`
 
 // ================= ITEM CARD =================
 export const ItemRow = styled.div`
-  padding: 0.6rem 0.65rem;
+  padding: 0.85rem 0.85rem;
   border-radius: 0.75rem;
   border: 1px solid
     ${(props) => {
@@ -298,7 +298,7 @@ export const ItemRow = styled.div`
 
 export const ItemLayout = styled.div`
   display: flex;
-  gap: 0.6rem;
+  gap: 0.75rem;
   align-items: flex-start;
 `;
 
@@ -307,26 +307,26 @@ export const ItemContent = styled.div`
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.5rem;
 `;
 
 export const ItemMidRow = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  gap: 0.4rem;
   align-items: center;
 `;
 
 export const ItemBottomRow = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  gap: 0.4rem;
   align-items: center;
 `;
 
 export const DetailSeparator = styled.span`
-  width: 3px;
-  height: 3px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: ${(props) => props.theme?.border || "#d1d5db"};
   flex-shrink: 0;
@@ -421,7 +421,7 @@ export const CheckIcon = styled(Check)`
 
 export const ItemName = styled.p`
   flex: 1;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   font-weight: 700;
   margin: 0;
   min-width: 0;
@@ -430,20 +430,20 @@ export const ItemName = styled.p`
   white-space: normal;
   word-break: break-word;
   overflow-wrap: break-word;
-  line-height: 1.35;
+  line-height: 1.4;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
 `;
 
 export const ItemTotalValueCompact = styled.span`
   font-weight: 700;
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   color: ${(props) => props.theme?.primary || "#3b82f6"};
   background: ${(props) => `${props.theme?.primary || "#3b82f6"}12`};
-  padding: 0.18rem 0.45rem;
-  border-radius: 0.45rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 0.5rem;
   white-space: nowrap;
 `;
 
@@ -484,11 +484,11 @@ export const ItemActionButton = styled.button`
 export const ItemQuantityBadge = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
-  font-size: 0.68rem;
-  padding: 0.12rem 0.4rem;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  padding: 0.18rem 0.5rem;
   background: ${(props) => props.theme?.border || "#e5e7eb"};
-  border-radius: 0.35rem;
+  border-radius: 0.4rem;
   font-weight: 600;
   color: ${(props) => props.theme?.textSoft || "#555"};
   white-space: nowrap;
@@ -502,7 +502,7 @@ export const ItemQuantityBadge = styled.div`
 `;
 
 export const ItemPriceBadge = styled.div`
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   color: ${(props) => props.theme?.textSoft || "#666"};
   white-space: nowrap;
   flex-shrink: 0;
@@ -512,13 +512,13 @@ export const ItemPriceBadge = styled.div`
 export const StoreBadge = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.68rem;
+  gap: 0.3rem;
+  font-size: 0.72rem;
   background: ${(props) => props.theme?.border || "#e5e7eb"};
-  padding: 0.12rem 0.4rem;
-  border-radius: 0.35rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 0.4rem;
   color: ${(props) => props.theme?.text || "#333"};
-  max-width: 140px;
+  max-width: 150px;
   min-width: 0;
   flex-shrink: 0;
 `;
@@ -551,10 +551,10 @@ export const StoreName = styled.span`
 export const PriorityBadgeFull = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
-  padding: 0.12rem 0.45rem;
-  border-radius: 0.35rem;
-  font-size: 0.68rem;
+  gap: 0.25rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 0.4rem;
+  font-size: 0.72rem;
   font-weight: 600;
   white-space: nowrap;
   flex-shrink: 0;
@@ -566,10 +566,10 @@ export const PriorityBadgeFull = styled.div`
 export const PaymentBadge = styled.span`
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
-  font-size: 0.68rem;
-  padding: 0.12rem 0.4rem;
-  border-radius: 0.35rem;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 0.4rem;
   font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
@@ -584,15 +584,15 @@ export const PaymentBadge = styled.span`
 
 export const ItemBrand = styled.span`
   display: inline-flex;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   color: ${(props) => props.theme?.textSoft || "#666"};
   background: ${(props) => props.theme?.border || "#e5e7eb"};
-  padding: 0.12rem 0.4rem;
-  border-radius: 0.35rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 0.4rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100px;
+  max-width: 120px;
   flex-shrink: 0;
 `;
 

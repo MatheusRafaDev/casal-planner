@@ -24,7 +24,8 @@ export const NavBar = styled.nav`
 export const NavInner = styled.div`
   display: flex;
   height: 60px;
-  align-items: stretch;
+  align-items: center;
+  justify-content: space-around;
 `;
 
 export const NavItem = styled.button`
@@ -80,4 +81,38 @@ export const ActiveDot = styled.div`
   height: 4px;
   border-radius: 50%;
   background: ${p => p.theme.primary};
+`;
+
+/* ─── FAB button ───────────────────────────────────────── */
+export const FabButton = styled.button`
+  width: 52px;
+  height: 52px;
+  background: ${p => p.theme.primary};
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 16px ${p => p.theme.primary}60;
+  margin-top: -20px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  flex-shrink: 0;
+
+  &:active {
+    transform: scale(0.92);
+  }
+
+  &:hover {
+    box-shadow: 0 6px 24px ${p => p.theme.primary}80;
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 2.5;
+  }
 `;

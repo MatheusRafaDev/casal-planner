@@ -25,9 +25,9 @@ namespace CasalPlanner.API.Models.DTOs
         public string Token { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Nova senha é obrigatória")]
-        [MinLength(6, ErrorMessage = "A senha deve ter no mínimo 6 caracteres")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$", 
-            ErrorMessage = "A senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número")]
+        [MinLength(8, ErrorMessage = "A senha deve ter no mínimo 8 caracteres")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$",
+            ErrorMessage = "A senha deve conter letra maiúscula, minúscula, número e caractere especial")]
         public string NovaSenha { get; set; } = string.Empty;
     }
 
