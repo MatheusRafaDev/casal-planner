@@ -176,13 +176,13 @@ export const ContentArea = styled.div`
 
 // ========== Panel Categories (Sidebar) ==========
 export const PanelCategories = styled.div`
-  min-width: 260px;
-  border-right: 1px solid ${p => p.theme?.border || "#e5e7eb"};
+  min-width: 280px;
+  border-right: 1.5px solid ${p => p.theme?.border || "#e5e7eb"};
   background: ${p => p.theme?.surface || "#fff"};
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 4px 0 24px rgba(0,0,0,0.02);
+  box-shadow: 4px 0 32px rgba(0,0,0,0.03);
   z-index: 10;
 `;
 
@@ -222,25 +222,26 @@ export const CatItem = styled.div`
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 16px;
+  padding: 14px 18px;
   border-radius: 14px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-  background: ${p => p.$active ? p.theme?.primary + '11' : 'transparent'};
-  border: 1px solid ${p => p.$active ? p.theme?.primary + '40' : 'transparent'};
-  margin: 2px 4px;
+  background: ${p => p.$active ? p.theme?.primary + '12' : 'transparent'};
+  border: 1.5px solid ${p => p.$active ? p.theme?.primary + '45' : 'transparent'};
+  margin: 2px 6px;
   position: relative;
   z-index: ${p => p.$menuOpen ? 1000 : 1};
 
   &:hover {
-    background: ${p => p.$active ? p.theme?.primary + '1a' : p.theme?.surface2 || "#f1f5f9"};
-    transform: translateX(4px);
+    background: ${p => p.$active ? p.theme?.primary + '1c' : p.theme?.surface2 || "#f1f5f9"};
+    transform: translateX(6px);
+    border-color: ${p => p.$active ? p.theme?.primary + '60' : 'transparent'};
   }
 `;
 
 export const CatIconWrap = styled.div`
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
   background: ${p => p.$active ? `linear-gradient(135deg, ${p.theme?.primary}, #a855f7)` : p.theme?.surface2 || "#f1f5f9"};
   color: ${p => p.$active ? "#fff" : p.theme?.textSoft || "#666"};
@@ -248,11 +249,11 @@ export const CatIconWrap = styled.div`
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 0.3s ease;
-  box-shadow: ${p => p.$active ? `0 4px 12px ${p.theme?.primary}40` : 'none'};
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: ${p => p.$active ? `0 4px 14px ${p.theme?.primary}45` : '0 2px 6px rgba(0,0,0,0.04)'};
   
   ${CatItem}:hover & {
-    transform: scale(1.08) rotate(5deg);
+    transform: scale(1.12) rotate(8deg);
   }
 `;
 
@@ -460,43 +461,45 @@ export const TabDot = styled.div`
 export const ItemList = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 16px 32px;
+  padding: 20px 32px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 
-  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar { width: 8px; }
   &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: ${p => p.theme?.border || "#e5e7eb"}; border-radius: 4px; }
+  &::-webkit-scrollbar-thumb { background: ${p => p.theme?.border || "#e5e7eb"}; border-radius: 6px; }
+  &::-webkit-scrollbar-thumb:hover { background: ${p => p.theme?.border || "#d1d5db"}; }
 `;
 
 // ========== Item Row ==========
 export const ItemRow = styled.div`
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 20px 24px;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
   border-radius: 16px;
   background: ${p => p.theme?.surface || "#fff"};
-  border: 1px solid ${p => p.$checked ? p.theme?.borderLight : (p.theme?.border || "#e5e7eb")};
-  box-shadow: ${p => p.theme?.shadowCard || "0 2px 10px rgba(0,0,0,0.02)"};
+  border: 1.5px solid ${p => p.$checked ? (p.theme?.borderLight || "#e5e7eb") : (p.theme?.border || "#e5e7eb")};
+  box-shadow: ${p => p.theme?.shadowCard || "0 2px 12px rgba(0,0,0,0.04)"};
   transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   cursor: pointer;
-  opacity: ${p => p.$checked ? 0.6 : 1};
+  opacity: ${p => p.$checked ? 0.65 : 1};
   animation: ${fadeUp} 0.4s ease forwards;
   position: relative;
   z-index: ${p => p.$menuOpen ? 1000 : 1};
 
   &:hover {
-    transform: translateY(-2px) scale(1.005);
-    box-shadow: ${p => p.theme?.shadowHover || "0 12px 24px rgba(0, 0, 0, 0.06)"};
-    border-color: ${p => p.theme?.primary}40;
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: ${p => p.theme?.shadowHover || "0 16px 32px rgba(0, 0, 0, 0.08)"};
+    border-color: ${p => p.theme?.primary}50;
     opacity: 1;
   }
 
   @media (max-width: 600px) {
-    padding: 12px 16px;
-    gap: 8px;
+    padding: 14px 16px;
+    gap: 10px;
+    border-radius: 14px;
   }
 `;
 
@@ -536,8 +539,8 @@ export const Checkbox = styled.button`
 `;
 
 export const ItemThumb = styled.div`
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
   border-radius: 14px;
   background: ${p => p.theme?.surface2 || "#f1f5f9"};
   display: flex;
@@ -545,23 +548,24 @@ export const ItemThumb = styled.div`
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
-  border: 1px solid ${p => p.theme?.border || "#e5e7eb"};
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+  border: 1.5px solid ${p => p.theme?.border || "#e5e7eb"};
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   
   ${ItemRow}:hover & {
-    transform: scale(1.05) rotate(-2deg);
+    transform: scale(1.08) rotate(-3deg);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   }
   
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   ${ItemRow}:hover img {
-    transform: scale(1.1);
+    transform: scale(1.15);
   }
   
   svg {
@@ -569,9 +573,9 @@ export const ItemThumb = styled.div`
   }
 
   @media (max-width: 600px) {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
   }
 `;
 
@@ -593,17 +597,18 @@ export const ItemTitleRow = styled.div`
 `;
 
 export const ItemName = styled.div`
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: ${p => p.$checked ? p.theme?.textSoft : p.theme?.text};
   text-decoration: ${p => p.$checked ? 'line-through' : 'none'};
-  line-height: 1.35;
+  line-height: 1.4;
   flex: 1;
   font-family: 'Inter', sans-serif;
-  letter-spacing: -0.2px;
+  letter-spacing: -0.3px;
   white-space: normal;
   word-break: break-word;
   overflow: visible;
+  transition: color 0.2s ease;
 
   @media (max-width: 600px) {
     font-size: 14px;
@@ -702,14 +707,15 @@ export const ItemPriceCol = styled.div`
 `;
 
 export const ItemPrice = styled.div`
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 800;
   color: ${p => p.theme?.text || "#111"};
-  letter-spacing: -0.5px;
+  letter-spacing: -0.6px;
   font-family: 'Inter', sans-serif;
+  transition: color 0.2s ease;
 
   @media (max-width: 600px) {
-    font-size: 16px;
+    font-size: 15px;
   }
 `;
 
@@ -1198,8 +1204,8 @@ export const MobileCategoriesScroll = styled.div`
 `;
 
 export const MobileCatBtn = styled.button`
-  padding: 10px 18px;
-  border-radius: 24px;
+  padding: 12px 20px;
+  border-radius: 26px;
   border: 1.5px solid ${p => p.$active ? p.theme?.primary : p.theme?.border || "#e5e7eb"};
   background: ${p => p.$active ? `linear-gradient(135deg, ${p.theme?.primary}, #a855f7)` : p.theme?.surface || '#fff'};
   color: ${p => p.$active ? '#fff' : p.theme?.text || "#111"};
@@ -1209,15 +1215,16 @@ export const MobileCatBtn = styled.button`
   white-space: nowrap;
   transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   flex-shrink: 0;
-  box-shadow: ${p => p.$active ? `0 6px 16px ${p.theme?.primary}40` : '0 2px 6px rgba(0,0,0,0.02)'};
+  box-shadow: ${p => p.$active ? `0 6px 18px ${p.theme?.primary}45` : '0 2px 8px rgba(0,0,0,0.04)'};
 
   &:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px) scale(1.02);
     border-color: ${p => p.$active ? p.theme?.primary : p.theme?.primary + '80'};
+    box-shadow: ${p => p.$active ? `0 8px 22px ${p.theme?.primary}55` : '0 4px 12px rgba(0,0,0,0.06)'};
   }
 
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
   }
 `;
 
@@ -1238,26 +1245,26 @@ export const MobileItemsContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 8px 12px 16px;
+  padding: 12px 16px 20px;
   width: 100%;
 
   /* Gaps entre itens */
   & > * + * {
-    margin-top: 8px;
+    margin-top: 10px;
   }
 `;
 
 export const MobileFab = styled.button`
   position: fixed;
-  bottom: 80px;
+  bottom: 90px;
   right: 24px;
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background: linear-gradient(135deg, ${p => p.theme?.primary || "#3b82f6"}, #a855f7);
   color: white;
   border: none;
-  box-shadow: 0 8px 24px ${p => p.theme?.primary}60;
+  box-shadow: 0 8px 28px ${p => p.theme?.primary}65;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1266,12 +1273,12 @@ export const MobileFab = styled.button`
   z-index: 100;
 
   &:hover {
-    transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 12px 32px ${p => p.theme?.primary}80;
+    transform: scale(1.12) rotate(8deg);
+    box-shadow: 0 12px 36px ${p => p.theme?.primary}85;
   }
 
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.92);
   }
 
   @media (min-width: 901px) {
@@ -1286,33 +1293,36 @@ export const EmptyStateContainer = styled.div`
   align-items: center;
   justify-content: center;
   text-align: center;
-  min-height: 50vh;
+  min-height: 40vh;
   margin: 2rem auto;
-  max-width: 450px;
-  gap: 20px;
-  padding: 48px 24px;
+  max-width: 480px;
+  gap: 24px;
+  padding: 56px 32px;
   border-radius: 24px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+  background: ${p => p.theme?.surface || "#fff"};
+  border: 1.5px solid ${p => p.theme?.border || "#e5e7eb"};
+  box-shadow: 0 12px 48px rgba(0,0,0,0.04);
 `;
 
 export const EmptyStateIcon = styled.div`
-  font-size: 5rem;
-  margin-bottom: 1rem;
-  opacity: 0.9;
+  font-size: 4.5rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.85;
   animation: ${float} 4s ease-in-out infinite;
 `;
 
 export const EmptyStateTitle = styled.h3`
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: ${props => props.theme?.text || "#111"};
   margin: 0;
   font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.4px;
 `;
 
 export const EmptyStateButton = styled.button`
   margin-top: 1.5rem;
-  padding: 14px 28px;
+  padding: 16px 32px;
   background: linear-gradient(135deg, ${props => props.theme?.primary || "#3b82f6"}, #a855f7);
   color: white;
   border: none;
@@ -1321,15 +1331,15 @@ export const EmptyStateButton = styled.button`
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-  box-shadow: 0 8px 20px ${p => p.theme?.primary}40;
+  box-shadow: 0 8px 24px ${p => p.theme?.primary}45;
 
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 28px ${p => p.theme?.primary}60;
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 32px ${p => p.theme?.primary}65;
   }
 
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
   }
 `;
 

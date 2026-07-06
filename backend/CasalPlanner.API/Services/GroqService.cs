@@ -241,7 +241,11 @@ Responda APENAS em JSON válido, sem texto adicional, no formato:
                     new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json"));
 
                 if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Groq API error (SugerirItensFaltantesPorComodo): {StatusCode} - {Error}", response.StatusCode, errorBody);
                     return null;
+                }
 
                 var body = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(body);
@@ -257,8 +261,9 @@ Responda APENAS em JSON válido, sem texto adicional, no formato:
 
                 return JsonSerializer.Deserialize<SugestaoItensDto>(resultContent);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro ao sugerir itens por cômodo");
                 return null;
             }
         }
@@ -306,7 +311,11 @@ Responda APENAS em JSON válido:
                     new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json"));
 
                 if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Groq API error (DetectarItemRedundante): {StatusCode} - {Error}", response.StatusCode, errorBody);
                     return null;
+                }
 
                 var body = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(body);
@@ -322,8 +331,9 @@ Responda APENAS em JSON válido:
 
                 return JsonSerializer.Deserialize<DuplicataDto>(resultContent);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro ao detectar item redundante");
                 return null;
             }
         }
@@ -370,7 +380,11 @@ Responda APENAS em JSON válido:
                     new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json"));
 
                 if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Groq API error (EstimarOrcamentoPorComodo): {StatusCode} - {Error}", response.StatusCode, errorBody);
                     return null;
+                }
 
                 var body = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(body);
@@ -386,8 +400,9 @@ Responda APENAS em JSON válido:
 
                 return JsonSerializer.Deserialize<EstimativaComodoDto>(resultContent);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro ao estimar orçamento por cômodo");
                 return null;
             }
         }
@@ -428,7 +443,11 @@ Responda APENAS em JSON válido:
                     new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json"));
 
                 if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Groq API error (GerarResumoEnxoval): {StatusCode} - {Error}", response.StatusCode, errorBody);
                     return null;
+                }
 
                 var body = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(body);
@@ -441,8 +460,9 @@ Responda APENAS em JSON válido:
 
                 return resultContent?.Trim();
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro ao gerar resumo do enxoval");
                 return null;
             }
         }

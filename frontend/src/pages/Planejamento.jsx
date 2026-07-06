@@ -515,7 +515,7 @@ const Planejamento = () => {
         $menuOpen={openMenuId === item.id}
         theme={theme}
         onClick={(e) => handleEditItem(item.id, e)}
-        style={{ alignItems: 'flex-start', gap: '10px', padding: '12px 14px' }}
+        style={{ alignItems: 'flex-start', gap: '12px', padding: '14px 16px' }}
       >
         {/* Checkbox */}
         <Checkbox
@@ -531,7 +531,7 @@ const Planejamento = () => {
         <ItemThumb
           theme={theme}
           style={{
-            width: 48, height: 48, borderRadius: 10,
+            width: 52, height: 52, borderRadius: 12,
             border: `1px solid ${theme?.border}`,
             background: theme?.surface2,
             flexShrink: 0, overflow: 'hidden',
@@ -541,21 +541,21 @@ const Planejamento = () => {
         >
           {item.fotoUrl
             ? <img src={item.fotoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <ImageIcon size={22} />}
+            : <ImageIcon size={24} />}
         </ItemThumb>
 
         {/* Info principal — ocupa todo espaço horizontal disponível */}
-        <ItemInfo style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '5px' }}>
+        <ItemInfo style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
           {/* Linha 1: nome + preço lado a lado */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', width: '100%', minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', width: '100%', minWidth: 0 }}>
             <ItemName
               $checked={item.comprado}
               theme={theme}
               style={{
                 flex: 1,
                 minWidth: 0,
-                fontSize: '14px',
+                fontSize: '15px',
                 fontWeight: 700,
                 lineHeight: 1.4,
                 whiteSpace: 'normal',
@@ -566,77 +566,116 @@ const Planejamento = () => {
               {item.nome}
             </ItemName>
 
-            <ItemPriceCol style={{ flexShrink: 0, minWidth: 90, textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <ItemPrice theme={theme} style={{ fontSize: '14px', fontWeight: 800, whiteSpace: 'nowrap' }}>
+            <ItemPriceCol style={{ flexShrink: 0, minWidth: 95, textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'flex-end' }}>
+              <ItemPrice theme={theme} style={{ fontSize: '16px', fontWeight: 800, whiteSpace: 'nowrap', color: item.comprado ? '#10b981' : theme?.text }}>
                 R$ {fmt(item.preco * item.quantidade)}
               </ItemPrice>
-              <QtyVal theme={theme} style={{ fontSize: '11px', fontWeight: 500, color: theme?.textSoft, whiteSpace: 'nowrap' }}>
+              <QtyVal theme={theme} style={{ fontSize: '12px', fontWeight: 600, color: theme?.textSoft, whiteSpace: 'nowrap', background: theme?.surface2, padding: '2px 8px', borderRadius: '6px' }}>
                 {item.quantidade}x R$ {fmt(item.preco)}
               </QtyVal>
             </ItemPriceCol>
           </div>
 
-          {/* Linha 2: badge prioridade + categoria + loja + VR — todos inline */}
-          <ItemMeta theme={theme} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '5px', rowGap: '4px', marginTop: '1px' }}>
-            {/* Status Comprado */}
-            {item.comprado && (
-              <span style={{ fontSize: '10px', fontWeight: 700, color: '#10b981', background: '#10b98118', padding: '2px 7px', borderRadius: '6px', border: '1px solid #10b98130', whiteSpace: 'nowrap' }}>
-                Comprado
-              </span>
-            )}
-
-            {/* Badge de prioridade */}
-            {renderItemBadge(item)}
-
-            {/* Badge categoria */}
-            {cat && (() => {
-              const catHex = hslStringToHex(cat.bg);
-              return (
-                <span style={{
-                  fontSize: '11px', fontWeight: 700,
-                  color: catHex, background: catHex + '18',
-                  padding: '2px 7px', borderRadius: '6px',
-                  border: `1px solid ${catHex}30`,
-                  display: 'inline-flex', alignItems: 'center', gap: 4,
-                  whiteSpace: 'nowrap',
-                }}>
-                  {(cat.icone || cat.icon) &&
-                    <DynamicIcon name={cat.icone || cat.icon} size={10} color="currentColor" />
-                  }
-                  {cat.nome}
+          {/* Linha 2: badges organizados em grupos */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            
+            {/* Grupo 1: Status e Prioridade */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
+              {/* Status Comprado */}
+              {item.comprado && (
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#10b981', background: '#10b98115', padding: '3px 8px', borderRadius: '8px', border: '1px solid #10b98130', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Check size={10} /> Comprado
                 </span>
-              );
-            })()}
+              )}
 
-            {/* Marca */}
-            {item.marca && (
-              <span style={{ fontSize: '11px', color: theme?.textSoft, fontWeight: 600, whiteSpace: 'nowrap' }}>
-                {item.marca}
-              </span>
-            )}
+              {/* Badge de prioridade */}
+              {renderItemBadge(item)}
 
-            {/* Loja */}
-            {item.loja && (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', color: theme?.textSoft, whiteSpace: 'nowrap' }}>
-                <StoreLogo storeName={item.loja} theme={theme} size="small" />
-                {item.loja}
+              {/* Parcelas */}
+              {item.parcelas && item.parcelas > 1 && (
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#8b5cf6', background: '#8b5cf615', padding: '3px 8px', borderRadius: '8px', border: '1px solid #8b5cf630', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  {item.parcelas}x
+                </span>
+              )}
+
+              {/* Link do produto */}
+              {item.linkProduto && (
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#06b6d4', background: '#06b6d415', padding: '3px 8px', borderRadius: '8px', border: '1px solid #06b6d430', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <ExternalLink size={10} /> Link
+                </span>
+              )}
+            </div>
+
+            {/* Grupo 2: Categoria, Marca, Loja e Pagamento */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
+              {/* Badge categoria */}
+              {cat && (() => {
+                const catHex = hslStringToHex(cat.bg);
+                return (
+                  <span style={{
+                    fontSize: '12px', fontWeight: 700,
+                    color: catHex, background: catHex + '15',
+                    padding: '3px 8px', borderRadius: '8px',
+                    border: `1px solid ${catHex}30`,
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {(cat.icone || cat.icon) &&
+                      <DynamicIcon name={cat.icone || cat.icon} size={11} color="currentColor" />
+                    }
+                    {cat.nome}
+                  </span>
+                );
+              })()}
+
+              {/* Separador visual */}
+              {(item.marca || item.loja) && (
+                <span style={{ width: '1px', height: '14px', background: theme?.border, margin: '0 2px' }} />
+              )}
+
+              {/* Marca */}
+              {item.marca && (
+                <span style={{ fontSize: '12px', color: theme?.textSoft, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  {item.marca}
+                </span>
+              )}
+
+              {/* Loja */}
+              {item.loja && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: theme?.textSoft, whiteSpace: 'nowrap', fontWeight: 500 }}>
+                  <StoreLogo storeName={item.loja} theme={theme} size="small" />
+                  {item.loja}
+                </div>
+              )}
+
+              {/* Separador visual */}
+              {item.pagamento && (
+                <span style={{ width: '1px', height: '14px', background: theme?.border, margin: '0 2px' }} />
+              )}
+
+              {/* VR/VA */}
+              {item.pagamento === 'vr' && (
+                <span style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 700, background: '#f59e0b15', padding: '3px 8px', borderRadius: '8px', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <CreditCard size={10} /> VR/VA
+                </span>
+              )}
+
+              {/* Dinheiro */}
+              {(!item.pagamento || item.pagamento === 'normal') && (
+                <span style={{ fontSize: '11px', color: '#3b82f6', fontWeight: 700, background: '#3b82f615', padding: '3px 8px', borderRadius: '8px', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Coffee size={10} /> Dinheiro
+                </span>
+              )}
+            </div>
+
+            {/* Grupo 3: Data de criação */}
+            {item.createdAt && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: theme?.textSoft, fontWeight: 500 }}>
+                <span style={{ opacity: 0.7 }}>📅</span>
+                {new Date(item.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
               </div>
             )}
-
-            {/* VR/VA */}
-            {item.pagamento === 'vr' && (
-              <span style={{ fontSize: '10px', color: '#f59e0b', fontWeight: 700, background: '#f59e0b18', padding: '2px 6px', borderRadius: '6px', whiteSpace: 'nowrap' }}>
-                VR/VA
-              </span>
-            )}
-
-            {/* Dinheiro */}
-            {(!item.pagamento || item.pagamento === 'normal') && (
-              <span style={{ fontSize: '10px', color: '#3b82f6', fontWeight: 700, background: '#3b82f618', padding: '2px 6px', borderRadius: '6px', whiteSpace: 'nowrap' }}>
-                Dinheiro
-              </span>
-            )}
-          </ItemMeta>
+          </div>
         </ItemInfo>
 
         {/* Menu ⋮ */}

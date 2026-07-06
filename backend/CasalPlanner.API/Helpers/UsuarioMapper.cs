@@ -6,7 +6,7 @@ namespace CasalPlanner.API.Helpers
     {
         public static object MapearIndividual(Usuario usuario)
         {
-            string dataNascimento = usuario.DataNascimento?.ToString("yyyy-MM-dd");
+            string? dataNascimento = usuario.DataNascimento?.ToString("yyyy-MM-dd");
 
             return new
             {
@@ -26,11 +26,11 @@ namespace CasalPlanner.API.Helpers
 
         public static object MapearCasal(Usuario usuario, string? pessoaQueLogou = null)
         {
-            string dataNascimentoPessoa1 = usuario.CasalInfo?.DataNascimentoPessoa1 == DateTime.MinValue
+            string? dataNascimentoPessoa1 = usuario.CasalInfo?.DataNascimentoPessoa1 == DateTime.MinValue
                 ? null
                 : usuario.CasalInfo?.DataNascimentoPessoa1.ToString("yyyy-MM-dd");
 
-            string dataNascimentoPessoa2 = usuario.CasalInfo?.DataNascimentoPessoa2 == DateTime.MinValue
+            string? dataNascimentoPessoa2 = usuario.CasalInfo?.DataNascimentoPessoa2 == DateTime.MinValue
                 ? null
                 : usuario.CasalInfo?.DataNascimentoPessoa2.ToString("yyyy-MM-dd");
 

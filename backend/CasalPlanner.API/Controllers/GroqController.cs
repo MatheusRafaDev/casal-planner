@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
 using CasalPlanner.API.Services;
 using CasalPlanner.API.Models.DTOs;
 using CasalPlanner.API.Data;
@@ -74,8 +73,18 @@ namespace CasalPlanner.API.Controllers
                 var nomes = itens.Select(i => i.Nome).ToList();
 
                 var duplicata = await _groqService.DetectarItemRedundante(dto.NomeNovoItem, nomes);
+                
+                // Fallback: se a API Groq falhar, retornar resultado padrão (sem duplicata detectada)
                 if (duplicata == null)
-                    return BadRequest(new { error = "Não foi possível detectar duplicata" });
+                {
+                    _logger.LogWarning("Groq API falhou ao detectar duplicata para '{NomeNovoItem}', retornando fallback", dto.NomeNovoItem);
+                    return Ok(new DuplicataDto 
+                    { 
+                        Detectado = false, 
+                        ItemSimilar = null, 
+                        Mensagem = null 
+                    });
+                }
 
                 return Ok(duplicata);
             }

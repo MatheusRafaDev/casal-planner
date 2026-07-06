@@ -35,6 +35,9 @@ namespace CasalPlanner.API.Models.DTOs
         public List<string> Variantes { get; set; } = new List<string>();
         [JsonPropertyName("varianteSelecionadaId")]
         public string? VarianteSelecionadaId { get; set; }
+
+        public string Origem { get; set; } = "comprado";
+        public string? OrigemDescricao { get; set; }
     }
 
     public class UpdateCompradoDto
@@ -67,6 +70,9 @@ namespace CasalPlanner.API.Models.DTOs
         public List<string>? Variantes { get; set; }
         [JsonPropertyName("varianteSelecionadaId")]
         public string? VarianteSelecionadaId { get; set; }
+
+        public string? Origem { get; set; }
+        public string? OrigemDescricao { get; set; }
     }
 
 
@@ -96,6 +102,8 @@ namespace CasalPlanner.API.Models.DTOs
         public int Parcelas { get; set; } = 1;
         public List<string> Variantes { get; set; } = new List<string>();
         public string? VarianteSelecionadaId { get; set; }
+        public string Origem { get; set; } = "comprado";
+        public string? OrigemDescricao { get; set; }
     }
 
     public class UpdateCategoriaDto

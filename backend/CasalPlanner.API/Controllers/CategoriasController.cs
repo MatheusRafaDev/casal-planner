@@ -211,7 +211,7 @@ public class CategoriasController : ControllerBase
             // Remove itens e categoria em paralelo
             await Task.WhenAll(
                 _context.Itens.DeleteManyAsync(i => i.CategoriaId == id && i.UsuarioId == usuarioId),
-                _context.Categorias.DeleteOneAsync(c => c.Id == id)
+                _context.Categorias.DeleteOneAsync(c => c.Id == id && c.UsuarioId == usuarioId)
             );
 
             return NoContent();
