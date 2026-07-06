@@ -50,7 +50,7 @@ public class RecuperarSenhaController : ControllerBase
                 });
             }
 
-            var email = request.Email.Trim().ToLower();
+            var email = request.Email.Trim().ToLowerInvariant();
 
             // 1. Verificar se é conta individual
             var usuarioIndividual = await _authService.ObterUsuarioPorEmail(email);

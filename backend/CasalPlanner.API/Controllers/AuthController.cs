@@ -40,19 +40,20 @@ namespace CasalPlanner.API.Controllers
         {
             try
             {
-                _logger.LogInformation("Tentativa de login para email: {Email}", dto.Email);
+                var emailNormalizado = dto.Email?.Trim().ToLowerInvariant() ?? string.Empty;
+                _logger.LogInformation("Tentativa de login para email: {Email}", emailNormalizado);
 
-                var usuario = await _authService.ObterUsuarioPorEmail(dto.Email);
+                var usuario = await _authService.ObterUsuarioPorEmail(emailNormalizado);
                 var isCasal = false;
                 string pessoa = "";
 
                 if (usuario == null)
                 {
-                    usuario = await _authService.ObterCasalPorEmail(dto.Email);
+                    usuario = await _authService.ObterCasalPorEmail(emailNormalizado);
                     if (usuario != null)
                     {
                         isCasal = true;
-                        pessoa = usuario.CasalInfo?.EmailPessoa1 == dto.Email ? "pessoa1" : "pessoa2";
+                        pessoa = usuario.CasalInfo?.EmailPessoa1 == emailNormalizado ? "pessoa1" : "pessoa2";
                     }
                 }
 

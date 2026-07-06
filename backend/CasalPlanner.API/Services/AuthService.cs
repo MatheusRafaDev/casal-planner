@@ -63,12 +63,20 @@ namespace CasalPlanner.API.Services
             _configuration = configuration;
         }
 
+        /// <summary>
+        /// Normaliza email: remove espaços e converte para minúsculas
+        /// </summary>
+        private static string NormalizarEmail(string email) =>
+            email?.Trim().ToLowerInvariant() ?? string.Empty;
+
         // ========== REGISTRO ==========
 
         public async Task<Usuario?> Registrar(RegistroDto dto)
         {
+            var emailNormalizado = NormalizarEmail(dto.Email);
+
             var usuarioExistente = await _context.Usuarios
-                .Find(u => u.Email == dto.Email)
+                .Find(u => u.Email == emailNormalizado)
                 .FirstOrDefaultAsync();
 
             if (usuarioExistente != null) return null;
@@ -76,7 +84,7 @@ namespace CasalPlanner.API.Services
             var usuario = new Usuario
             {
                 NomeCompleto = dto.NomeCompleto,
-                Email = dto.Email,
+                Email = emailNormalizado,
                 SenhaHash = BCrypt.Net.BCrypt.HashPassword(dto.Senha, workFactor: 12),
                 CPF = dto.CPF,
                 DataNascimento = dto.DataNascimento,
@@ -95,19 +103,22 @@ namespace CasalPlanner.API.Services
         {
             try
             {
-                if (string.Equals(dto.EmailPessoa1, dto.EmailPessoa2, StringComparison.OrdinalIgnoreCase))
+                var emailPessoa1Normalizado = NormalizarEmail(dto.EmailPessoa1);
+                var emailPessoa2Normalizado = NormalizarEmail(dto.EmailPessoa2);
+
+                if (string.Equals(emailPessoa1Normalizado, emailPessoa2Normalizado, StringComparison.OrdinalIgnoreCase))
                     throw new EmailsIguaisException();
 
                 var existe1 = await _context.Usuarios
-                    .Find(u => u.Email == dto.EmailPessoa1 ||
-                              (u.CasalInfo != null && u.CasalInfo.EmailPessoa1 == dto.EmailPessoa1) ||
-                              (u.CasalInfo != null && u.CasalInfo.EmailPessoa2 == dto.EmailPessoa1))
+                    .Find(u => u.Email == emailPessoa1Normalizado ||
+                              (u.CasalInfo != null && u.CasalInfo.EmailPessoa1 == emailPessoa1Normalizado) ||
+                              (u.CasalInfo != null && u.CasalInfo.EmailPessoa2 == emailPessoa1Normalizado))
                     .FirstOrDefaultAsync();
 
                 var existe2 = await _context.Usuarios
-                    .Find(u => u.Email == dto.EmailPessoa2 ||
-                              (u.CasalInfo != null && u.CasalInfo.EmailPessoa1 == dto.EmailPessoa2) ||
-                              (u.CasalInfo != null && u.CasalInfo.EmailPessoa2 == dto.EmailPessoa2))
+                    .Find(u => u.Email == emailPessoa2Normalizado ||
+                              (u.CasalInfo != null && u.CasalInfo.EmailPessoa1 == emailPessoa2Normalizado) ||
+                              (u.CasalInfo != null && u.CasalInfo.EmailPessoa2 == emailPessoa2Normalizado))
                     .FirstOrDefaultAsync();
 
                 if (existe1 != null || existe2 != null) return null;
@@ -124,13 +135,13 @@ namespace CasalPlanner.API.Services
                     CasalInfo = new CasalInfo
                     {
                         NomeCompletoPessoa1 = dto.NomeCompletoPessoa1,
-                        EmailPessoa1 = dto.EmailPessoa1,
+                        EmailPessoa1 = emailPessoa1Normalizado,
                         SenhaHashPessoa1 = BCrypt.Net.BCrypt.HashPassword(dto.SenhaPessoa1, workFactor: 12),
                         CPFPessoa1 = dto.CPFPessoa1,
                         DataNascimentoPessoa1 = dto.DataNascimentoPessoa1,
                         RendaMensalPessoa1 = dto.RendaMensalPessoa1,
                         NomeCompletoPessoa2 = dto.NomeCompletoPessoa2,
-                        EmailPessoa2 = dto.EmailPessoa2,
+                        EmailPessoa2 = emailPessoa2Normalizado,
                         SenhaHashPessoa2 = BCrypt.Net.BCrypt.HashPassword(dto.SenhaPessoa2, workFactor: 12),
                         CPFPessoa2 = dto.CPFPessoa2,
                         DataNascimentoPessoa2 = dto.DataNascimentoPessoa2,
@@ -154,15 +165,17 @@ namespace CasalPlanner.API.Services
         public async Task<Usuario?> ObterUsuarioPorEmail(string email)
         {
             if (string.IsNullOrEmpty(email)) return null;
-            return await _context.Usuarios.Find(u => u.Email == email).FirstOrDefaultAsync();
+            var emailNormalizado = NormalizarEmail(email);
+            return await _context.Usuarios.Find(u => u.Email == emailNormalizado).FirstOrDefaultAsync();
         }
 
         public async Task<Usuario?> ObterCasalPorEmail(string email)
         {
             if (string.IsNullOrEmpty(email)) return null;
+            var emailNormalizado = NormalizarEmail(email);
             return await _context.Usuarios
                 .Find(u => u.CasalInfo != null &&
-                          (u.CasalInfo.EmailPessoa1 == email || u.CasalInfo.EmailPessoa2 == email))
+                          (u.CasalInfo.EmailPessoa1 == emailNormalizado || u.CasalInfo.EmailPessoa2 == emailNormalizado))
                 .FirstOrDefaultAsync();
         }
 
