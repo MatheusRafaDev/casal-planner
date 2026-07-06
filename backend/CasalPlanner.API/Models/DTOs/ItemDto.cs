@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace CasalPlanner.API.Models.DTOs
 {
@@ -28,10 +29,15 @@ namespace CasalPlanner.API.Models.DTOs
         public string LinkProduto { get; set; } = string.Empty;
         public string FotoUrl { get; set; } = string.Empty;
 
+        [JsonPropertyName("origem")]
         public string Origem { get; set; } = "comprado";
+        [JsonPropertyName("origemDescricao")]
         public string OrigemDescricao { get; set; } = "";
+        [JsonPropertyName("parcelas")]
         public int Parcelas { get; set; } = 1;
+        [JsonPropertyName("variantes")]
         public List<string> Variantes { get; set; } = new List<string>();
+        [JsonPropertyName("varianteSelecionadaId")]
         public string? VarianteSelecionadaId { get; set; }
     }
 
@@ -59,10 +65,15 @@ namespace CasalPlanner.API.Models.DTOs
         public string? Loja { get; set; }
         public string? LinkProduto { get; set; }
         public string? FotoUrl { get; set; }
+        [JsonPropertyName("origem")]
         public string? Origem { get; set; }
+        [JsonPropertyName("origemDescricao")]
         public string? OrigemDescricao { get; set; }
+        [JsonPropertyName("parcelas")]
         public int? Parcelas { get; set; }
+        [JsonPropertyName("variantes")]
         public List<string>? Variantes { get; set; }
+        [JsonPropertyName("varianteSelecionadaId")]
         public string? VarianteSelecionadaId { get; set; }
     }
 

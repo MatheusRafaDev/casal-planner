@@ -57,7 +57,11 @@ namespace CasalPlanner.API.Services
                 Loja = dto.Loja,
                 LinkProduto = dto.LinkProduto,
                 FotoUrl = dto.FotoUrl,
-                Origem = dto.Origem ?? "comprado"
+                Origem = dto.Origem ?? "comprado",
+                OrigemDescricao = dto.OrigemDescricao,
+                Parcelas = dto.Parcelas,
+                Variantes = dto.Variantes ?? new List<string>(),
+                VarianteSelecionadaId = dto.VarianteSelecionadaId
             };
 
             await _context.Itens.InsertOneAsync(item);
@@ -104,6 +108,18 @@ namespace CasalPlanner.API.Services
 
             if (!string.IsNullOrEmpty(dto.Origem))
                 updates.Add(update.Set(i => i.Origem, dto.Origem));
+
+            if (dto.Parcelas.HasValue)
+                updates.Add(update.Set(i => i.Parcelas, dto.Parcelas.Value));
+
+            if (dto.OrigemDescricao != null)
+                updates.Add(update.Set(i => i.OrigemDescricao, dto.OrigemDescricao));
+
+            if (dto.Variantes != null)
+                updates.Add(update.Set(i => i.Variantes, dto.Variantes));
+
+            if (dto.VarianteSelecionadaId != null)
+                updates.Add(update.Set(i => i.VarianteSelecionadaId, dto.VarianteSelecionadaId));
 
             if (updates.Count == 0)
                 return await GetItemById(id, usuarioId);

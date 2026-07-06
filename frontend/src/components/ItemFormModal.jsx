@@ -49,6 +49,9 @@ const DEFAULT_FORM_DATA = {
   fotoUrl: "",
   parcelas: 1,
   origem: "comprado",
+  origemDescricao: "",
+  variantes: [],
+  varianteSelecionadaId: null,
 };
 
 const PRIORIDADE_LABEL = {
@@ -437,6 +440,9 @@ const ItemFormModal = ({
         fotoUrl:     formData.fotoUrl?.trim() || "",
         parcelas:    Number(formData.parcelas) || 1,
         origem:      formData.origem || "comprado",
+        origemDescricao: formData.origemDescricao || "",
+        variantes:   formData.variantes || [],
+        varianteSelecionadaId: formData.varianteSelecionadaId || null,
       };
       if (isEditing && formData.id) dadosParaEnvio.id = formData.id;
 
@@ -452,9 +458,10 @@ const ItemFormModal = ({
     } catch (error) {
       console.error('Erro ao salvar item:', error);
       if (mountedRef.current) {
-        if (error.response?.status === 400)      showToast.error('Dados inválidos. Verifique as informações.', theme);
+        const errorMessage = error.response?.data?.error || error.message || `Erro ao ${isEditing ? 'atualizar' : 'adicionar'} item. Tente novamente.`;
+        if (error.response?.status === 400)      showToast.error(`Dados inválidos: ${errorMessage}`, theme);
         else if (error.response?.status === 401) showToast.error('Sessão expirada. Faça login novamente.', theme);
-        else showToast.error(`Erro ao ${isEditing ? 'atualizar' : 'adicionar'} item. Tente novamente.`, theme);
+        else showToast.error(errorMessage, theme);
       }
       submissionRef.current = false;
     } finally {
