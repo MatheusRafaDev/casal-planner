@@ -5,7 +5,6 @@ import { useTheme } from '../context/ThemeContext';
 import {
   Home,
   ClipboardList,
-  Gift,
   User,
   Sun,
   Moon,
@@ -39,7 +38,6 @@ const Sidebar = () => {
   const navItems = [
     { path: '/inicio', icon: Home, label: 'Início' },
     { path: '/planejamento', icon: ClipboardList, label: 'Planejamento' },
-    { path: '/wishlist', icon: Gift, label: 'Presentes' },
     { path: '/perfil', icon: User, label: 'Perfil' },
   ];
 

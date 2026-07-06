@@ -32,8 +32,6 @@ class ResumoService {
         totalItens: data.atual?.totalItens ?? 0,
         porCategoria: data.atual?.porCategoria ?? {},
         quantidadePorCategoria: data.atual?.quantidadePorCategoria ?? {},
-        porOrigem: data.atual?.porOrigem ?? {},
-        totalEconomizado: data.atual?.totalEconomizado ?? 0,
         percentualConcluido: data.atual?.percentualConcluido ?? 0,
       },
       comparativo: {
@@ -49,7 +47,6 @@ class ResumoService {
         totalRestanteParaMeta: data.enxoval?.totalRestanteParaMeta ?? 0,
         totalItensComprados: data.enxoval?.totalItensComprados ?? 0,
         totalItensPendentes: data.enxoval?.totalItensPendentes ?? 0,
-        totalEconomizadoComPresentes: data.enxoval?.totalEconomizadoComPresentes ?? 0,
       },
     };
   }
@@ -94,17 +91,6 @@ class ResumoService {
       quantidadePorCategoria[catId] = (quantidadePorCategoria[catId] ?? 0) + item.quantidade;
     });
 
-    // Agrupa por origem (ex: 'presente', 'proprio')
-    const porOrigem = {};
-    itens.forEach(item => {
-      const origem = item.origem;
-      if (!origem) return;
-      const valor = item.preco * item.quantidade;
-      porOrigem[origem] = (porOrigem[origem] ?? 0) + valor;
-    });
-
-    const totalEconomizado = porOrigem['presente'] ?? 0;
-
     return {
       atual: {
         totalGeral,
@@ -114,8 +100,6 @@ class ResumoService {
         totalItens,
         porCategoria,
         quantidadePorCategoria,
-        porOrigem,
-        totalEconomizado,
         percentualConcluido,
       },
       comparativo: {
@@ -128,7 +112,6 @@ class ResumoService {
         totalRestanteParaMeta: 0,
         totalItensComprados: totalComprados,
         totalItensPendentes: totalItens - totalComprados,
-        totalEconomizadoComPresentes: totalEconomizado,
       },
     };
   }
@@ -174,7 +157,7 @@ class ResumoService {
         totalGeral: 0, totalVR: 0, totalNormal: 0,
         totalComprados: 0, totalItens: 0,
         porCategoria: {}, quantidadePorCategoria: {},
-        porOrigem: {}, totalEconomizado: 0, percentualConcluido: 0,
+        percentualConcluido: 0,
       },
       comparativo: {
         totalGeral: 0, totalVR: 0, totalNormal: 0,
@@ -183,7 +166,7 @@ class ResumoService {
       enxoval: {
         metaGlobalEnxoval: null, percentualMetaGlobal: 0,
         totalRestanteParaMeta: 0, totalItensComprados: 0,
-        totalItensPendentes: 0, totalEconomizadoComPresentes: 0,
+        totalItensPendentes: 0,
       },
     };
   }

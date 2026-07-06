@@ -16,8 +16,6 @@ import Home from "./pages/Home";
 import Inicio from "./pages/Inicio";
 import Login from "./pages/Login";
 import EsqueciSenha from "./pages/RecuperarSenha";
-import Wishlist from "./pages/Wishlist";
-import WishlistPublica from "./pages/WishlistPublica";
 
 
 // Hooks
@@ -257,9 +255,6 @@ export const AppRoutes = () => {
       <Route path="/recuperar-senha" element={
         <PublicRoute><PublicLayout><EsqueciSenha /></PublicLayout></PublicRoute>
       } />
-      <Route path="/lista/:slug" element={
-        <PublicLayout><WishlistPublica /></PublicLayout>
-      } />
 
       {/* ── PRIVADAS ── */}
       <Route path="/inicio" element={
@@ -267,9 +262,6 @@ export const AppRoutes = () => {
       } />
       <Route path="/planejamento" element={
         <PrivateRoute><PrivateLayout><Planejamento /></PrivateLayout></PrivateRoute>
-      } />
-      <Route path="/wishlist" element={
-        <PrivateRoute><PrivateLayout><Wishlist /></PrivateLayout></PrivateRoute>
       } />
       <Route path="/perfil" element={
         <PrivateRoute><PrivateLayout><Perfil /></PrivateLayout></PrivateRoute>

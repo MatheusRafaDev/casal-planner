@@ -111,18 +111,12 @@ export const calcularDashboard = (itens = [], categorias = [], resumoData = null
 
   const urgenciaFalta = prioridades.urgente.falta;
 
-  // Economias obtidas por presentes ganhos (origem === 'presente')
-  const totalEconomizado = possuiItens
-    ? itens.filter(i => i.origem === 'presente').reduce((acc, i) => acc + calcularValorItem(i), 0)
-    : (resumoData?.atual?.totalEconomizado || 0);
-
   const enxoval = {
     metaGlobalEnxoval: resumoData?.enxoval?.metaGlobalEnxoval ?? null,
     percentualMetaGlobal: resumoData?.enxoval?.percentualMetaGlobal ?? 0,
     totalRestanteParaMeta: resumoData?.enxoval?.totalRestanteParaMeta ?? 0,
     totalItensComprados: resumoData?.enxoval?.totalItensComprados ?? totalComprados,
     totalItensPendentes: resumoData?.enxoval?.totalItensPendentes ?? (totalItens - totalComprados),
-    totalEconomizadoComPresentes: resumoData?.enxoval?.totalEconomizadoComPresentes ?? totalEconomizado
   };
 
   // Total por categoria - utilizando optional chaining seguro
@@ -175,7 +169,6 @@ export const calcularDashboard = (itens = [], categorias = [], resumoData = null
     pagamentoNormal,
     prioridades,
     urgenciaFalta,
-    totalEconomizado,
     enxoval,
     porCategoria
   };

@@ -6,7 +6,7 @@ import { useItemValidation } from '../hooks/useItemValidation';
 import { usePriceFormat } from '../hooks/usePriceFormat';
 import { showToast } from '../utils/toastUtils';
 import PainelPesquisaPrecos from "./PainelPesquisaPrecos";
-import { AlertCircle, AlertTriangle, CheckCircle, CreditCard, Wallet, ShoppingCart, Gift, ExternalLink, Tag, Box, DollarSign, Package, Calendar, Store, Zap, Clock, Hourglass, Banknote, UtensilsCrossed } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle, CreditCard, Wallet, ShoppingCart, ExternalLink, Tag, Box, DollarSign, Package, Calendar, Store, Zap, Clock, Hourglass, Banknote, UtensilsCrossed } from "lucide-react";
 
 import {
   Overlay,
@@ -48,8 +48,6 @@ const DEFAULT_FORM_DATA = {
   linkProduto: "",
   fotoUrl: "",
   parcelas: 1,
-  origem: "comprado",
-  origemDescricao: "",
   variantes: [],
   varianteSelecionadaId: null,
 };
@@ -264,8 +262,6 @@ const ItemFormModal = ({
           linkProduto: itemParaEditar.linkProduto || "",
           fotoUrl:     itemParaEditar.fotoUrl || "",
           createdAt:   itemParaEditar.createdAt || null,
-          origem:      itemParaEditar.origem || "comprado",
-          origemDescricao: itemParaEditar.origemDescricao || "",
           variantes:   itemParaEditar.variantes || [],
           varianteSelecionadaId: itemParaEditar.varianteSelecionadaId || null,
           parcelas:    itemParaEditar.pagamento === 'vr' ? 1 : (itemParaEditar.parcelas || 1),
@@ -439,8 +435,6 @@ const ItemFormModal = ({
         linkProduto: formData.linkProduto?.trim() || "",
         fotoUrl:     formData.fotoUrl?.trim() || "",
         parcelas:    Number(formData.parcelas) || 1,
-        origem:      formData.origem || "comprado",
-        origemDescricao: formData.origemDescricao || "",
         variantes:   formData.variantes || [],
         varianteSelecionadaId: formData.varianteSelecionadaId || null,
       };
@@ -694,38 +688,6 @@ const ItemFormModal = ({
                 )}
               </div>
             </FormGroup>
-
-
-
-            {/* Origem */}
-            <FormGroup>
-              <Label theme={theme} style={{ display: 'flex', alignItems: 'center' }}><ShoppingCart size={16} style={{ marginRight: '6px', opacity: 0.7 }} /> Origem</Label>
-              <OptionGroup>
-                <OptionBtn
-                  type="button"
-                  theme={theme}
-                  $active={formData.origem === 'comprado'}
-                  $color="#6366f1"
-                  disabled={loading || isSubmitting}
-                  onClick={() => handleFieldChange('origem', 'comprado')}
-                >
-                  <ShoppingCart size={15} />
-                  Comprado
-                </OptionBtn>
-                <OptionBtn
-                  type="button"
-                  theme={theme}
-                  $active={formData.origem === 'presente'}
-                  $color="#ec4899"
-                  disabled={loading || isSubmitting}
-                  onClick={() => handleFieldChange('origem', 'presente')}
-                >
-                  <Gift size={15} />
-                  Presente
-                </OptionBtn>
-              </OptionGroup>
-            </FormGroup>
-
 
 
             {/* Pesquisa de preços */}

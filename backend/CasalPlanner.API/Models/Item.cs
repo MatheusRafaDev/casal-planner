@@ -32,8 +32,6 @@ public class Item
     public string LinkProduto { get; set; } = "";
     public string FotoUrl { get; set; } = "";
 
-    public string Origem { get; set; } = "comprado";
-    public string OrigemDescricao { get; set; } = "";
     public int Parcelas { get; set; } = 1;
     public List<string> Variantes { get; set; } = new List<string>();
     public string? VarianteSelecionadaId { get; set; }

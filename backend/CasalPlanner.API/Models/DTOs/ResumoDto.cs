@@ -12,8 +12,6 @@ namespace CasalPlanner.API.Models.DTOs
         public int TotalItens { get; set; }
         public Dictionary<string, decimal> PorCategoria { get; set; } = new();
         public Dictionary<string, int> QuantidadePorCategoria { get; set; } = new();
-        public Dictionary<string, decimal> PorOrigem { get; set; } = new();
-        public decimal TotalEconomizado { get; set; }
         public decimal PercentualConcluido { get; set; }
     }
 
@@ -33,7 +31,6 @@ namespace CasalPlanner.API.Models.DTOs
         public decimal TotalRestanteParaMeta { get; set; }
         public int TotalItensComprados { get; set; }
         public int TotalItensPendentes { get; set; }
-        public decimal TotalEconomizadoComPresentes { get; set; }
     }
 
     public class ResumoResponseDto

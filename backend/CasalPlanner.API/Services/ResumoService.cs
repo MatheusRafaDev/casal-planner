@@ -40,7 +40,6 @@ namespace CasalPlanner.API.Services
                         { "Pagamento",   1 },
                         { "Comprado",    1 },
                         { "Quantidade",  1 },
-                        { "Origem",      1 },
 
                         { "ValorTotal",  new BsonDocument("$multiply",
                             new BsonArray { "$Preco", "$Quantidade" }) },
@@ -82,12 +81,6 @@ namespace CasalPlanner.API.Services
                                 { "CategoriaId", "$CategoriaId" },
                                 { "ValorTotal",  "$ValorTotal"  },
                                 { "Quantidade",  "$Quantidade"  },
-                            }) },
-
-                        { "PorOrigem",      new BsonDocument("$push", new BsonDocument
-                            {
-                                { "Origem",      "$Origem"      },
-                                { "ValorTotal",  "$ValorTotal"  },
                             }) },
 
                         // Mês atual
@@ -137,8 +130,7 @@ namespace CasalPlanner.API.Services
                     PercentualMetaGlobal = percentualMetaGlobal,
                     TotalRestanteParaMeta = totalRestanteParaMeta,
                     TotalItensComprados = resumoDto.TotalComprados,
-                    TotalItensPendentes = resumoDto.TotalItens - resumoDto.TotalComprados,
-                    TotalEconomizadoComPresentes = resumoDto.TotalEconomizado
+                    TotalItensPendentes = resumoDto.TotalItens - resumoDto.TotalComprados
                 };
 
                 return new ResumoResponseDto
@@ -161,8 +153,6 @@ namespace CasalPlanner.API.Services
         {
             var porCategoria           = new Dictionary<string, decimal>();
             var quantidadePorCategoria = new Dictionary<string, int>();
-
-            var porOrigem              = new Dictionary<string, decimal>();
 
             if (doc.TryGetValue("PorCategoria", out var arr) && arr is BsonArray items)
             {
@@ -191,38 +181,9 @@ namespace CasalPlanner.API.Services
                 }
             }
 
-
-
-            if (doc.TryGetValue("PorOrigem", out var origemArr) && origemArr is BsonArray origemItems)
-            {
-                foreach (var element in origemItems)
-                {
-                    if (element is not BsonDocument item) continue;
-
-                    var origemVal = item.GetValue("Origem", BsonNull.Value);
-                    if (origemVal.IsBsonNull) continue;
-                    var origem = origemVal.AsString;
-                    if (string.IsNullOrEmpty(origem)) continue;
-
-                    var valor = ToDecimal(item.GetValue("ValorTotal", 0));
-
-                    if (porOrigem.ContainsKey(origem))
-                    {
-                        porOrigem[origem] += valor;
-                    }
-                    else
-                    {
-                        porOrigem[origem] = valor;
-                    }
-                }
-            }
-
             var totalGeral = ToDecimal(doc.GetValue("TotalGeral", 0));
             var totalComprados = doc.GetValue("TotalComprados", 0).ToInt32();
             var totalItens = doc.GetValue("TotalItens", 0).ToInt32();
-
-            // Calcular TotalEconomizado (soma de itens que não foram comprados pelo casal)
-            var totalEconomizado = porOrigem.ContainsKey("presente") ? porOrigem["presente"] : 0m;
 
             // Calcular PercentualConcluido
             var percentualConcluido = totalItens > 0 
@@ -238,9 +199,6 @@ namespace CasalPlanner.API.Services
                 TotalItens             = totalItens,
                 PorCategoria           = porCategoria,
                 QuantidadePorCategoria = quantidadePorCategoria,
-
-                PorOrigem              = porOrigem,
-                TotalEconomizado       = totalEconomizado,
                 PercentualConcluido    = percentualConcluido,
             };
         }

@@ -36,16 +36,6 @@ const IconProgress = () => (
   </S.IconSm>
 );
 
-const IconGift = () => (
-  <S.IconSm viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M20 12v10H4V12" />
-    <path d="M2 7h20v5H2z" />
-    <path d="M12 22V7" />
-    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
-    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
-  </S.IconSm>
-);
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const fmt = (valor = 0) =>
@@ -88,13 +78,6 @@ const ResumoCards = ({ resumo = {}, theme = {} }) => {
 
   // Progresso e economia
   const percentualConcluido = atual.percentualConcluido ?? 0;
-  const totalEconomizado = atual.totalEconomizado ?? enxoval.totalEconomizadoComPresentes ?? 0;
-
-  // Quantidade de itens recebidos como presente
-  const porOrigem = atual.porOrigem ?? {};
-  const qtdPresentes = enxoval.totalItensComprados != null
-    ? null // preferimos o dado do backend se disponível
-    : Object.keys(porOrigem).length;
 
   // Cores com fallbacks
   const colors = {
@@ -208,33 +191,6 @@ const ResumoCards = ({ resumo = {}, theme = {} }) => {
         <S.InfoRow>
           <S.InfoLabel>Restante</S.InfoLabel>
           <S.InfoValue $color={colors.warning}>{fmt(100 - percentualConcluido)}%</S.InfoValue>
-        </S.InfoRow>
-      </S.Card>
-
-      {/* Card Economia */}
-      <S.Card $color={colors.success}>
-        <S.CardTitle>
-          <IconGift />
-          Economia
-          <S.Badge $color={colors.success}>Presentes</S.Badge>
-        </S.CardTitle>
-
-        <S.MainValue $color={colors.success}>
-          <span>R$ </span>{fmt(totalEconomizado)}
-        </S.MainValue>
-
-        <S.Divider />
-
-        <S.InfoRow>
-          <S.InfoLabel>🎁 Economizado</S.InfoLabel>
-          <S.InfoValue $color={colors.success}>R$ {fmt(totalEconomizado)}</S.InfoValue>
-        </S.InfoRow>
-
-        <S.InfoRow>
-          <S.InfoLabel>📊 Itens presentes</S.InfoLabel>
-          <S.InfoValue $color={colors.info}>
-            {enxoval.totalItensComprados ?? qtdPresentes ?? 0} itens
-          </S.InfoValue>
         </S.InfoRow>
       </S.Card>
     </S.Grid>

@@ -29,10 +29,6 @@ namespace CasalPlanner.API.Models.DTOs
         public string LinkProduto { get; set; } = string.Empty;
         public string FotoUrl { get; set; } = string.Empty;
 
-        [JsonPropertyName("origem")]
-        public string Origem { get; set; } = "comprado";
-        [JsonPropertyName("origemDescricao")]
-        public string OrigemDescricao { get; set; } = "";
         [JsonPropertyName("parcelas")]
         public int Parcelas { get; set; } = 1;
         [JsonPropertyName("variantes")]
@@ -65,10 +61,6 @@ namespace CasalPlanner.API.Models.DTOs
         public string? Loja { get; set; }
         public string? LinkProduto { get; set; }
         public string? FotoUrl { get; set; }
-        [JsonPropertyName("origem")]
-        public string? Origem { get; set; }
-        [JsonPropertyName("origemDescricao")]
-        public string? OrigemDescricao { get; set; }
         [JsonPropertyName("parcelas")]
         public int? Parcelas { get; set; }
         [JsonPropertyName("variantes")]
@@ -101,8 +93,6 @@ namespace CasalPlanner.API.Models.DTOs
         public string Loja { get; set; } = string.Empty;
         public string LinkProduto { get; set; } = string.Empty;
         public string FotoUrl { get; set; } = string.Empty;
-        public string Origem { get; set; } = "comprado";
-        public string OrigemDescricao { get; set; } = "";
         public int Parcelas { get; set; } = 1;
         public List<string> Variantes { get; set; } = new List<string>();
         public string? VarianteSelecionadaId { get; set; }

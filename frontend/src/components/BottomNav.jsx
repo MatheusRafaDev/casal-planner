@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, ClipboardList, User, Gift, Plus } from 'lucide-react';
+import { Home, ClipboardList, User, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -28,7 +28,6 @@ const BottomNav = () => {
   ];
 
   const rightItems = [
-    { path: '/wishlist', icon: Gift, label: 'Presentes' },
     { path: '/perfil', icon: User, label: 'Perfil' },
   ];
 

@@ -6,7 +6,6 @@ import {
   Wallet, 
   TrendingUp, 
   ShoppingBag, 
-  Gift, 
   AlertCircle, 
   CheckCircle2, 
   Clock 
@@ -56,7 +55,6 @@ const Inicio = () => {
     totalItens,
     pctFinanceiro,
     pctComprados,
-    totalEconomizado,
     prioridades,
     porCategoria
   } = dashboard;
@@ -132,18 +130,6 @@ const Inicio = () => {
             <CardSubtext theme={theme}>
               {pctComprados}% da lista completa
             </CardSubtext>
-          </div>
-        </GlassCard>
-
-        <GlassCard theme={theme}>
-          <CardIconWrapper theme={theme} $color={theme.warning}>
-            <Gift size={20} />
-          </CardIconWrapper>
-          <div>
-            <CardTitle theme={theme}>Economia (Presentes)</CardTitle>
-            <CardValue theme={theme} $color={theme.warning}>
-              {formatarMoeda(totalEconomizado)}
-            </CardValue>
           </div>
         </GlassCard>
       </GridCards>
