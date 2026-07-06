@@ -39,6 +39,15 @@ public class UsuarioController : ControllerBase
             ?? string.Empty;
     }
 
+    // Lê o e-mail do usuário autenticado a partir do próprio token JWT,
+    // em vez de confiar em qualquer valor enviado pelo cliente no corpo da requisição.
+    private string GetUsuarioEmailAutenticado()
+    {
+        return User.FindFirst(ClaimTypes.Email)?.Value
+            ?? User.FindFirst(JwtRegisteredClaimNames.Email)?.Value
+            ?? string.Empty;
+    }
+
     private async Task CriarCategoriasPadrao(string usuarioId)
     {
         var categoriasPadrao = new List<Categoria>
@@ -323,7 +332,17 @@ public class UsuarioController : ControllerBase
     [HttpPost("alterar-senha")]
     public async Task<IActionResult> AlterarSenha([FromBody] AlterarSenhaDto dto)
     {
-        var usuario = await _authService.ObterUsuarioPorEmail(dto.Email);
+        // CORREÇÃO DE SEGURANÇA: o e-mail da conta a ser alterada NUNCA deve vir
+        // do corpo da requisição (dto.Email), pois isso permite que qualquer usuário
+        // autenticado tente trocar a senha de QUALQUER conta (IDOR), bastando saber
+        // a senha atual da vítima. O e-mail correto é sempre o do token JWT do
+        // próprio usuário logado.
+        var emailAutenticado = GetUsuarioEmailAutenticado();
+
+        if (string.IsNullOrEmpty(emailAutenticado))
+            return Unauthorized(new { message = "Não foi possível identificar o usuário autenticado" });
+
+        var usuario = await _authService.ObterUsuarioPorEmail(emailAutenticado);
 
         if (usuario != null)
         {
@@ -340,12 +359,12 @@ public class UsuarioController : ControllerBase
             return Ok(new { message = "Senha alterada com sucesso" });
         }
 
-        var usuarioCasal = await _authService.ObterCasalPorEmail(dto.Email);
+        var usuarioCasal = await _authService.ObterCasalPorEmail(emailAutenticado);
 
         if (usuarioCasal?.CasalInfo == null)
             return NotFound();
 
-        if (usuarioCasal.CasalInfo.EmailPessoa1 == dto.Email)
+        if (usuarioCasal.CasalInfo.EmailPessoa1 == emailAutenticado)
         {
             if (!BCrypt.Net.BCrypt.Verify(dto.SenhaAtual, usuarioCasal.CasalInfo.SenhaHashPessoa1))
                 return BadRequest(new { message = "Senha atual incorreta" });
@@ -365,7 +384,7 @@ public class UsuarioController : ControllerBase
                     usuarioCasal.CasalInfo.NomeCompletoPessoa2 ?? "Usuário");
             }
         }
-        else if (usuarioCasal.CasalInfo.EmailPessoa2 == dto.Email)
+        else if (usuarioCasal.CasalInfo.EmailPessoa2 == emailAutenticado)
         {
             if (!BCrypt.Net.BCrypt.Verify(dto.SenhaAtual, usuarioCasal.CasalInfo.SenhaHashPessoa2))
                 return BadRequest(new { message = "Senha atual incorreta" });
