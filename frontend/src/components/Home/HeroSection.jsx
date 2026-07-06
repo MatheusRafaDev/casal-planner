@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, ArrowRight } from 'lucide-react';
-import Button from '../Button';
+import Button from '../ui/button';
 import {
   Hero,
   Badge,

@@ -1,13 +1,10 @@
+// AuthContext.jsx
 import React, { createContext, useState, useContext, useEffect } from "react";
 import authService from "../services/authService";
 import usuarioService from "../services/usuarioService";
-import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 
-// Extrai a mensagem de erro da resposta da API, cobrindo tanto o formato
-// { message: "..." } (erros de negócio) quanto o formato automático do
-// ASP.NET [ApiController] para falhas de validação: { errors: { Campo: ["msg"] } }.
 const extrairMensagemErro = (error, fallback) => {
   const data = error?.response?.data;
   if (!data) return fallback;
@@ -31,7 +28,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [navigateFunction, setNavigateFunction] = useState(null);
 
   // Carrega o usuário do cache/localStorage ao montar
   useEffect(() => {
@@ -86,7 +83,6 @@ export const AuthProvider = ({ children }) => {
     try {
       const resp = await usuarioService.registrarCasal(dados);
       if (resp) {
-        // O endpoint já retorna token e dados completos, não precisa fazer login novamente
         setUsuario(resp.usuario);
         return { success: true };
       }
@@ -102,14 +98,15 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     authService.logout();
     setUsuario(null);
-    navigate("/");
+    if (navigateFunction) {
+      navigateFunction("/");
+    }
   };
 
   const atualizarUsuario = (novosDados) => {
     setUsuario(novosDados);
   };
 
-  // Recarrega dados completos do servidor e atualiza contexto
   const recarregarUsuario = async () => {
     try {
       authService.clearCache();
@@ -186,7 +183,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Derivações úteis, todas baseadas no estado central `usuario`
   const isCasal = !!(usuario?.isCasal || usuario?.tipoConta === "Casal" || usuario?.tipoConta === 1);
   const pessoaQueLogou = usuario?.pessoaQueLogou || null;
 
@@ -195,14 +191,13 @@ export const AuthProvider = ({ children }) => {
     loading,
     estaAutenticado: !!usuario,
     isCasal,
-    pessoaLogada: pessoaQueLogou,  // alias mantido por compatibilidade
+    pessoaLogada: pessoaQueLogou,
     pessoaQueLogou,
-
+    setNavigateFunction, // Expor para o componente filho
     login,
     registrar,
     registrarCasal,
     logout,
-
     atualizarUsuario,
     recarregarUsuario,
     atualizarPerfil,
