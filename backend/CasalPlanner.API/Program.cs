@@ -61,7 +61,8 @@ else
         "http://localhost:8080",
         "http://127.0.0.1:3000",
         "https://casalplanner.vercel.app",
-        "https://casal-planner.vercel.app"
+        "https://casal-planner.vercel.app",
+        "https://id-preview--faa54db4-4a66-4acd-b7a1-77156c4ecd8c.lovable.app"
     };
     Console.WriteLine("📋 CORS: Usando origens padrão (localhost)");
 }
