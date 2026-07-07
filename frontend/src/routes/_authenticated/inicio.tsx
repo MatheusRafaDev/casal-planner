@@ -9,10 +9,7 @@ export const Route = createFileRoute("/_authenticated/inicio")({
 
 function InicioPage() {
   const { usuario } = useAuth();
-  const nome =
-    usuario?.nomeCompleto ??
-    usuario?.casalInfo?.pessoa1.nomeCompleto ??
-    "por aqui";
+  const nome = usuario?.nomeCompleto ?? usuario?.casalInfo?.pessoa1.nomeCompleto ?? "por aqui";
 
   return (
     <div className="space-y-8">

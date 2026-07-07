@@ -63,7 +63,9 @@ api.interceptors.response.use(
 );
 
 export function extractApiError(error: unknown, fallback: string): string {
-  const err = error as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
+  const err = error as {
+    response?: { data?: { message?: string; errors?: Record<string, string[]> } };
+  };
   const data = err?.response?.data;
   if (!data) return fallback;
   if (data.message) return data.message;

@@ -63,8 +63,8 @@ function PerfilPage() {
       )}
 
       <div className="surface-card p-6 text-sm text-muted-foreground">
-        A edição de dados, alteração de senha e detalhes do perfil serão finalizados na Fase 4
-        do redesign.
+        A edição de dados, alteração de senha e detalhes do perfil serão finalizados na Fase 4 do
+        redesign.
       </div>
     </div>
   );
@@ -88,9 +88,7 @@ function PersonCard({
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             {label}
           </p>
-          <p className="mt-0.5 truncate text-lg font-semibold">
-            {person.nomeCompleto ?? "—"}
-          </p>
+          <p className="mt-0.5 truncate text-lg font-semibold">{person.nomeCompleto ?? "—"}</p>
           <p className="truncate text-sm text-muted-foreground">{person.email ?? "—"}</p>
         </div>
       </div>

@@ -6,7 +6,10 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       { title: "Entrar · Casal Planner" },
-      { name: "description", content: "Acesse sua conta do Casal Planner para continuar o planejamento." },
+      {
+        name: "description",
+        content: "Acesse sua conta do Casal Planner para continuar o planejamento.",
+      },
     ],
   }),
   component: LoginPage,
@@ -20,7 +23,10 @@ function LoginPage() {
       backTo="/"
       footer={
         <>
-          Ainda não tem conta? <Link to="/login" className="font-semibold text-primary hover:underline">Fale com o time</Link>
+          Ainda não tem conta?{" "}
+          <Link to="/login" className="font-semibold text-primary hover:underline">
+            Fale com o time
+          </Link>
         </>
       }
     >

@@ -8,9 +8,9 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
   tanstackStart: {
-     resolve: {
-    tsconfigPaths: true,
-  },
+    resolve: {
+      tsconfigPaths: true,
+    },
     server: { entry: "server" },
   },
 });

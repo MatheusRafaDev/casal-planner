@@ -64,7 +64,10 @@ export function RecoverForm() {
         <p className="text-sm text-muted-foreground">
           Pronto! Agora é só entrar com sua nova senha.
         </p>
-        <Button asChild className="h-12 w-full rounded-xl bg-gradient-brand text-primary-foreground">
+        <Button
+          asChild
+          className="h-12 w-full rounded-xl bg-gradient-brand text-primary-foreground"
+        >
           <a href="/login">Ir para o login</a>
         </Button>
       </div>

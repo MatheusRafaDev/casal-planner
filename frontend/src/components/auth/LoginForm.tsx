@@ -53,10 +53,7 @@ export function LoginForm() {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="senha">Senha</Label>
-          <Link
-            to="/recuperar-senha"
-            className="text-xs font-medium text-primary hover:underline"
-          >
+          <Link to="/recuperar-senha" className="text-xs font-medium text-primary hover:underline">
             Esqueci minha senha
           </Link>
         </div>

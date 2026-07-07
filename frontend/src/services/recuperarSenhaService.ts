@@ -12,10 +12,19 @@ export interface ServiceResult<T = unknown> {
 export const recuperarSenhaService = {
   async solicitarCodigo(email: string): Promise<ServiceResult> {
     try {
-      const response = await api.post(`${BASE}/esqueci-senha`, { email: email.trim().toLowerCase() });
-      return { success: true, message: response.data?.message ?? "Código enviado", data: response.data };
+      const response = await api.post(`${BASE}/esqueci-senha`, {
+        email: email.trim().toLowerCase(),
+      });
+      return {
+        success: true,
+        message: response.data?.message ?? "Código enviado",
+        data: response.data,
+      };
     } catch (error) {
-      return { success: false, message: extractApiError(error, "Não foi possível enviar o código") };
+      return {
+        success: false,
+        message: extractApiError(error, "Não foi possível enviar o código"),
+      };
     }
   },
 
@@ -31,9 +40,16 @@ export const recuperarSenhaService = {
   async redefinirSenha(email: string, token: string, novaSenha: string): Promise<ServiceResult> {
     try {
       const response = await api.post(`${BASE}/redefinir-senha`, { email, token, novaSenha });
-      return { success: true, message: response.data?.message ?? "Senha redefinida", data: response.data };
+      return {
+        success: true,
+        message: response.data?.message ?? "Senha redefinida",
+        data: response.data,
+      };
     } catch (error) {
-      return { success: false, message: extractApiError(error, "Não foi possível redefinir a senha") };
+      return {
+        success: false,
+        message: extractApiError(error, "Não foi possível redefinir a senha"),
+      };
     }
   },
 };

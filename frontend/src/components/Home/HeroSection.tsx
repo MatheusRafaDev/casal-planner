@@ -19,13 +19,12 @@ export function HeroSection() {
           </div>
 
           <h1 className="text-balance text-4xl font-extrabold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
-            A casa nova de vocês,{" "}
-            <span className="text-gradient-brand">planejada a dois.</span>
+            A casa nova de vocês, <span className="text-gradient-brand">planejada a dois.</span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-balance text-lg text-muted-foreground md:text-xl">
-            Organize compras por cômodo, compare preços com IA e acompanhe o orçamento — tudo em um só lugar,
-            juntos.
+            Organize compras por cômodo, compare preços com IA e acompanhe o orçamento — tudo em um
+            só lugar, juntos.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -69,7 +68,9 @@ function MockDashboard() {
         { label: "Restante", value: "R$ 24.570", tone: "success" },
       ].map((s) => (
         <div key={s.label} className="rounded-2xl border border-border bg-card p-5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{s.label}</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            {s.label}
+          </p>
           <p className="mt-2 text-3xl font-bold tracking-tight">{s.value}</p>
           <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-muted">
             <div

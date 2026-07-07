@@ -14,10 +14,7 @@ export function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { logout, usuario } = useAuth();
   const displayName =
-    usuario?.nomeCompleto ??
-    usuario?.casalInfo?.pessoa1.nomeCompleto ??
-    usuario?.email ??
-    "";
+    usuario?.nomeCompleto ?? usuario?.casalInfo?.pessoa1.nomeCompleto ?? usuario?.email ?? "";
 
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
@@ -40,7 +37,12 @@ export function Sidebar() {
                       : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                   )}
                 >
-                  <Icon className={cn("h-5 w-5", active ? "" : "text-muted-foreground group-hover:text-inherit")} />
+                  <Icon
+                    className={cn(
+                      "h-5 w-5",
+                      active ? "" : "text-muted-foreground group-hover:text-inherit",
+                    )}
+                  />
                   {label}
                 </Link>
               </li>

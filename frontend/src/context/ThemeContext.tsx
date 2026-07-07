@@ -36,7 +36,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     applyThemeToDom(t);
   }, []);
 
-  const toggle = useCallback(() => setTheme(theme === "dark" ? "light" : "dark"), [theme, setTheme]);
+  const toggle = useCallback(
+    () => setTheme(theme === "dark" ? "light" : "dark"),
+    [theme, setTheme],
+  );
 
   return (
     <ThemeContext.Provider value={{ theme, isDarkMode: theme === "dark", toggle, setTheme }}>

@@ -74,7 +74,10 @@ function normalizar(d: RawUser, pessoaQueLogou: "pessoa1" | "pessoa2" | null = n
   let casalInfo: CasalInfo | null = null;
 
   if (isCasal) {
-    const raw = (d.CasalInfo ?? d.casalInfo ?? (d as unknown as Record<string, unknown>)) as Record<string, unknown>;
+    const raw = (d.CasalInfo ?? d.casalInfo ?? (d as unknown as Record<string, unknown>)) as Record<
+      string,
+      unknown
+    >;
     const p1raw = (raw.pessoa1 ?? d.pessoa1) as Record<string, unknown> | undefined;
     const p2raw = (raw.pessoa2 ?? d.pessoa2) as Record<string, unknown> | undefined;
     if (p1raw || p2raw) {
@@ -106,9 +109,7 @@ export const authService = {
     const { token, usuario } = response.data ?? {};
     if (token) tokenStorage.set(token);
     const pessoaQueLogou = (usuario?.pessoaLogada ?? usuario?.pessoaQueLogou ?? null) as
-      | "pessoa1"
-      | "pessoa2"
-      | null;
+      "pessoa1" | "pessoa2" | null;
     pessoaStorage.set(pessoaQueLogou);
     const normalized = normalizar(usuario, pessoaQueLogou);
     cache = normalized;
@@ -136,9 +137,7 @@ export const authService = {
       const response = await api.get("/auth/me");
       const d = response.data;
       const pessoaQueLogou = (d.pessoaLogada ?? d.pessoaQueLogou ?? pessoaStorage.get()) as
-        | "pessoa1"
-        | "pessoa2"
-        | null;
+        "pessoa1" | "pessoa2" | null;
       if (d.pessoaLogada || d.pessoaQueLogou) pessoaStorage.set(pessoaQueLogou);
       const normalized = normalizar(d, pessoaQueLogou);
       cache = normalized;

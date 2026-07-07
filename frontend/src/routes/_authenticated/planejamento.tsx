@@ -22,8 +22,8 @@ function PlanejamentoPage() {
         <h2 className="mt-4 text-lg font-semibold">Em breve</h2>
         <p className="mt-1 max-w-md text-sm text-muted-foreground">
           Esta é a tela mais rica do app. Vamos reconstruí-la em componentes menores
-          (PlanningStatsBar, CategoryPanel, ItemList, ItemFilters, AddItemWizard,
-          PricePanel) mantendo todos os endpoints e comportamentos atuais.
+          (PlanningStatsBar, CategoryPanel, ItemList, ItemFilters, AddItemWizard, PricePanel)
+          mantendo todos os endpoints e comportamentos atuais.
         </p>
       </div>
     </div>
