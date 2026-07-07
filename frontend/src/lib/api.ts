@@ -3,7 +3,16 @@ import axios from "axios";
 const TOKEN_KEY = "cp_token";
 const PESSOA_KEY = "cp_pessoa";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "https://casalplanner-api.onrender.com";
+const normalizeApiUrl = (url: string) => {
+  const trimmed = url.trim().replace(/\/+$/, "");
+  return /\/api$/i.test(trimmed) ? trimmed : `${trimmed}/api`;
+};
+
+const API_URL = normalizeApiUrl(
+  import.meta.env.VITE_API_URL ??
+    import.meta.env.VITE_API_URL_TESTE ??
+    "https://casalplanner-api.onrender.com/api",
+);
 
 export const tokenStorage = {
   get: () => (typeof window === "undefined" ? null : localStorage.getItem(TOKEN_KEY)),
@@ -35,6 +44,7 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = tokenStorage.get();
+  (config as typeof config & { _authToken?: string | null })._authToken = token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -45,6 +55,14 @@ api.interceptors.response.use(
     const config = error.config;
 
     if (error.response?.status === 401) {
+      const requestToken = (config as { _authToken?: string | null } | undefined)?._authToken ?? null;
+      const currentToken = tokenStorage.get();
+      const tokenChangedAfterRequest = requestToken && currentToken && requestToken !== currentToken;
+
+      if (tokenChangedAfterRequest) {
+        return Promise.reject(error);
+      }
+
       tokenStorage.remove();
       if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
         window.location.href = "/login";
@@ -52,6 +70,7 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    if (config?.url?.toLowerCase().includes("/auth/")) return Promise.reject(error);
     if (!config || config._retryCount >= 2) return Promise.reject(error);
     if (error.response && error.response.status < 500) return Promise.reject(error);
 

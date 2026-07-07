@@ -3,8 +3,19 @@ import { storageService } from './storageService';
 
 const TOKEN_KEY = 'token';
 const PESSOA_KEY = 'pessoa';
+const TANSTACK_TOKEN_KEY = 'cp_token';
+const TANSTACK_PESSOA_KEY = 'cp_pessoa';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const normalizeApiUrl = (url) => {
+  const trimmed = url.trim().replace(/\/+$/, '');
+  return /\/api$/i.test(trimmed) ? trimmed : `${trimmed}/api`;
+};
+
+const API_URL = normalizeApiUrl(
+  import.meta.env.VITE_API_URL ||
+    import.meta.env.VITE_API_URL_TESTE ||
+    'https://casalplanner-api.onrender.com/api'
+);
 
 if (!API_URL) {
   console.error(
@@ -16,23 +27,36 @@ if (!API_URL) {
 
 // ─── Helpers de token ──────────────────────────────────────
 export const tokenStorage = {
-  get: () => storageService.getItem(TOKEN_KEY),
-  set: (token) => storageService.setItem(TOKEN_KEY, token),
+  get: () => storageService.getItem(TOKEN_KEY) || localStorage.getItem(TANSTACK_TOKEN_KEY),
+  set: (token) => {
+    storageService.setItem(TOKEN_KEY, token);
+    localStorage.setItem(TANSTACK_TOKEN_KEY, token);
+  },
   remove: () => {
     storageService.removeItem(TOKEN_KEY);
     storageService.removeItem(PESSOA_KEY);
+    localStorage.removeItem(TANSTACK_TOKEN_KEY);
+    localStorage.removeItem(TANSTACK_PESSOA_KEY);
   },
-  exists: () => !!storageService.getItem(TOKEN_KEY),
+  exists: () => !!storageService.getItem(TOKEN_KEY) || !!localStorage.getItem(TANSTACK_TOKEN_KEY),
 };
 
 // Persiste qual pessoa do casal está logada
 export const pessoaStorage = {
-  get: () => storageService.getItem(PESSOA_KEY) || null,
-  set: (pessoa) =>
-    pessoa
-      ? storageService.setItem(PESSOA_KEY, pessoa)
-      : storageService.removeItem(PESSOA_KEY),
-  remove: () => storageService.removeItem(PESSOA_KEY),
+  get: () => storageService.getItem(PESSOA_KEY) || localStorage.getItem(TANSTACK_PESSOA_KEY) || null,
+  set: (pessoa) => {
+    if (pessoa) {
+      storageService.setItem(PESSOA_KEY, pessoa);
+      localStorage.setItem(TANSTACK_PESSOA_KEY, pessoa);
+    } else {
+      storageService.removeItem(PESSOA_KEY);
+      localStorage.removeItem(TANSTACK_PESSOA_KEY);
+    }
+  },
+  remove: () => {
+    storageService.removeItem(PESSOA_KEY);
+    localStorage.removeItem(TANSTACK_PESSOA_KEY);
+  },
 };
 
 // ─── Instância Axios ───────────────────────────────────────
@@ -48,6 +72,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = tokenStorage.get();
+    config._authToken = token || null;
 
     if (token) {
       config.headers = config.headers || {};
@@ -73,6 +98,14 @@ api.interceptors.response.use(
 
     // Token inválido
     if (error.response?.status === 401) {
+      const requestToken = config?._authToken || null;
+      const currentToken = tokenStorage.get();
+      const tokenChangedAfterRequest = requestToken && currentToken && requestToken !== currentToken;
+
+      if (tokenChangedAfterRequest) {
+        return Promise.reject(error);
+      }
+
       tokenStorage.remove();
 
       if (!window.location.pathname.includes('/login')) {
@@ -88,6 +121,10 @@ api.interceptors.response.use(
     }
 
     // Retry automático
+    if (config?.url?.toLowerCase().includes('/auth/')) {
+      return Promise.reject(error);
+    }
+
     if (!config || config._retryCount >= 2) {
       return Promise.reject(error);
     }

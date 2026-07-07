@@ -100,10 +100,11 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
     options.EnableEndpointRateLimiting = true;
     options.RealIpHeader = "X-Forwarded-For";
     options.ClientIdHeader = "X-ClientId";
+    var authLimit = builder.Environment.IsDevelopment() ? 100 : 10;
     options.GeneralRules = new List<RateLimitRule>
     {
         new() { Endpoint = "*",                Period = "1m",  Limit = 100 },
-        new() { Endpoint = "POST:/api/auth/*", Period = "10m", Limit = 10  },
+        new() { Endpoint = "POST:/api/auth/*", Period = "10m", Limit = authLimit },
     };
 });
 builder.Services.AddInMemoryRateLimiting();
@@ -261,14 +262,14 @@ app.Use(async (context, next) =>
 });
 
 // ===== PIPELINE =====
-app.UseIpRateLimiting();
-
 if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 else
     Console.WriteLine("🔧 Ambiente Dev: HTTP permitido");
 
 app.UseCors("CasalPlannerPolicy");
+
+app.UseIpRateLimiting();
 
 app.UseAuthentication();
 app.UseAuthorization();
