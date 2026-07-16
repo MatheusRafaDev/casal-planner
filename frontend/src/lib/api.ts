@@ -1,98 +1,83 @@
-import axios from "axios";
+/**
+ * Cliente HTTP central que fala com a API .NET do Casal Planner.
+ * Injeta JWT do localStorage, normaliza erros e devolve JSON tipado.
+ */
 
-const TOKEN_KEY = "cp_token";
-const PESSOA_KEY = "cp_pessoa";
+export const API_BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) 
 
-const normalizeApiUrl = (url: string) => {
-  const trimmed = url.trim().replace(/\/+$/, "");
-  return /\/api$/i.test(trimmed) ? trimmed : `${trimmed}/api`;
-};
+export const TOKEN_STORAGE_KEY = "cp_token";
 
-const API_URL = normalizeApiUrl(
-  import.meta.env.VITE_API_URL ??
-    import.meta.env.VITE_API_URL_TESTE ??
-    "https://casalplanner-api.onrender.com/api",
-);
-
-export const tokenStorage = {
-  get: () => (typeof window === "undefined" ? null : localStorage.getItem(TOKEN_KEY)),
-  set: (token: string) => {
-    if (typeof window !== "undefined") localStorage.setItem(TOKEN_KEY, token);
-  },
-  remove: () => {
-    if (typeof window === "undefined") return;
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(PESSOA_KEY);
-  },
-  exists: () => (typeof window === "undefined" ? false : !!localStorage.getItem(TOKEN_KEY)),
-};
-
-export const pessoaStorage = {
-  get: () => (typeof window === "undefined" ? null : localStorage.getItem(PESSOA_KEY)),
-  set: (pessoa: string | null) => {
-    if (typeof window === "undefined") return;
-    if (pessoa) localStorage.setItem(PESSOA_KEY, pessoa);
-    else localStorage.removeItem(PESSOA_KEY);
-  },
-};
-
-const api = axios.create({
-  baseURL: API_URL,
-  timeout: 20000,
-  headers: { "Content-Type": "application/json" },
-});
-
-api.interceptors.request.use((config) => {
-  const token = tokenStorage.get();
-  (config as typeof config & { _authToken?: string | null })._authToken = token;
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const config = error.config;
-
-    if (error.response?.status === 401) {
-      const requestToken = (config as { _authToken?: string | null } | undefined)?._authToken ?? null;
-      const currentToken = tokenStorage.get();
-      const tokenChangedAfterRequest = requestToken && currentToken && requestToken !== currentToken;
-
-      if (tokenChangedAfterRequest) {
-        return Promise.reject(error);
-      }
-
-      tokenStorage.remove();
-      if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
-        window.location.href = "/login";
-      }
-      return Promise.reject(error);
-    }
-
-    if (config?.url?.toLowerCase().includes("/auth/")) return Promise.reject(error);
-    if (!config || config._retryCount >= 2) return Promise.reject(error);
-    if (error.response && error.response.status < 500) return Promise.reject(error);
-
-    config._retryCount = (config._retryCount || 0) + 1;
-    const delay = 800 * Math.pow(2, config._retryCount - 1);
-    await new Promise((r) => setTimeout(r, delay));
-    return api(config);
-  },
-);
-
-export function extractApiError(error: unknown, fallback: string): string {
-  const err = error as {
-    response?: { data?: { message?: string; errors?: Record<string, string[]> } };
-  };
-  const data = err?.response?.data;
-  if (!data) return fallback;
-  if (data.message) return data.message;
-  if (data.errors) {
-    const first = Object.values(data.errors)[0];
-    if (Array.isArray(first) && first.length > 0) return first[0];
+export class ApiError extends Error {
+  status: number;
+  data: unknown;
+  constructor(message: string, status: number, data: unknown) {
+    super(message);
+    this.status = status;
+    this.data = data;
   }
-  return fallback;
 }
 
-export default api;
+function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(TOKEN_STORAGE_KEY);
+}
+
+export function setToken(token: string | null) {
+  if (typeof window === "undefined") return;
+  if (token) window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  else window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+}
+
+export interface ApiOptions extends Omit<RequestInit, "body" | "headers"> {
+  body?: unknown;
+  headers?: Record<string, string>;
+  auth?: boolean; // default true
+  query?: Record<string, string | number | boolean | undefined>;
+}
+
+export async function api<T = unknown>(path: string, opts: ApiOptions = {}): Promise<T> {
+  const { body, headers = {}, auth = true, query, ...rest } = opts;
+
+  const url = new URL(path.startsWith("http") ? path : `${API_BASE_URL}${path}`);
+  if (query) {
+    for (const [k, v] of Object.entries(query)) {
+      if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
+    }
+  }
+
+  const finalHeaders: Record<string, string> = { Accept: "application/json", ...headers };
+  if (body !== undefined && !(body instanceof FormData)) {
+    finalHeaders["Content-Type"] = finalHeaders["Content-Type"] ?? "application/json";
+  }
+  if (auth) {
+    const token = getToken();
+    if (token) finalHeaders["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url.toString(), {
+    ...rest,
+    headers: finalHeaders,
+    body:
+      body === undefined
+        ? undefined
+        : body instanceof FormData
+          ? body
+          : JSON.stringify(body),
+  });
+
+  const contentType = response.headers.get("content-type") ?? "";
+  const isJson = contentType.includes("application/json");
+  const data = isJson ? await response.json().catch(() => null) : await response.text();
+
+  if (!response.ok) {
+    const message =
+      (isJson && data && typeof data === "object" && "message" in (data as Record<string, unknown>)
+        ? String((data as Record<string, unknown>).message)
+        : null) ??
+      (typeof data === "string" && data ? data : `Erro ${response.status}`);
+    throw new ApiError(message, response.status, data);
+  }
+
+  return data as T;
+}

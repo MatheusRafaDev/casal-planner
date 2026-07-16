@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedPlanejamentoRouteImport } from './routes/_authenticated/planejamento'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
@@ -27,7 +27,7 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
@@ -40,17 +40,17 @@ const AuthenticatedPlanejamentoRoute =
   AuthenticatedPlanejamentoRouteImport.update({
     id: '/planejamento',
     path: '/planejamento',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
   id: '/inicio',
   path: '/inicio',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -72,7 +72,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
@@ -109,7 +109,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
 }
@@ -134,7 +134,7 @@ declare module '@tanstack/react-router' {
       id: '/_authenticated'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteImport
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -149,44 +149,43 @@ declare module '@tanstack/react-router' {
       path: '/planejamento'
       fullPath: '/planejamento'
       preLoaderRoute: typeof AuthenticatedPlanejamentoRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/perfil': {
       id: '/_authenticated/perfil'
       path: '/perfil'
       fullPath: '/perfil'
       preLoaderRoute: typeof AuthenticatedPerfilRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/inicio': {
       id: '/_authenticated/inicio'
       path: '/inicio'
       fullPath: '/inicio'
       preLoaderRoute: typeof AuthenticatedInicioRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
-interface AuthenticatedRouteChildren {
+interface AuthenticatedRouteRouteChildren {
   AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedPlanejamentoRoute: typeof AuthenticatedPlanejamentoRoute
 }
 
-const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInicioRoute: AuthenticatedInicioRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedPlanejamentoRoute: AuthenticatedPlanejamentoRoute,
 }
 
-const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren,
-)
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   LoginRoute: LoginRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
 }

@@ -1,107 +1,419 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Moon, Sun, LogOut } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { User, Moon, Sun, Trash2, KeyRound, Target, Save } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { useTheme } from "@/lib/theme-context";
+import { usuarioService } from "@/services/usuario";
+import { resumoService } from "@/services/resumo";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/context/AuthContext";
-import { useTheme } from "@/context/ThemeContext";
-import { formatBRL } from "@/lib/formatters";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { maskCPF, maskDate, brToIsoDate, formatDate } from "@/lib/formatters";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
-  head: () => ({ meta: [{ title: "Perfil · Casal Planner" }] }),
+  head: () => ({
+    meta: [
+      { title: "Perfil — Casal Planner" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: PerfilPage,
 });
 
 function PerfilPage() {
-  const { usuario, logout, isCasal } = useAuth();
-  const { isDarkMode, toggle } = useTheme();
+  const { usuario, refresh, logout } = useAuth();
+  const { theme, toggle } = useTheme();
+  const navigate = useNavigate();
 
   if (!usuario) return null;
+  const isCasal = usuario.tipoConta === "Casal";
 
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-6">
+      <div className="flex items-center gap-3">
+        <span className="grid place-items-center h-12 w-12 rounded-full bg-gradient-primary text-primary-foreground shadow-warm">
+          <User className="h-5 w-5" />
+        </span>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Perfil</h1>
-          <p className="mt-2 text-muted-foreground">
-            {isCasal ? "Conta do casal" : "Conta individual"}
+          <h1 className="font-display text-2xl md:text-3xl font-semibold">Perfil</h1>
+          <p className="text-sm text-muted-foreground">
+            Conta {isCasal ? "de casal" : "individual"}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            className="rounded-full"
-            onClick={toggle}
-            aria-label="Alternar tema"
-          >
-            {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            {isDarkMode ? "Tema claro" : "Tema escuro"}
-          </Button>
-          <Button
-            variant="ghost"
-            className="rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
-            onClick={() => void logout()}
-          >
-            <LogOut className="h-4 w-4" /> Sair
-          </Button>
-        </div>
-      </header>
-
-      {isCasal && usuario.casalInfo ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          <PersonCard person={usuario.casalInfo.pessoa1} label="Pessoa 1" />
-          <PersonCard person={usuario.casalInfo.pessoa2} label="Pessoa 2" />
-        </div>
-      ) : (
-        <PersonCard
-          person={{
-            nomeCompleto: usuario.nomeCompleto,
-            email: usuario.email,
-            cpf: usuario.cpf,
-            rendaMensal: usuario.rendaMensal,
-          }}
-          label="Você"
-        />
-      )}
-
-      <div className="surface-card p-6 text-sm text-muted-foreground">
-        A edição de dados, alteração de senha e detalhes do perfil serão finalizados na Fase 4 do
-        redesign.
       </div>
+
+      {/* Dados */}
+      <section className="rounded-2xl border bg-card p-5 shadow-soft">
+        <h2 className="font-display text-lg font-semibold mb-4">Dados pessoais</h2>
+        {isCasal ? (
+          <Tabs defaultValue="p1">
+            <TabsList className="grid grid-cols-2 mb-4">
+              <TabsTrigger value="p1">{usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}</TabsTrigger>
+              <TabsTrigger value="p2">{usuario.casalInfo?.pessoa2.nome ?? "Pessoa 2"}</TabsTrigger>
+            </TabsList>
+            <TabsContent value="p1">
+              <PessoaForm
+                key="p1"
+                dados={usuario.casalInfo?.pessoa1 ?? { nome: "", email: "" }}
+                bloquearEmailCpf
+                onSave={async (dto) => {
+                  await usuarioService.atualizarPerfilCasal(usuario.id, 1, {
+                    nome: dto.nome,
+                    dataNascimento: dto.dataNascimento ?? null,
+                    rendaMensal: dto.rendaMensal ?? null,
+                  });
+                  await refresh();
+                }}
+              />
+            </TabsContent>
+            <TabsContent value="p2">
+              <PessoaForm
+                key="p2"
+                dados={usuario.casalInfo?.pessoa2 ?? { nome: "", email: "" }}
+                bloquearEmailCpf
+                onSave={async (dto) => {
+                  await usuarioService.atualizarPerfilCasal(usuario.id, 2, {
+                    nome: dto.nome,
+                    dataNascimento: dto.dataNascimento ?? null,
+                    rendaMensal: dto.rendaMensal ?? null,
+                  });
+                  await refresh();
+                }}
+              />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <PessoaForm
+            dados={{
+              nome: usuario.nomeCompleto ?? "",
+              email: usuario.email ?? "",
+              cpf: usuario.cpf ?? "",
+              dataNascimento: usuario.dataNascimento ?? "",
+              rendaMensal: usuario.rendaMensal ?? null,
+            }}
+            onSave={async (dto) => {
+              await usuarioService.atualizarPerfil({
+                nomeCompleto: dto.nome,
+                email: dto.email,
+                cpf: dto.cpf ?? undefined,
+                dataNascimento: dto.dataNascimento ?? undefined,
+                rendaMensal: dto.rendaMensal ?? undefined,
+              });
+              await refresh();
+            }}
+          />
+        )}
+      </section>
+
+      {/* Meta */}
+      <MetaEnxovalCard
+        metaUsuario={usuario.metaGlobalEnxoval ?? null}
+        onSaved={refresh}
+      />
+
+      {/* Senha */}
+      <TrocarSenhaCard />
+
+      {/* Preferências */}
+      <section className="rounded-2xl border bg-card p-5 shadow-soft">
+        <h2 className="font-display text-lg font-semibold mb-4">Preferências</h2>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="font-medium text-sm">Modo escuro</div>
+            <div className="text-xs text-muted-foreground">
+              Salvo na sua conta e sincronizado nos dispositivos.
+            </div>
+          </div>
+          <Button variant="outline" onClick={toggle}>
+            {theme === "dark" ? (
+              <>
+                <Sun className="h-4 w-4 mr-2" /> Claro
+              </>
+            ) : (
+              <>
+                <Moon className="h-4 w-4 mr-2" /> Escuro
+              </>
+            )}
+          </Button>
+        </div>
+      </section>
+
+      {/* Zona perigosa */}
+      <section className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
+        <h2 className="font-display text-lg font-semibold text-destructive mb-3">
+          Zona sensível
+        </h2>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={logout}>
+            Sair da conta
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive">
+                <Trash2 className="h-4 w-4 mr-2" /> Excluir conta
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir conta permanentemente?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Todos os cômodos, itens, metas e pesquisas serão apagados. Essa ação não pode
+                  ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={async () => {
+                    try {
+                      await usuarioService.excluirConta(usuario.id);
+                      toast.success("Conta excluída");
+                      logout();
+                      navigate({ to: "/" });
+                    } catch (e) {
+                      toast.error(e instanceof Error ? e.message : "Erro ao excluir");
+                    }
+                  }}
+                >
+                  Excluir agora
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </section>
     </div>
   );
 }
 
-function PersonCard({
-  person,
-  label,
+interface PessoaDados {
+  nome: string;
+  email: string;
+  cpf?: string | null;
+  dataNascimento?: string | null;
+  rendaMensal?: number | null;
+}
+
+function PessoaForm({
+  dados,
+  onSave,
+  bloquearEmailCpf = false,
 }: {
-  person: { nomeCompleto?: string; email?: string; cpf?: string; rendaMensal?: number };
-  label: string;
+  dados: PessoaDados;
+  onSave: (dto: PessoaDados) => Promise<void>;
+  bloquearEmailCpf?: boolean;
 }) {
-  const initial = (person.nomeCompleto ?? person.email ?? "?").slice(0, 1).toUpperCase();
+  const [nome, setNome] = useState(dados.nome ?? "");
+  const [email, setEmail] = useState(dados.email ?? "");
+  const [cpf, setCpf] = useState(dados.cpf ?? "");
+  const [nasc, setNasc] = useState(
+    dados.dataNascimento ? formatDate(dados.dataNascimento) : "",
+  );
+  const [renda, setRenda] = useState<string>(
+    dados.rendaMensal != null ? String(dados.rendaMensal) : "",
+  );
+
+  useEffect(() => {
+    setNome(dados.nome ?? "");
+    setEmail(dados.email ?? "");
+    setCpf(dados.cpf ?? "");
+    setNasc(dados.dataNascimento ? formatDate(dados.dataNascimento) : "");
+    setRenda(dados.rendaMensal != null ? String(dados.rendaMensal) : "");
+  }, [dados]);
+
+  const mut = useMutation({
+    mutationFn: async () => {
+      await onSave({
+        nome,
+        email,
+        cpf: cpf || null,
+        dataNascimento: brToIsoDate(nasc),
+        rendaMensal: renda ? Number(renda) : null,
+      });
+    },
+    onSuccess: () => toast.success("Dados atualizados"),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
+  });
+
   return (
-    <div className="surface-card p-6">
-      <div className="flex items-center gap-4">
-        <div className="bg-gradient-brand grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-lg font-bold text-primary-foreground">
-          {initial}
+    <form
+      className="space-y-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        mut.mutate();
+      }}
+    >
+      <div className="grid md:grid-cols-2 gap-3">
+        <div>
+          <Label>Nome</Label>
+          <Input value={nome} onChange={(e) => setNome(e.target.value)} required />
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            {label}
-          </p>
-          <p className="mt-0.5 truncate text-lg font-semibold">{person.nomeCompleto ?? "—"}</p>
-          <p className="truncate text-sm text-muted-foreground">{person.email ?? "—"}</p>
+        <div>
+          <Label>E-mail</Label>
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={bloquearEmailCpf}
+          />
+          {bloquearEmailCpf && (
+            <p className="text-xs text-muted-foreground mt-1">
+              E-mail de contas de casal não pode ser alterado por aqui ainda.
+            </p>
+          )}
+        </div>
+        <div>
+          <Label>CPF</Label>
+          <Input value={cpf} onChange={(e) => setCpf(maskCPF(e.target.value))} disabled={bloquearEmailCpf} />
+        </div>
+        <div>
+          <Label>Data de nascimento</Label>
+          <Input value={nasc} onChange={(e) => setNasc(maskDate(e.target.value))} placeholder="dd/mm/aaaa" />
+        </div>
+        <div className="md:col-span-2">
+          <Label>Renda mensal (R$)</Label>
+          <Input
+            type="number"
+            step="0.01"
+            value={renda}
+            onChange={(e) => setRenda(e.target.value)}
+          />
         </div>
       </div>
-      <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
-        <div className="rounded-xl bg-muted/60 px-3 py-2.5">
-          <dt className="text-xs text-muted-foreground">CPF</dt>
-          <dd className="font-medium">{person.cpf ?? "—"}</dd>
+      <Button type="submit" disabled={mut.isPending} className="bg-gradient-primary">
+        <Save className="h-4 w-4 mr-2" />
+        {mut.isPending ? "Salvando..." : "Salvar alterações"}
+      </Button>
+    </form>
+  );
+}
+
+function MetaEnxovalCard({
+  metaUsuario,
+  onSaved,
+}: {
+  metaUsuario: number | null;
+  onSaved: () => Promise<void> | void;
+}) {
+  const qc = useQueryClient();
+  const resumoQ = useQuery({
+    queryKey: ["resumo-meta"],
+    queryFn: () => resumoService.obterRaw(),
+  });
+  const metaResumo =
+    (resumoQ.data as { enxoval?: { metaGlobalEnxoval?: number | null } } | undefined)?.enxoval
+      ?.metaGlobalEnxoval ?? null;
+  const meta = metaUsuario ?? metaResumo;
+  const [valor, setValor] = useState(meta != null ? String(meta) : "");
+  useEffect(() => setValor(meta != null ? String(meta) : ""), [meta]);
+  const mut = useMutation({
+    mutationFn: () => usuarioService.atualizarMetaEnxoval(Number(valor || 0)),
+    onSuccess: async () => {
+      toast.success("Meta atualizada");
+      qc.invalidateQueries({ queryKey: ["resumo-meta"] });
+      qc.invalidateQueries({ queryKey: ["resumo"] });
+      await onSaved();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
+  });
+  return (
+    <section className="rounded-2xl border bg-card p-5 shadow-soft">
+      <div className="flex items-center gap-2 mb-3">
+        <Target className="h-4 w-4 text-primary" />
+        <h2 className="font-display text-lg font-semibold">Meta total do enxoval</h2>
+      </div>
+      <form
+        className="flex gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          mut.mutate();
+        }}
+      >
+        <Input
+          type="number"
+          step="0.01"
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
+          placeholder="Ex.: 25000"
+        />
+        <Button type="submit" disabled={mut.isPending} className="bg-gradient-primary">
+          Salvar
+        </Button>
+      </form>
+    </section>
+  );
+}
+
+function TrocarSenhaCard() {
+  const { usuario } = useAuth();
+  const [atual, setAtual] = useState("");
+  const [nova, setNova] = useState("");
+  const [conf, setConf] = useState("");
+  const emailDaConta =
+    usuario?.tipoConta === "Casal"
+      ? usuario.pessoaLogada === 2
+        ? usuario.casalInfo?.pessoa2.email ?? usuario.email ?? ""
+        : usuario.casalInfo?.pessoa1.email ?? usuario.email ?? ""
+      : usuario?.email ?? "";
+  const mut = useMutation({
+    mutationFn: () => usuarioService.alterarSenha(emailDaConta, atual, nova),
+    onSuccess: () => {
+      toast.success("Senha alterada");
+      setAtual("");
+      setNova("");
+      setConf("");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
+  });
+  return (
+    <section className="rounded-2xl border bg-card p-5 shadow-soft">
+      <div className="flex items-center gap-2 mb-3">
+        <KeyRound className="h-4 w-4 text-primary" />
+        <h2 className="font-display text-lg font-semibold">Trocar senha</h2>
+      </div>
+      <form
+        className="grid md:grid-cols-3 gap-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (nova.length < 6) return toast.error("Nova senha muito curta");
+          if (nova !== conf) return toast.error("Confirmação não confere");
+          mut.mutate();
+        }}
+      >
+        <div>
+          <Label>Senha atual</Label>
+          <Input type="password" value={atual} onChange={(e) => setAtual(e.target.value)} required />
         </div>
-        <div className="rounded-xl bg-muted/60 px-3 py-2.5">
-          <dt className="text-xs text-muted-foreground">Renda mensal</dt>
-          <dd className="font-medium">{formatBRL(person.rendaMensal)}</dd>
+        <div>
+          <Label>Nova senha</Label>
+          <Input type="password" value={nova} onChange={(e) => setNova(e.target.value)} required />
         </div>
-      </dl>
-    </div>
+        <div>
+          <Label>Confirmar</Label>
+          <Input type="password" value={conf} onChange={(e) => setConf(e.target.value)} required />
+        </div>
+        <div className="md:col-span-3">
+          <Button type="submit" disabled={mut.isPending} className="bg-gradient-primary">
+            {mut.isPending ? "Salvando..." : "Trocar senha"}
+          </Button>
+        </div>
+      </form>
+    </section>
   );
 }
