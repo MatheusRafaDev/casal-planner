@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +24,7 @@ import { PainelPesquisaPrecos } from "./PainelPesquisaPrecos";
 import type { Categoria, PesquisaPrecoResultado } from "@/services/types";
 import { itensService } from "@/services/itens";
 import { groqService } from "@/services/groq";
-import { brl } from "@/lib/formatters";
+import { brl, parseBRL } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -205,13 +206,11 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
               <div className="border-t pt-3 space-y-2">
                 <Label>Ou informe o preço manualmente</Label>
                 <div className="flex gap-2">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0,00"
-                    value={precoManual}
-                    onChange={(e) => setPrecoManual(e.target.value)}
+                  <CurrencyInput
+                    value={parseBRL(precoManual)}
+                    onValueChange={(v) => setPrecoManual(String(v))}
+                    onMaskedChange={(m) => setPrecoManual(m)}
+                    placeholder="R$ 0,00"
                   />
                   <Button
                     type="button"

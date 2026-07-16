@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
@@ -120,12 +121,10 @@ export function ItemFormModal({
             </div>
             <div className="space-y-2">
               <Label>Preço unitário</Label>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
+              <CurrencyInput
                 value={form.preco}
-                onChange={(e) => set("preco", Number(e.target.value))}
+                onValueChange={(v) => set("preco", v)}
+                placeholder="R$ 0,00"
               />
             </div>
             <div className="space-y-2">

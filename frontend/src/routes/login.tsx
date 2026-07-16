@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sparkles, Heart, User as UserIcon } from "lucide-react";
+import { Heart, User as UserIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { RegistroIndividual } from "@/components/auth/RegistroIndividual";
@@ -43,9 +43,7 @@ function LoginPage() {
         <div className="absolute inset-0 bg-gradient-hero" />
         <div className="relative z-10 p-12 flex flex-col justify-between w-full">
           <Link to="/" className="flex items-center gap-2">
-            <span className="grid place-items-center h-9 w-9 rounded-lg bg-gradient-primary text-primary-foreground shadow-soft">
-              <Sparkles className="h-5 w-5" />
-            </span>
+            <img src="/logo.png" alt="Casal Planner" className="h-9 w-9 rounded-lg" />
             <span className="font-display text-lg font-semibold">Casal Planner</span>
           </Link>
           <div className="max-w-md space-y-4">
@@ -68,9 +66,7 @@ function LoginPage() {
       <div className="flex items-center justify-center p-6 md:p-12">
         <div className="w-full max-w-md space-y-6">
           <div className="md:hidden flex items-center gap-2">
-            <span className="grid place-items-center h-9 w-9 rounded-lg bg-gradient-primary text-primary-foreground shadow-soft">
-              <Sparkles className="h-5 w-5" />
-            </span>
+            <img src="/logo.png" alt="Casal Planner" className="h-9 w-9 rounded-lg" />
             <span className="font-display text-lg font-semibold">Casal Planner</span>
           </div>
 

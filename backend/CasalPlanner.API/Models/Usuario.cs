@@ -4,6 +4,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace CasalPlanner.API.Models
 {
+    [BsonIgnoreExtraElements]
     public class Usuario
     {
         [BsonId]
@@ -43,6 +44,7 @@ namespace CasalPlanner.API.Models
         Casal
     }
 
+    [BsonIgnoreExtraElements]
     public class CasalInfo
     {
         // Pessoa 1

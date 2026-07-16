@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { categoriasService, type CategoriaInputDTO } from "@/services/categorias";
@@ -123,15 +124,12 @@ export function CategoriaFormModal({ open, onOpenChange, categoria }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="cat-meta">Meta de orçamento (R$) — opcional</Label>
-            <Input
+            <Label htmlFor="cat-meta">Meta de orçamento (opcional)</Label>
+            <CurrencyInput
               id="cat-meta"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="Ex.: 3500"
-              value={meta}
-              onChange={(e) => setMeta(e.target.value)}
+              value={meta ? Number(meta) : 0}
+              onValueChange={(v) => setMeta(v === 0 ? "" : String(v))}
+              placeholder="R$ 0,00"
             />
           </div>
 

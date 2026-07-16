@@ -9,6 +9,7 @@ import { usuarioService } from "@/services/usuario";
 import { resumoService } from "@/services/resumo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -293,10 +294,10 @@ function MetaEnxovalCard({
     (resumoQ.data as { enxoval?: { metaGlobalEnxoval?: number | null } } | undefined)?.enxoval
       ?.metaGlobalEnxoval ?? null;
   const meta = metaUsuario ?? metaResumo;
-  const [valor, setValor] = useState(meta != null ? String(meta) : "");
-  useEffect(() => setValor(meta != null ? String(meta) : ""), [meta]);
+  const [valor, setValor] = useState<number>(meta != null ? Number(meta) : 0);
+  useEffect(() => setValor(meta != null ? Number(meta) : 0), [meta]);
   const mut = useMutation({
-    mutationFn: () => usuarioService.atualizarMetaEnxoval(Number(valor || 0)),
+    mutationFn: () => usuarioService.atualizarMetaEnxoval(valor),
     onSuccess: async () => {
       toast.success("Meta atualizada");
       qc.invalidateQueries({ queryKey: ["resumo-meta"] });
@@ -318,12 +319,10 @@ function MetaEnxovalCard({
           mut.mutate();
         }}
       >
-        <Input
-          type="number"
-          step="0.01"
+        <CurrencyInput
           value={valor}
-          onChange={(e) => setValor(e.target.value)}
-          placeholder="Ex.: 25000"
+          onValueChange={setValor}
+          placeholder="R$ 0,00"
         />
         <Button type="submit" disabled={mut.isPending} className="bg-gradient-primary">
           Salvar

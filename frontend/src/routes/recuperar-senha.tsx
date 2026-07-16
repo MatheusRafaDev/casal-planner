@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Sparkles, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { WizardRecuperarSenha } from "@/components/auth/WizardRecuperarSenha";
 
 export const Route = createFileRoute("/recuperar-senha")({
@@ -17,9 +17,7 @@ function RecuperarPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-6">
         <div className="flex items-center gap-2">
-          <span className="grid place-items-center h-9 w-9 rounded-lg bg-gradient-primary text-primary-foreground shadow-soft">
-            <Sparkles className="h-5 w-5" />
-          </span>
+          <img src="/logo.png" alt="Casal Planner" className="h-9 w-9 rounded-lg" />
           <span className="font-display text-lg font-semibold">Casal Planner</span>
         </div>
 
