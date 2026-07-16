@@ -38,69 +38,61 @@ namespace CasalPlanner.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            try
+            var emailNormalizado = dto.Email?.Trim().ToLowerInvariant() ?? string.Empty;
+            _logger.LogInformation("Tentativa de login para email: {Email}", emailNormalizado);
+
+            var usuario = await _authService.ObterUsuarioPorEmail(emailNormalizado);
+            var isCasal = false;
+            string pessoa = "";
+
+            if (usuario == null)
             {
-                var emailNormalizado = dto.Email?.Trim().ToLowerInvariant() ?? string.Empty;
-                _logger.LogInformation("Tentativa de login para email: {Email}", emailNormalizado);
-
-                var usuario = await _authService.ObterUsuarioPorEmail(emailNormalizado);
-                var isCasal = false;
-                string pessoa = "";
-
-                if (usuario == null)
+                usuario = await _authService.ObterCasalPorEmail(emailNormalizado);
+                if (usuario != null)
                 {
-                    usuario = await _authService.ObterCasalPorEmail(emailNormalizado);
-                    if (usuario != null)
-                    {
-                        isCasal = true;
-                        pessoa = usuario.CasalInfo?.EmailPessoa1 == emailNormalizado ? "pessoa1" : "pessoa2";
-                    }
+                    isCasal = true;
+                    pessoa = usuario.CasalInfo?.EmailPessoa1 == emailNormalizado ? "pessoa1" : "pessoa2";
                 }
-
-                if (usuario == null)
-                {
-                    _logger.LogWarning("Usuário não encontrado: {Email}", dto.Email);
-                    return Unauthorized(new { message = "Usuário não encontrado" });
-                }
-
-                var senhaValida = await _authService.VerificarSenha(usuario, dto.Senha, pessoa);
-
-                if (!senhaValida)
-                {
-                    _logger.LogWarning("Senha inválida para: {Email}", dto.Email);
-                    return Unauthorized(new { message = "Senha inválida" });
-                }
-
-                await _context.Usuarios.UpdateOneAsync(
-                    u => u.Id == usuario.Id,
-                    Builders<Usuario>.Update.Set(u => u.LastLoginAt, DateTime.UtcNow)
-                );
-                usuario.LastLoginAt = DateTime.UtcNow;
-
-                // Gera JWT
-                string token = isCasal
-                    ? _authService.GerarTokenCasal(usuario, pessoa)
-                    : _authService.GerarToken(usuario);
-
-                _logger.LogInformation("Login realizado com sucesso: {Email}", dto.Email);
-
-                var usuarioMapeado = isCasal
-                    ? UsuarioMapper.MapearCasal(usuario, pessoa)
-                    : UsuarioMapper.MapearIndividual(usuario);
-
-                return Ok(new
-                {
-                    success = true,
-                    message = "Login realizado com sucesso",
-                    token,
-                    usuario = usuarioMapeado
-                });
             }
-            catch (Exception ex)
+
+            if (usuario == null)
             {
-                _logger.LogError(ex, "Erro no login para {Email}", dto.Email);
-                return StatusCode(500, new { success = false, message = "Erro interno no servidor" });
+                _logger.LogWarning("Usuário não encontrado: {Email}", dto.Email);
+                return Unauthorized(new { message = "Usuário não encontrado" });
             }
+
+            var senhaValida = await _authService.VerificarSenha(usuario, dto.Senha, pessoa);
+
+            if (!senhaValida)
+            {
+                _logger.LogWarning("Senha inválida para: {Email}", dto.Email);
+                return Unauthorized(new { message = "Senha inválida" });
+            }
+
+            await _context.Usuarios.UpdateOneAsync(
+                u => u.Id == usuario.Id,
+                Builders<Usuario>.Update.Set(u => u.LastLoginAt, DateTime.UtcNow)
+            );
+            usuario.LastLoginAt = DateTime.UtcNow;
+
+            // Gera JWT
+            string token = isCasal
+                ? _authService.GerarTokenCasal(usuario, pessoa)
+                : _authService.GerarToken(usuario);
+
+            _logger.LogInformation("Login realizado com sucesso: {Email}", dto.Email);
+
+            var usuarioMapeado = isCasal
+                ? UsuarioMapper.MapearCasal(usuario, pessoa)
+                : UsuarioMapper.MapearIndividual(usuario);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Login realizado com sucesso",
+                token,
+                usuario = usuarioMapeado
+            });
         }
 
         [HttpPost("logout")]

@@ -1,4 +1,6 @@
 using System.Text;
+using Serilog;
+using CasalPlanner.API.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -11,6 +13,11 @@ using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration)
+                 .WriteTo.Console()
+);
 
 // ===== 1. ENV =====
 if (builder.Environment.IsDevelopment())
@@ -100,7 +107,8 @@ builder.Services.AddMemoryCache();
 builder.Services.Configure<IpRateLimitOptions>(options =>
 {
     options.EnableEndpointRateLimiting = true;
-    options.RealIpHeader = "X-Forwarded-For";
+    // RealIpHeader removido - usa fallback para HttpContext.Connection.RemoteIpAddress
+    // que é preenchido corretamente pelo UseForwardedHeaders
     options.ClientIdHeader = "X-ClientId";
     var authLimit = builder.Environment.IsDevelopment() ? 100 : 10;
     options.GeneralRules = new List<RateLimitRule>
@@ -193,6 +201,12 @@ builder.Services.AddCors(options =>
 
 // ===== 7. SERVICES =====
 builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("groq", client =>
+{
+    client.BaseAddress = new Uri("https://api.groq.com/");
+    client.Timeout = TimeSpan.FromSeconds(10);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
 builder.Services.AddSingleton<GroqService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -238,6 +252,9 @@ if (builder.Environment.IsDevelopment())
 
 // ===== BUILD =====
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseSerilogRequestLogging();
 
 
 // ===== 9. HEADERS DE SEGURANÇA =====

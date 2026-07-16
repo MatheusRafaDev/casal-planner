@@ -38,59 +38,45 @@ public class RecuperarSenhaController : ControllerBase
     [HttpPost("esqueci-senha")]
     public async Task<IActionResult> EsqueciSenha([FromBody] EsqueciSenhaDto request)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = "Email inválido",
-                    errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
-                });
-            }
-
-            var email = request.Email.Trim().ToLowerInvariant();
-
-            // 1. Verificar se é conta individual
-            var usuarioIndividual = await _authService.ObterUsuarioPorEmail(email);
-
-            if (usuarioIndividual != null)
-            {
-                return await ProcessarRecuperacaoIndividual(usuarioIndividual, email);
-            }
-
-            // 2. Verificar se é conta casal
-            var usuarioCasal = await _authService.ObterCasalPorEmail(email);
-
-            if (usuarioCasal != null && usuarioCasal.CasalInfo != null)
-            {
-                // Descobrir qual pessoa do casal está solicitando
-                var pessoa = usuarioCasal.CasalInfo.EmailPessoa1 == email ? "pessoa1" : "pessoa2";
-                return await ProcessarRecuperacaoCasal(usuarioCasal, email, pessoa);
-            }
-
-            // 3. Email não encontrado
-            _logger.LogWarning("Tentativa de recuperação para email não cadastrado: {Email}", email);
-
-            return NotFound(new
+            return BadRequest(new
             {
                 success = false,
-                message = "Email não encontrado em nossa base de dados",
-                code = "USER_NOT_FOUND",
-                emailExists = false
+                message = "Email inválido",
+                errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
             });
         }
-        catch (Exception ex)
+
+        var email = request.Email.Trim().ToLowerInvariant();
+
+        // 1. Verificar se é conta individual
+        var usuarioIndividual = await _authService.ObterUsuarioPorEmail(email);
+
+        if (usuarioIndividual != null)
         {
-            _logger.LogError(ex, "Erro ao processar esqueci-senha");
-            return StatusCode(500, new
-            {
-                success = false,
-                message = "Erro interno no servidor",
-                code = "INTERNAL_ERROR"
-            });
+            return await ProcessarRecuperacaoIndividual(usuarioIndividual, email);
         }
+
+        // 2. Verificar se é conta casal
+        var usuarioCasal = await _authService.ObterCasalPorEmail(email);
+
+        if (usuarioCasal != null && usuarioCasal.CasalInfo != null)
+        {
+            var pessoa = usuarioCasal.CasalInfo.EmailPessoa1 == email ? "pessoa1" : "pessoa2";
+            return await ProcessarRecuperacaoCasal(usuarioCasal, email, pessoa);
+        }
+
+        // 3. Email não encontrado
+        _logger.LogWarning("Tentativa de recuperação para email não cadastrado: {Email}", email);
+
+        return NotFound(new
+        {
+            success = false,
+            message = "Email não encontrado em nossa base de dados",
+            code = "USER_NOT_FOUND",
+            emailExists = false
+        });
     }
 
     /// <summary>
@@ -200,63 +186,50 @@ public class RecuperarSenhaController : ControllerBase
     [HttpPost("validar-codigo")]
     public async Task<IActionResult> ValidarCodigo([FromBody] ValidarCodigoDto request)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = "Código inválido",
-                    code = "INVALID_CODE_FORMAT"
-                });
-            }
-
-            var codigo = request.Codigo.Trim();
-
-            // 1. Verificar se código pertence a conta individual
-            var usuarioIndividual = await _authService.ObterUsuarioPorCodigo(codigo);
-
-            if (usuarioIndividual != null)
-            {
-                return await ProcessarValidacaoIndividual(usuarioIndividual, codigo);
-            }
-
-            // 2. Verificar se código pertence a conta casal
-            var usuarioCasal = await _authService.ObterCasalPorCodigo(codigo);
-
-            if (usuarioCasal != null && usuarioCasal.CasalInfo != null)
-            {
-                // Descobrir qual pessoa está validando
-                string pessoa;
-                if (usuarioCasal.CasalInfo.ResetCodePessoa1 == codigo)
-                    pessoa = "pessoa1";
-                else if (usuarioCasal.CasalInfo.ResetCodePessoa2 == codigo)
-                    pessoa = "pessoa2";
-                else
-                    pessoa = "";
-
-                return await ProcessarValidacaoCasal(usuarioCasal, codigo, pessoa);
-            }
-
-            // 3. Código inválido
             return BadRequest(new
             {
                 success = false,
-                message = "Código inválido ou expirado",
-                code = "INVALID_CODE"
+                message = "Código inválido",
+                code = "INVALID_CODE_FORMAT"
             });
         }
-        catch (Exception ex)
+
+        var codigo = request.Codigo.Trim();
+
+        // 1. Verificar se código pertence a conta individual
+        var usuarioIndividual = await _authService.ObterUsuarioPorCodigo(codigo);
+
+        if (usuarioIndividual != null)
         {
-            _logger.LogError(ex, "Erro ao validar código");
-            return StatusCode(500, new
-            {
-                success = false,
-                message = "Erro interno no servidor",
-                code = "INTERNAL_ERROR"
-            });
+            return await ProcessarValidacaoIndividual(usuarioIndividual, codigo);
         }
+
+        // 2. Verificar se código pertence a conta casal
+        var usuarioCasal = await _authService.ObterCasalPorCodigo(codigo);
+
+        if (usuarioCasal != null && usuarioCasal.CasalInfo != null)
+        {
+            // Descobrir qual pessoa está validando
+            string pessoa;
+            if (usuarioCasal.CasalInfo.ResetCodePessoa1 == codigo)
+                pessoa = "pessoa1";
+            else if (usuarioCasal.CasalInfo.ResetCodePessoa2 == codigo)
+                pessoa = "pessoa2";
+            else
+                pessoa = "";
+
+            return await ProcessarValidacaoCasal(usuarioCasal, codigo, pessoa);
+        }
+
+        // 3. Código inválido
+        return BadRequest(new
+        {
+            success = false,
+            message = "Código inválido ou expirado",
+            code = "INVALID_CODE"
+        });
     }
 
     /// <summary>
@@ -362,63 +335,50 @@ public class RecuperarSenhaController : ControllerBase
     [HttpPost("redefinir-senha")]
     public async Task<IActionResult> RedefinirSenha([FromBody] RedefinirSenhaDto request)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = "Senha inválida. A senha deve ter no mínimo 6 caracteres, com letra maiúscula, minúscula e número.",
-                    code = "INVALID_PASSWORD"
-                });
-            }
-
-            var token = request.Token;
-
-            // 1. Verificar se token pertence a conta individual
-            var usuarioIndividual = await _authService.ObterUsuarioPorTokenRedefinicao(token);
-
-            if (usuarioIndividual != null)
-            {
-                return await ProcessarRedefinicaoIndividual(usuarioIndividual, request.NovaSenha, token);
-            }
-
-            // 2. Verificar se token pertence a conta casal
-            var usuarioCasal = await _authService.ObterCasalPorTokenRedefinicao(token);
-
-            if (usuarioCasal != null && usuarioCasal.CasalInfo != null)
-            {
-                // Descobrir qual pessoa está redefinindo
-                string pessoa;
-                if (usuarioCasal.CasalInfo.ResetTokenPessoa1 == token)
-                    pessoa = "pessoa1";
-                else if (usuarioCasal.CasalInfo.ResetTokenPessoa2 == token)
-                    pessoa = "pessoa2";
-                else
-                    pessoa = "";
-
-                return await ProcessarRedefinicaoCasal(usuarioCasal, request.NovaSenha, token, pessoa);
-            }
-
-            // 3. Token inválido
             return BadRequest(new
             {
                 success = false,
-                message = "Token inválido ou expirado. Solicite uma nova recuperação.",
-                code = "INVALID_TOKEN"
+                message = "Senha inválida. A senha deve ter no mínimo 6 caracteres, com letra maiúscula, minúscula e número.",
+                code = "INVALID_PASSWORD"
             });
         }
-        catch (Exception ex)
+
+        var token = request.Token;
+
+        // 1. Verificar se token pertence a conta individual
+        var usuarioIndividual = await _authService.ObterUsuarioPorTokenRedefinicao(token);
+
+        if (usuarioIndividual != null)
         {
-            _logger.LogError(ex, "Erro ao redefinir senha");
-            return StatusCode(500, new
-            {
-                success = false,
-                message = "Erro interno no servidor",
-                code = "INTERNAL_ERROR"
-            });
+            return await ProcessarRedefinicaoIndividual(usuarioIndividual, request.NovaSenha, token);
         }
+
+        // 2. Verificar se token pertence a conta casal
+        var usuarioCasal = await _authService.ObterCasalPorTokenRedefinicao(token);
+
+        if (usuarioCasal != null && usuarioCasal.CasalInfo != null)
+        {
+            // Descobrir qual pessoa está redefinindo
+            string pessoa;
+            if (usuarioCasal.CasalInfo.ResetTokenPessoa1 == token)
+                pessoa = "pessoa1";
+            else if (usuarioCasal.CasalInfo.ResetTokenPessoa2 == token)
+                pessoa = "pessoa2";
+            else
+                pessoa = "";
+
+            return await ProcessarRedefinicaoCasal(usuarioCasal, request.NovaSenha, token, pessoa);
+        }
+
+        // 3. Token inválido
+        return BadRequest(new
+        {
+            success = false,
+            message = "Token inválido ou expirado. Solicite uma nova recuperação.",
+            code = "INVALID_TOKEN"
+        });
     }
 
     /// <summary>

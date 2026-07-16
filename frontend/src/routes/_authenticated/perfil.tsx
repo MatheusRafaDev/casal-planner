@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { maskCPF, maskDate, brToIsoDate, formatDate } from "@/lib/formatters";
+import { maskDate, brToIsoDate, formatDate } from "@/lib/formatters";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
@@ -74,7 +74,6 @@ function PerfilPage() {
                   await usuarioService.atualizarPerfilCasal(usuario.id, 1, {
                     nome: dto.nome,
                     dataNascimento: dto.dataNascimento ?? null,
-                    rendaMensal: dto.rendaMensal ?? null,
                   });
                   await refresh();
                 }}
@@ -89,7 +88,6 @@ function PerfilPage() {
                   await usuarioService.atualizarPerfilCasal(usuario.id, 2, {
                     nome: dto.nome,
                     dataNascimento: dto.dataNascimento ?? null,
-                    rendaMensal: dto.rendaMensal ?? null,
                   });
                   await refresh();
                 }}
@@ -101,17 +99,13 @@ function PerfilPage() {
             dados={{
               nome: usuario.nomeCompleto ?? "",
               email: usuario.email ?? "",
-              cpf: usuario.cpf ?? "",
               dataNascimento: usuario.dataNascimento ?? "",
-              rendaMensal: usuario.rendaMensal ?? null,
             }}
             onSave={async (dto) => {
               await usuarioService.atualizarPerfil({
                 nomeCompleto: dto.nome,
                 email: dto.email,
-                cpf: dto.cpf ?? undefined,
                 dataNascimento: dto.dataNascimento ?? undefined,
-                rendaMensal: dto.rendaMensal ?? undefined,
               });
               await refresh();
             }}
@@ -204,9 +198,7 @@ function PerfilPage() {
 interface PessoaDados {
   nome: string;
   email: string;
-  cpf?: string | null;
   dataNascimento?: string | null;
-  rendaMensal?: number | null;
 }
 
 function PessoaForm({
@@ -220,20 +212,14 @@ function PessoaForm({
 }) {
   const [nome, setNome] = useState(dados.nome ?? "");
   const [email, setEmail] = useState(dados.email ?? "");
-  const [cpf, setCpf] = useState(dados.cpf ?? "");
   const [nasc, setNasc] = useState(
     dados.dataNascimento ? formatDate(dados.dataNascimento) : "",
-  );
-  const [renda, setRenda] = useState<string>(
-    dados.rendaMensal != null ? String(dados.rendaMensal) : "",
   );
 
   useEffect(() => {
     setNome(dados.nome ?? "");
     setEmail(dados.email ?? "");
-    setCpf(dados.cpf ?? "");
     setNasc(dados.dataNascimento ? formatDate(dados.dataNascimento) : "");
-    setRenda(dados.rendaMensal != null ? String(dados.rendaMensal) : "");
   }, [dados]);
 
   const mut = useMutation({
@@ -241,9 +227,7 @@ function PessoaForm({
       await onSave({
         nome,
         email,
-        cpf: cpf || null,
         dataNascimento: brToIsoDate(nasc),
-        rendaMensal: renda ? Number(renda) : null,
       });
     },
     onSuccess: () => toast.success("Dados atualizados"),
@@ -278,23 +262,12 @@ function PessoaForm({
             </p>
           )}
         </div>
-        <div>
-          <Label>CPF</Label>
-          <Input value={cpf} onChange={(e) => setCpf(maskCPF(e.target.value))} disabled={bloquearEmailCpf} />
-        </div>
+
         <div>
           <Label>Data de nascimento</Label>
           <Input value={nasc} onChange={(e) => setNasc(maskDate(e.target.value))} placeholder="dd/mm/aaaa" />
         </div>
-        <div className="md:col-span-2">
-          <Label>Renda mensal (R$)</Label>
-          <Input
-            type="number"
-            step="0.01"
-            value={renda}
-            onChange={(e) => setRenda(e.target.value)}
-          />
-        </div>
+
       </div>
       <Button type="submit" disabled={mut.isPending} className="bg-gradient-primary">
         <Save className="h-4 w-4 mr-2" />

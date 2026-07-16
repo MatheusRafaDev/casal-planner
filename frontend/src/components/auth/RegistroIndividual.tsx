@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { usuarioService } from "@/services/usuario";
 import { setToken, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { maskCPF, maskDate, cpfToDigits, brToIsoDate } from "@/lib/formatters";
+import { maskDate, brToIsoDate } from "@/lib/formatters";
 
 export function RegistroIndividual() {
   const navigate = useNavigate();
@@ -16,9 +16,8 @@ export function RegistroIndividual() {
     nomeCompleto: "",
     email: "",
     senha: "",
-    cpf: "",
+    senha: "",
     dataNascimento: "",
-    rendaMensal: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -30,9 +29,8 @@ export function RegistroIndividual() {
         nomeCompleto: form.nomeCompleto,
         email: form.email,
         senha: form.senha,
-        cpf: cpfToDigits(form.cpf) || undefined,
+        senha: form.senha,
         dataNascimento: brToIsoDate(form.dataNascimento) ?? undefined,
-        rendaMensal: form.rendaMensal ? Number(form.rendaMensal) : undefined,
       });
       setToken(res.token);
       await refresh();
@@ -75,14 +73,7 @@ export function RegistroIndividual() {
             onChange={(e) => setForm({ ...form, senha: e.target.value })}
           />
         </div>
-        <div className="space-y-2">
-          <Label>CPF</Label>
-          <Input
-            value={form.cpf}
-            onChange={(e) => setForm({ ...form, cpf: maskCPF(e.target.value) })}
-            placeholder="000.000.000-00"
-          />
-        </div>
+
         <div className="space-y-2">
           <Label>Nascimento</Label>
           <Input
@@ -92,15 +83,7 @@ export function RegistroIndividual() {
           />
         </div>
       </div>
-      <div className="space-y-2">
-        <Label>Renda mensal (opcional)</Label>
-        <Input
-          type="number"
-          step="0.01"
-          value={form.rendaMensal}
-          onChange={(e) => setForm({ ...form, rendaMensal: e.target.value })}
-        />
-      </div>
+
       <Button type="submit" className="w-full bg-gradient-primary shadow-warm" disabled={loading}>
         {loading ? "Criando..." : "Criar minha conta"}
       </Button>

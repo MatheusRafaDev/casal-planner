@@ -55,16 +55,27 @@ export async function api<T = unknown>(path: string, opts: ApiOptions = {}): Pro
     if (token) finalHeaders["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(url.toString(), {
-    ...rest,
-    headers: finalHeaders,
-    body:
-      body === undefined
-        ? undefined
-        : body instanceof FormData
-          ? body
-          : JSON.stringify(body),
-  });
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), {
+      ...rest,
+      headers: finalHeaders,
+      body:
+        body === undefined
+          ? undefined
+          : body instanceof FormData
+            ? body
+            : JSON.stringify(body),
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw error;
+    }
+    if (error instanceof TypeError) {
+      throw new ApiError("Sem conexão com o servidor. Verifique sua internet e tente novamente.", 0, null);
+    }
+    throw error;
+  }
 
   const contentType = response.headers.get("content-type") ?? "";
   const isJson = contentType.includes("application/json");

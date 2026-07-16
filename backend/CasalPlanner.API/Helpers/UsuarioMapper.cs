@@ -13,9 +13,7 @@ namespace CasalPlanner.API.Helpers
                 id = usuario.Id,
                 nomeCompleto = usuario.NomeCompleto,
                 email = usuario.Email,
-                cpf = usuario.CPF,
                 dataNascimento = dataNascimento,
-                rendaMensal = usuario.RendaMensal,
                 tipoConta = "Individual",
                 isCasal = false,
                 modoEscuro = usuario.ModoEscuro,
@@ -26,13 +24,9 @@ namespace CasalPlanner.API.Helpers
 
         public static object MapearCasal(Usuario usuario, string? pessoaQueLogou = null)
         {
-            string? dataNascimentoPessoa1 = usuario.CasalInfo?.DataNascimentoPessoa1 == DateTime.MinValue
-                ? null
-                : usuario.CasalInfo?.DataNascimentoPessoa1.ToString("yyyy-MM-dd");
+            string? dataNascimentoPessoa1 = usuario.CasalInfo?.DataNascimentoPessoa1?.ToString("yyyy-MM-dd");
 
-            string? dataNascimentoPessoa2 = usuario.CasalInfo?.DataNascimentoPessoa2 == DateTime.MinValue
-                ? null
-                : usuario.CasalInfo?.DataNascimentoPessoa2.ToString("yyyy-MM-dd");
+            string? dataNascimentoPessoa2 = usuario.CasalInfo?.DataNascimentoPessoa2?.ToString("yyyy-MM-dd");
 
             if (pessoaQueLogou != null)
             {
@@ -43,7 +37,6 @@ namespace CasalPlanner.API.Helpers
                     tipoConta = "Casal",
                     isCasal = true,
                     modoEscuro = usuario.ModoEscuro,
-                    rendaMensal = usuario.RendaMensal,
                     createdAt = usuario.CreatedAt,
                     lastLoginAt = usuario.LastLoginAt,
                     pessoaLogada = pessoaQueLogou,
@@ -51,17 +44,13 @@ namespace CasalPlanner.API.Helpers
                     {
                         nomeCompleto = usuario.CasalInfo?.NomeCompletoPessoa1,
                         email = usuario.CasalInfo?.EmailPessoa1,
-                        cpf = usuario.CasalInfo?.CPFPessoa1,
-                        dataNascimento = dataNascimentoPessoa1,
-                        rendaMensal = usuario.CasalInfo?.RendaMensalPessoa1
+                        dataNascimento = dataNascimentoPessoa1
                     },
                     pessoa2 = new
                     {
                         nomeCompleto = usuario.CasalInfo?.NomeCompletoPessoa2,
                         email = usuario.CasalInfo?.EmailPessoa2,
-                        cpf = usuario.CasalInfo?.CPFPessoa2,
-                        dataNascimento = dataNascimentoPessoa2,
-                        rendaMensal = usuario.CasalInfo?.RendaMensalPessoa2
+                        dataNascimento = dataNascimentoPessoa2
                     }
                 };
             }
@@ -76,7 +65,6 @@ namespace CasalPlanner.API.Helpers
                     tipoConta = "Casal",
                     isCasal = true,
                     modoEscuro = usuario.ModoEscuro,
-                    rendaMensal = usuario.RendaMensal,
                     createdAt = usuario.CreatedAt,
                     lastLoginAt = usuario.LastLoginAt,
                     casalInfo = new
@@ -85,17 +73,13 @@ namespace CasalPlanner.API.Helpers
                         {
                             nomeCompleto = usuario.CasalInfo?.NomeCompletoPessoa1,
                             email = usuario.CasalInfo?.EmailPessoa1,
-                            cpf = usuario.CasalInfo?.CPFPessoa1,
-                            dataNascimento = dataNascimentoPessoa1,
-                            rendaMensal = usuario.CasalInfo?.RendaMensalPessoa1
+                            dataNascimento = dataNascimentoPessoa1
                         },
                         pessoa2 = new
                         {
                             nomeCompleto = usuario.CasalInfo?.NomeCompletoPessoa2,
                             email = usuario.CasalInfo?.EmailPessoa2,
-                            cpf = usuario.CasalInfo?.CPFPessoa2,
-                            dataNascimento = dataNascimentoPessoa2,
-                            rendaMensal = usuario.CasalInfo?.RendaMensalPessoa2
+                            dataNascimento = dataNascimentoPessoa2
                         }
                     }
                 };

@@ -28,9 +28,7 @@ function normalizarPessoa(pessoaRaw: unknown): PessoaLike {
   return {
     nome,
     email: (typeof p.email === "string" ? p.email : "") ?? "",
-    cpf: p.cpf as string | null | undefined,
     dataNascimento: p.dataNascimento as string | null | undefined,
-    rendaMensal: p.rendaMensal as number | null | undefined,
     avatar: p.avatar as string | null | undefined,
   };
 }

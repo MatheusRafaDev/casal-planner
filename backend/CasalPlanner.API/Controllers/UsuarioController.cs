@@ -236,10 +236,6 @@ public class UsuarioController : ControllerBase
         var update = Builders<Usuario>.Update;
         var updates = new List<UpdateDefinition<Usuario>>();
 
-        var rendaPessoa1 = dto.RendaMensalPessoa1 ?? usuario.CasalInfo.RendaMensalPessoa1 ?? 0;
-        var rendaPessoa2 = dto.RendaMensalPessoa2 ?? usuario.CasalInfo.RendaMensalPessoa2 ?? 0;
-        var rendaTotal = rendaPessoa1 + rendaPessoa2;
-
         // Now safely access CasalInfo properties since we've verified it's not null
         if (!string.IsNullOrWhiteSpace(dto.NomeCompletoPessoa1))
             updates.Add(update.Set(u => u.CasalInfo!.NomeCompletoPessoa1, dto.NomeCompletoPessoa1));
@@ -247,24 +243,13 @@ public class UsuarioController : ControllerBase
         if (dto.DataNascimentoPessoa1.HasValue)
             updates.Add(update.Set(u => u.CasalInfo!.DataNascimentoPessoa1, dto.DataNascimentoPessoa1.Value));
 
-        if (dto.RendaMensalPessoa1.HasValue)
-            updates.Add(update.Set(u => u.CasalInfo!.RendaMensalPessoa1, dto.RendaMensalPessoa1.Value));
-
         if (!string.IsNullOrWhiteSpace(dto.NomeCompletoPessoa2))
             updates.Add(update.Set(u => u.CasalInfo!.NomeCompletoPessoa2, dto.NomeCompletoPessoa2));
 
         if (dto.DataNascimentoPessoa2.HasValue)
             updates.Add(update.Set(u => u.CasalInfo!.DataNascimentoPessoa2, dto.DataNascimentoPessoa2.Value));
 
-        if (dto.RendaMensalPessoa2.HasValue)
-            updates.Add(update.Set(u => u.CasalInfo!.RendaMensalPessoa2, dto.RendaMensalPessoa2.Value));
-
         updates.Add(update.Set(u => u.CasalInfo!.UpdatedAt, DateTime.UtcNow));
-
-        if (dto.RendaMensalPessoa1.HasValue || dto.RendaMensalPessoa2.HasValue)
-        {
-            updates.Add(update.Set(u => u.RendaMensal, rendaTotal));
-        }
 
         if (updates.Any())
         {
@@ -292,19 +277,14 @@ public class UsuarioController : ControllerBase
             usuarioAtualizado.TipoConta,
             usuarioAtualizado.IsCasal,
             usuarioAtualizado.ModoEscuro,
-            usuarioAtualizado.RendaMensal,
             CasalInfo = new
             {
                 NomeCompletoPessoa1 = casalInfo?.NomeCompletoPessoa1 ?? "",
                 EmailPessoa1 = casalInfo?.EmailPessoa1 ?? "",
-                CPFPessoa1 = casalInfo?.CPFPessoa1 ?? "",
-                DataNascimentoPessoa1 = casalInfo?.DataNascimentoPessoa1.ToString("yyyy-MM-dd"),
-                RendaMensalPessoa1 = casalInfo?.RendaMensalPessoa1 ?? 0,
+                DataNascimentoPessoa1 = casalInfo?.DataNascimentoPessoa1?.ToString("yyyy-MM-dd"),
                 NomeCompletoPessoa2 = casalInfo?.NomeCompletoPessoa2 ?? "",
                 EmailPessoa2 = casalInfo?.EmailPessoa2 ?? "",
-                CPFPessoa2 = casalInfo?.CPFPessoa2 ?? "",
-                DataNascimentoPessoa2 = casalInfo?.DataNascimentoPessoa2.ToString("yyyy-MM-dd"),
-                RendaMensalPessoa2 = casalInfo?.RendaMensalPessoa2 ?? 0,
+                DataNascimentoPessoa2 = casalInfo?.DataNascimentoPessoa2?.ToString("yyyy-MM-dd"),
                 CreatedAt = casalInfo?.CreatedAt,
                 UpdatedAt = casalInfo?.UpdatedAt
             }
@@ -434,14 +414,8 @@ public class UsuarioController : ControllerBase
         if (!string.IsNullOrWhiteSpace(dto.NomeCompleto))
             updates.Add(update.Set(u => u.NomeCompleto, dto.NomeCompleto));
 
-        if (!string.IsNullOrWhiteSpace(dto.CPF))
-            updates.Add(update.Set(u => u.CPF, dto.CPF));
-
         if (dto.DataNascimento.HasValue)
             updates.Add(update.Set(u => u.DataNascimento, dto.DataNascimento.Value));
-
-        if (dto.RendaMensal.HasValue)
-            updates.Add(update.Set(u => u.RendaMensal, dto.RendaMensal.Value));
 
         if (!updates.Any())
             return Ok(new { message = "Nenhum campo para atualizar", usuario });
@@ -460,9 +434,7 @@ public class UsuarioController : ControllerBase
             usuarioAtualizado?.Id,
             usuarioAtualizado?.NomeCompleto,
             usuarioAtualizado?.Email,
-            usuarioAtualizado?.CPF,
             DataNascimento = usuarioAtualizado?.DataNascimento?.ToString("yyyy-MM-dd"),
-            usuarioAtualizado?.RendaMensal,
             usuarioAtualizado?.ModoEscuro,
             usuarioAtualizado?.TipoConta,
             usuarioAtualizado?.IsCasal

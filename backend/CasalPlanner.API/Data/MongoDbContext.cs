@@ -62,7 +62,6 @@ public class MongoDbContext
             IsCasal = true,
             Email = "",
             NomeCompleto = "João" + " e " + "Maria",
-            RendaMensal = 9500.00m,
             ModoEscuro = false,
             CasalInfo = new CasalInfo
             {
@@ -70,17 +69,12 @@ public class MongoDbContext
                 NomeCompletoPessoa1 = "João Silva",
                 EmailPessoa1 = "joao@email.com",
                 SenhaHashPessoa1 = BCrypt.Net.BCrypt.HashPassword("123456"),
-                CPFPessoa1 = "123.456.789-00",
                 DataNascimentoPessoa1 = new DateTime(1990, 1, 1),
-
-                RendaMensalPessoa1 = 5000.00m,
 
                 NomeCompletoPessoa2 = "Maria Silva",
                 EmailPessoa2 = "maria@email.com",
                 SenhaHashPessoa2 = BCrypt.Net.BCrypt.HashPassword("123456"),
-                CPFPessoa2 = "987.654.321-00",
                 DataNascimentoPessoa2 = new DateTime(1992, 2, 2),
-                RendaMensalPessoa2 = 4500.00m,
 
                 CreatedAt = DateTime.UtcNow
             },
@@ -270,22 +264,16 @@ public class MongoDbContext
             {
                 Console.WriteLine($"  CasalInfo:");
                 Console.WriteLine($"    Pessoa1: {u.CasalInfo.NomeCompletoPessoa1} - {u.CasalInfo.EmailPessoa1}");
-                Console.WriteLine($"    CPF1: {u.CasalInfo.CPFPessoa1}");
                 Console.WriteLine($"    DataNasc1: {u.CasalInfo.DataNascimentoPessoa1:dd/MM/yyyy}");
-                Console.WriteLine($"    Renda1: {u.CasalInfo.RendaMensalPessoa1:C}");
                 Console.WriteLine($"    Pessoa2: {u.CasalInfo.NomeCompletoPessoa2} - {u.CasalInfo.EmailPessoa2}");
-                Console.WriteLine($"    CPF2: {u.CasalInfo.CPFPessoa2}");
                 Console.WriteLine($"    DataNasc2: {u.CasalInfo.DataNascimentoPessoa2:dd/MM/yyyy}");
-                Console.WriteLine($"    Renda2: {u.CasalInfo.RendaMensalPessoa2:C}");
             }
             else
             {
                 Console.WriteLine($"  Individual:");
                 Console.WriteLine($"    Nome: {u.NomeCompleto}");
                 Console.WriteLine($"    Email: {u.Email}");
-                Console.WriteLine($"    CPF: {u.CPF}");
                 Console.WriteLine($"    DataNasc: {u.DataNascimento:dd/MM/yyyy}");
-                Console.WriteLine($"    Renda: {u.RendaMensal:C}");
             }
         }
 

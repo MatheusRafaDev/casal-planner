@@ -88,7 +88,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="flex-1 min-w-0 pb-20 md:pb-0">{children}</main>
 
       {/* Bottom nav mobile */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 h-16 border-t bg-sidebar/95 backdrop-blur flex items-stretch z-40">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 h-16 border-t bg-sidebar/95 backdrop-blur flex items-stretch overflow-x-auto z-40">
         {nav.map((n) => {
           const active = pathname.startsWith(n.to);
           return (
@@ -96,7 +96,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               key={n.to}
               to={n.to}
               className={cn(
-                "flex-1 flex flex-col items-center justify-center gap-1 text-xs",
+                "flex-1 shrink-0 min-w-[72px] flex flex-col items-center justify-center gap-1 text-xs",
                 active ? "text-primary font-medium" : "text-muted-foreground",
               )}
             >

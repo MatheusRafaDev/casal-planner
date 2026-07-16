@@ -5,9 +5,7 @@ export interface RegistroIndividualDTO {
   nomeCompleto: string;
   email: string;
   senha: string;
-  cpf?: string;
   dataNascimento?: string;
-  rendaMensal?: number;
 }
 
 export interface RegistroCasalDTO {
@@ -15,17 +13,13 @@ export interface RegistroCasalDTO {
     nome: string;
     email: string;
     senha: string;
-    cpf?: string;
     dataNascimento?: string;
-    rendaMensal?: number;
   };
   pessoa2: {
     nome: string;
     email: string;
     senha: string;
-    cpf?: string;
     dataNascimento?: string;
-    rendaMensal?: number;
   };
 }
 
@@ -44,15 +38,11 @@ export const usuarioService = {
         nomeCompletoPessoa1: dto.pessoa1.nome,
         emailPessoa1: dto.pessoa1.email,
         senhaPessoa1: dto.pessoa1.senha,
-        cpfPessoa1: dto.pessoa1.cpf,
         dataNascimentoPessoa1: dto.pessoa1.dataNascimento,
-        rendaMensalPessoa1: dto.pessoa1.rendaMensal,
         nomeCompletoPessoa2: dto.pessoa2.nome,
         emailPessoa2: dto.pessoa2.email,
         senhaPessoa2: dto.pessoa2.senha,
-        cpfPessoa2: dto.pessoa2.cpf,
         dataNascimentoPessoa2: dto.pessoa2.dataNascimento,
-        rendaMensalPessoa2: dto.pessoa2.rendaMensal,
       },
     }),
   atualizarPerfil: (dto: Partial<Usuario>) =>
@@ -60,7 +50,7 @@ export const usuarioService = {
   atualizarPerfilCasal: (
     id: string,
     pessoa: 1 | 2,
-    dto: { nome?: string; dataNascimento?: string | null; rendaMensal?: number | null },
+    dto: { nome?: string; dataNascimento?: string | null },
   ) =>
     api<Usuario>(`/api/usuario/perfil-casal/${id}`, {
       method: "PUT",
@@ -69,12 +59,10 @@ export const usuarioService = {
           ? {
               nomeCompletoPessoa2: dto.nome,
               dataNascimentoPessoa2: dto.dataNascimento,
-              rendaMensalPessoa2: dto.rendaMensal,
             }
           : {
               nomeCompletoPessoa1: dto.nome,
               dataNascimentoPessoa1: dto.dataNascimento,
-              rendaMensalPessoa1: dto.rendaMensal,
             },
     }),
   toggleModoEscuro: (id: string, modoEscuro: boolean) =>

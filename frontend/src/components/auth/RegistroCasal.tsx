@@ -8,24 +8,22 @@ import { Label } from "@/components/ui/label";
 import { usuarioService } from "@/services/usuario";
 import { setToken, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { maskCPF, maskDate, cpfToDigits, brToIsoDate } from "@/lib/formatters";
+import { maskDate, brToIsoDate } from "@/lib/formatters";
 
 interface PessoaForm {
   nome: string;
   email: string;
   senha: string;
-  cpf: string;
+  senha: string;
   dataNascimento: string;
-  rendaMensal: string;
 }
 
 const emptyPessoa = (): PessoaForm => ({
   nome: "",
   email: "",
   senha: "",
-  cpf: "",
+  senha: "",
   dataNascimento: "",
-  rendaMensal: "",
 });
 
 function PessoaFields({
@@ -66,14 +64,7 @@ function PessoaFields({
             onChange={(e) => onChange({ ...value, senha: e.target.value })}
           />
         </div>
-        <div className="space-y-1.5">
-          <Label>CPF</Label>
-          <Input
-            value={value.cpf}
-            onChange={(e) => onChange({ ...value, cpf: maskCPF(e.target.value) })}
-            placeholder="000.000.000-00"
-          />
-        </div>
+
         <div className="space-y-1.5">
           <Label>Nascimento</Label>
           <Input
@@ -82,15 +73,7 @@ function PessoaFields({
             placeholder="dd/mm/aaaa"
           />
         </div>
-        <div className="space-y-1.5 sm:col-span-2">
-          <Label>Renda mensal (opcional)</Label>
-          <Input
-            type="number"
-            step="0.01"
-            value={value.rendaMensal}
-            onChange={(e) => onChange({ ...value, rendaMensal: e.target.value })}
-          />
-        </div>
+
       </div>
     </div>
   );
@@ -105,6 +88,7 @@ export function RegistroCasal() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return;
     if (p1.email.trim().toLowerCase() === p2.email.trim().toLowerCase()) {
       toast.error("Os e-mails do casal devem ser diferentes");
       return;
@@ -115,9 +99,8 @@ export function RegistroCasal() {
         nome: p.nome,
         email: p.email,
         senha: p.senha,
-        cpf: cpfToDigits(p.cpf) || undefined,
+        senha: p.senha,
         dataNascimento: brToIsoDate(p.dataNascimento) ?? undefined,
-        rendaMensal: p.rendaMensal ? Number(p.rendaMensal) : undefined,
       });
       const res = await usuarioService.registrarCasal({ pessoa1: map(p1), pessoa2: map(p2) });
       setToken(res.token);

@@ -127,7 +127,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         if (!o) reset();
       }}
     >
-      <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-2xl max-h-[100dvh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="font-display flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" /> Novo item

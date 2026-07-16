@@ -20,7 +20,6 @@ namespace CasalPlanner.API.Models
         public string? NomeCompleto { get; set; }
         public string? Email { get; set; }
         public string? SenhaHash { get; set; }
-        public string? CPF { get; set; }
         public DateTime? DataNascimento { get; set; }
 
         // Campos para redefinição de senha - Individual
@@ -29,7 +28,6 @@ namespace CasalPlanner.API.Models
         public string? ResetToken { get; set; }
         public DateTime? ResetTokenExpiresAt { get; set; }
 
-        public decimal? RendaMensal { get; set; }
         public bool IsCasal { get; set; } = false;
 
         public CasalInfo? CasalInfo { get; set; }
@@ -50,11 +48,11 @@ namespace CasalPlanner.API.Models
         // Pessoa 1
         public string NomeCompletoPessoa1 { get; set; } = string.Empty;
         public string EmailPessoa1 { get; set; } = string.Empty;
+        [BsonElement("senhaHashPessoa1")]
         public string SenhaHashPessoa1 { get; set; } = string.Empty;
-        public string CPFPessoa1 { get; set; } = string.Empty;
-        public DateTime DataNascimentoPessoa1 { get; set; }
+        [BsonElement("dataNascimentoPessoa1")]
+        public DateTime? DataNascimentoPessoa1 { get; set; }
 
-        public decimal? RendaMensalPessoa1 { get; set; }
         public string? AvatarPessoa1 { get; set; }
 
         // Campos para redefinição - Pessoa 1
@@ -66,11 +64,11 @@ namespace CasalPlanner.API.Models
         // Pessoa 2
         public string NomeCompletoPessoa2 { get; set; } = string.Empty;
         public string EmailPessoa2 { get; set; } = string.Empty;
+        [BsonElement("senhaHashPessoa2")]
         public string SenhaHashPessoa2 { get; set; } = string.Empty;
-        public string CPFPessoa2 { get; set; } = string.Empty;
-        public DateTime DataNascimentoPessoa2 { get; set; }
+        [BsonElement("dataNascimentoPessoa2")]
+        public DateTime? DataNascimentoPessoa2 { get; set; }
 
-        public decimal? RendaMensalPessoa2 { get; set; }
         public string? AvatarPessoa2 { get; set; }
 
         // Campos para redefinição - Pessoa 2

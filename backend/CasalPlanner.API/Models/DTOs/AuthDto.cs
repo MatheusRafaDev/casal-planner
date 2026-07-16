@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using CasalPlanner.API.Models.Validations;
 
 namespace CasalPlanner.API.Models.DTOs
 {
@@ -31,16 +30,9 @@ namespace CasalPlanner.API.Models.DTOs
             ErrorMessage = "A senha deve conter letra maiúscula, minúscula, número e caractere especial")]
         public string Senha { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "CPF é obrigatório")]
-        [CpfValido(ErrorMessage = "CPF inválido")]
-        public string CPF { get; set; } = string.Empty;
-
         [Required(ErrorMessage = "Data de nascimento é obrigatória")]
         [DataType(DataType.Date)]
         public DateTime DataNascimento { get; set; }
-
-        [Range(0, 999999.99, ErrorMessage = "Renda mensal inválida")]
-        public decimal? RendaMensal { get; set; }
 
         public DateTime DataInclusao { get; set; } = DateTime.UtcNow;
     }
@@ -63,16 +55,9 @@ namespace CasalPlanner.API.Models.DTOs
             ErrorMessage = "A senha deve conter letra maiúscula, minúscula, número e caractere especial")]
         public string SenhaPessoa1 { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "CPF da primeira pessoa é obrigatório")]
-        [CpfValido(ErrorMessage = "CPF inválido")]
-        public string CPFPessoa1 { get; set; } = string.Empty;
-
         [Required(ErrorMessage = "Data de nascimento da primeira pessoa é obrigatória")]
         [DataType(DataType.Date)]
         public DateTime DataNascimentoPessoa1 { get; set; }
-
-        [Range(0, 999999.99)]
-        public decimal? RendaMensalPessoa1 { get; set; }
 
         // Pessoa 2
         [Required(ErrorMessage = "Nome da segunda pessoa é obrigatório")]
@@ -89,16 +74,9 @@ namespace CasalPlanner.API.Models.DTOs
             ErrorMessage = "A senha deve conter letra maiúscula, minúscula, número e caractere especial")]
         public string SenhaPessoa2 { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "CPF da segunda pessoa é obrigatório")]
-        [CpfValido(ErrorMessage = "CPF inválido")]
-        public string CPFPessoa2 { get; set; } = string.Empty;
-
         [Required(ErrorMessage = "Data de nascimento da segunda pessoa é obrigatória")]
         [DataType(DataType.Date)]
         public DateTime DataNascimentoPessoa2 { get; set; }
-
-        [Range(0, 999999.99)]
-        public decimal? RendaMensalPessoa2 { get; set; }
 
         public DateTime DataInclusao { get; set; } = DateTime.UtcNow;
     }
@@ -113,7 +91,6 @@ namespace CasalPlanner.API.Models.DTOs
         public bool IsCasal { get; set; }
         public string? TipoConta { get; set; }
         public bool ModoEscuro { get; set; }
-        public decimal? RendaMensal { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 
@@ -132,16 +109,12 @@ namespace CasalPlanner.API.Models.DTOs
         // Pessoa 1
         public string NomeCompletoPessoa1 { get; set; } = string.Empty;
         public string EmailPessoa1 { get; set; } = string.Empty;
-        public string CPFPessoa1 { get; set; } = string.Empty;
         public DateTime? DataNascimentoPessoa1 { get; set; }
-        public decimal? RendaMensalPessoa1 { get; set; }
 
         // Pessoa 2
         public string NomeCompletoPessoa2 { get; set; } = string.Empty;
         public string EmailPessoa2 { get; set; } = string.Empty;
-        public string CPFPessoa2 { get; set; } = string.Empty;
         public DateTime? DataNascimentoPessoa2 { get; set; }
-        public decimal? RendaMensalPessoa2 { get; set; }
 
     }
 }

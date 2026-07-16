@@ -3,9 +3,7 @@ export type TipoConta = "Individual" | "Casal";
 export interface Pessoa {
   nome: string;
   email: string;
-  cpf?: string | null;
   dataNascimento?: string | null;
-  rendaMensal?: number | null;
   avatar?: string | null;
 }
 
@@ -14,9 +12,7 @@ export interface Usuario {
   tipoConta: TipoConta;
   nomeCompleto?: string | null;
   email?: string | null;
-  cpf?: string | null;
   dataNascimento?: string | null;
-  rendaMensal?: number | null;
   isCasal: boolean;
   modoEscuro: boolean;
   metaGlobalEnxoval?: number | null;

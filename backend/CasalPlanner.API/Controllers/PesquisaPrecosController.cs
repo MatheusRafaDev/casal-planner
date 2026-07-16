@@ -97,70 +97,63 @@ namespace CasalPlanner.API.Controllers
             [FromQuery] string? marca = null,
             [FromQuery] string? buscaUsuario = null)
         {
-            try
+            if (string.IsNullOrWhiteSpace(q) || q.Length > 300)
+                return BadRequest(new { error = "Consulta inválida" });
+
+            string marcaIdentificada = marca ?? "";
+            string nomeValidado = q.Trim();
+
+            if (string.IsNullOrEmpty(marca))
             {
-                if (string.IsNullOrWhiteSpace(q) || q.Length > 300)
-                    return BadRequest(new { error = "Consulta inválida" });
-
-                string marcaIdentificada = marca ?? "";
-                string nomeValidado = q.Trim();
-
-                if (string.IsNullOrEmpty(marca))
+                try
                 {
-                    try
-                    {
-                        var validacao = await _groqService.ValidateProductAsync(q, buscaUsuario ?? q);
-                        marcaIdentificada = validacao.Marca?.Trim() ?? "";
-                        nomeValidado = string.IsNullOrWhiteSpace(validacao.NomeValidado) ? q : validacao.NomeValidado.Trim();
-                    }
-                    catch
-                    {
-                        marcaIdentificada = ExtractBrandFallback(q);
-                    }
+                    var validacao = await _groqService.ValidateProductAsync(q, buscaUsuario ?? q);
+                    marcaIdentificada = validacao.Marca?.Trim() ?? "";
+                    nomeValidado = string.IsNullOrWhiteSpace(validacao.NomeValidado) ? q : validacao.NomeValidado.Trim();
                 }
-
-                // Monta query de busca: "Marca NomeProduto" se marca identificada e não já contida
-                string queryFinal;
-                if (!string.IsNullOrEmpty(marcaIdentificada) &&
-                    !nomeValidado.Contains(marcaIdentificada, StringComparison.OrdinalIgnoreCase))
-                    queryFinal = $"{marcaIdentificada} {nomeValidado}";
-                else
-                    queryFinal = nomeValidado;
-
-                var apiKey = Environment.GetEnvironmentVariable("SERPAPI_KEY");
-                if (string.IsNullOrEmpty(apiKey))
-                    return StatusCode(500, new { error = "API não configurada" });
-
-                // Busca no Google Shopping BR com mais resultados
-                var url = $"https://serpapi.com/search?engine=google_shopping&q={Uri.EscapeDataString(queryFinal)}&gl=br&hl=pt-BR&num=30&api_key={apiKey}";
-
-                var client = _httpClientFactory.CreateClient();
-                client.Timeout = TimeSpan.FromSeconds(15);
-                var response = await client.GetAsync(url);
-
-                if (!response.IsSuccessStatusCode)
-                    return StatusCode(502, new { error = "Erro ao buscar produtos" });
-
-                var content = await response.Content.ReadAsStringAsync();
-
-                if (string.IsNullOrEmpty(content))
-                    return StatusCode(500, new { error = "Resposta vazia da API" });
-
-                var produtos = ProcessResults(content, marcaIdentificada, nomeValidado);
-
-                return Ok(new
+                catch
                 {
-                    produtos,
-                    marca_identificada = marcaIdentificada,
-                    nome_validado = nomeValidado,
-                    query_utilizada = queryFinal,
-                    total = produtos.Count
-                });
+                    marcaIdentificada = ExtractBrandFallback(q);
+                }
             }
-            catch (Exception ex)
+
+            // Monta query de busca: "Marca NomeProduto" se marca identificada e não já contida
+            string queryFinal;
+            if (!string.IsNullOrEmpty(marcaIdentificada) &&
+                !nomeValidado.Contains(marcaIdentificada, StringComparison.OrdinalIgnoreCase))
+                queryFinal = $"{marcaIdentificada} {nomeValidado}";
+            else
+                queryFinal = nomeValidado;
+
+            var apiKey = Environment.GetEnvironmentVariable("SERPAPI_KEY");
+            if (string.IsNullOrEmpty(apiKey))
+                return StatusCode(500, new { error = "API não configurada" });
+
+            // Busca no Google Shopping BR com mais resultados
+            var url = $"https://serpapi.com/search?engine=google_shopping&q={Uri.EscapeDataString(queryFinal)}&gl=br&hl=pt-BR&num=30&api_key={apiKey}";
+
+            var client = _httpClientFactory.CreateClient();
+            client.Timeout = TimeSpan.FromSeconds(15);
+            var response = await client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+                return StatusCode(502, new { error = "Erro ao buscar produtos" });
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (string.IsNullOrEmpty(content))
+                return StatusCode(500, new { error = "Resposta vazia da API" });
+
+            var produtos = ProcessResults(content, marcaIdentificada, nomeValidado);
+
+            return Ok(new
             {
-                return StatusCode(500, new { error = "Erro interno", mensagem = ex.Message });
-            }
+                produtos,
+                marca_identificada = marcaIdentificada,
+                nome_validado = nomeValidado,
+                query_utilizada = queryFinal,
+                total = produtos.Count
+            });
         }
 
         private List<object> ProcessResults(string jsonContent, string marcaIdentificada, string nomeValidado)

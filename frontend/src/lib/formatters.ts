@@ -4,13 +4,7 @@ export const brl = (n: number | null | undefined) =>
 export const percent = (n: number, digits = 0) =>
   `${(n * 100).toFixed(digits).replace(".", ",")}%`;
 
-export const maskCPF = (v: string) =>
-  v
-    .replace(/\D/g, "")
-    .slice(0, 11)
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+
 
 export const maskDate = (v: string) =>
   v
@@ -25,7 +19,7 @@ export const formatDate = (iso: string | Date | null | undefined) => {
   return new Intl.DateTimeFormat("pt-BR").format(d);
 };
 
-export const cpfToDigits = (v: string) => v.replace(/\D/g, "");
+
 
 export const brToIsoDate = (v: string) => {
   const digits = v.replace(/\D/g, "");

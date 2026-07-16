@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useDeferredValue } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -74,6 +74,7 @@ function PlanejamentoPage() {
   const qc = useQueryClient();
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
+  const buscaDebounced = useDeferredValue(busca);
   const [filtroStatus, setFiltroStatus] = useState<"todos" | "comprados" | "faltando">("todos");
   const [filtroPagamento, setFiltroPagamento] = useState<"todos" | "normal" | "vr">("todos");
 
@@ -101,7 +102,7 @@ function PlanejamentoPage() {
   const itens = itensQ.data ?? [];
 
   const itensFiltrados = useMemo(() => {
-    const b = busca.trim().toLowerCase();
+    const b = buscaDebounced.trim().toLowerCase();
     return itens.filter((i) => {
       if (b && !i.nome.toLowerCase().includes(b) && !(i.marca ?? "").toLowerCase().includes(b))
         return false;
@@ -123,7 +124,19 @@ function PlanejamentoPage() {
   const toggleComprado = useMutation({
     mutationFn: ({ id, comprado }: { id: string; comprado: boolean }) =>
       itensService.toggleComprado(id, comprado),
-    onSuccess: () => {
+    onMutate: async ({ id, comprado }) => {
+      await qc.cancelQueries({ queryKey: ["itens"] });
+      const prev = qc.getQueryData(["itens", catAtualId]);
+      qc.setQueryData(["itens", catAtualId], (old: Item[] | undefined) =>
+        old?.map((i) => (i.id === id ? { ...i, comprado } : i))
+      );
+      return { prev };
+    },
+    onError: (err, newTodo, context) => {
+      qc.setQueryData(["itens", catAtualId], context?.prev);
+      toast.error("Erro ao atualizar item");
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
     },
@@ -179,7 +192,7 @@ function PlanejamentoPage() {
 
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
         {/* Coluna cômodos */}
-        <aside className="space-y-2">
+        <aside className="flex flex-row overflow-x-auto snap-x lg:flex-col gap-3 pb-2 lg:pb-0 lg:space-y-2">
           {categoriasQ.isLoading && (
             <div className="text-sm text-muted-foreground">Carregando...</div>
           )}
@@ -190,7 +203,7 @@ function PlanejamentoPage() {
               <div
                 key={c.id}
                 className={cn(
-                  "group flex items-center gap-3 rounded-xl border p-3 transition-all cursor-pointer",
+                  "group flex items-center gap-3 rounded-xl border p-3 transition-all cursor-pointer shrink-0 w-[240px] lg:w-auto",
                   ativo
                     ? "border-primary bg-primary/5 shadow-soft"
                     : "hover:bg-accent/40 hover:border-accent",
@@ -405,96 +418,101 @@ function PlanejamentoPage() {
                   <div
                     key={it.id}
                     className={cn(
-                      "flex items-center gap-3 rounded-xl border bg-card p-3 hover:shadow-soft transition-shadow",
+                      "flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border bg-card p-3 hover:shadow-soft transition-shadow",
                       it.comprado && "opacity-70",
                     )}
                   >
-                    <Checkbox
-                      checked={it.comprado}
-                      onCheckedChange={() =>
-                        toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
-                      }
-                    />
-                    {it.fotoUrl ? (
-                      <img
-                        src={it.fotoUrl}
-                        alt=""
-                        className="h-12 w-12 rounded-lg object-cover border"
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <Checkbox
+                        checked={it.comprado}
+                        onCheckedChange={() =>
+                          toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
+                        }
                       />
-                    ) : (
-                      <div
-                        className="h-12 w-12 rounded-lg grid place-items-center text-white"
-                        style={{ backgroundColor: catAtual.bg }}
-                      >
-                        {(() => {
-                          const I = iconFor(catAtual.icon);
-                          return <I className="h-5 w-5" />;
-                        })()}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className={cn("font-medium truncate", it.comprado && "line-through")}>
-                        {it.nome}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                        {it.marca && <span>{it.marca}</span>}
-                        {it.loja && <span>· {it.loja}</span>}
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-[10px] py-0",
-                            it.pagamento === "vr" && "border-primary text-primary",
-                          )}
+                      {it.fotoUrl ? (
+                        <img
+                          src={it.fotoUrl}
+                          alt=""
+                          className="h-12 w-12 rounded-lg object-cover border shrink-0"
+                        />
+                      ) : (
+                        <div
+                          className="h-12 w-12 rounded-lg grid place-items-center text-white shrink-0"
+                          style={{ backgroundColor: catAtual.bg }}
                         >
-                          {it.pagamento === "vr" ? "VR" : "Normal"}
-                        </Badge>
-                        {it.prioridade === "alta" && (
-                          <Badge className="text-[10px] py-0" variant="destructive">
-                            Alta
+                          {(() => {
+                            const I = iconFor(catAtual.icon);
+                            return <I className="h-5 w-5" />;
+                          })()}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className={cn("font-medium truncate", it.comprado && "line-through")}>
+                          {it.nome}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                          {it.marca && <span>{it.marca}</span>}
+                          {it.loja && <span>· {it.loja}</span>}
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "text-[10px] py-0",
+                              it.pagamento === "vr" && "border-primary text-primary",
+                            )}
+                          >
+                            {it.pagamento === "vr" ? "VR" : "Normal"}
                           </Badge>
-                        )}
+                          {it.prioridade === "alta" && (
+                            <Badge className="text-[10px] py-0" variant="destructive">
+                              Alta
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <div className="font-display font-semibold">{brl(it.preco * it.quantidade)}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {it.quantidade}× {brl(it.preco)}
+
+                    <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pl-10 sm:pl-0">
+                      <div className="text-left sm:text-right">
+                        <div className="font-display font-semibold">{brl(it.preco * it.quantidade)}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {it.quantidade}× {brl(it.preco)}
+                        </div>
                       </div>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="sm" variant="ghost">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setEditandoItem(it)}>
-                          <Pencil className="h-4 w-4 mr-2" /> Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
-                          }
-                        >
-                          <Check className="h-4 w-4 mr-2" />
-                          {it.comprado ? "Marcar como faltando" : "Marcar comprado"}
-                        </DropdownMenuItem>
-                        {it.linkProduto && (
-                          <DropdownMenuItem asChild>
-                            <a href={it.linkProduto} target="_blank" rel="noreferrer">
-                              <ExternalLink className="h-4 w-4 mr-2" /> Abrir link
-                            </a>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="ghost">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setEditandoItem(it)}>
+                            <Pencil className="h-4 w-4 mr-2" /> Editar
                           </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => excluirItem.mutate(it.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" /> Remover
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
+                            }
+                          >
+                            <Check className="h-4 w-4 mr-2" />
+                            {it.comprado ? "Marcar como faltando" : "Marcar comprado"}
+                          </DropdownMenuItem>
+                          {it.linkProduto && (
+                            <DropdownMenuItem asChild>
+                              <a href={it.linkProduto} target="_blank" rel="noreferrer">
+                                <ExternalLink className="h-4 w-4 mr-2" /> Abrir link
+                              </a>
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => excluirItem.mutate(it.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" /> Remover
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 ))}
               </div>

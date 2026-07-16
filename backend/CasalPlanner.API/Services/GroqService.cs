@@ -54,7 +54,7 @@ namespace CasalPlanner.API.Services
 
         private async Task<(string Marca, string NomeValidado)> CallGroqForProductValidationAsync(string productName, string userSearch)
         {
-            var client = _httpClientFactory.CreateClient();
+            var client = _httpClientFactory.CreateClient("groq");
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
 
             var requestBody = new
@@ -119,7 +119,7 @@ Regras:
 
         private async Task<StoreValidationResult> CallGroqForStoreValidationAsync(string storeName, string storeUrl)
         {
-            var client = _httpClientFactory.CreateClient();
+            var client = _httpClientFactory.CreateClient("groq");
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
 
             var requestBody = new
@@ -205,7 +205,7 @@ Regras:
 
             try
             {
-                var client = _httpClientFactory.CreateClient();
+                var client = _httpClientFactory.CreateClient("groq");
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
 
                 var itensExistentesStr = string.Join(", ", itensExistentes);
@@ -275,7 +275,7 @@ Responda APENAS em JSON válido, sem texto adicional, no formato:
 
             try
             {
-                var client = _httpClientFactory.CreateClient();
+                var client = _httpClientFactory.CreateClient("groq");
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
 
                 var itensExistentesStr = string.Join(", ", itensExistentes);
@@ -345,7 +345,7 @@ Responda APENAS em JSON válido:
 
             try
             {
-                var client = _httpClientFactory.CreateClient();
+                var client = _httpClientFactory.CreateClient("groq");
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
 
                 var requestBody = new
@@ -414,7 +414,7 @@ Responda APENAS em JSON válido:
 
             try
             {
-                var client = _httpClientFactory.CreateClient();
+                var client = _httpClientFactory.CreateClient("groq");
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
 
                 var resumoJson = JsonSerializer.Serialize(resumo);

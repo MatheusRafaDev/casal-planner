@@ -30,22 +30,14 @@ namespace CasalPlanner.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetResumo()
         {
-            try
+            var usuarioId = GetUsuarioId();
+            if (string.IsNullOrEmpty(usuarioId))
             {
-                var usuarioId = GetUsuarioId();
-                if (string.IsNullOrEmpty(usuarioId))
-                {
-                    return Unauthorized(new { error = "Usuário não autenticado" });
-                }
+                return Unauthorized(new { error = "Usuário não autenticado" });
+            }
 
-                var resumo = await _resumoService.ObterResumo(usuarioId);
-                return Ok(resumo);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Erro ao obter resumo");
-                return StatusCode(500, new { error = "Erro interno ao processar resumo" });
-            }
+            var resumo = await _resumoService.ObterResumo(usuarioId);
+            return Ok(resumo);
         }
     }
 }
