@@ -15,6 +15,7 @@ export interface ItemInputDTO {
   fotoUrl?: string;
   parcelas?: number;
   varianteSelecionadaId?: string | null;
+  clearVarianteSelecionadaId?: boolean;
   origem?: string;
   origemDescricao?: string;
 }
@@ -33,4 +34,9 @@ export const itensService = {
       body: { categoriaId },
     }),
   excluir: (id: string) => api(`/api/itens/${id}`, { method: "DELETE" }),
+  limparVariante: (id: string) =>
+    api<Item>(`/api/itens/${id}`, {
+      method: "PUT",
+      body: { clearVarianteSelecionadaId: true },
+    }),
 };

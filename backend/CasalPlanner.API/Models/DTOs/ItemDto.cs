@@ -70,6 +70,8 @@ namespace CasalPlanner.API.Models.DTOs
         public List<string>? Variantes { get; set; }
         [JsonPropertyName("varianteSelecionadaId")]
         public string? VarianteSelecionadaId { get; set; }
+        [JsonPropertyName("clearVarianteSelecionadaId")]
+        public bool ClearVarianteSelecionadaId { get; set; }
 
         public string? Origem { get; set; }
         public string? OrigemDescricao { get; set; }

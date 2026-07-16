@@ -118,8 +118,16 @@ namespace CasalPlanner.API.Services
             if (dto.Variantes != null)
                 updates.Add(update.Set(i => i.Variantes, dto.Variantes));
 
-            if (dto.VarianteSelecionadaId != null)
+            // Allow clearing VarianteSelecionadaId via clearVarianteSelecionadaId flag
+            // (null means "don't update", true means "clear to null", value means "set to value")
+            if (dto.ClearVarianteSelecionadaId)
+            {
+                updates.Add(update.Set(i => i.VarianteSelecionadaId, null));
+            }
+            else if (dto.VarianteSelecionadaId != null)
+            {
                 updates.Add(update.Set(i => i.VarianteSelecionadaId, dto.VarianteSelecionadaId));
+            }
 
             if (updates.Count == 0)
                 return await GetItemById(id, usuarioId);

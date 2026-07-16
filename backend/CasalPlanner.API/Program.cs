@@ -8,6 +8,7 @@ using CasalPlanner.API.Services;
 using DotNetEnv;
 using MongoDB.Driver;
 using AspNetCoreRateLimit;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -267,6 +268,20 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 else
     Console.WriteLine("🔧 Ambiente Dev: HTTP permitido");
+
+// Configure trusted proxies for X-Forwarded-For header (prevents IP spoofing)
+// In production, only trust the reverse proxy (nginx, load balancer, etc.)
+if (!app.Environment.IsDevelopment())
+{
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+        // Clear known networks/proxies to trust all (or configure specific IPs)
+        // For most cloud providers, the load balancer is the only proxy
+        KnownNetworks = { },
+        KnownProxies = { }
+    });
+}
 
 app.UseCors("CasalPlannerPolicy");
 
