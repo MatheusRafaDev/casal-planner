@@ -1,10 +1,11 @@
 // Controllers/AuthController.cs
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using CasalPlanner.API.Services;
-using CasalPlanner.API.Models.DTOs;
-using CasalPlanner.API.Models;
-using CasalPlanner.API.Data;
+using CasalPlanner.Application.Interfaces;
+using CasalPlanner.Infrastructure.Services;
+using CasalPlanner.Application.DTOs;
+using CasalPlanner.Domain.Entities;
+using CasalPlanner.Infrastructure.Persistence;
 using CasalPlanner.API.Helpers;
 using MongoDB.Driver;
 using System.Security.Claims;

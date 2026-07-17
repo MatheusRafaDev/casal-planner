@@ -2,6 +2,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
+COPY ["CasalPlanner.Domain/CasalPlanner.Domain.csproj", "CasalPlanner.Domain/"]
+COPY ["CasalPlanner.Application/CasalPlanner.Application.csproj", "CasalPlanner.Application/"]
+COPY ["CasalPlanner.Infrastructure/CasalPlanner.Infrastructure.csproj", "CasalPlanner.Infrastructure/"]
 COPY ["CasalPlanner.API/CasalPlanner.API.csproj", "CasalPlanner.API/"]
 RUN dotnet restore "CasalPlanner.API/CasalPlanner.API.csproj"
 

@@ -1,4 +1,4 @@
-using CasalPlanner.API.Models;
+using CasalPlanner.Domain.Entities;
 
 namespace CasalPlanner.API.Helpers
 {

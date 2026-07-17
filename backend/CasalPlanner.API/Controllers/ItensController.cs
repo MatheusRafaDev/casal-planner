@@ -2,8 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
-using CasalPlanner.API.Services;
-using CasalPlanner.API.Models.DTOs;
+using CasalPlanner.Application.Interfaces;
+using CasalPlanner.Infrastructure.Services;
+using CasalPlanner.Application.DTOs;
 
 namespace CasalPlanner.API.Controllers
 {

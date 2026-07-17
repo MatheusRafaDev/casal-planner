@@ -1,10 +1,11 @@
 // Controllers/RecuperarSenhaController.cs
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using CasalPlanner.API.Models;
-using CasalPlanner.API.Models.DTOs;
-using CasalPlanner.API.Services;
-using CasalPlanner.API.Data;
+using CasalPlanner.Domain.Entities;
+using CasalPlanner.Application.DTOs;
+using CasalPlanner.Application.Interfaces;
+using CasalPlanner.Infrastructure.Services;
+using CasalPlanner.Infrastructure.Persistence;
 using MongoDB.Driver;
 using System.Security.Cryptography;
 

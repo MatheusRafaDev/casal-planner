@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using MongoDB.Driver;
-using CasalPlanner.API.Models;
-using CasalPlanner.API.Models.DTOs;
-using CasalPlanner.API.Data;
+using CasalPlanner.Domain.Entities;
+using CasalPlanner.Application.DTOs;
+using CasalPlanner.Infrastructure.Persistence;
 
 namespace CasalPlanner.API.Controllers;
 

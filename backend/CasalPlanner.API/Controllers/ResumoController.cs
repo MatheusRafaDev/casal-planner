@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using CasalPlanner.API.Services;
+using CasalPlanner.Application.Interfaces;
+using CasalPlanner.Infrastructure.Services;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 

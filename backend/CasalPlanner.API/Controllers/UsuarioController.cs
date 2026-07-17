@@ -1,14 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
-using CasalPlanner.API.Models;
-using CasalPlanner.API.Models.DTOs;
-using CasalPlanner.API.Services;
-using CasalPlanner.API.Data;
+using CasalPlanner.Domain.Entities;
+using CasalPlanner.Application.DTOs;
+using CasalPlanner.Application.Interfaces;
+using CasalPlanner.Infrastructure.Services;
+using CasalPlanner.Infrastructure.Persistence;
 using CasalPlanner.API.Helpers;
 using MongoDB.Driver;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
-
+using CasalPlanner.Domain.Exceptions;
 namespace CasalPlanner.API.Controllers;
 
 [ApiController]

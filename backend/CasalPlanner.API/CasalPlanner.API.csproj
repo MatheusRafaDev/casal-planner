@@ -13,14 +13,18 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
     <PackageReference Include="MongoDB.Driver" Version="3.3.0" />
-    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.4.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
     <PackageReference Include="AspNetCoreRateLimit" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CasalPlanner.Domain\CasalPlanner.Domain.csproj" />
+    <ProjectReference Include="..\CasalPlanner.Application\CasalPlanner.Application.csproj" />
+    <ProjectReference Include="..\CasalPlanner.Infrastructure\CasalPlanner.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
