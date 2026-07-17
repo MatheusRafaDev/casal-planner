@@ -115,6 +115,7 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
     {
         new() { Endpoint = "*",                Period = "1m",  Limit = 100 },
         new() { Endpoint = "POST:/api/auth/*", Period = "10m", Limit = authLimit },
+        new() { Endpoint = "POST:/api/recuperarsenha/*", Period = "10m", Limit = authLimit },
     };
 });
 builder.Services.AddInMemoryRateLimiting();

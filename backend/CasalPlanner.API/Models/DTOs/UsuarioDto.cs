@@ -84,10 +84,6 @@ namespace CasalPlanner.API.Models.DTOs
 
     public class AlterarSenhaDto
     {
-        [Required(ErrorMessage = "Email é obrigatório")]
-        [EmailAddress(ErrorMessage = "Email inválido")]
-        public string Email { get; set; } = string.Empty;
-
         [Required(ErrorMessage = "Senha atual é obrigatória")]
         public string SenhaAtual { get; set; } = string.Empty;
 

@@ -57,16 +57,16 @@ namespace CasalPlanner.API.Controllers
 
             if (usuario == null)
             {
-                _logger.LogWarning("Usuário não encontrado: {Email}", dto.Email);
-                return Unauthorized(new { message = "Usuário não encontrado" });
+                _logger.LogWarning("Tentativa de login falhou (usuário não encontrado): {Email}", dto.Email);
+                return Unauthorized(new { message = "Credenciais inválidas" });
             }
 
             var senhaValida = await _authService.VerificarSenha(usuario, dto.Senha, pessoa);
 
             if (!senhaValida)
             {
-                _logger.LogWarning("Senha inválida para: {Email}", dto.Email);
-                return Unauthorized(new { message = "Senha inválida" });
+                _logger.LogWarning("Tentativa de login falhou (senha inválida): {Email}", dto.Email);
+                return Unauthorized(new { message = "Credenciais inválidas" });
             }
 
             await _context.Usuarios.UpdateOneAsync(

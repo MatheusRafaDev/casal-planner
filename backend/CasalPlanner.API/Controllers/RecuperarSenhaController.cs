@@ -70,12 +70,10 @@ public class RecuperarSenhaController : ControllerBase
         // 3. Email não encontrado
         _logger.LogWarning("Tentativa de recuperação para email não cadastrado: {Email}", email);
 
-        return NotFound(new
+        return Ok(new
         {
-            success = false,
-            message = "Email não encontrado em nossa base de dados",
-            code = "USER_NOT_FOUND",
-            emailExists = false
+            success = true,
+            message = "Se o email estiver cadastrado, você receberá um código de verificação."
         });
     }
 
@@ -121,9 +119,7 @@ public class RecuperarSenhaController : ControllerBase
         return Ok(new
         {
             success = true,
-            message = "Código enviado com sucesso! Verifique seu email.",
-            emailExists = true,
-            tipoConta = "individual"
+            message = "Se o email estiver cadastrado, você receberá um código de verificação."
         });
     }
 
@@ -173,10 +169,7 @@ public class RecuperarSenhaController : ControllerBase
         return Ok(new
         {
             success = true,
-            message = "Código enviado com sucesso! Verifique seu email.",
-            emailExists = true,
-            tipoConta = "casal",
-            pessoa = pessoa
+            message = "Se o email estiver cadastrado, você receberá um código de verificação."
         });
     }
 
@@ -485,37 +478,12 @@ public class RecuperarSenhaController : ControllerBase
 
     private string GerarTokenUnico()
     {
-        // Gerar token com GUIDs e Random
-        var token = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+        var bytes = new byte[64];
+        RandomNumberGenerator.Fill(bytes);
+        return Convert.ToBase64String(bytes)
             .Replace("+", "")
             .Replace("/", "")
-            .Replace("=", "");
-
-        // Adicionar mais entropia
-        token += Convert.ToBase64String(Guid.NewGuid().ToByteArray())
-            .Replace("+", "")
-            .Replace("/", "")
-            .Replace("=", "");
-
-        // Adicionar timestamp para garantir unicidade
-        token += DateTime.UtcNow.Ticks.ToString();
-
-        // Pegar apenas os primeiros 64 caracteres ou completar se necessário
-        if (token.Length > 64)
-        {
-            token = token.Substring(0, 64);
-        }
-        else
-        {
-            // Completar com caracteres aleatórios se for menor que 64
-            var random = new Random();
-            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            while (token.Length < 64)
-            {
-                token += chars[random.Next(chars.Length)];
-            }
-        }
-
-        return token;
+            .Replace("=", "")
+            .Substring(0, 64);
     }
 }
