@@ -8,10 +8,13 @@ using CasalPlanner.Domain.Entities;
 using CasalPlanner.Infrastructure.Persistence;
 using CasalPlanner.Application.Interfaces;
 using CasalPlanner.Infrastructure.Services;
+using CasalPlanner.Infrastructure.Services.Providers;
+using CasalPlanner.Infrastructure.Configurations;
 using DotNetEnv;
 using MongoDB.Driver;
 using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -209,6 +212,54 @@ builder.Services.AddHttpClient("groq", client =>
     client.Timeout = TimeSpan.FromSeconds(10);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
+
+// ===== 7.1. PRICE SEARCH - HttpClients com Resilience =====
+builder.Services.AddHttpClient("MercadoLivreClient", client =>
+{
+    client.BaseAddress = new Uri("https://api.mercadolibre.com/");
+    client.Timeout = TimeSpan.FromSeconds(20);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+})
+.AddStandardResilienceHandler(options =>
+{
+    options.Retry.MaxRetryAttempts = 2;
+    options.Retry.Delay = TimeSpan.FromSeconds(1);
+    options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(30);
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(18);
+});
+
+builder.Services.AddHttpClient("GoogleShoppingClient", client =>
+{
+    client.BaseAddress = new Uri("https://serpapi.com/");
+    client.Timeout = TimeSpan.FromSeconds(20);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+})
+.AddStandardResilienceHandler(options =>
+{
+    options.Retry.MaxRetryAttempts = 2;
+    options.Retry.Delay = TimeSpan.FromSeconds(1);
+    options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(30);
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(18);
+});
+
+// ===== 7.2. PRICE SEARCH - Options e Providers =====
+builder.Services.Configure<PriceSearchOptions>(builder.Configuration.GetSection("PriceSearch"));
+
+// Registra todos os providers (condicional baseado nas options e chaves disponíveis)
+var priceSearchConfig = builder.Configuration.GetSection("PriceSearch").Get<PriceSearchOptions>() ?? new PriceSearchOptions();
+
+if (priceSearchConfig.EnableMercadoLivre)
+    builder.Services.AddScoped<IPriceProvider, MercadoLivreProvider>();
+
+if (priceSearchConfig.EnableGoogleShopping)
+    builder.Services.AddScoped<IPriceProvider, GoogleShoppingProvider>();
+
+if (priceSearchConfig.EnableAmazon)
+    builder.Services.AddScoped<IPriceProvider, AmazonProvider>();
+
+builder.Services.AddScoped<IPesquisaPrecosService, PesquisaPrecosService>();
+
+// ===== 7.3. DEMAIS SERVICES =====
 builder.Services.AddSingleton<GroqService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthService, AuthService>();
