@@ -15,6 +15,7 @@ import {
   Loader2,
   ArrowUp,
   ArrowDown,
+  Package,
 } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -70,6 +71,15 @@ export const Route = createFileRoute("/_authenticated/planejamento")({
   component: PlanejamentoPage,
 });
 
+const getFaviconUrl = (urlOrDomain: string) => {
+  try {
+    const domain = urlOrDomain.startsWith('http') ? new URL(urlOrDomain).hostname : urlOrDomain;
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+  } catch {
+    return null;
+  }
+};
+
 function PlanejamentoPage() {
   const qc = useQueryClient();
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<string | null>(null);
@@ -90,16 +100,16 @@ function PlanejamentoPage() {
   });
 
   const categorias = categoriasQ.data ?? [];
-  const catAtualId = categoriaSelecionada ?? categorias[0]?.id ?? null;
+  const catAtualId = categoriaSelecionada ?? "tudo";
   const catAtual = categorias.find((c) => c.id === catAtualId) ?? null;
 
   const itensQ = useQuery({
-    queryKey: ["itens", catAtualId],
-    queryFn: () => (catAtualId ? itensService.porCategoria(catAtualId) : Promise.resolve([])),
-    enabled: !!catAtualId,
+    queryKey: ["itens"],
+    queryFn: () => itensService.listar(),
   });
 
-  const itens = itensQ.data ?? [];
+  const todosItens = itensQ.data ?? [];
+  const itens = catAtualId === "tudo" ? todosItens : todosItens.filter(i => i.categoriaId === catAtualId);
 
   const itensFiltrados = useMemo(() => {
     const b = buscaDebounced.trim().toLowerCase();
@@ -126,14 +136,14 @@ function PlanejamentoPage() {
       itensService.toggleComprado(id, comprado),
     onMutate: async ({ id, comprado }) => {
       await qc.cancelQueries({ queryKey: ["itens"] });
-      const prev = qc.getQueryData(["itens", catAtualId]);
-      qc.setQueryData(["itens", catAtualId], (old: Item[] | undefined) =>
+      const prev = qc.getQueryData(["itens"]);
+      qc.setQueryData(["itens"], (old: Item[] | undefined) =>
         old?.map((i) => (i.id === id ? { ...i, comprado } : i))
       );
       return { prev };
     },
     onError: (err, newTodo, context) => {
-      qc.setQueryData(["itens", catAtualId], context?.prev);
+      qc.setQueryData(["itens"], context?.prev);
       toast.error("Erro ao atualizar item");
     },
     onSettled: () => {
@@ -196,9 +206,37 @@ function PlanejamentoPage() {
           {categoriasQ.isLoading && (
             <div className="text-sm text-muted-foreground">Carregando...</div>
           )}
+          <div
+            className={cn(
+              "group flex items-center gap-3 rounded-xl border p-3 transition-all cursor-pointer shrink-0 w-[240px] lg:w-auto",
+              catAtualId === "tudo"
+                ? "border-primary bg-primary/5 shadow-soft"
+                : "hover:bg-accent/40 hover:border-accent"
+            )}
+            onClick={() => setCategoriaSelecionada("tudo")}
+          >
+            <span className="grid place-items-center h-10 w-10 rounded-lg text-white shrink-0 shadow-soft bg-zinc-800">
+              <Package className="h-5 w-5" />
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="font-medium truncate">Todos os Itens</div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                <div className="flex justify-between items-center">
+                  <span>{todosItens.filter(i => i.comprado).length}/{todosItens.length} itens</span>
+                  <span className="font-medium text-foreground">
+                    {brl(todosItens.reduce((s, i) => s + i.preco * i.quantidade, 0))}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
           {categorias.map((c, i) => {
             const I = iconFor(c.icon);
             const ativo = c.id === catAtualId;
+            const cItens = todosItens.filter(it => it.categoriaId === c.id);
+            const cComprados = cItens.filter(it => it.comprado).length;
+            const cGasto = cItens.reduce((s, it) => s + (it.preco * it.quantidade), 0);
+            
             return (
               <div
                 key={c.id}
@@ -218,13 +256,15 @@ function PlanejamentoPage() {
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{c.nome}</div>
-                  {c.metaOrcamento ? (
-                    <div className="text-xs text-muted-foreground">
-                      Meta {brl(c.metaOrcamento)}
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    <div className="flex justify-between items-center">
+                      <span>{cComprados}/{cItens.length} itens</span>
+                      <span className="font-medium text-foreground">{brl(cGasto)}</span>
                     </div>
-                  ) : (
-                    <div className="text-xs text-muted-foreground">Sem meta</div>
-                  )}
+                    {c.metaOrcamento ? (
+                      <div className="text-muted-foreground/80">Meta {brl(c.metaOrcamento)}</div>
+                    ) : null}
+                  </div>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -262,7 +302,7 @@ function PlanejamentoPage() {
 
         {/* Painel principal */}
         <section className="space-y-4">
-          {catAtual ? (
+          {catAtualId === "tudo" || catAtual ? (
             <>
               <div className="rounded-2xl bg-gradient-warm p-5 border shadow-soft">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -270,15 +310,17 @@ function PlanejamentoPage() {
                     <div className="flex items-center gap-3">
                       <span
                         className="grid place-items-center h-12 w-12 rounded-xl text-white shadow-soft"
-                        style={{ backgroundColor: catAtual.bg }}
+                        style={{ backgroundColor: catAtual ? catAtual.bg : "#27272a" }}
                       >
                         {(() => {
-                          const I = iconFor(catAtual.icon);
+                          const I = catAtual ? iconFor(catAtual.icon) : Package;
                           return <I className="h-6 w-6" />;
                         })()}
                       </span>
                       <div>
-                        <div className="font-display text-2xl font-semibold">{catAtual.nome}</div>
+                        <div className="font-display text-2xl font-semibold">
+                          {catAtual ? catAtual.nome : "Todos os itens"}
+                        </div>
                         <div className="text-sm text-muted-foreground">
                           {itens.length} itens · {compradosCategoria} comprados
                         </div>
@@ -291,7 +333,7 @@ function PlanejamentoPage() {
                     <div className="font-display text-2xl font-semibold text-primary">
                       {brl(totalCategoria)}
                     </div>
-                    {catAtual.metaOrcamento ? (
+                    {catAtual?.metaOrcamento ? (
                       <div className="text-xs text-muted-foreground">
                         de {brl(catAtual.metaOrcamento)}
                       </div>
@@ -324,43 +366,6 @@ function PlanejamentoPage() {
                     </div>
                   )}
                 </div>
-
-                <div className="mt-4 flex gap-2 flex-wrap items-center">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => sugestoesQ.refetch()}
-                    disabled={sugestoesQ.isFetching}
-                  >
-                    {sugestoesQ.isFetching ? (
-                      <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
-                    ) : (
-                      <Wand2 className="h-3.5 w-3.5 mr-1" />
-                    )}
-                    Sugerir itens com IA
-                  </Button>
-
-                </div>
-
-                {sugestoesQ.data && sugestoesQ.data.length > 0 && (
-                  <div className="mt-4 rounded-xl border bg-card p-3">
-                    <div className="text-xs font-medium mb-2 text-muted-foreground">
-                      Sugestões da IA para este cômodo
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {sugestoesQ.data.map((s: SugestaoItem) => (
-                        <Badge key={s.nome} variant="secondary" className="font-normal">
-                          {s.nome}
-                          {s.estimativa ? (
-                            <span className="ml-1 text-muted-foreground">
-                              · {brl(s.estimativa)}
-                            </span>
-                          ) : null}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 {/* Estimativa de comodo removida - funcionalidade não disponível no backend */}
               </div>
@@ -447,12 +452,40 @@ function PlanejamentoPage() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className={cn("font-medium truncate", it.comprado && "line-through")}>
-                          {it.nome}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className={cn("font-medium truncate", it.comprado && "line-through")}>
+                            {it.nome}
+                          </div>
+                          {it.marca && (
+                            <Badge variant="secondary" className="text-[10px] py-0 px-1.5 h-4 font-normal flex items-center gap-1">
+                              {getFaviconUrl(`${it.marca}.com.br`) && (
+                                <img src={getFaviconUrl(`${it.marca}.com.br`)!} alt="" className="w-3 h-3 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                              )}
+                              {it.marca}
+                            </Badge>
+                          )}
+                          {it.loja && (
+                            it.linkProduto ? (
+                              <a href={it.linkProduto} target="_blank" rel="noreferrer" className="hover:opacity-80 transition-opacity">
+                                <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4 font-normal bg-muted/30 flex items-center gap-1 cursor-pointer">
+                                  {getFaviconUrl(it.linkProduto) && (
+                                    <img src={getFaviconUrl(it.linkProduto)!} alt="" className="w-3 h-3 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                  )}
+                                  {it.loja}
+                                  <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
+                                </Badge>
+                              </a>
+                            ) : (
+                              <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4 font-normal bg-muted/30 flex items-center gap-1">
+                                {getFaviconUrl(`${it.loja}.com.br`) && (
+                                  <img src={getFaviconUrl(`${it.loja}.com.br`)!} alt="" className="w-3 h-3 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                )}
+                                {it.loja}
+                              </Badge>
+                            )
+                          )}
                         </div>
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                          {it.marca && <span>{it.marca}</span>}
-                          {it.loja && <span>· {it.loja}</span>}
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
                           <Badge
                             variant="outline"
                             className={cn(

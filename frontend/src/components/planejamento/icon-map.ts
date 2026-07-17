@@ -49,6 +49,12 @@ export const ICON_NAMES = Object.keys(ICON_MAP);
 
 export function iconFor(name?: string | null): LucideIcon {
   if (!name) return Package;
+  if (name === "🍳") return Refrigerator;
+  if (name === "🛋️") return Sofa;
+  if (name === "🛏️") return Bed;
+  if (name === "🛁") return Bath;
+  if (name === "🧼") return WashingMachine;
+  if (name === "📁") return Package;
   return ICON_MAP[name] ?? Package;
 }
 

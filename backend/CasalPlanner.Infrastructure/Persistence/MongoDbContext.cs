@@ -99,7 +99,7 @@ public class MongoDbContext
             new() {
                 Nome = "Cozinha",
                 Bg = "#2c5e2c",
-                Icon = "🍳",
+                Icon = "Refrigerator",
                 IsPadrao = true,
                 UsuarioId = casal.Id!,
                 CreatedAt = DateTime.UtcNow
@@ -107,7 +107,7 @@ public class MongoDbContext
             new() {
                 Nome = "Sala",
                 Bg = "#b84a2c",
-                Icon = "🛋️",
+                Icon = "Sofa",
                 IsPadrao = true,
                 UsuarioId = casal.Id!,
                 CreatedAt = DateTime.UtcNow
@@ -115,7 +115,7 @@ public class MongoDbContext
             new() {
                 Nome = "Quarto",
                 Bg = "#2c5280",
-                Icon = "🛏️",
+                Icon = "Bed",
                 IsPadrao = true,
                 UsuarioId = casal.Id!,
                 CreatedAt = DateTime.UtcNow
@@ -123,7 +123,7 @@ public class MongoDbContext
             new() {
                 Nome = "Banheiro",
                 Bg = "#e2d9ed",
-                Icon = "🛁",
+                Icon = "Bath",
                 IsPadrao = true,
                 UsuarioId = casal.Id!,
                 CreatedAt = DateTime.UtcNow
@@ -131,7 +131,7 @@ public class MongoDbContext
             new() {
                 Nome = "Lavanderia",
                 Bg = "#97266d",
-                Icon = "🧼",
+                Icon = "WashingMachine",
                 IsPadrao = true,
                 UsuarioId = casal.Id!,
                 CreatedAt = DateTime.UtcNow
