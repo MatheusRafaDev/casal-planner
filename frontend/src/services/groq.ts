@@ -36,4 +36,5 @@ export const groqService = {
       itemSimilar: raw.itemSimilar,
     };
   },
+  resumoEnxoval: () => api<{ resumo: string }>("/api/groq/resumo-enxoval"),
 };

@@ -93,6 +93,7 @@ function PlanejamentoPage() {
   const [excluindoCategoria, setExcluindoCategoria] = useState<Categoria | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [editandoItem, setEditandoItem] = useState<Item | null>(null);
+  const [excluindoItem, setExcluindoItem] = useState<Item | null>(null);
 
   const categoriasQ = useQuery({
     queryKey: ["categorias"],
@@ -118,6 +119,7 @@ function PlanejamentoPage() {
         return false;
       if (filtroStatus === "comprados" && !i.comprado) return false;
       if (filtroStatus === "faltando" && i.comprado) return false;
+      if (filtroStatus === "presentes" && i.origem !== "ganho") return false;
       if (filtroPagamento !== "todos" && i.pagamento !== filtroPagamento) return false;
       return true;
     });
@@ -158,6 +160,7 @@ function PlanejamentoPage() {
       qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
       toast.success("Item removido");
+      setExcluindoItem(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -262,7 +265,24 @@ function PlanejamentoPage() {
                       <span className="font-medium text-foreground">{brl(cGasto)}</span>
                     </div>
                     {c.metaOrcamento ? (
-                      <div className="text-muted-foreground/80">Meta {brl(c.metaOrcamento)}</div>
+                      <div className="mt-1.5 space-y-1">
+                        <div className="flex justify-between text-[10px] text-muted-foreground/80">
+                          <span>{brl(cGasto)} de {brl(c.metaOrcamento)}</span>
+                        </div>
+                        <div className="h-1 w-full bg-border rounded-full overflow-hidden">
+                          <div
+                            className={cn(
+                              "h-full rounded-full transition-all",
+                              cGasto / c.metaOrcamento < 0.8
+                                ? "bg-emerald-500"
+                                : cGasto / c.metaOrcamento <= 1
+                                  ? "bg-amber-500"
+                                  : "bg-destructive"
+                            )}
+                            style={{ width: `${Math.min(100, (cGasto / c.metaOrcamento) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
                     ) : null}
                   </div>
                 </div>
@@ -387,6 +407,7 @@ function PlanejamentoPage() {
                     <SelectItem value="todos">Todos</SelectItem>
                     <SelectItem value="faltando">Faltando</SelectItem>
                     <SelectItem value="comprados">Comprados</SelectItem>
+                    <SelectItem value="presentes">Presentes</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select
@@ -495,9 +516,19 @@ function PlanejamentoPage() {
                           >
                             {it.pagamento === "vr" ? "VR" : "Normal"}
                           </Badge>
+                          {it.origem === "ganho" && (
+                            <Badge className="text-[10px] py-0 bg-emerald-500 hover:bg-emerald-600 text-white border-transparent">
+                              🎁 Presente
+                            </Badge>
+                          )}
                           {it.prioridade === "alta" && (
-                            <Badge className="text-[10px] py-0" variant="destructive">
-                              Alta
+                            <Badge className="text-[10px] py-0 bg-red-600 hover:bg-red-700 text-white border-transparent">
+                              URGENTE 🔥
+                            </Badge>
+                          )}
+                          {it.prioridade === "baixa" && (
+                            <Badge className="text-[10px] py-0" variant="secondary">
+                              BAIXA ↓
                             </Badge>
                           )}
                         </div>
@@ -507,8 +538,15 @@ function PlanejamentoPage() {
                     <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pl-10 sm:pl-0">
                       <div className="text-left sm:text-right">
                         <div className="font-display font-semibold">{brl(it.preco * it.quantidade)}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {it.quantidade}× {brl(it.preco)}
+                        <div className="text-xs text-muted-foreground flex flex-col items-end">
+                          <span>
+                            {it.quantidade}× {brl(it.preco)}
+                          </span>
+                          {(it.parcelas ?? 1) > 1 && (
+                            <span className="text-[10px] text-muted-foreground/70 mt-0.5">
+                              {it.parcelas}x de {brl(it.preco / (it.parcelas ?? 1))}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <DropdownMenu>
@@ -539,7 +577,7 @@ function PlanejamentoPage() {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
-                            onClick={() => excluirItem.mutate(it.id)}
+                            onClick={() => setExcluindoItem(it)}
                           >
                             <Trash2 className="h-4 w-4 mr-2" /> Remover
                           </DropdownMenuItem>
@@ -571,14 +609,12 @@ function PlanejamentoPage() {
         onOpenChange={(o) => !o && setEditandoCategoria(null)}
         categoria={editandoCategoria}
       />
-      {catAtualId && (
-        <AddItemWizard
-          open={wizardOpen}
-          onOpenChange={setWizardOpen}
-          categorias={categorias}
-          categoriaInicialId={catAtualId}
-        />
-      )}
+      <AddItemWizard
+        open={wizardOpen}
+        onOpenChange={setWizardOpen}
+        categorias={categorias}
+        categoriaInicialId={catAtualId === "tudo" ? "" : catAtualId}
+      />
       {catAtualId && (
         <ItemFormModal
           open={!!editandoItem}
@@ -609,6 +645,30 @@ function PlanejamentoPage() {
               }
             >
               Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={!!excluindoItem}
+        onOpenChange={(o) => !o && setExcluindoItem(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover este item?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover <b>{excluindoItem?.nome}</b>? Esta ação não pode ser
+              desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => excluindoItem && excluirItem.mutate(excluindoItem.id)}
+            >
+              {excluirItem.isPending ? "Removendo..." : "Remover"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

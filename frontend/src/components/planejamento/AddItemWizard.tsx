@@ -24,7 +24,7 @@ import { PainelPesquisaPrecos } from "./PainelPesquisaPrecos";
 import type { Categoria, PesquisaPrecoResultado } from "@/services/types";
 import { itensService } from "@/services/itens";
 import { groqService } from "@/services/groq";
-import { brl, parseBRL } from "@/lib/formatters";
+import { brl } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -43,7 +43,11 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   const [quantidade, setQuantidade] = useState(1);
   const [categoriaId, setCategoriaId] = useState(categoriaInicialId);
   const [escolhido, setEscolhido] = useState<PesquisaPrecoResultado | null>(null);
-  const [precoManual, setPrecoManual] = useState<string>("");
+  const [precoNumerico, setPrecoNumerico] = useState<number>(0);
+  const [marca, setMarca] = useState("");
+  const [loja, setLoja] = useState("");
+  const [parcelas, setParcelas] = useState(1);
+  const [prioridade, setPrioridade] = useState("media");
 
   const reset = () => {
     setStep(1);
@@ -51,7 +55,11 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     setQuantidade(1);
     setCategoriaId(categoriaInicialId);
     setEscolhido(null);
-    setPrecoManual("");
+    setPrecoNumerico(0);
+    setMarca("");
+    setLoja("");
+    setParcelas(1);
+    setPrioridade("media");
   };
 
   const dupQuery = useQuery({
@@ -62,18 +70,19 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
 
   const criar = useMutation({
     mutationFn: async () => {
-      const preco = escolhido?.preco ?? Number(precoManual || 0);
+      const preco = escolhido?.preco ?? precoNumerico;
       return itensService.criar({
         nome: nome.trim(),
         categoriaId,
         quantidade,
         preco,
-        loja: escolhido?.loja ?? undefined,
+        loja: loja.trim() || undefined,
         linkProduto: escolhido?.link ?? undefined,
         fotoUrl: escolhido?.thumbnail ?? undefined,
-        marca: escolhido?.marca ?? undefined,
+        marca: marca.trim() || undefined,
+        parcelas,
         pagamento: "normal",
-        prioridade: "media",
+        prioridade,
       });
     },
     onSuccess: () => {
@@ -88,6 +97,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
 
   const avancarDoNome = async () => {
     if (!nome.trim()) return toast.error("Informe o nome");
+    if (!categoriaId) return toast.error("Selecione um cômodo");
     // checa duplicata (não bloqueia se falhar)
     try {
       const res = await dupQuery.refetch();
@@ -173,6 +183,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     min="1"
                     value={quantidade}
                     onChange={(e) => setQuantidade(Number(e.target.value))}
+                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
               </div>
@@ -199,7 +210,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 initialQuery={nome}
                 onEscolher={(r) => {
                   setEscolhido(r);
-                  setPrecoManual(String(r.preco));
+                  setPrecoNumerico(r.preco);
+                  setMarca(r.marca ?? "");
+                  setLoja(r.loja ?? "");
+                  setNome(r.titulo);
                   setStep(3);
                 }}
               />
@@ -207,9 +221,11 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 <Label>Ou informe o preço manualmente</Label>
                 <div className="flex gap-2">
                   <CurrencyInput
-                    value={parseBRL(precoManual)}
-                    onValueChange={(v) => setPrecoManual(String(v))}
-                    onMaskedChange={(m) => setPrecoManual(m)}
+                    value={precoNumerico}
+                    onValueChange={(v) => {
+                      setPrecoNumerico(v);
+                      setEscolhido(null);
+                    }}
                     placeholder="R$ 0,00"
                   />
                   <Button
@@ -243,13 +259,13 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   <div>
                     <div className="text-xs text-muted-foreground">Preço unitário</div>
                     <div className="font-display text-2xl font-semibold text-primary">
-                      {brl(escolhido?.preco ?? Number(precoManual || 0))}
+                      {brl(escolhido?.preco ?? precoNumerico)}
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-xs text-muted-foreground">Total</div>
                     <div className="font-display text-xl font-semibold">
-                      {brl((escolhido?.preco ?? Number(precoManual || 0)) * quantidade)}
+                      {brl((escolhido?.preco ?? precoNumerico) * quantidade)}
                     </div>
                   </div>
                 </div>
@@ -260,6 +276,56 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     className="mt-4 h-32 rounded-lg border object-cover"
                   />
                 )}
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2 mt-2">
+                <div className="space-y-2">
+                  <Label>Marca</Label>
+                  <Input value={marca} onChange={e => setMarca(e.target.value)} placeholder="Ex.: Brastemp" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Loja</Label>
+                  <Input value={loja} onChange={e => setLoja(e.target.value)} placeholder="Ex.: Fast Shop" />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <Label>Parcelas</Label>
+                    {parcelas > 1 && (
+                      <span className="text-xs text-muted-foreground">
+                        {brl((escolhido?.preco ?? precoNumerico) / parcelas)}/parcela
+                      </span>
+                    )}
+                  </div>
+                  <Select
+                    value={String(parcelas)}
+                    onValueChange={(v) => setParcelas(Number(v))}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((p) => (
+                        <SelectItem key={p} value={String(p)}>
+                          {p === 1
+                            ? "À vista (1x)"
+                            : `${p}x • ${brl((escolhido?.preco ?? precoNumerico) / p)}`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Prioridade</Label>
+                  <Select
+                    value={prioridade}
+                    onValueChange={(v) => setPrioridade(v)}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="alta">Alta</SelectItem>
+                      <SelectItem value="media">Média</SelectItem>
+                      <SelectItem value="baixa">Baixa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           )}

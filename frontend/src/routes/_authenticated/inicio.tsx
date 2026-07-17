@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   Wallet,
@@ -9,6 +9,9 @@ import {
   TrendingDown,
   Sparkles,
   ArrowRight,
+  CreditCard,
+  RefreshCw,
+  Bot,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -60,6 +63,16 @@ function InicioPage() {
     queryFn: () => resumoService.obterAdaptado(categorias),
   });
 
+  const { data: itens = [] } = useQuery({
+    queryKey: ["itens"],
+    queryFn: () => import("@/services/itens").then((m) => m.itensService.listar()),
+    retry: false,
+  });
+
+  const iaMutation = useMutation({
+    mutationFn: () => groqService.resumoEnxoval(),
+  });
+
   if (isLoading) {
     return (
       <div className="p-6 md:p-10 max-w-6xl mx-auto">
@@ -92,7 +105,14 @@ function InicioPage() {
   ];
 
   const variacao = r?.variacaoMensal ?? null;
-  const semDados = !r || (r.totalItens ?? 0) === 0;
+  // Sem dados = sem categorias criadas OU sem nenhum gasto registrado no resumo
+  // (usamos categorias como fallback pois /api/itens pode não existir)
+  const semDados = categorias.length === 0 && (!r || (r.totalItens ?? 0) === 0);
+  
+  // Calcula parcelado a partir dos itens se disponíveis, senão usa 0
+  const totalParcelado = itens.length > 0
+    ? itens.filter((i) => (i.parcelas ?? 1) > 1).reduce((s, i) => s + i.preco * i.quantidade, 0)
+    : 0;
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
@@ -107,6 +127,42 @@ function InicioPage() {
           </Link>
         </Button>
       </div>
+
+      {/* Progresso do Enxoval SEMPRE visível */}
+      {meta > 0 ? (
+        <div className="rounded-2xl border bg-card p-5 shadow-soft">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <div className="text-sm text-muted-foreground">Progresso do enxoval</div>
+              <div className="font-display text-xl font-semibold">
+                {brl(r?.totalGeral)} <span className="text-muted-foreground text-base">de {brl(meta)}</span>
+              </div>
+              {(meta - (r?.totalGeral ?? 0)) > 0 && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  Faltam {brl(meta - (r?.totalGeral ?? 0))}
+                </div>
+              )}
+            </div>
+            <span className="text-sm font-medium text-primary">{pct.toFixed(0)}%</span>
+          </div>
+          <Progress value={pct} />
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-5 flex items-center justify-between shadow-soft">
+          <div>
+            <div className="font-semibold text-primary">Progresso do enxoval</div>
+            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+              Defina um orçamento máximo para o seu enxoval e acompanhe o progresso aqui.
+            </p>
+          </div>
+          <Link to="/perfil">
+            <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
+              <Target className="mr-2 h-4 w-4" />
+              Definir meta
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {semDados ? (
         <div className="rounded-2xl border bg-gradient-warm p-10 text-center shadow-soft">
@@ -140,10 +196,10 @@ function InicioPage() {
               delay={0.05}
             />
             <ResumoCard
-              icon={Target}
-              label="Meta do enxoval"
-              valor={meta > 0 ? brl(meta) : "—"}
-              hint={meta > 0 ? `${pct.toFixed(0)}% alcançado` : "Defina no perfil"}
+              icon={CreditCard}
+              label="Parcelado"
+              valor={brl(totalParcelado)}
+              hint="Soma das compras"
               delay={0.1}
             />
             {variacao != null && (
@@ -156,21 +212,6 @@ function InicioPage() {
               />
             )}
           </div>
-
-          {meta > 0 && (
-            <div className="rounded-2xl border bg-card p-5 shadow-soft">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <div className="text-sm text-muted-foreground">Progresso da meta</div>
-                  <div className="font-display text-xl font-semibold">
-                    {brl(r?.totalGeral)} <span className="text-muted-foreground text-base">de {brl(meta)}</span>
-                  </div>
-                </div>
-                <span className="text-sm font-medium text-primary">{pct.toFixed(0)}%</span>
-              </div>
-              <Progress value={pct} />
-            </div>
-          )}
 
           {/* Gráficos */}
           <div className="grid lg:grid-cols-3 gap-4">
@@ -274,6 +315,48 @@ function InicioPage() {
           )}
         </>
       )}
+
+      {/* Resumo da IA SEMPRE visível */}
+      <div className="rounded-2xl border bg-card p-5 shadow-soft relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
+          <Bot className="w-32 h-32" />
+        </div>
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4 relative z-10">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <h3 className="font-display text-lg font-semibold">Resumo Inteligente</h3>
+          </div>
+          <Button
+            variant={iaMutation.data ? "outline" : "default"}
+            size="sm"
+            className={!iaMutation.data ? "bg-gradient-primary" : ""}
+            disabled={iaMutation.isPending}
+            onClick={() => iaMutation.mutate()}
+          >
+            {iaMutation.isPending ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Gerando...
+              </>
+            ) : (
+              <>
+                {iaMutation.data ? <RefreshCw className="h-4 w-4 mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                {iaMutation.data ? "Atualizar" : "Gerar resumo do enxoval"}
+              </>
+            )}
+          </Button>
+        </div>
+        {iaMutation.data && (
+          <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground whitespace-pre-wrap relative z-10">
+            {iaMutation.data.resumo}
+          </div>
+        )}
+        {!iaMutation.data && !iaMutation.isPending && (
+          <p className="text-sm text-muted-foreground relative z-10">
+            Peça para a IA gerar um resumo narrativo sobre o status do seu enxoval.
+          </p>
+        )}
+      </div>
     </div>
   );
 }
