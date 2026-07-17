@@ -34,6 +34,12 @@ namespace CasalPlanner.Infrastructure.Services
 
         public async Task<Item> CriarItem(CriarItemDto dto, string usuarioId)
         {
+            var categoria = await _context.Categorias.Find(c => c.Id == dto.CategoriaId).FirstOrDefaultAsync();
+            if (categoria == null || (!categoria.IsPadrao && categoria.UsuarioId != usuarioId))
+            {
+                throw new ArgumentException("Categoria inválida ou não pertence ao usuário");
+            }
+
             var item = new Item
             {
                 Nome = dto.Nome,
@@ -78,7 +84,14 @@ namespace CasalPlanner.Infrastructure.Services
                 updates.Add(update.Set(i => i.Quantidade, dto.Quantidade.Value));
 
             if (!string.IsNullOrEmpty(dto.CategoriaId))
+            {
+                var categoria = await _context.Categorias.Find(c => c.Id == dto.CategoriaId).FirstOrDefaultAsync();
+                if (categoria == null || (!categoria.IsPadrao && categoria.UsuarioId != usuarioId))
+                {
+                    throw new ArgumentException("Categoria inválida ou não pertence ao usuário");
+                }
                 updates.Add(update.Set(i => i.CategoriaId, dto.CategoriaId));
+            }
 
             if (!string.IsNullOrEmpty(dto.Pagamento))
                 updates.Add(update.Set(i => i.Pagamento, dto.Pagamento));

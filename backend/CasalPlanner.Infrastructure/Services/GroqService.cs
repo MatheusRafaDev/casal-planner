@@ -466,6 +466,142 @@ Responda APENAS em JSON válido:
                 return null;
             }
         }
+
+        public async Task<string?> GerarResumoEnxovalContexto(object contexto)
+        {
+            if (string.IsNullOrEmpty(_apiKey))
+                return null;
+
+            try
+            {
+                var client = _httpClientFactory.CreateClient("groq");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
+
+                var dadosJson = JsonSerializer.Serialize(contexto, new JsonSerializerOptions { WriteIndented = true });
+
+                var systemPrompt = @"Você é um assistente simpático que ajuda casais a planejarem o enxoval da casa nova.
+Com base nos dados financeiros fornecidos, gere um resumo narrativo curto (máximo 4 frases) sobre o progresso do enxoval.
+Seja encorajador, use o nome do casal, mencione valores concretos (total gasto, itens comprados, meta, quanto falta).
+Se tiver dados de categoria, mencione brevemente as categorias com mais gasto.
+Escreva em português do Brasil, de forma calorosa e pessoal. NÃO use markdown, só texto simples.";
+
+                var userPrompt = $@"Gere o resumo do enxoval com base nestes dados:
+
+{dadosJson}
+
+Lembre-se: máximo 4 frases, use o nome do casal, mencione valores reais em reais (R$), seja encorajador.";
+
+                var requestBody = new
+                {
+                    model = "llama-3.1-8b-instant",
+                    temperature = 0.75,
+                    max_tokens = 300,
+                    messages = new[]
+                    {
+                        new { role = "system", content = systemPrompt },
+                        new { role = "user", content = userPrompt }
+                    }
+                };
+
+                var response = await client.PostAsync(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json"));
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Groq API error (GerarResumoEnxovalContexto): {StatusCode} - {Error}", response.StatusCode, errorBody);
+                    return null;
+                }
+
+                var body = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(body);
+
+                var resultContent = doc.RootElement
+                    .GetProperty("choices")[0]
+                    .GetProperty("message")
+                    .GetProperty("content")
+                    .GetString();
+
+                return resultContent?.Trim();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao gerar resumo do enxoval com contexto rico");
+                return null;
+            }
+        }
+
+        public async Task<Dictionary<string, string>?> DescobrirDominios(List<string> nomes)
+        {
+            if (string.IsNullOrEmpty(_apiKey) || nomes == null || nomes.Count == 0)
+                return null;
+
+            try
+            {
+                var client = _httpClientFactory.CreateClient("groq");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
+
+                var nomesUnicosStr = string.Join(", ", nomes.Distinct().Where(n => !string.IsNullOrWhiteSpace(n)));
+                if (string.IsNullOrWhiteSpace(nomesUnicosStr)) return new Dictionary<string, string>();
+
+                var requestBody = new
+                {
+                    model = "llama-3.1-8b-instant",
+                    temperature = 0.1,
+                    response_format = new { type = "json_object" },
+                    messages = new[]
+                    {
+                        new
+                        {
+                            role = "system",
+                            content = @"Você é um assistente que descobre domínios oficiais de lojas e marcas do Brasil e do mundo.
+Responda APENAS em JSON válido, com um dicionário mapeando o nome exato solicitado para o seu domínio oficial principal (apenas o domínio base, sem https, sem www, ex: 'apple.com', 'magazineluiza.com.br').
+Se não souber o domínio oficial de um nome, omita-o do JSON. Exemplo:
+{
+    ""Magazine Luiza"": ""magazineluiza.com.br"",
+    ""Samsung"": ""samsung.com""
+}"
+                        },
+                        new
+                        {
+                            role = "user",
+                            content = $"Descubra os domínios oficiais para: {nomesUnicosStr}"
+                        }
+                    }
+                };
+
+                var response = await client.PostAsync(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json"));
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Groq API error (DescobrirDominios): {StatusCode} - {Error}", response.StatusCode, errorBody);
+                    return null;
+                }
+
+                var body = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(body);
+
+                var resultContent = doc.RootElement
+                    .GetProperty("choices")[0]
+                    .GetProperty("message")
+                    .GetProperty("content")
+                    .GetString();
+
+                if (string.IsNullOrWhiteSpace(resultContent))
+                    return null;
+
+                return JsonSerializer.Deserialize<Dictionary<string, string>>(resultContent);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao descobrir domínios");
+                return null;
+            }
+        }
     }
 
     public class StoreValidationResult

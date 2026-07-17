@@ -89,18 +89,64 @@ namespace CasalPlanner.API.Controllers
         {
             var usuarioId = GetUsuarioId();
 
-            var resumo = await _resumoService.ObterResumo(usuarioId);
-            var resumoEnxoval = resumo.Enxoval;
-
             var usuario = await _context.Usuarios.Find(u => u.Id == usuarioId).FirstOrDefaultAsync();
             var nomesCasal = usuario?.NomeCompleto ?? "o casal";
 
-            var texto = await _groqService.GerarResumoEnxoval(resumoEnxoval, nomesCasal);
-            if (texto == null)
-                return BadRequest(new { error = "Não foi possível gerar resumo" });
+            ResumoResponseDto? resumo = null;
+            try
+            {
+                resumo = await _resumoService.ObterResumo(usuarioId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Falha ao obter resumo para usuário {UsuarioId}", usuarioId);
+            }
 
-            return Ok(new { resumo = texto });
+            // Monta contexto rico para a IA
+            var atual = resumo?.Atual ?? new ResumoDto();
+            var enxoval = resumo?.Enxoval ?? new ResumoEnxovalDto();
+
+            var contexto = new
+            {
+                NomeCasal = nomesCasal,
+                TotalGasto = atual.TotalGeral,
+                TotalDinheiro = atual.TotalNormal,
+                TotalVR = atual.TotalVR,
+                TotalItens = atual.TotalItens,
+                ItensComprados = atual.TotalComprados,
+                ItensPendentes = atual.TotalItens - atual.TotalComprados,
+                PercentualConcluido = atual.PercentualConcluido,
+                MetaGlobal = enxoval.MetaGlobalEnxoval,
+                PercentualMeta = enxoval.PercentualMetaGlobal,
+                ValorRestanteMeta = enxoval.TotalRestanteParaMeta,
+                GastoPorCategoria = atual.PorCategoria,
+            };
+
+            var texto = await _groqService.GerarResumoEnxovalContexto(contexto);
+
+            var mensagem = texto ?? "Seu enxoval está sendo planejado com carinho! Adicione itens e defina uma meta para ver um resumo completo aqui.";
+
+            return Ok(new { resumo = mensagem });
         }
+
+        [HttpPost("dominios")]
+        public async Task<IActionResult> DescobrirDominios([FromBody] DescobrirDominiosDto dto)
+        {
+            if (dto.Nomes == null || dto.Nomes.Count == 0)
+                return Ok(new Dictionary<string, string>());
+
+            var dominios = await _groqService.DescobrirDominios(dto.Nomes);
+            
+            if (dominios == null)
+                return Ok(new Dictionary<string, string>()); // Fallback gracefully
+
+            return Ok(dominios);
+        }
+    }
+
+    public class DescobrirDominiosDto
+    {
+        public List<string> Nomes { get; set; } = new();
     }
 
     public class DetectarDuplicataDto

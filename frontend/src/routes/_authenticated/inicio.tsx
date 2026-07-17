@@ -5,31 +5,21 @@ import {
   Wallet,
   ShoppingBag,
   Target,
-  TrendingUp,
-  TrendingDown,
   Sparkles,
   ArrowRight,
   CreditCard,
   RefreshCw,
   Bot,
 } from "lucide-react";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Cell,
-  PieChart,
-  Pie,
-  Legend,
-} from "recharts";
+import ReactApexChart from "react-apexcharts";
+import type { ApexOptions } from "apexcharts";
 import { resumoService } from "@/services/resumo";
 import { groqService } from "@/services/groq";
 import { brl } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { iconFor } from "@/components/planejamento/icon-map";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   head: () => ({
@@ -41,18 +31,32 @@ export const Route = createFileRoute("/_authenticated/inicio")({
   component: InicioPage,
 });
 
-const CHART_COLORS = [
-  "hsl(var(--primary))",
-  "#c97b5c",
-  "#e0a458",
-  "#8b6bb1",
-  "#5a7d5a",
-  "#b06ab3",
-  "#d97a9b",
-  "#6b7fb5",
+const FALLBACK_COLORS = [
+  "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#3b82f6",
+  "#f43f5e", "#06b6d4", "#a855f7",
 ];
 
+/** Reads a CSS variable value at runtime (needed for ApexCharts which operates outside React) */
+function cssVar(name: string) {
+  if (typeof window === "undefined") return "#8b5cf6";
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#8b5cf6";
+}
+
+function useIsDark() {
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
+    const check = () => setDark(document.documentElement.classList.contains("dark"));
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+  return dark;
+}
+
 function InicioPage() {
+  const isDark = useIsDark();
+
   const { data: categorias = [] } = useQuery({
     queryKey: ["categorias"],
     queryFn: () => import("@/services/categorias").then((m) => m.categoriasService.listar()),
@@ -75,8 +79,10 @@ function InicioPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 md:p-10 max-w-6xl mx-auto">
-        <div className="animate-pulse text-sm text-muted-foreground">Carregando resumo...</div>
+      <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="h-32 rounded-2xl bg-muted animate-pulse" />
+        ))}
       </div>
     );
   }
@@ -86,9 +92,12 @@ function InicioPage() {
   const pct = meta > 0 ? Math.min(100, ((r?.totalGeral ?? 0) / meta) * 100) : 0;
 
   const dadosCategoria =
-    r?.porCategoria?.map((c) => ({
+    r?.porCategoria?.map((c, i) => ({
       nome: c.categoriaNome,
+      nomeBase: c.categoriaNome,
+      icon: c.icon ?? null,
       valor: c.totalGasto,
+      cor: c.cor ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length],
     })) ?? [];
 
   const dadosVrNormal = [
@@ -98,21 +107,187 @@ function InicioPage() {
 
   const temMensais =
     (r?.mesAtual ?? 0) > 0 || (r?.mesPassado ?? 0) > 0 || (r?.mesRetrasado ?? 0) > 0;
-  const dadosMensais = [
-    { mes: "Retrasado", valor: r?.mesRetrasado ?? 0 },
-    { mes: "Passado", valor: r?.mesPassado ?? 0 },
-    { mes: "Atual", valor: r?.mesAtual ?? 0 },
-  ];
 
-  const variacao = r?.variacaoMensal ?? null;
-  // Sem dados = sem categorias criadas OU sem nenhum gasto registrado no resumo
-  // (usamos categorias como fallback pois /api/itens pode não existir)
   const semDados = categorias.length === 0 && (!r || (r.totalItens ?? 0) === 0);
-  
-  // Calcula parcelado a partir dos itens se disponíveis, senão usa 0
+
   const totalParcelado = itens.length > 0
     ? itens.filter((i) => (i.parcelas ?? 1) > 1).reduce((s, i) => s + i.preco * i.quantidade, 0)
     : 0;
+
+  // ─── ApexCharts theme config ───────────────────────────────────────────────
+  const chartTheme = isDark ? "dark" : "light";
+  const cardBg = isDark ? "#1e1a2e" : "#ffffff";
+  const textColor = isDark ? "#c4b5fd" : "#3d2b6b";
+  const mutedColor = isDark ? "#7c6fa0" : "#9d86c8";
+  const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(139,92,246,0.12)";
+
+  // Bar chart — Gastos por categoria
+  const barOptions: ApexOptions = {
+    chart: {
+      type: "bar",
+      background: "transparent",
+      toolbar: { show: false },
+      animations: { enabled: true, speed: 600, animateGradually: { enabled: true, delay: 80 } },
+    },
+    theme: { mode: chartTheme },
+    plotOptions: {
+      bar: {
+        borderRadius: 8,
+        borderRadiusApplication: "end",
+        distributed: true,
+        columnWidth: "55%",
+      },
+    },
+    dataLabels: { enabled: false },
+    legend: { show: false },
+    xaxis: {
+      categories: dadosCategoria.map((d) => d.nome),
+      labels: {
+        style: { colors: mutedColor, fontSize: "11px" },
+        rotate: dadosCategoria.length > 4 ? -30 : 0,
+      },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      labels: {
+        style: { colors: mutedColor, fontSize: "11px" },
+        formatter: (v) => `R$${(v / 1000).toFixed(0)}k`,
+      },
+    },
+    colors: dadosCategoria.map((d) => d.cor),
+    grid: {
+      borderColor,
+      strokeDashArray: 4,
+      xaxis: { lines: { show: false } },
+    },
+    tooltip: {
+      theme: chartTheme,
+      y: { formatter: (v) => brl(v) },
+    },
+    fill: {
+      type: "gradient",
+      gradient: {
+        shade: isDark ? "dark" : "light",
+        type: "vertical",
+        shadeIntensity: 0.3,
+        opacityFrom: 1,
+        opacityTo: 0.75,
+      },
+    },
+  };
+
+  const barSeries = [{ name: "Gasto", data: dadosCategoria.map((d) => d.valor) }];
+
+  // Donut chart — Dinheiro vs VR
+  const donutOptions: ApexOptions = {
+    chart: {
+      type: "donut",
+      background: "transparent",
+      animations: { enabled: true, speed: 600 },
+    },
+    theme: { mode: chartTheme },
+    labels: dadosVrNormal.map((d) => d.nome),
+    colors: [cssVar("--primary") || "#8b5cf6", cssVar("--terracota") || "#ec4899"],
+    stroke: { show: false },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: "65%",
+          labels: {
+            show: true,
+            total: {
+              show: true,
+              label: "Total",
+              color: textColor,
+              fontSize: "13px",
+              formatter: (w) =>
+                brl(w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0)),
+            },
+            value: {
+              color: textColor,
+              fontSize: "18px",
+              fontWeight: "600",
+              formatter: (v) => brl(Number(v)),
+            },
+          },
+        },
+      },
+    },
+    dataLabels: { enabled: false },
+    legend: {
+      position: "bottom",
+      fontSize: "12px",
+      labels: { colors: mutedColor },
+      markers: { size: 8 },
+    },
+    tooltip: {
+      theme: chartTheme,
+      y: { formatter: (v) => brl(v) },
+    },
+  };
+
+  const donutSeries = dadosVrNormal.map((d) => d.valor);
+
+  // Bar chart mensal
+  const mesNames = ["Retrasado", "Passado", "Atual"];
+  const mesValues = [r?.mesRetrasado ?? 0, r?.mesPassado ?? 0, r?.mesAtual ?? 0];
+  const primaryColor = cssVar("--primary") || "#8b5cf6";
+
+  const mensalOptions: ApexOptions = {
+    chart: {
+      type: "bar",
+      background: "transparent",
+      toolbar: { show: false },
+      animations: { enabled: true, speed: 500 },
+    },
+    theme: { mode: chartTheme },
+    plotOptions: {
+      bar: {
+        borderRadius: 8,
+        borderRadiusApplication: "end",
+        columnWidth: "45%",
+        colors: {
+          ranges: [{ from: 0, to: 999999999, color: primaryColor }],
+        },
+      },
+    },
+    dataLabels: { enabled: false },
+    xaxis: {
+      categories: mesNames,
+      labels: { style: { colors: mutedColor, fontSize: "12px" } },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      labels: {
+        style: { colors: mutedColor, fontSize: "11px" },
+        formatter: (v) => `R$${(v / 1000).toFixed(0)}k`,
+      },
+    },
+    grid: {
+      borderColor,
+      strokeDashArray: 4,
+      xaxis: { lines: { show: false } },
+    },
+    tooltip: {
+      theme: chartTheme,
+      y: { formatter: (v) => brl(v) },
+    },
+    fill: {
+      type: "gradient",
+      gradient: {
+        shade: isDark ? "dark" : "light",
+        type: "vertical",
+        shadeIntensity: 0.25,
+        opacityFrom: 1,
+        opacityTo: 0.7,
+      },
+    },
+    colors: [primaryColor],
+  };
+
+  const mensalSeries = [{ name: "Gasto", data: mesValues }];
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
@@ -128,7 +303,7 @@ function InicioPage() {
         </Button>
       </div>
 
-      {/* Progresso do Enxoval SEMPRE visível */}
+      {/* Progresso do Enxoval */}
       {meta > 0 ? (
         <div className="rounded-2xl border bg-card p-5 shadow-soft">
           <div className="flex items-center justify-between mb-3">
@@ -180,12 +355,12 @@ function InicioPage() {
       ) : (
         <>
           {/* Cards principais */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             <ResumoCard
               icon={Wallet}
               label="Total gasto"
               valor={brl(r?.totalGeral)}
-              hint={`${r?.itensComprados ?? 0} de ${r?.totalItens ?? 0} itens`}
+              hint={`${r?.itensComprados ?? 0} de ${r?.totalItens ?? 0} itens comprados`}
               delay={0}
             />
             <ResumoCard
@@ -199,105 +374,89 @@ function InicioPage() {
               icon={CreditCard}
               label="Parcelado"
               valor={brl(totalParcelado)}
-              hint="Soma das compras"
+              hint="Soma das compras parceladas"
               delay={0.1}
             />
-            {variacao != null && (
-              <ResumoCard
-                icon={variacao >= 0 ? TrendingUp : TrendingDown}
-                label="Vs mês passado"
-                valor={variacao === 0 ? "—" : `${variacao > 0 ? "+" : ""}${variacao.toFixed(0)}%`}
-                hint={brl(r?.mesAtual)}
-                delay={0.15}
-              />
-            )}
           </div>
 
           {/* Gráficos */}
           <div className="grid lg:grid-cols-3 gap-4">
+            {/* Bar — Gasto por categoria */}
             <div className="lg:col-span-2 rounded-2xl border bg-card p-5 shadow-soft">
-              <h3 className="font-display text-lg font-semibold mb-4">Gasto por categoria</h3>
+              <h3 className="font-display text-lg font-semibold mb-1">Gasto por categoria</h3>
+              <p className="text-xs text-muted-foreground mb-4">Distribuição de valores por cômodo</p>
               {dadosCategoria.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sem gastos ainda.</p>
+                <p className="text-sm text-muted-foreground py-16 text-center">Sem gastos ainda.</p>
               ) : (
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={dadosCategoria}>
-                      <XAxis dataKey="nome" tick={{ fontSize: 11 }} interval={0} angle={-20} textAnchor="end" height={60} />
-                      <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R$${v}`} />
-                      <Tooltip
-                        formatter={(v: number) => brl(v)}
-                        contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))" }}
-                      />
-                      <Bar dataKey="valor" radius={[8, 8, 0, 0]}>
-                        {dadosCategoria.map((_, i) => (
-                          <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <ReactApexChart
+                  key={`bar-${isDark}`}
+                  type="bar"
+                  options={barOptions}
+                  series={barSeries}
+                  height={260}
+                />
               )}
             </div>
 
+            {/* Donut — Dinheiro vs VR */}
             <div className="rounded-2xl border bg-card p-5 shadow-soft">
-              <h3 className="font-display text-lg font-semibold mb-4">Dinheiro vs VR</h3>
+              <h3 className="font-display text-lg font-semibold mb-1">Dinheiro vs VR</h3>
+              <p className="text-xs text-muted-foreground mb-2">Forma de pagamento</p>
               {dadosVrNormal.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sem gastos ainda.</p>
+                <p className="text-sm text-muted-foreground py-16 text-center">Sem gastos ainda.</p>
               ) : (
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={dadosVrNormal}
-                        dataKey="valor"
-                        nameKey="nome"
-                        innerRadius={45}
-                        outerRadius={80}
-                        paddingAngle={4}
-                      >
-                        {dadosVrNormal.map((_, i) => (
-                          <Cell key={i} fill={CHART_COLORS[i]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(v: number) => brl(v)} />
-                      <Legend wrapperStyle={{ fontSize: 12 }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                <ReactApexChart
+                  key={`donut-${isDark}`}
+                  type="donut"
+                  options={donutOptions}
+                  series={donutSeries}
+                  height={260}
+                />
               )}
             </div>
           </div>
 
+          {/* Comparativo mensal */}
           {temMensais && (
             <div className="rounded-2xl border bg-card p-5 shadow-soft">
-              <h3 className="font-display text-lg font-semibold mb-4">Comparativo mensal</h3>
-              <div className="h-56">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={dadosMensais}>
-                    <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R$${v}`} />
-                    <Tooltip formatter={(v: number) => brl(v)} />
-                    <Bar dataKey="valor" radius={[8, 8, 0, 0]} fill="hsl(var(--primary))" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <h3 className="font-display text-lg font-semibold mb-1">Comparativo mensal</h3>
+              <p className="text-xs text-muted-foreground mb-4">Evolução dos gastos nos últimos meses</p>
+              <ReactApexChart
+                key={`mensal-${isDark}`}
+                type="bar"
+                options={mensalOptions}
+                series={mensalSeries}
+                height={220}
+              />
             </div>
           )}
 
-          {/* Meta por categoria */}
+          {/* Progresso por cômodo */}
           {r?.porCategoria && r.porCategoria.length > 0 && (
             <div className="rounded-2xl border bg-card p-5 shadow-soft">
-              <h3 className="font-display text-lg font-semibold mb-4">Progresso por cômodo</h3>
-              <div className="space-y-3">
+              <h3 className="font-display text-lg font-semibold mb-1">Progresso por cômodo</h3>
+              <p className="text-xs text-muted-foreground mb-4">Quanto já foi gasto em relação à meta de cada cômodo</p>
+              <div className="space-y-4">
                 {r.porCategoria.map((c) => {
                   const metaC = c.metaOrcamento ?? 0;
                   const pctC = metaC > 0 ? Math.min(100, (c.totalGasto / metaC) * 100) : 0;
+                  const IconComp = iconFor(c.icon);
                   return (
                     <div key={c.categoriaId}>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="font-medium">{c.categoriaNome}</span>
-                        <span className="text-muted-foreground">
+                      <div className="flex justify-between text-sm mb-1.5">
+                        <span className="font-medium flex items-center gap-2">
+                          <span
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0"
+                            style={{ background: (c.cor ?? "#8b5cf6") + "33" }}
+                          >
+                            <IconComp
+                              className="w-4 h-4"
+                              style={{ color: c.cor ?? "var(--primary)" }}
+                            />
+                          </span>
+                          {c.categoriaNome}
+                        </span>
+                        <span className="text-muted-foreground text-xs">
                           {brl(c.totalGasto)}
                           {metaC > 0 && <span> / {brl(metaC)}</span>}
                         </span>
@@ -305,7 +464,10 @@ function InicioPage() {
                       {metaC > 0 ? (
                         <Progress value={pctC} />
                       ) : (
-                        <div className="h-2 rounded-full bg-muted" />
+                        <div
+                          className="h-2 rounded-full"
+                          style={{ background: c.cor ?? "var(--muted)" }}
+                        />
                       )}
                     </div>
                   );
@@ -316,7 +478,7 @@ function InicioPage() {
         </>
       )}
 
-      {/* Resumo da IA SEMPRE visível */}
+      {/* Resumo da IA */}
       <div className="rounded-2xl border bg-card p-5 shadow-soft relative overflow-hidden">
         <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
           <Bot className="w-32 h-32" />

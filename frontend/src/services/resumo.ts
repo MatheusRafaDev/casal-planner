@@ -50,6 +50,8 @@ export function adaptarResumo(raw: RawResumo, categorias: Categoria[] = []): Res
         totalItens: Number(qtdDict[categoriaId] ?? 0),
         itensComprados: Number(compDict[categoriaId] ?? 0),
         metaOrcamento: cat?.metaOrcamento ?? null,
+        cor: cat?.bg ?? null,
+        icon: cat?.icon ?? null,
       };
     },
   );
@@ -65,7 +67,7 @@ export function adaptarResumo(raw: RawResumo, categorias: Categoria[] = []): Res
     mesAtual: comparativo.mesAtual ?? 0,
     mesPassado: comparativo.mesPassado ?? 0,
     mesRetrasado: comparativo.mesRetrasado ?? 0,
-    variacaoMensal: null,
+    variacaoMensal: comparativo.totalGeral ?? null,
     porCategoria,
   };
 }

@@ -17,6 +17,7 @@ namespace CasalPlanner.API.Helpers
                 tipoConta = "Individual",
                 isCasal = false,
                 modoEscuro = usuario.ModoEscuro,
+                metaGlobalEnxoval = usuario.MetaGlobalEnxoval,
                 createdAt = usuario.CreatedAt,
                 lastLoginAt = usuario.LastLoginAt
             };
@@ -37,6 +38,7 @@ namespace CasalPlanner.API.Helpers
                     tipoConta = "Casal",
                     isCasal = true,
                     modoEscuro = usuario.ModoEscuro,
+                    metaGlobalEnxoval = usuario.MetaGlobalEnxoval,
                     createdAt = usuario.CreatedAt,
                     lastLoginAt = usuario.LastLoginAt,
                     pessoaLogada = pessoaQueLogou,
@@ -65,6 +67,7 @@ namespace CasalPlanner.API.Helpers
                     tipoConta = "Casal",
                     isCasal = true,
                     modoEscuro = usuario.ModoEscuro,
+                    metaGlobalEnxoval = usuario.MetaGlobalEnxoval,
                     createdAt = usuario.CreatedAt,
                     lastLoginAt = usuario.LastLoginAt,
                     casalInfo = new

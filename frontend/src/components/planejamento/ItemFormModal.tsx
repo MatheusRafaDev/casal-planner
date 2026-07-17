@@ -204,6 +204,7 @@ export function ItemFormModal({
               <Select
                 value={String(form.parcelas ?? 1)}
                 onValueChange={(v) => set("parcelas", Number(v))}
+                disabled={form.pagamento === "vr"}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -219,11 +220,14 @@ export function ItemFormModal({
               <Label>Pagamento</Label>
               <Select
                 value={form.pagamento}
-                onValueChange={(v) => set("pagamento", v as "normal" | "vr")}
+                onValueChange={(v) => {
+                  set("pagamento", v as "normal" | "vr");
+                  if (v === "vr") set("parcelas", 1);
+                }}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="normal">Dinheiro</SelectItem>
                   <SelectItem value="vr">VR / VA</SelectItem>
                 </SelectContent>
               </Select>

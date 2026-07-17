@@ -7,6 +7,7 @@ export interface CategoriaInputDTO {
   bg: string;
   ordem?: number;
   metaOrcamento?: number | null;
+  removerMeta?: boolean;
 }
 
 export const categoriasService = {

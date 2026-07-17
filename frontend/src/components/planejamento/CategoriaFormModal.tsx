@@ -55,6 +55,7 @@ export function CategoriaFormModal({ open, onOpenChange, categoria }: Props) {
       icon,
       bg,
       metaOrcamento: meta ? Number(meta) : null,
+      removerMeta: !meta,
     });
   };
 

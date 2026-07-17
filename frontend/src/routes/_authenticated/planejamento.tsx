@@ -60,32 +60,26 @@ import { iconFor } from "@/components/planejamento/icon-map";
 import { CategoriaFormModal } from "@/components/planejamento/CategoriaFormModal";
 import { ItemFormModal } from "@/components/planejamento/ItemFormModal";
 import { AddItemWizard } from "@/components/planejamento/AddItemWizard";
+import { getLogoUrl } from "@/lib/logos";
 
 export const Route = createFileRoute("/_authenticated/planejamento")({
   head: () => ({
     meta: [
-      { title: "Planejamento — Casal Planner" },
+      { title: "Planejamento - CasalPlanner" },
       { name: "robots", content: "noindex" },
     ],
   }),
   component: PlanejamentoPage,
 });
 
-const getFaviconUrl = (urlOrDomain: string) => {
-  try {
-    const domain = urlOrDomain.startsWith('http') ? new URL(urlOrDomain).hostname : urlOrDomain;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-  } catch {
-    return null;
-  }
-};
+
 
 function PlanejamentoPage() {
   const qc = useQueryClient();
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
   const buscaDebounced = useDeferredValue(busca);
-  const [filtroStatus, setFiltroStatus] = useState<"todos" | "comprados" | "faltando">("todos");
+  const [filtroStatus, setFiltroStatus] = useState<"todos" | "comprados" | "faltando" | "presentes">("todos");
   const [filtroPagamento, setFiltroPagamento] = useState<"todos" | "normal" | "vr">("todos");
 
   const [novaCategoria, setNovaCategoria] = useState(false);
@@ -123,7 +117,27 @@ function PlanejamentoPage() {
       if (filtroPagamento !== "todos" && i.pagamento !== filtroPagamento) return false;
       return true;
     });
-  }, [itens, busca, filtroStatus, filtroPagamento]);
+  }, [itens, buscaDebounced, filtroStatus, filtroPagamento]);
+
+  const namesToResolve = useMemo(() => {
+    const names = new Set<string>();
+    itensFiltrados.forEach((it) => {
+      if (it.marca) names.add(it.marca);
+      if (it.loja) names.add(it.loja);
+    });
+    return Array.from(names);
+  }, [itensFiltrados]);
+
+  const dominiosQuery = useQuery({
+    queryKey: ["dominios", namesToResolve],
+    queryFn: () => groqService.descobrirDominios(namesToResolve),
+    enabled: namesToResolve.length > 0,
+    staleTime: Infinity,
+  });
+
+  const resolvedDomains = dominiosQuery.data ?? {};
+
+
 
   const totalCategoria = itens.reduce((s, i) => s + i.preco * i.quantidade, 0);
   const compradosCategoria = itens.filter((i) => i.comprado).length;
@@ -197,7 +211,7 @@ function PlanejamentoPage() {
           <Button variant="secondary" onClick={() => setNovaCategoria(true)}>
             <Plus className="h-4 w-4 mr-1" /> Novo cômodo
           </Button>
-          <Button onClick={() => setWizardOpen(true)} disabled={!catAtualId}>
+          <Button onClick={() => setWizardOpen(true)} disabled={categorias.length === 0}>
             <Sparkles className="h-4 w-4 mr-1" /> Adicionar item
           </Button>
         </div>
@@ -417,7 +431,7 @@ function PlanejamentoPage() {
                   <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Qualquer pagamento</SelectItem>
-                    <SelectItem value="normal">Normal</SelectItem>
+                    <SelectItem value="normal">Dinheiro</SelectItem>
                     <SelectItem value="vr">VR / VA</SelectItem>
                   </SelectContent>
                 </Select>
@@ -464,10 +478,10 @@ function PlanejamentoPage() {
                       ) : (
                         <div
                           className="h-12 w-12 rounded-lg grid place-items-center text-white shrink-0"
-                          style={{ backgroundColor: catAtual.bg }}
+                          style={{ backgroundColor: categorias.find(c => c.id === it.categoriaId)?.bg ?? "#27272a" }}
                         >
                           {(() => {
-                            const I = iconFor(catAtual.icon);
+                            const I = iconFor(categorias.find(c => c.id === it.categoriaId)?.icon ?? "package");
                             return <I className="h-5 w-5" />;
                           })()}
                         </div>
@@ -479,8 +493,8 @@ function PlanejamentoPage() {
                           </div>
                           {it.marca && (
                             <Badge variant="secondary" className="text-[10px] py-0 px-1.5 h-4 font-normal flex items-center gap-1">
-                              {getFaviconUrl(`${it.marca}.com.br`) && (
-                                <img src={getFaviconUrl(`${it.marca}.com.br`)!} alt="" className="w-3 h-3 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                              {getLogoUrl(it.marca, null, resolvedDomains) && (
+                                <img src={getLogoUrl(it.marca, null, resolvedDomains)!} alt="" className="w-3 h-3 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
                               )}
                               {it.marca}
                             </Badge>
@@ -489,8 +503,8 @@ function PlanejamentoPage() {
                             it.linkProduto ? (
                               <a href={it.linkProduto} target="_blank" rel="noreferrer" className="hover:opacity-80 transition-opacity">
                                 <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4 font-normal bg-muted/30 flex items-center gap-1 cursor-pointer">
-                                  {getFaviconUrl(it.linkProduto) && (
-                                    <img src={getFaviconUrl(it.linkProduto)!} alt="" className="w-3 h-3 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                  {getLogoUrl(it.loja, it.linkProduto, resolvedDomains) && (
+                                    <img src={getLogoUrl(it.loja, it.linkProduto, resolvedDomains)!} alt="" className="w-3 h-3 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
                                   )}
                                   {it.loja}
                                   <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
@@ -498,8 +512,8 @@ function PlanejamentoPage() {
                               </a>
                             ) : (
                               <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4 font-normal bg-muted/30 flex items-center gap-1">
-                                {getFaviconUrl(`${it.loja}.com.br`) && (
-                                  <img src={getFaviconUrl(`${it.loja}.com.br`)!} alt="" className="w-3 h-3 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                {getLogoUrl(it.loja, null, resolvedDomains) && (
+                                  <img src={getLogoUrl(it.loja, null, resolvedDomains)!} alt="" className="w-3 h-3 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
                                 )}
                                 {it.loja}
                               </Badge>
@@ -514,7 +528,7 @@ function PlanejamentoPage() {
                               it.pagamento === "vr" && "border-primary text-primary",
                             )}
                           >
-                            {it.pagamento === "vr" ? "VR" : "Normal"}
+                            {it.pagamento === "vr" ? "VR" : "Dinheiro"}
                           </Badge>
                           {it.origem === "ganho" && (
                             <Badge className="text-[10px] py-0 bg-emerald-500 hover:bg-emerald-600 text-white border-transparent">
@@ -523,12 +537,12 @@ function PlanejamentoPage() {
                           )}
                           {it.prioridade === "alta" && (
                             <Badge className="text-[10px] py-0 bg-red-600 hover:bg-red-700 text-white border-transparent">
-                              URGENTE 🔥
+                              Alta
                             </Badge>
                           )}
                           {it.prioridade === "baixa" && (
                             <Badge className="text-[10px] py-0" variant="secondary">
-                              BAIXA ↓
+                              Baixa
                             </Badge>
                           )}
                         </div>

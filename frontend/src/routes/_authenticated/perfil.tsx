@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { User, Moon, Sun, Trash2, KeyRound, Target, Save } from "lucide-react";
+import { User, Moon, Sun, Trash2, KeyRound, Target, Save, ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/lib/theme-context";
 import { usuarioService } from "@/services/usuario";
@@ -334,6 +334,7 @@ function MetaEnxovalCard({
 
 function TrocarSenhaCard() {
   const { usuario } = useAuth();
+  const [aberto, setAberto] = useState(false);
   const [atual, setAtual] = useState("");
   const [nova, setNova] = useState("");
   const [conf, setConf] = useState("");
@@ -350,42 +351,64 @@ function TrocarSenhaCard() {
       setAtual("");
       setNova("");
       setConf("");
+      setAberto(false);
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
   });
   return (
-    <section className="rounded-2xl border bg-card p-5 shadow-soft">
-      <div className="flex items-center gap-2 mb-3">
-        <KeyRound className="h-4 w-4 text-primary" />
-        <h2 className="font-display text-lg font-semibold">Trocar senha</h2>
-      </div>
-      <form
-        className="grid md:grid-cols-3 gap-3"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (nova.length < 6) return toast.error("Nova senha muito curta");
-          if (nova !== conf) return toast.error("Confirmação não confere");
-          mut.mutate();
+    <section className="rounded-2xl border bg-card shadow-soft overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setAberto((v) => !v)}
+        className="w-full flex items-center justify-between p-5 text-left hover:bg-muted/40 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <KeyRound className="h-4 w-4 text-primary" />
+          <span className="font-display text-lg font-semibold">Trocar senha</span>
+        </div>
+        <ChevronDown
+          className="h-4 w-4 text-muted-foreground transition-transform duration-200"
+          style={{ transform: aberto ? "rotate(180deg)" : "rotate(0deg)" }}
+        />
+      </button>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateRows: aberto ? "1fr" : "0fr",
+          transition: "grid-template-rows 0.25s ease",
         }}
       >
-        <div>
-          <Label>Senha atual</Label>
-          <Input type="password" value={atual} onChange={(e) => setAtual(e.target.value)} required />
+        <div style={{ overflow: "hidden" }}>
+          <form
+            className="grid md:grid-cols-3 gap-3 px-5 pb-5"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (nova.length < 6) return toast.error("Nova senha muito curta");
+              if (nova !== conf) return toast.error("Confirmação não confere");
+              mut.mutate();
+            }}
+          >
+            <div>
+              <Label>Senha atual</Label>
+              <Input type="password" value={atual} onChange={(e) => setAtual(e.target.value)} required />
+            </div>
+            <div>
+              <Label>Nova senha</Label>
+              <Input type="password" value={nova} onChange={(e) => setNova(e.target.value)} required />
+            </div>
+            <div>
+              <Label>Confirmar</Label>
+              <Input type="password" value={conf} onChange={(e) => setConf(e.target.value)} required />
+            </div>
+            <div className="md:col-span-3">
+              <Button type="submit" disabled={mut.isPending} className="bg-gradient-primary">
+                {mut.isPending ? "Salvando..." : "Trocar senha"}
+              </Button>
+            </div>
+          </form>
         </div>
-        <div>
-          <Label>Nova senha</Label>
-          <Input type="password" value={nova} onChange={(e) => setNova(e.target.value)} required />
-        </div>
-        <div>
-          <Label>Confirmar</Label>
-          <Input type="password" value={conf} onChange={(e) => setConf(e.target.value)} required />
-        </div>
-        <div className="md:col-span-3">
-          <Button type="submit" disabled={mut.isPending} className="bg-gradient-primary">
-            {mut.isPending ? "Salvando..." : "Trocar senha"}
-          </Button>
-        </div>
-      </form>
+      </div>
     </section>
   );
 }

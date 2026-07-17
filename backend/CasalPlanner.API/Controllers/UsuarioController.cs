@@ -402,24 +402,29 @@ public class UsuarioController : ControllerBase
             return Unauthorized();
 
         var usuario = await _context.Usuarios
-            .Find(u => u.Id == usuarioId && u.TipoConta == TipoConta.Individual)
+            .Find(u => u.Id == usuarioId)
             .FirstOrDefaultAsync();
 
         if (usuario == null)
-            return NotFound(new { message = "Usuário não encontrado ou não é conta individual" });
+            return NotFound(new { message = "Usuário não encontrado" });
 
         var update = Builders<Usuario>.Update;
         var updates = new List<UpdateDefinition<Usuario>>();
 
-        // Atualiza apenas os campos que vieram no DTO
-        if (!string.IsNullOrWhiteSpace(dto.NomeCompleto))
-            updates.Add(update.Set(u => u.NomeCompleto, dto.NomeCompleto));
+        if (usuario.TipoConta == TipoConta.Individual)
+        {
+            if (!string.IsNullOrWhiteSpace(dto.NomeCompleto))
+                updates.Add(update.Set(u => u.NomeCompleto, dto.NomeCompleto));
 
-        if (dto.DataNascimento.HasValue)
-            updates.Add(update.Set(u => u.DataNascimento, dto.DataNascimento.Value));
+            if (dto.DataNascimento.HasValue)
+                updates.Add(update.Set(u => u.DataNascimento, dto.DataNascimento.Value));
+        }
+
+        if (dto.MetaGlobalEnxoval.HasValue)
+            updates.Add(update.Set(u => u.MetaGlobalEnxoval, dto.MetaGlobalEnxoval.Value));
 
         if (!updates.Any())
-            return Ok(new { message = "Nenhum campo para atualizar", usuario });
+            return Ok(new { message = "Nenhum campo para atualizar" });
 
         await _context.Usuarios.UpdateOneAsync(
             u => u.Id == usuarioId,
@@ -430,16 +435,11 @@ public class UsuarioController : ControllerBase
             .Find(u => u.Id == usuarioId)
             .FirstOrDefaultAsync();
 
-        return Ok(new
-        {
-            usuarioAtualizado?.Id,
-            usuarioAtualizado?.NomeCompleto,
-            usuarioAtualizado?.Email,
-            DataNascimento = usuarioAtualizado?.DataNascimento?.ToString("yyyy-MM-dd"),
-            usuarioAtualizado?.ModoEscuro,
-            usuarioAtualizado?.TipoConta,
-            usuarioAtualizado?.IsCasal
-        });
+        var usuarioMapeado = usuarioAtualizado!.TipoConta == TipoConta.Casal
+            ? UsuarioMapper.MapearCasal(usuarioAtualizado, User.FindFirst("PessoaLogada")?.Value)
+            : UsuarioMapper.MapearIndividual(usuarioAtualizado);
+
+        return Ok(usuarioMapeado);
     }
 
 

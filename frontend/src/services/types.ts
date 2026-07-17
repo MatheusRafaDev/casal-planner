@@ -80,6 +80,8 @@ export interface ResumoCategoria {
   totalItens: number;
   itensComprados: number;
   metaOrcamento?: number | null;
+  cor?: string | null;
+  icon?: string | null;
 }
 
 export interface Resumo {

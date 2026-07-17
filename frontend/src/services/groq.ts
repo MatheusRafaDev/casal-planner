@@ -37,4 +37,9 @@ export const groqService = {
     };
   },
   resumoEnxoval: () => api<{ resumo: string }>("/api/groq/resumo-enxoval"),
+  descobrirDominios: (nomes: string[]) =>
+    api<Record<string, string>>("/api/groq/dominios", {
+      method: "POST",
+      body: { nomes },
+    }),
 };

@@ -5,17 +5,25 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { pesquisaPrecosService } from "@/services/pesquisa-precos";
-import type { PesquisaPrecoResultado } from "@/services/types";
 import { brl } from "@/lib/formatters";
+import { groqService } from "@/services/groq";
+import { useEffect, useMemo } from "react";
+import { getLogoUrl } from "@/lib/logos";
 
 interface Props {
   initialQuery?: string;
   onEscolher?: (r: PesquisaPrecoResultado) => void;
 }
 
+
 export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
   const [q, setQ] = useState(initialQuery);
   const [ativa, setAtiva] = useState(initialQuery);
+
+  useEffect(() => {
+    setQ(initialQuery);
+    setAtiva(initialQuery);
+  }, [initialQuery]);
 
   const query = useQuery({
     queryKey: ["pesquisa-precos", ativa],
@@ -23,6 +31,26 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
     enabled: ativa.trim().length > 2,
     staleTime: 60_000,
   });
+
+  const namesToResolve = useMemo(() => {
+    if (!query.data?.resultados) return [];
+    const names = new Set<string>();
+    query.data.resultados.forEach((r) => {
+      if (r.marca) names.add(r.marca);
+      if (r.loja) names.add(r.loja);
+    });
+    return Array.from(names);
+  }, [query.data?.resultados]);
+
+  const dominiosQuery = useQuery({
+    queryKey: ["dominios", namesToResolve],
+    queryFn: () => groqService.descobrirDominios(namesToResolve),
+    enabled: namesToResolve.length > 0,
+    staleTime: Infinity,
+  });
+
+  const resolvedDomains = dominiosQuery.data ?? {};
+
 
   return (
     <div className="space-y-4">
@@ -40,10 +68,23 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
             placeholder="Ex.: Geladeira Brastemp Frost Free"
             value={q}
             onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                setAtiva(q.trim());
+              }
+            }}
           />
         </div>
         <Button type="submit" disabled={query.isFetching}>
-          {query.isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buscar"}
+          {query.isFetching ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Pesquisando...
+            </>
+          ) : (
+            "Buscar"
+          )}
         </Button>
       </form>
 
@@ -95,7 +136,22 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
                   </Badge>
                 )}
                 {r.isUsed && <Badge variant="outline">Usado</Badge>}
-                {r.loja && <span className="text-xs text-muted-foreground">{r.loja}</span>}
+                {r.marca && (
+                  <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-5 font-normal bg-muted/30 flex items-center gap-1.5">
+                    {getLogoUrl(r.marca, null, resolvedDomains) && (
+                      <img src={getLogoUrl(r.marca, null, resolvedDomains)!} alt="" className="w-3.5 h-3.5 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                    )}
+                    {r.marca}
+                  </Badge>
+                )}
+                {r.loja && (
+                  <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-5 font-normal bg-muted/30 flex items-center gap-1.5">
+                    {getLogoUrl(r.loja, r.link, resolvedDomains) && (
+                      <img src={getLogoUrl(r.loja, r.link, resolvedDomains)!} alt="" className="w-3.5 h-3.5 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                    )}
+                    {r.loja}
+                  </Badge>
+                )}
               </div>
               <div className="flex items-center justify-between mt-2 gap-2">
                 <div className="font-display font-semibold text-primary">

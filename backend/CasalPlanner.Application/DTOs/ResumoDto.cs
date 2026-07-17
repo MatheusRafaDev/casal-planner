@@ -12,6 +12,7 @@ namespace CasalPlanner.Application.DTOs
         public int TotalItens { get; set; }
         public Dictionary<string, decimal> PorCategoria { get; set; } = new();
         public Dictionary<string, int> QuantidadePorCategoria { get; set; } = new();
+        public Dictionary<string, int> CompradosPorCategoria { get; set; } = new();
         public decimal PercentualConcluido { get; set; }
     }
 
@@ -22,6 +23,9 @@ namespace CasalPlanner.Application.DTOs
         public decimal TotalNormal { get; set; }
         public decimal TotalComprados { get; set; }
         public decimal PercentualGeral { get; set; }
+        public decimal MesAtual { get; set; }
+        public decimal MesPassado { get; set; }
+        public decimal MesRetrasado { get; set; }
     }
 
     public class ResumoEnxovalDto
