@@ -47,6 +47,29 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+
+      // Para arquivos PWA estáticos, garantir headers corretos mesmo no Worker.
+      // (O arquivo _headers funciona no Cloudflare Pages; esta lógica cobre o Workers.)
+      if (url.pathname === "/sw.js") {
+        const handler = await getServerEntry();
+        const response = await handler.fetch(request, env, ctx);
+        const newHeaders = new Headers(response.headers);
+        newHeaders.set("Content-Type", "application/javascript; charset=utf-8");
+        newHeaders.set("Service-Worker-Allowed", "/");
+        newHeaders.set("Cache-Control", "no-cache, no-store, must-revalidate");
+        return new Response(response.body, { status: response.status, headers: newHeaders });
+      }
+
+      if (url.pathname === "/manifest.json") {
+        const handler = await getServerEntry();
+        const response = await handler.fetch(request, env, ctx);
+        const newHeaders = new Headers(response.headers);
+        newHeaders.set("Content-Type", "application/manifest+json; charset=utf-8");
+        newHeaders.set("Cache-Control", "no-cache");
+        return new Response(response.body, { status: response.status, headers: newHeaders });
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

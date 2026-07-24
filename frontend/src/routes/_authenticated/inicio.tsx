@@ -388,13 +388,16 @@ function InicioPage() {
               {dadosCategoria.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-16 text-center">Sem gastos ainda.</p>
               ) : (
-                <ReactApexChart
-                  key={`bar-${isDark}`}
-                  type="bar"
-                  options={barOptions}
-                  series={barSeries}
-                  height={260}
-                />
+                <div className="w-full overflow-hidden">
+                  <ReactApexChart
+                    key={`bar-${isDark}`}
+                    type="bar"
+                    options={{ ...barOptions, chart: { ...barOptions.chart, width: "100%" } }}
+                    series={barSeries}
+                    height={260}
+                    width="100%"
+                  />
+                </div>
               )}
             </div>
 
@@ -405,13 +408,16 @@ function InicioPage() {
               {dadosVrNormal.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-16 text-center">Sem gastos ainda.</p>
               ) : (
-                <ReactApexChart
-                  key={`donut-${isDark}`}
-                  type="donut"
-                  options={donutOptions}
-                  series={donutSeries}
-                  height={260}
-                />
+                <div className="w-full overflow-hidden">
+                  <ReactApexChart
+                    key={`donut-${isDark}`}
+                    type="donut"
+                    options={{ ...donutOptions, chart: { ...donutOptions.chart, width: "100%" } }}
+                    series={donutSeries}
+                    height={260}
+                    width="100%"
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -421,13 +427,16 @@ function InicioPage() {
             <div className="rounded-2xl border bg-card p-5 shadow-soft">
               <h3 className="font-display text-lg font-semibold mb-1">Comparativo mensal</h3>
               <p className="text-xs text-muted-foreground mb-4">Evolução dos gastos nos últimos meses</p>
-              <ReactApexChart
-                key={`mensal-${isDark}`}
-                type="bar"
-                options={mensalOptions}
-                series={mensalSeries}
-                height={220}
-              />
+              <div className="w-full overflow-hidden">
+                <ReactApexChart
+                  key={`mensal-${isDark}`}
+                  type="bar"
+                  options={{ ...mensalOptions, chart: { ...mensalOptions.chart, width: "100%" } }}
+                  series={mensalSeries}
+                  height={220}
+                  width="100%"
+                />
+              </div>
             </div>
           )}
 

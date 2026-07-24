@@ -200,19 +200,19 @@ function PlanejamentoPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-3xl md:text-4xl font-semibold">Planejamento</h1>
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl md:text-4xl font-semibold">Planejamento</h1>
           <p className="text-muted-foreground text-sm">
             Organize os itens por cômodo, controle o orçamento e pesquise preços com IA.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => setNovaCategoria(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Novo cômodo
+        <div className="flex gap-2 shrink-0">
+          <Button variant="secondary" size="sm" onClick={() => setNovaCategoria(true)}>
+            <Plus className="h-4 w-4 mr-1" /> <span className="hidden xs:inline">Novo cômodo</span><span className="xs:hidden">Cômodo</span>
           </Button>
-          <Button onClick={() => setWizardOpen(true)} disabled={categorias.length === 0}>
-            <Sparkles className="h-4 w-4 mr-1" /> Adicionar item
+          <Button size="sm" onClick={() => setWizardOpen(true)} disabled={categorias.length === 0}>
+            <Sparkles className="h-4 w-4 mr-1" /> <span className="hidden xs:inline">Adicionar item</span><span className="xs:hidden">Item</span>
           </Button>
         </div>
       </header>
@@ -406,7 +406,7 @@ function PlanejamentoPage() {
 
               {/* Filtros */}
               <div className="flex flex-wrap items-center gap-2">
-                <div className="relative flex-1 min-w-[200px]">
+                <div className="relative flex-1 basis-full sm:basis-auto sm:min-w-[200px] min-w-0">
                   <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     className="pl-9"
@@ -415,26 +415,28 @@ function PlanejamentoPage() {
                     onChange={(e) => setBusca(e.target.value)}
                   />
                 </div>
-                <Select value={filtroStatus} onValueChange={(v) => setFiltroStatus(v as typeof filtroStatus)}>
-                  <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos</SelectItem>
-                    <SelectItem value="faltando">Faltando</SelectItem>
-                    <SelectItem value="comprados">Comprados</SelectItem>
-                    <SelectItem value="presentes">Presentes</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select
-                  value={filtroPagamento}
-                  onValueChange={(v) => setFiltroPagamento(v as typeof filtroPagamento)}
-                >
-                  <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Qualquer pagamento</SelectItem>
-                    <SelectItem value="normal">Dinheiro</SelectItem>
-                    <SelectItem value="vr">VR / VA</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <Select value={filtroStatus} onValueChange={(v) => setFiltroStatus(v as typeof filtroStatus)}>
+                    <SelectTrigger className="flex-1 sm:w-[160px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="faltando">Faltando</SelectItem>
+                      <SelectItem value="comprados">Comprados</SelectItem>
+                      <SelectItem value="presentes">Presentes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={filtroPagamento}
+                    onValueChange={(v) => setFiltroPagamento(v as typeof filtroPagamento)}
+                  >
+                    <SelectTrigger className="flex-1 sm:w-[160px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Qualquer pagamento</SelectItem>
+                      <SelectItem value="normal">Dinheiro</SelectItem>
+                      <SelectItem value="vr">VR / VA</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Itens */}
