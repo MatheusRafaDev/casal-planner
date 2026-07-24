@@ -14,22 +14,10 @@ export const groqService = {
       detectado: boolean;
       itemSimilar?: string;
       mensagem?: string;
-    } | {
-      Detectado: boolean;
-      ItemSimilar?: string;
-      Mensagem?: string;
     }>("/api/groq/detectar-duplicata", {
       method: "POST",
       body: { nomeNovoItem: nome, categoriaId },
     });
-
-    // Adaptar resposta do backend (PascalCase) para o formato esperado (camelCase)
-    if ('Detectado' in raw) {
-      return {
-        duplicata: raw.Detectado,
-        itemSimilar: raw.ItemSimilar,
-      };
-    }
 
     return {
       duplicata: raw.detectado,

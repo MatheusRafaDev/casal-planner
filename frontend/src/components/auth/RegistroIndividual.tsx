@@ -16,7 +16,6 @@ export function RegistroIndividual() {
     nomeCompleto: "",
     email: "",
     senha: "",
-    senha: "",
     dataNascimento: "",
   });
   const [loading, setLoading] = useState(false);
@@ -28,7 +27,6 @@ export function RegistroIndividual() {
       const res = await usuarioService.registrarIndividual({
         nomeCompleto: form.nomeCompleto,
         email: form.email,
-        senha: form.senha,
         senha: form.senha,
         dataNascimento: brToIsoDate(form.dataNascimento) ?? undefined,
       });

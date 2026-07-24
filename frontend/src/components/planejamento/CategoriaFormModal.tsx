@@ -82,7 +82,7 @@ export function CategoriaFormModal({ open, onOpenChange, categoria }: Props) {
 
           <div className="space-y-2">
             <Label>Ícone</Label>
-            <div className="grid grid-cols-8 gap-2">
+            <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
               {ICON_NAMES.map((name) => {
                 const I = ICON_MAP[name];
                 const active = icon === name;

@@ -55,6 +55,10 @@ namespace CasalPlanner.API.Controllers
             var usuarioId = GetUsuarioId();
 
             var itens = await _context.Itens.Find(i => i.UsuarioId == usuarioId).ToListAsync();
+            if (!string.IsNullOrEmpty(dto.CategoriaId))
+            {
+                itens = itens.Where(i => i.CategoriaId == dto.CategoriaId).ToList();
+            }
             var nomes = itens.Select(i => i.Nome).ToList();
 
             var duplicata = await _groqService.DetectarItemRedundante(dto.NomeNovoItem, nomes);
@@ -152,5 +156,6 @@ namespace CasalPlanner.API.Controllers
     public class DetectarDuplicataDto
     {
         public string NomeNovoItem { get; set; } = string.Empty;
+        public string? CategoriaId { get; set; }
     }
 }

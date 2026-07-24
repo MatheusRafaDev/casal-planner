@@ -14,14 +14,12 @@ interface PessoaForm {
   nome: string;
   email: string;
   senha: string;
-  senha: string;
   dataNascimento: string;
 }
 
 const emptyPessoa = (): PessoaForm => ({
   nome: "",
   email: "",
-  senha: "",
   senha: "",
   dataNascimento: "",
 });
@@ -98,7 +96,6 @@ export function RegistroCasal() {
       const map = (p: PessoaForm) => ({
         nome: p.nome,
         email: p.email,
-        senha: p.senha,
         senha: p.senha,
         dataNascimento: brToIsoDate(p.dataNascimento) ?? undefined,
       });

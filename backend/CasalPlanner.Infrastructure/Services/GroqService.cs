@@ -6,6 +6,10 @@ namespace CasalPlanner.Infrastructure.Services
 {
     public class GroqService
     {
+        private static readonly JsonSerializerOptions LlmJsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly string _apiKey;
         private readonly ILogger<GroqService> _logger;
@@ -259,7 +263,7 @@ Responda APENAS em JSON válido, sem texto adicional, no formato:
                 if (string.IsNullOrWhiteSpace(resultContent))
                     return null;
 
-                return JsonSerializer.Deserialize<SugestaoItensDto>(resultContent);
+                return JsonSerializer.Deserialize<SugestaoItensDto>(resultContent, LlmJsonOptions);
             }
             catch (Exception ex)
             {
@@ -329,7 +333,7 @@ Responda APENAS em JSON válido:
                 if (string.IsNullOrWhiteSpace(resultContent))
                     return null;
 
-                return JsonSerializer.Deserialize<DuplicataDto>(resultContent);
+                return JsonSerializer.Deserialize<DuplicataDto>(resultContent, LlmJsonOptions);
             }
             catch (Exception ex)
             {
@@ -398,7 +402,7 @@ Responda APENAS em JSON válido:
                 if (string.IsNullOrWhiteSpace(resultContent))
                     return null;
 
-                return JsonSerializer.Deserialize<EstimativaComodoDto>(resultContent);
+                return JsonSerializer.Deserialize<EstimativaComodoDto>(resultContent, LlmJsonOptions);
             }
             catch (Exception ex)
             {
@@ -594,7 +598,7 @@ Se não souber o domínio oficial de um nome, omita-o do JSON. Exemplo:
                 if (string.IsNullOrWhiteSpace(resultContent))
                     return null;
 
-                return JsonSerializer.Deserialize<Dictionary<string, string>>(resultContent);
+                return JsonSerializer.Deserialize<Dictionary<string, string>>(resultContent, LlmJsonOptions);
             }
             catch (Exception ex)
             {

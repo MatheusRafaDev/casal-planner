@@ -9,6 +9,7 @@ import { brl } from "@/lib/formatters";
 import { groqService } from "@/services/groq";
 import { useEffect, useMemo } from "react";
 import { getLogoUrl } from "@/lib/logos";
+import type { PesquisaPrecoResultado } from "@/services/types";
 
 interface Props {
   initialQuery?: string;
