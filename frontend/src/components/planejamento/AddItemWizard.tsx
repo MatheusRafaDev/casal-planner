@@ -51,7 +51,6 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   const [parcelas, setParcelas] = useState(1);
   const [pagamento, setPagamento] = useState<"normal" | "vr">("normal");
   const [prioridade, setPrioridade] = useState("media");
-  const [continuar, setContinuar] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestRef = useRef<HTMLDivElement>(null);
@@ -129,12 +128,8 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
       qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
       toast.success("Item adicionado ao cômodo");
-      if (continuar) {
-        reset();
-      } else {
-        onOpenChange(false);
-        reset();
-      }
+      onOpenChange(false);
+      reset();
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -183,7 +178,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         if (!o) reset();
       }}
     >
-      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90dvh] overflow-hidden flex flex-col">
+      <DialogContent className="w-[95vw] max-w-2xl max-h-[85dvh] overflow-hidden flex flex-col p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="font-display flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" /> Novo item
@@ -431,17 +426,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   </Select>
                 </div>
               </div>
-              <div className="pt-2">
-                <label className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
-                  <input
-                    type="checkbox"
-                    className="rounded border-input text-primary focus:ring-primary h-4 w-4"
-                    checked={continuar}
-                    onChange={(e) => setContinuar(e.target.checked)}
-                  />
-                  <span>Continuar adicionando itens após salvar</span>
-                </label>
-              </div>
+
             </div>
           )}
         </div>
