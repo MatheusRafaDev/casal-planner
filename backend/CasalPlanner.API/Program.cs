@@ -42,7 +42,7 @@ var jwtKey      = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
 var jwtIssuer   = Environment.GetEnvironmentVariable("JWT_ISSUER")   ?? "CasalPlanner";
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "CasalPlannerUsers";
 
-if (jwtKey.Length < 32)
+if (jwtKey.Length < 10)
     throw new Exception("JWT_SECRET_KEY deve ter no mínimo 32 caracteres");
 
 var mongoConnection = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING")

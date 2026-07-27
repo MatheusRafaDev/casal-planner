@@ -105,7 +105,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
         </div>
       )}
 
-      <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+      <div className="space-y-2 max-h-[50dvh] overflow-y-auto pr-1">
         {query.data?.resultados?.map((r, i) => (
           <div
             key={`${r.link}-${i}`}
