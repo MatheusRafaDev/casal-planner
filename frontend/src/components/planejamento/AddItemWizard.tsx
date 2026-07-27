@@ -348,7 +348,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   <img
                     src={escolhido.thumbnail}
                     alt=""
-                    className="mt-4 h-32 rounded-lg border object-cover"
+                    className="mt-4 h-32 w-full max-w-full rounded-lg border object-contain"
                   />
                 )}
               </div>

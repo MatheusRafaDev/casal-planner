@@ -13,12 +13,14 @@ import {
 } from "lucide-react";
 import ReactApexChart from "react-apexcharts";
 import type { ApexOptions } from "apexcharts";
+import { Pie, PieChart, Cell, Bar, BarChart, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { resumoService } from "@/services/resumo";
 import { groqService } from "@/services/groq";
 import { brl } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { iconFor } from "@/components/planejamento/icon-map";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
@@ -99,6 +101,14 @@ function InicioPage() {
       valor: c.totalGasto,
       cor: c.cor ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length],
     })) ?? [];
+
+  const chartConfig = dadosCategoria.reduce((acc, c, i) => {
+    acc[c.nomeBase] = {
+      label: c.nome,
+      color: c.cor,
+    };
+    return acc;
+  }, {} as Record<string, { label: string; color: string }>);
 
   const dadosVrNormal = [
     { nome: "Dinheiro", valor: r?.totalNormal ?? 0 },
@@ -292,11 +302,11 @@ function InicioPage() {
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <h1 className="font-display text-3xl md:text-4xl font-semibold">Início</h1>
           <p className="text-muted-foreground">Seu enxoval em números.</p>
         </div>
-        <Button asChild className="bg-gradient-primary shadow-warm">
+        <Button asChild className="bg-gradient-primary shadow-warm shrink-0">
           <Link to="/planejamento">
             Ir para o planejamento <ArrowRight className="h-4 w-4 ml-2" />
           </Link>
@@ -306,10 +316,10 @@ function InicioPage() {
       {/* Progresso do Enxoval */}
       {meta > 0 ? (
         <div className="rounded-2xl border bg-card p-5 shadow-soft">
-          <div className="flex items-center justify-between mb-3">
-            <div>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="min-w-0 flex-1">
               <div className="text-sm text-muted-foreground">Progresso do enxoval</div>
-              <div className="font-display text-xl font-semibold">
+              <div className="font-display text-xl font-semibold truncate">
                 {brl(r?.totalGeral)} <span className="text-muted-foreground text-base">de {brl(meta)}</span>
               </div>
               {(meta - (r?.totalGeral ?? 0)) > 0 && (
@@ -318,19 +328,19 @@ function InicioPage() {
                 </div>
               )}
             </div>
-            <span className="text-sm font-medium text-primary">{pct.toFixed(0)}%</span>
+            <span className="text-sm font-medium text-primary shrink-0">{pct.toFixed(0)}%</span>
           </div>
           <Progress value={pct} />
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-5 flex items-center justify-between shadow-soft">
-          <div>
+        <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-soft">
+          <div className="min-w-0 flex-1">
             <div className="font-semibold text-primary">Progresso do enxoval</div>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+            <p className="text-sm text-muted-foreground mt-1">
               Defina um orçamento máximo para o seu enxoval e acompanhe o progresso aqui.
             </p>
           </div>
-          <Link to="/perfil">
+          <Link to="/perfil" className="shrink-0">
             <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
               <Target className="mr-2 h-4 w-4" />
               Definir meta
@@ -340,7 +350,7 @@ function InicioPage() {
       )}
 
       {semDados ? (
-        <div className="rounded-2xl border bg-gradient-warm p-10 text-center shadow-soft">
+        <div className="rounded-2xl border bg-gradient-warm p-6 sm:p-10 text-center shadow-soft">
           <Sparkles className="h-8 w-8 mx-auto text-primary mb-3" />
           <h2 className="font-display text-xl font-semibold mb-2">
             Comece adicionando itens ao seu planejamento
@@ -355,7 +365,7 @@ function InicioPage() {
       ) : (
         <>
           {/* Cards principais */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <ResumoCard
               icon={Wallet}
               label="Total gasto"
@@ -380,41 +390,49 @@ function InicioPage() {
           </div>
 
           {/* Gráficos */}
-          <div className="grid lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Pie Chart — Gasto por cômodo */}
+            <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
+              <h3 className="font-display text-lg font-semibold mb-1">Gasto por cômodo</h3>
+              <p className="text-xs text-muted-foreground mb-4">Distribuição de valores por cômodo</p>
+              {dadosCategoria.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-16 text-center">Sem gastos ainda.</p>
+              ) : (
+                <ChartContainer config={chartConfig} className="h-[300px] w-full max-w-full">
+                  <PieChart>
+                    <Pie
+                      data={dadosCategoria}
+                      dataKey="valor"
+                      nameKey="nomeBase"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={2}
+                    >
+                      {dadosCategoria.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.cor} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                  </PieChart>
+                </ChartContainer>
+              )}
+            </div>
             {/* Bar — Gasto por categoria */}
-            <div className="lg:col-span-2 rounded-2xl border bg-card p-5 shadow-soft">
+            <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
               <h3 className="font-display text-lg font-semibold mb-1">Gasto por categoria</h3>
               <p className="text-xs text-muted-foreground mb-4">Distribuição de valores por cômodo</p>
               {dadosCategoria.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-16 text-center">Sem gastos ainda.</p>
               ) : (
-                <div className="w-full overflow-hidden">
+                <div id="bar-chart-container" className="w-full overflow-hidden" style={{ height: 300 }}>
                   <ReactApexChart
                     key={`bar-${isDark}`}
                     type="bar"
                     options={{ ...barOptions, chart: { ...barOptions.chart, width: "100%" } }}
                     series={barSeries}
-                    height={260}
-                    width="100%"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Donut — Dinheiro vs VR */}
-            <div className="rounded-2xl border bg-card p-5 shadow-soft">
-              <h3 className="font-display text-lg font-semibold mb-1">Dinheiro vs VR</h3>
-              <p className="text-xs text-muted-foreground mb-2">Forma de pagamento</p>
-              {dadosVrNormal.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-16 text-center">Sem gastos ainda.</p>
-              ) : (
-                <div className="w-full overflow-hidden">
-                  <ReactApexChart
-                    key={`donut-${isDark}`}
-                    type="donut"
-                    options={{ ...donutOptions, chart: { ...donutOptions.chart, width: "100%" } }}
-                    series={donutSeries}
-                    height={260}
+                    height={300}
                     width="100%"
                   />
                 </div>
@@ -424,10 +442,10 @@ function InicioPage() {
 
           {/* Comparativo mensal */}
           {temMensais && (
-            <div className="rounded-2xl border bg-card p-5 shadow-soft">
+            <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
               <h3 className="font-display text-lg font-semibold mb-1">Comparativo mensal</h3>
               <p className="text-xs text-muted-foreground mb-4">Evolução dos gastos nos últimos meses</p>
-              <div className="w-full overflow-hidden">
+              <div id="mensal-chart-container" className="w-full overflow-hidden" style={{ height: 220 }}>
                 <ReactApexChart
                   key={`mensal-${isDark}`}
                   type="bar"
@@ -452,8 +470,8 @@ function InicioPage() {
                   const IconComp = iconFor(c.icon);
                   return (
                     <div key={c.categoriaId}>
-                      <div className="flex justify-between text-sm mb-1.5">
-                        <span className="font-medium flex items-center gap-2">
+                      <div className="flex items-center justify-between gap-2 text-sm mb-1.5">
+                        <span className="font-medium flex items-center gap-2 min-w-0">
                           <span
                             className="inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0"
                             style={{ background: (c.cor ?? "#8b5cf6") + "33" }}
@@ -463,9 +481,9 @@ function InicioPage() {
                               style={{ color: c.cor ?? "var(--primary)" }}
                             />
                           </span>
-                          {c.categoriaNome}
+                          <span className="truncate">{c.categoriaNome}</span>
                         </span>
-                        <span className="text-muted-foreground text-xs">
+                        <span className="text-muted-foreground text-xs shrink-0">
                           {brl(c.totalGasto)}
                           {metaC > 0 && <span> / {brl(metaC)}</span>}
                         </span>

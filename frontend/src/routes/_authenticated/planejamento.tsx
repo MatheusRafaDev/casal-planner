@@ -200,7 +200,7 @@ function PlanejamentoPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-3">
+      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="font-display text-2xl md:text-4xl font-semibold">Planejamento</h1>
           <p className="text-muted-foreground text-sm">
@@ -209,23 +209,38 @@ function PlanejamentoPage() {
         </div>
         <div className="flex gap-2 shrink-0">
           <Button variant="secondary" size="sm" onClick={() => setNovaCategoria(true)}>
-            <Plus className="h-4 w-4 mr-1" /> <span className="hidden xs:inline">Novo cômodo</span><span className="xs:hidden">Cômodo</span>
+            <Plus className="h-4 w-4 mr-1" /> Novo cômodo
           </Button>
           <Button size="sm" onClick={() => setWizardOpen(true)} disabled={categorias.length === 0}>
-            <Sparkles className="h-4 w-4 mr-1" /> <span className="hidden xs:inline">Adicionar item</span><span className="xs:hidden">Item</span>
+            <Sparkles className="h-4 w-4 mr-1" /> Adicionar item
           </Button>
         </div>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-        {/* Coluna cômodos */}
-        <aside className="flex flex-row overflow-x-auto snap-x lg:flex-col gap-3 pb-2 lg:pb-0 lg:space-y-2">
+      {/* Mobile: Select dropdown for rooms */}
+      <div className="lg:hidden">
+        <Select value={catAtualId} onValueChange={(v) => setCategoriaSelecionada(v === "tudo" ? "tudo" : v)}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Selecione um cômodo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="tudo">Todos os Itens</SelectItem>
+            {categorias.map((c) => (
+              <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Desktop: Sidebar with rooms */}
+        <aside className="hidden lg:flex flex-col gap-3 w-[280px] shrink-0">
           {categoriasQ.isLoading && (
             <div className="text-sm text-muted-foreground">Carregando...</div>
           )}
           <div
             className={cn(
-              "group flex items-center gap-3 rounded-xl border p-3 transition-all cursor-pointer shrink-0 w-[240px] lg:w-auto",
+              "group flex items-center gap-3 rounded-xl border p-3 transition-all cursor-pointer",
               catAtualId === "tudo"
                 ? "border-primary bg-primary/5 shadow-soft"
                 : "hover:bg-accent/40 hover:border-accent"
@@ -247,7 +262,7 @@ function PlanejamentoPage() {
               </div>
             </div>
           </div>
-          {categorias.map((c, i) => {
+          {categorias.map((c) => {
             const I = iconFor(c.icon);
             const ativo = c.id === catAtualId;
             const cItens = todosItens.filter(it => it.categoriaId === c.id);
@@ -258,7 +273,7 @@ function PlanejamentoPage() {
               <div
                 key={c.id}
                 className={cn(
-                  "group flex items-center gap-3 rounded-xl border p-3 transition-all cursor-pointer shrink-0 w-[240px] lg:w-auto",
+                  "group flex items-center gap-3 rounded-xl border p-3 transition-all cursor-pointer",
                   ativo
                     ? "border-primary bg-primary/5 shadow-soft"
                     : "hover:bg-accent/40 hover:border-accent",
@@ -335,11 +350,11 @@ function PlanejamentoPage() {
         </aside>
 
         {/* Painel principal */}
-        <section className="space-y-4">
+        <section className="flex-1 space-y-4 min-w-0">
           {catAtualId === "tudo" || catAtual ? (
             <>
               <div className="rounded-2xl bg-gradient-warm p-5 border shadow-soft">
-                <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-3">
                       <span
@@ -352,7 +367,7 @@ function PlanejamentoPage() {
                         })()}
                       </span>
                       <div>
-                        <div className="font-display text-2xl font-semibold">
+                        <div className="font-display text-xl sm:text-2xl font-semibold">
                           {catAtual ? catAtual.nome : "Todos os itens"}
                         </div>
                         <div className="text-sm text-muted-foreground">
@@ -362,9 +377,9 @@ function PlanejamentoPage() {
                     </div>
                   </div>
 
-                  <div className="text-right">
+                  <div className="text-left sm:text-right">
                     <div className="text-xs text-muted-foreground">Total gasto</div>
-                    <div className="font-display text-2xl font-semibold text-primary">
+                    <div className="font-display text-xl sm:text-2xl font-semibold text-primary">
                       {brl(totalCategoria)}
                     </div>
                     {catAtual?.metaOrcamento ? (
@@ -405,8 +420,8 @@ function PlanejamentoPage() {
               </div>
 
               {/* Filtros */}
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="relative flex-1 basis-full sm:basis-auto sm:min-w-[200px] min-w-0">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1 min-w-0">
                   <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     className="pl-9"
@@ -415,9 +430,9 @@ function PlanejamentoPage() {
                     onChange={(e) => setBusca(e.target.value)}
                   />
                 </div>
-                <div className="flex gap-2 w-full sm:w-auto">
+                <div className="flex gap-2 min-w-0">
                   <Select value={filtroStatus} onValueChange={(v) => setFiltroStatus(v as typeof filtroStatus)}>
-                    <SelectTrigger className="flex-1 sm:w-[160px]"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="flex-1 min-w-0 sm:w-[140px]"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
                       <SelectItem value="faltando">Faltando</SelectItem>
@@ -429,7 +444,7 @@ function PlanejamentoPage() {
                     value={filtroPagamento}
                     onValueChange={(v) => setFiltroPagamento(v as typeof filtroPagamento)}
                   >
-                    <SelectTrigger className="flex-1 sm:w-[160px]"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="flex-1 min-w-0 sm:w-[140px]"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Qualquer pagamento</SelectItem>
                       <SelectItem value="normal">Dinheiro</SelectItem>
@@ -460,7 +475,7 @@ function PlanejamentoPage() {
                   <div
                     key={it.id}
                     className={cn(
-                      "flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border bg-card p-3 hover:shadow-soft transition-shadow",
+                      "flex flex-col gap-3 rounded-xl border bg-card p-3 hover:shadow-soft transition-shadow",
                       it.comprado && "opacity-70",
                     )}
                   >
@@ -551,15 +566,15 @@ function PlanejamentoPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pl-10 sm:pl-0">
-                      <div className="text-left sm:text-right">
-                        <div className="font-display font-semibold">{brl(it.preco * it.quantidade)}</div>
-                        <div className="text-xs text-muted-foreground flex flex-col items-end">
+                    <div className="flex items-center justify-between gap-3 pt-2 border-t">
+                      <div className="text-left min-w-0">
+                        <div className="font-display font-semibold truncate">{brl(it.preco * it.quantidade)}</div>
+                        <div className="text-xs text-muted-foreground">
                           <span>
                             {it.quantidade}× {brl(it.preco)}
                           </span>
                           {(it.parcelas ?? 1) > 1 && (
-                            <span className="text-[10px] text-muted-foreground/70 mt-0.5">
+                            <span className="text-[10px] text-muted-foreground/70 ml-2">
                               {it.parcelas}x de {brl(it.preco / (it.parcelas ?? 1))}
                             </span>
                           )}
