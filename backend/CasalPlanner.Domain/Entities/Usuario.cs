@@ -36,6 +36,11 @@ namespace CasalPlanner.Domain.Entities
         public decimal? MetaGlobalEnxoval { get; set; }
 
         public bool ModoEscuro { get; set; } = true;
+
+        // Convite de parceiro
+        public string? ConviteParceiroToken { get; set; }
+        public string? ConviteParceiroEmail { get; set; }
+        public DateTime? ConviteParceiroExpiraEm { get; set; }
     }
 
     public enum TipoConta

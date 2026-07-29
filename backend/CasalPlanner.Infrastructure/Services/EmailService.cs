@@ -1021,6 +1021,194 @@ namespace CasalPlanner.Infrastructure.Services
                 return false;
             }
         }
+
+        public async Task<bool> EnviarEmailConviteParceiro(string email, string nomeConvidante, string linkConvite, DateTime expiraEm)
+        {
+            try
+            {
+                var fromEmail = Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") ?? 
+                               _configuration["Smtp:FromEmail"] ?? 
+                               Environment.GetEnvironmentVariable("SMTP_USERNAME") ?? 
+                               _configuration["Smtp:Username"];
+
+                var fromName = Environment.GetEnvironmentVariable("SMTP_FROM_NAME") ?? 
+                              _configuration["Smtp:FromName"] ?? "CasalPlanner";
+
+                var smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? _configuration["Smtp:Host"];
+                var smtpPortStr = Environment.GetEnvironmentVariable("SMTP_PORT") ?? _configuration["Smtp:Port"];
+                var smtpUser = Environment.GetEnvironmentVariable("SMTP_USERNAME") ?? 
+                              Environment.GetEnvironmentVariable("SMTP_USER") ?? 
+                              _configuration["Smtp:Username"];
+                var smtpPass = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? 
+                              Environment.GetEnvironmentVariable("SMTP_PASS") ?? 
+                              _configuration["Smtp:Password"];
+                var enableSslStr = Environment.GetEnvironmentVariable("SMTP_ENABLE_SSL") ?? 
+                                 _configuration["Smtp:EnableSsl"] ?? "true";
+
+                if (string.IsNullOrEmpty(fromEmail))
+                {
+                    _logger.LogError("❌ FromEmail não configurado no SMTP");
+                    return false;
+                }
+
+                if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpUser))
+                {
+                    _logger.LogWarning("⚠️ SMTP não configurado. Simulando envio de email de convite para {Email}", email);
+                    return true;
+                }
+
+                var smtpPort = int.Parse(smtpPortStr ?? "587");
+                var enableSsl = bool.Parse(enableSslStr ?? "true");
+                var anoAtual = DateTime.UtcNow.Year;
+                var dataExpiracao = expiraEm.ToString("dd/MM/yyyy");
+
+                using var client = new SmtpClient(smtpHost, smtpPort);
+                client.Credentials = new NetworkCredential(smtpUser, smtpPass);
+                client.EnableSsl = enableSsl;
+                client.Timeout = 10000;
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(fromEmail, fromName ?? "CasalPlanner"),
+                    Subject = "💕 Convite para CasalPlanner",
+                    Body = $@"
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset='utf-8'>
+                            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                            <title>Convite para CasalPlanner</title>
+                            <style>
+                                * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+                                body {{
+                                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+                                    line-height: 1.6;
+                                    background: linear-gradient(135deg, #18181B 0%, #27272A 100%);
+                                    margin: 0;
+                                    padding: 20px;
+                                }}
+                                .container {{
+                                    max-width: 560px;
+                                    margin: 0 auto;
+                                    background: #27272A;
+                                    border-radius: 16px;
+                                    overflow: hidden;
+                                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+                                    animation: slideUp 0.4s ease-out;
+                                    border: 1px solid #3F3F46;
+                                }}
+                                @keyframes slideUp {{
+                                    from {{ opacity: 0; transform: translateY(20px); }}
+                                    to {{ opacity: 1; transform: translateY(0); }}
+                                }}
+                                .header {{
+                                    background: linear-gradient(135deg, #A78BFA 0%, #F9A8D4 100%);
+                                    padding: 32px 24px;
+                                    text-align: center;
+                                }}
+                                .logo {{
+                                    font-size: 28px;
+                                    font-weight: 800;
+                                    color: #ffffff;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    gap: 12px;
+                                }}
+                                .content {{ padding: 40px 32px; }}
+                                .greeting {{ font-size: 24px; font-weight: 700; color: #F4F4F5; margin-bottom: 12px; }}
+                                .message {{ color: #D4D4D8; font-size: 15px; margin-bottom: 20px; }}
+                                .invite-box {{
+                                    background: linear-gradient(135deg, #18181B 0%, #27272A 100%);
+                                    border-radius: 16px;
+                                    padding: 28px;
+                                    margin: 24px 0;
+                                    text-align: center;
+                                    border: 1px solid #3F3F46;
+                                }}
+                                .invite-box p {{ color: #D4D4D8; }}
+                                .inviter-name {{ color: #F9A8D4; font-weight: 700; font-size: 18px; }}
+                                .button {{
+                                    display: inline-block;
+                                    background: linear-gradient(135deg, #A78BFA 0%, #F9A8D4 100%);
+                                    color: white;
+                                    padding: 14px 32px;
+                                    border-radius: 40px;
+                                    text-decoration: none;
+                                    font-weight: 600;
+                                    margin-top: 20px;
+                                    transition: transform 0.2s;
+                                }}
+                                .button:hover {{ transform: translateY(-2px); }}
+                                .expiry {{
+                                    font-size: 12px;
+                                    color: #71717A;
+                                    margin-top: 16px;
+                                }}
+                                .footer {{
+                                    background: #18181B;
+                                    padding: 24px 32px;
+                                    text-align: center;
+                                    border-top: 1px solid #3F3F46;
+                                }}
+                                .footer-text {{ color: #71717A; font-size: 12px; margin: 8px 0; }}
+                                @media (max-width: 600px) {{
+                                    body {{ padding: 12px; }}
+                                    .content {{ padding: 28px 20px; }}
+                                    .greeting {{ font-size: 20px; }}
+                                }}
+                            </style>
+                        </head>
+                        <body>
+                            <div class='container'>
+                                <div class='header'>
+                                    <div class='logo'>
+                                        <span>💜</span>
+                                        <span>CasalPlanner</span>
+                                    </div>
+                                </div>
+                                <div class='content'>
+                                    <div class='greeting'>Olá! 💕</div>
+                                    <div class='message'>
+                                        <span class='inviter-name'>{nomeConvidante}</span> convidou você para ser parceiro(a) no CasalPlanner!
+                                    </div>
+                                    <div class='invite-box'>
+                                        <p style='color: #A78BFA; margin-bottom: 12px;'>💌 O que é o CasalPlanner?</p>
+                                        <p style='color: #D4D4D8; font-size: 14px; margin-bottom: 16px;'>
+                                            Um app para casais organizarem juntos o planejamento do enxoval, controlar gastos e compartilhar a lista de compras.
+                                        </p>
+                                        <a href='{linkConvite}' class='button'>Aceitar convite</a>
+                                        <div class='expiry'>
+                                            ⏰ Convite válido até {dataExpiracao}
+                                        </div>
+                                    </div>
+                                    <div class='message' style='font-size: 13px;'>
+                                        Ao aceitar, você poderá criar sua conta com este email e acessar o planejamento compartilhado.
+                                    </div>
+                                </div>
+                                <div class='footer'>
+                                    <div class='footer-text'>💜 CasalPlanner - Organizando sonhos juntos</div>
+                                    <div class='footer-text'>© {anoAtual} CasalPlanner. Todos os direitos reservados.</div>
+                                </div>
+                            </div>
+                        </body>
+                        </html>
+                    ",
+                    IsBodyHtml = true
+                };
+
+                mailMessage.To.Add(email);
+                await client.SendMailAsync(mailMessage);
+
+                _logger.LogInformation("✅ Email de convite enviado para {Email}", email);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Erro ao enviar email de convite para {Email}", email);
+                return false;
+            }
+        }
     }
 
 }

@@ -98,4 +98,24 @@ namespace CasalPlanner.Application.DTOs
     {
         public bool ModoEscuro { get; set; }
     }
+
+    public class CriarConviteDto
+    {
+        [Required]
+        [EmailAddress]
+        public string EmailParceiro { get; set; } = string.Empty;
+    }
+
+    public class ConviteResponseDto
+    {
+        public string Token { get; set; } = string.Empty;
+        public string LinkConvite { get; set; } = string.Empty;
+        public DateTime ExpiraEm { get; set; }
+    }
+
+    public class AceitarConviteDto
+    {
+        [Required]
+        public string Token { get; set; } = string.Empty;
+    }
 }

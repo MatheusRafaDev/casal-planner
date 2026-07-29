@@ -16,6 +16,8 @@ import {
   ArrowUp,
   ArrowDown,
   Package,
+  AlertTriangle,
+  Share2,
 } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -196,6 +198,60 @@ function PlanejamentoPage() {
     enabled: false,
   });
 
+  const handleCompartilhar = async () => {
+    const texto = gerarTextoCompartilhamento();
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Minha Lista de Casamento - CasalPlanner',
+          text: texto,
+        });
+        toast.success('Lista compartilhada com sucesso!');
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          toast.error('Erro ao compartilhar');
+        }
+      }
+    } else {
+      // Fallback: copiar para clipboard
+      await navigator.clipboard.writeText(texto);
+      toast.success('Lista copiada para a área de transferência!');
+    }
+  };
+
+  const gerarTextoCompartilhamento = () => {
+    const itensFiltrados = catAtualId === "tudo" 
+      ? todosItens 
+      : todosItens.filter(it => it.categoriaId === catAtualId);
+    
+    const itensNaoComprados = itensFiltrados.filter(it => !it.comprado);
+    const totalGasto = itensFiltrados.reduce((s, it) => s + (it.preco * it.quantidade), 0);
+    const totalRestante = itensNaoComprados.reduce((s, it) => s + (it.preco * it.quantidade), 0);
+    
+    let texto = `📋 Lista de Casamento - CasalPlanner\n\n`;
+    
+    if (catAtualId !== "tudo" && catAtual) {
+      texto += `🏠 ${catAtual.nome}\n\n`;
+    }
+    
+    texto += `💰 Total gasto: ${brl(totalGasto)}\n`;
+    texto += `📦 Faltam ${itensNaoComprados.length} itens (${brl(totalRestante)})\n\n`;
+    
+    if (itensNaoComprados.length > 0) {
+      texto += `📝 Itens pendentes:\n`;
+      itensNaoComprados.forEach((it, i) => {
+        texto += `${i + 1}. ${it.nome} - ${brl(it.preco)} x${it.quantidade} = ${brl(it.preco * it.quantidade)}\n`;
+        if (it.marca) texto += `   Marca: ${it.marca}\n`;
+        if (it.loja) texto += `   Loja: ${it.loja}\n`;
+      });
+    }
+    
+    texto += `\n✅ ${itensFiltrados.filter(it => it.comprado).length} itens já comprados!`;
+    
+    return texto;
+  };
+
   // Estimativa de comodo não disponível nessa versão do backend
 
   return (
@@ -213,6 +269,9 @@ function PlanejamentoPage() {
           </Button>
           <Button size="sm" onClick={() => setWizardOpen(true)} disabled={categorias.length === 0}>
             <Sparkles className="h-4 w-4 mr-1" /> Adicionar item
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleCompartilhar}>
+            <Share2 className="h-4 w-4 mr-1" /> Compartilhar
           </Button>
         </div>
       </header>
@@ -277,6 +336,7 @@ function PlanejamentoPage() {
                   ativo
                     ? "border-primary bg-primary/5 shadow-soft"
                     : "hover:bg-accent/40 hover:border-accent",
+                  c.metaOrcamento && cGasto > c.metaOrcamento && !ativo && "border-destructive/50 bg-destructive/5"
                 )}
                 onClick={() => setCategoriaSelecionada(c.id)}
               >
@@ -287,11 +347,18 @@ function PlanejamentoPage() {
                   <I className="h-5 w-5" />
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{c.nome}</div>
+                  <div className="font-medium truncate flex items-center gap-2">
+                    {c.nome}
+                    {c.metaOrcamento && cGasto > c.metaOrcamento && (
+                      <span className="text-destructive" title="Orçamento estourado">
+                        <AlertTriangle className="h-4 w-4" />
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-muted-foreground mt-0.5">
                     <div className="flex justify-between items-center">
                       <span>{cComprados}/{cItens.length} itens</span>
-                      <span className="font-medium text-foreground">{brl(cGasto)}</span>
+                      <span className={cn("font-medium", c.metaOrcamento && cGasto > c.metaOrcamento && "text-destructive")}>{brl(cGasto)}</span>
                     </div>
                     {c.metaOrcamento ? (
                       <div className="mt-1.5 space-y-1">
@@ -367,8 +434,13 @@ function PlanejamentoPage() {
                         })()}
                       </span>
                       <div>
-                        <div className="font-display text-xl sm:text-2xl font-semibold">
+                        <div className="font-display text-xl sm:text-2xl font-semibold flex items-center gap-2">
                           {catAtual ? catAtual.nome : "Todos os itens"}
+                          {catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento && (
+                            <span className="text-destructive" title="Orçamento estourado">
+                              <AlertTriangle className="h-5 w-5" />
+                            </span>
+                          )}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {itens.length} itens · {compradosCategoria} comprados
@@ -379,12 +451,15 @@ function PlanejamentoPage() {
 
                   <div className="text-left sm:text-right">
                     <div className="text-xs text-muted-foreground">Total gasto</div>
-                    <div className="font-display text-xl sm:text-2xl font-semibold text-primary">
+                    <div className={cn("font-display text-xl sm:text-2xl font-semibold", catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento ? "text-destructive" : "text-primary")}>
                       {brl(totalCategoria)}
                     </div>
                     {catAtual?.metaOrcamento ? (
                       <div className="text-xs text-muted-foreground">
                         de {brl(catAtual.metaOrcamento)}
+                        {totalCategoria > catAtual.metaOrcamento && (
+                          <span className="text-destructive ml-2">({brl(totalCategoria - catAtual.metaOrcamento)} acima)</span>
+                        )}
                       </div>
                     ) : null}
                   </div>
