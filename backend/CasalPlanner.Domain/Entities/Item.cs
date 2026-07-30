@@ -38,4 +38,14 @@ public class Item
 
     public string Origem { get; set; } = "comprado";
     public string? OrigemDescricao { get; set; }
+
+    public int? ResponsavelId { get; set; }
+    public DivisaoPagamento? DivisaoPagamento { get; set; }
+}
+
+[BsonIgnoreExtraElements]
+public class DivisaoPagamento
+{
+    public decimal ValorPessoa1 { get; set; }
+    public decimal ValorPessoa2 { get; set; }
 }

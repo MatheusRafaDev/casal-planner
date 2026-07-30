@@ -61,7 +61,7 @@ export function CategoriaFormModal({ open, onOpenChange, categoria }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:w-full max-w-[95vw] sm:max-w-lg max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display">
             {isEdit ? "Editar cômodo" : "Novo cômodo"}

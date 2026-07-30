@@ -4,6 +4,12 @@ using System.Text.Json.Serialization;
 
 namespace CasalPlanner.Application.DTOs
 {
+    public class DivisaoPagamentoDto
+    {
+        public decimal ValorPessoa1 { get; set; }
+        public decimal ValorPessoa2 { get; set; }
+    }
+
     public class CriarItemDto
     {
         [Required(ErrorMessage = "Nome do item é obrigatório")]
@@ -38,6 +44,9 @@ namespace CasalPlanner.Application.DTOs
 
         public string Origem { get; set; } = "comprado";
         public string? OrigemDescricao { get; set; }
+
+        public int? ResponsavelId { get; set; }
+        public DivisaoPagamentoDto? DivisaoPagamento { get; set; }
     }
 
     public class UpdateCompradoDto
@@ -75,6 +84,12 @@ namespace CasalPlanner.Application.DTOs
 
         public string? Origem { get; set; }
         public string? OrigemDescricao { get; set; }
+
+        public int? ResponsavelId { get; set; }
+        public bool ClearResponsavelId { get; set; }
+
+        public DivisaoPagamentoDto? DivisaoPagamento { get; set; }
+        public bool ClearDivisaoPagamento { get; set; }
     }
 
 
@@ -106,6 +121,8 @@ namespace CasalPlanner.Application.DTOs
         public string? VarianteSelecionadaId { get; set; }
         public string Origem { get; set; } = "comprado";
         public string? OrigemDescricao { get; set; }
+        public int? ResponsavelId { get; set; }
+        public DivisaoPagamentoDto? DivisaoPagamento { get; set; }
     }
 
     public class UpdateCategoriaDto

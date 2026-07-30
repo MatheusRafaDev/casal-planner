@@ -590,14 +590,14 @@ public class UsuarioController : ControllerBase
         // Criar estrutura de casal
         var casalInfo = new CasalInfo
         {
-            NomeCompletoPessoa1 = usuario.NomeCompleto,
-            EmailPessoa1 = usuario.Email,
+            NomeCompletoPessoa1 = usuario.NomeCompleto ?? string.Empty,
+            EmailPessoa1 = usuario.Email ?? string.Empty,
             DataNascimentoPessoa1 = usuario.DataNascimento,
-            SenhaHashPessoa1 = usuario.SenhaHash,
-            NomeCompletoPessoa2 = null, // Será preenchido pelo parceiro
+            SenhaHashPessoa1 = usuario.SenhaHash ?? string.Empty,
+            NomeCompletoPessoa2 = string.Empty, // Será preenchido pelo parceiro
             EmailPessoa2 = emailParceiro,
             DataNascimentoPessoa2 = null,
-            SenhaHashPessoa2 = null, // Será definido pelo parceiro ao criar conta
+            SenhaHashPessoa2 = string.Empty, // Será definido pelo parceiro ao criar conta
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -614,5 +614,53 @@ public class UsuarioController : ControllerBase
         await _context.Usuarios.UpdateOneAsync(u => u.Id == usuario.Id, update);
 
         return Ok(new { message = "Convite aceito com sucesso. O parceiro pode agora criar sua conta usando este email." });
+    }
+
+    // ========== PUSH NOTIFICATIONS ==========
+
+    [HttpGet("push/vapidPublicKey")]
+    [AllowAnonymous]
+    public IActionResult GetVapidPublicKey([FromServices] IConfiguration config)
+    {
+        var publicKey = config["Vapid:PublicKey"];
+        if (string.IsNullOrEmpty(publicKey))
+            return NotFound(new { message = "VAPID configuration is missing." });
+        return Ok(new { publicKey });
+    }
+
+    [HttpPost("push/subscribe")]
+    [Authorize]
+    public async Task<IActionResult> Subscribe([FromBody] PushSubscriptionDto dto)
+    {
+        var uid = GetUsuarioId();
+        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+
+        var usuario = await _authService.ObterUsuarioPorId(uid);
+        if (usuario == null) return NotFound();
+
+        // Check who is logged in (Pessoa 1 or Pessoa 2) by email
+        var email = GetUsuarioEmailAutenticado();
+        int pessoaId = 1;
+        if (usuario.IsCasal && usuario.CasalInfo != null && usuario.CasalInfo.EmailPessoa2 == email)
+        {
+            pessoaId = 2;
+        }
+
+        // Remove if exists
+        usuario.PushSubscriptions ??= new List<PushSubscriptionInfo>();
+        usuario.PushSubscriptions.RemoveAll(p => p.Endpoint == dto.Endpoint);
+
+        usuario.PushSubscriptions.Add(new PushSubscriptionInfo
+        {
+            Endpoint = dto.Endpoint,
+            P256dh = dto.P256dh,
+            Auth = dto.Auth,
+            PessoaId = pessoaId
+        });
+
+        var update = Builders<Usuario>.Update.Set(u => u.PushSubscriptions, usuario.PushSubscriptions);
+        await _context.Usuarios.UpdateOneAsync(u => u.Id == uid, update);
+
+        return Ok(new { message = "Push subscription saved." });
     }
 }

@@ -69,6 +69,11 @@ export interface Item {
   varianteSelecionadaId?: string | null;
   origem?: string | null;
   origemDescricao?: string | null;
+  responsavelId?: 1 | 2 | null;
+  divisaoPagamento?: {
+    valorPessoa1: number;
+    valorPessoa2: number;
+  } | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -90,6 +95,8 @@ export interface Resumo {
   totalVr: number;
   totalItens: number;
   itensComprados: number;
+  totalPessoa1: number;
+  totalPessoa2: number;
   metaGlobal?: number | null;
   percentualMeta?: number | null;
   mesAtual: number;

@@ -33,6 +33,8 @@ namespace CasalPlanner.Domain.Entities
 
         public CasalInfo? CasalInfo { get; set; }
 
+        public List<PushSubscriptionInfo> PushSubscriptions { get; set; } = new();
+
         public decimal? MetaGlobalEnxoval { get; set; }
 
         public bool ModoEscuro { get; set; } = true;
@@ -81,10 +83,20 @@ namespace CasalPlanner.Domain.Entities
         // Campos para redefinição - Pessoa 2
         public string? ResetCodePessoa2 { get; set; }
         public DateTime? ResetCodeExpiresAtPessoa2 { get; set; }
+
         public string? ResetTokenPessoa2 { get; set; }
         public DateTime? ResetTokenExpiresAtPessoa2 { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
+    }
+
+    [BsonIgnoreExtraElements]
+    public class PushSubscriptionInfo
+    {
+        public string Endpoint { get; set; } = string.Empty;
+        public string P256dh { get; set; } = string.Empty;
+        public string Auth { get; set; } = string.Empty;
+        public int PessoaId { get; set; } // 1 ou 2
     }
 }

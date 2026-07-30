@@ -10,6 +10,8 @@ namespace CasalPlanner.Application.DTOs
         public decimal TotalNormal { get; set; }
         public int TotalComprados { get; set; }
         public int TotalItens { get; set; }
+        public decimal TotalPessoa1 { get; set; }
+        public decimal TotalPessoa2 { get; set; }
         public Dictionary<string, decimal> PorCategoria { get; set; } = new();
         public Dictionary<string, int> QuantidadePorCategoria { get; set; } = new();
         public Dictionary<string, int> CompradosPorCategoria { get; set; } = new();

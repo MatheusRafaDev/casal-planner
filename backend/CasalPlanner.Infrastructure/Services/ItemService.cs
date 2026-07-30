@@ -11,10 +11,12 @@ namespace CasalPlanner.Infrastructure.Services
     public class ItemService : IItemService
     {
         private readonly MongoDbContext _context;
+        private readonly IPushService _pushService;
 
-        public ItemService(MongoDbContext context)
+        public ItemService(MongoDbContext context, IPushService pushService)
         {
             _context = context;
+            _pushService = pushService;
         }
 
         public async Task<List<Item>> GetItensByUsuarioId(string usuarioId)
@@ -32,12 +34,21 @@ namespace CasalPlanner.Infrastructure.Services
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<Item> CriarItem(CriarItemDto dto, string usuarioId)
+        public async Task<Item> CriarItem(CriarItemDto dto, string usuarioId, string emailAutenticado)
         {
             var categoria = await _context.Categorias.Find(c => c.Id == dto.CategoriaId).FirstOrDefaultAsync();
             if (categoria == null || (!categoria.IsPadrao && categoria.UsuarioId != usuarioId))
             {
                 throw new ArgumentException("Categoria inválida ou não pertence ao usuário");
+            }
+
+            if (dto.DivisaoPagamento != null)
+            {
+                var soma = dto.DivisaoPagamento.ValorPessoa1 + dto.DivisaoPagamento.ValorPessoa2;
+                if (soma != (dto.Preco * dto.Quantidade))
+                {
+                    throw new ArgumentException("A soma da divisão de pagamento deve ser igual ao valor total do item (Preço x Quantidade).");
+                }
             }
 
             var item = new Item
@@ -59,14 +70,31 @@ namespace CasalPlanner.Infrastructure.Services
                 OrigemDescricao = dto.OrigemDescricao,
                 Parcelas = dto.Parcelas,
                 Variantes = dto.Variantes ?? new List<string>(),
-                VarianteSelecionadaId = dto.VarianteSelecionadaId
+                VarianteSelecionadaId = dto.VarianteSelecionadaId,
+                ResponsavelId = dto.ResponsavelId,
+                DivisaoPagamento = dto.DivisaoPagamento != null ? new DivisaoPagamento
+                {
+                    ValorPessoa1 = dto.DivisaoPagamento.ValorPessoa1,
+                    ValorPessoa2 = dto.DivisaoPagamento.ValorPessoa2
+                } : null
             };
 
             await _context.Itens.InsertOneAsync(item);
+
+            // Fetch user for push notifications
+            var usuario = await _context.Usuarios.Find(u => u.Id == usuarioId).FirstOrDefaultAsync();
+            if (usuario != null && usuario.IsCasal)
+            {
+                int currentPessoaId = (usuario.CasalInfo?.EmailPessoa2 == emailAutenticado) ? 2 : 1;
+                await _pushService.SendPushToPartnerAsync(usuario, currentPessoaId, 
+                    "Novo Item Adicionado", 
+                    $"Um novo item foi adicionado: {item.Nome}");
+            }
+
             return item;
         }
 
-        public async Task<Item?> AtualizarItem(string id, AtualizarItemDto dto, string usuarioId)
+        public async Task<Item?> AtualizarItem(string id, AtualizarItemDto dto, string usuarioId, string emailAutenticado)
         {
             var update = Builders<Item>.Update;
             var updates = new List<UpdateDefinition<Item>>();
@@ -134,6 +162,41 @@ namespace CasalPlanner.Infrastructure.Services
                 updates.Add(update.Set(i => i.VarianteSelecionadaId, dto.VarianteSelecionadaId));
             }
 
+            if (dto.ClearResponsavelId)
+            {
+                updates.Add(update.Set(i => i.ResponsavelId, null));
+            }
+            else if (dto.ResponsavelId.HasValue)
+            {
+                updates.Add(update.Set(i => i.ResponsavelId, dto.ResponsavelId.Value));
+            }
+
+            if (dto.ClearDivisaoPagamento)
+            {
+                updates.Add(update.Set(i => i.DivisaoPagamento, null));
+            }
+            else if (dto.DivisaoPagamento != null)
+            {
+                updates.Add(update.Set(i => i.DivisaoPagamento, new DivisaoPagamento
+                {
+                    ValorPessoa1 = dto.DivisaoPagamento.ValorPessoa1,
+                    ValorPessoa2 = dto.DivisaoPagamento.ValorPessoa2
+                }));
+            }
+
+            // Validação de divisão na atualização (precisamos do preço e quantidade atualizados ou do banco)
+            if (dto.DivisaoPagamento != null)
+            {
+                var itemAtual = await GetItemById(id, usuarioId);
+                var precoFinal = dto.Preco ?? itemAtual?.Preco ?? 0;
+                var qtdFinal = dto.Quantidade ?? itemAtual?.Quantidade ?? 1;
+                var soma = dto.DivisaoPagamento.ValorPessoa1 + dto.DivisaoPagamento.ValorPessoa2;
+                if (soma != (precoFinal * qtdFinal))
+                {
+                    throw new ArgumentException("A soma da divisão de pagamento deve ser igual ao valor total do item (Preço x Quantidade).");
+                }
+            }
+
             if (updates.Count == 0)
                 return await GetItemById(id, usuarioId);
 
@@ -158,7 +221,7 @@ namespace CasalPlanner.Infrastructure.Services
         }
 
         // Endpoint dedicado para toggle comprado — sem busca prévia, sem double-fetch
-        public async Task<Item?> AtualizarComprado(string id, bool comprado, string usuarioId)
+        public async Task<Item?> AtualizarComprado(string id, bool comprado, string usuarioId, string emailAutenticado)
         {
             var filter = Builders<Item>.Filter.And(
                 Builders<Item>.Filter.Eq(i => i.Id, id),
@@ -174,7 +237,21 @@ namespace CasalPlanner.Infrastructure.Services
                 ReturnDocument = ReturnDocument.After
             };
 
-            return await _context.Itens.FindOneAndUpdateAsync(filter, update, options);
+            var item = await _context.Itens.FindOneAndUpdateAsync(filter, update, options);
+
+            if (item != null && comprado)
+            {
+                var usuario = await _context.Usuarios.Find(u => u.Id == usuarioId).FirstOrDefaultAsync();
+                if (usuario != null && usuario.IsCasal)
+                {
+                    int currentPessoaId = (usuario.CasalInfo?.EmailPessoa2 == emailAutenticado) ? 2 : 1;
+                    await _pushService.SendPushToPartnerAsync(usuario, currentPessoaId,
+                        "Item Comprado!",
+                        $"O item '{item.Nome}' foi marcado como comprado.");
+                }
+            }
+
+            return item;
         }
 
         public async Task<bool> DeletarItem(string id, string usuarioId)

@@ -14,6 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/lib/auth-context";
 import { itensService, type ItemInputDTO } from "@/services/itens";
 import type { Categoria, Item } from "@/services/types";
 import { brl } from "@/lib/formatters";
@@ -57,6 +59,7 @@ export function ItemFormModal({
   const isEdit = !!item;
   const [form, setForm] = useState<ItemInputDTO>(empty(categoriaId));
   const [showLink, setShowLink] = useState(false);
+  const [dividir, setDividir] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -75,9 +78,13 @@ export function ItemFormModal({
           fotoUrl: item.fotoUrl ?? "",
           parcelas: item.parcelas ?? 1,
           origem: item.origem ?? "comprado",
+          responsavelId: item.responsavelId ?? null,
+          divisaoPagamento: item.divisaoPagamento ? { ...item.divisaoPagamento } : null,
         });
+        setDividir(!!item.divisaoPagamento);
       } else {
         setForm({ ...empty(categoriaId), ...initial });
+        setDividir(false);
       }
     }
   }, [open, item, categoriaId, initial]);
@@ -114,15 +121,39 @@ export function ItemFormModal({
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nome.trim()) return toast.error("Informe o nome");
-    mutation.mutate(form);
+    
+    const payload = { ...form };
+    
+    if (dividir && payload.divisaoPagamento) {
+      const soma = payload.divisaoPagamento.valorPessoa1 + payload.divisaoPagamento.valorPessoa2;
+      const total = payload.preco * payload.quantidade;
+      // Allow minor floating point diffs
+      if (Math.abs(soma - total) > 0.01) {
+        return toast.error(`A soma da divisão (${brl(soma)}) deve ser igual ao total (${brl(total)}).`);
+      }
+    } else {
+      payload.clearDivisaoPagamento = true;
+      delete payload.divisaoPagamento;
+    }
+
+    if (payload.responsavelId === null) {
+      payload.clearResponsavelId = true;
+    }
+    
+    mutation.mutate(payload);
   };
 
   const set = <K extends keyof ItemInputDTO>(k: K, v: ItemInputDTO[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
+  const { usuario } = useAuth();
+  const isCasal = usuario?.tipoConta === "Casal";
+  const p1 = usuario?.casalInfo?.pessoa1?.nome || "Pessoa 1";
+  const p2 = usuario?.casalInfo?.pessoa2?.nome || "Pessoa 2";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:w-full max-w-[95vw] sm:max-w-lg max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display">
             {isEdit ? "Editar item" : "Novo item"}
@@ -259,6 +290,98 @@ export function ItemFormModal({
                 </SelectContent>
               </Select>
             </div>
+            {isCasal && (
+              <div className="space-y-4 sm:col-span-2 border rounded-xl p-4 bg-card mt-2">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Dividir pagamento entre o casal?</Label>
+                    <p className="text-xs text-muted-foreground">Especifique quanto cada um vai pagar.</p>
+                  </div>
+                  <Switch
+                    checked={dividir}
+                    onCheckedChange={(checked) => {
+                      setDividir(checked);
+                      if (checked) {
+                        const total = form.preco * form.quantidade;
+                        set("divisaoPagamento", { valorPessoa1: total / 2, valorPessoa2: total / 2 });
+                      } else {
+                        set("divisaoPagamento", null);
+                      }
+                    }}
+                  />
+                </div>
+                
+                {dividir && form.divisaoPagamento && (
+                  <div className="pt-2">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>{p1}</Label>
+                        <CurrencyInput
+                          value={form.divisaoPagamento.valorPessoa1}
+                          onValueChange={(v) =>
+                            set("divisaoPagamento", { ...form.divisaoPagamento!, valorPessoa1: v })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{p2}</Label>
+                        <CurrencyInput
+                          value={form.divisaoPagamento.valorPessoa2}
+                          onValueChange={(v) =>
+                            set("divisaoPagamento", { ...form.divisaoPagamento!, valorPessoa2: v })
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center mt-3">
+                      <div className="text-xs text-muted-foreground">
+                        Total: {brl(form.divisaoPagamento.valorPessoa1 + form.divisaoPagamento.valorPessoa2)} / {brl(form.preco * form.quantidade)}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button type="button" variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => {
+                          const total = form.preco * form.quantidade;
+                          set("divisaoPagamento", { valorPessoa1: total, valorPessoa2: 0 });
+                        }}>
+                          100/0
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => {
+                          const total = form.preco * form.quantidade;
+                          set("divisaoPagamento", { valorPessoa1: total / 2, valorPessoa2: total / 2 });
+                        }}>
+                          50/50
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => {
+                          const total = form.preco * form.quantidade;
+                          set("divisaoPagamento", { valorPessoa1: 0, valorPessoa2: total });
+                        }}>
+                          0/100
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {!dividir && (
+                  <div className="space-y-2 pt-2 border-t mt-4">
+                    <Label>Ou defina um Responsável (quem compra tudo)</Label>
+                    <Select
+                      value={form.responsavelId ? String(form.responsavelId) : "none"}
+                      onValueChange={(v) => {
+                        if (v === "none") set("responsavelId", null);
+                        else set("responsavelId", Number(v) as 1 | 2);
+                      }}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sem responsável (juntos)</SelectItem>
+                        <SelectItem value="1">{p1}</SelectItem>
+                        <SelectItem value="2">{p2}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="space-y-2 sm:col-span-2">
               <Label>Cômodo</Label>
               <Select

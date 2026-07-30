@@ -27,6 +27,13 @@ namespace CasalPlanner.API.Controllers
                 ?? throw new UnauthorizedAccessException("Usuário não autenticado");
         }
 
+        private string GetUsuarioEmailAutenticado()
+        {
+            return User.FindFirst(ClaimTypes.Email)?.Value
+                ?? User.FindFirst(JwtRegisteredClaimNames.Email)?.Value
+                ?? string.Empty;
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetItens()
         {
@@ -48,7 +55,8 @@ namespace CasalPlanner.API.Controllers
         public async Task<IActionResult> CriarItem([FromBody] CriarItemDto dto)
         {
             var usuarioId = GetUsuarioId();
-            var item = await _itemService.CriarItem(dto, usuarioId);
+            var email = GetUsuarioEmailAutenticado();
+            var item = await _itemService.CriarItem(dto, usuarioId, email);
             return CreatedAtAction(nameof(GetItem), new { id = item.Id }, item);
         }
 
@@ -56,16 +64,18 @@ namespace CasalPlanner.API.Controllers
         public async Task<IActionResult> AtualizarItem(string id, [FromBody] AtualizarItemDto dto)
         {
             var usuarioId = GetUsuarioId();
-            var item = await _itemService.AtualizarItem(id, dto, usuarioId);
+            var email = GetUsuarioEmailAutenticado();
+            var item = await _itemService.AtualizarItem(id, dto, usuarioId, email);
             if (item == null) return NotFound();
             return Ok(item);
         }
 
-        [HttpPut("{id}/comprado")]
-        public async Task<IActionResult> UpdateComprado(string id, [FromBody] UpdateCompradoDto dto)
+        [HttpPatch("{id}/comprado")]
+        public async Task<IActionResult> AtualizarComprado(string id, [FromBody] UpdateCompradoDto dto)
         {
             var usuarioId = GetUsuarioId();
-            var item = await _itemService.AtualizarComprado(id, dto.Comprado, usuarioId);
+            var email = GetUsuarioEmailAutenticado();
+            var item = await _itemService.AtualizarComprado(id, dto.Comprado, usuarioId, email);
             if (item == null) return NotFound();
             return Ok(item);
         }
@@ -74,8 +84,9 @@ namespace CasalPlanner.API.Controllers
         public async Task<IActionResult> UpdateCategoria(string id, [FromBody] UpdateCategoriaDto dto)
         {
             var usuarioId = GetUsuarioId();
+            var email = GetUsuarioEmailAutenticado();
             var updateDto = new AtualizarItemDto { CategoriaId = dto.CategoriaId };
-            var item = await _itemService.AtualizarItem(id, updateDto, usuarioId);
+            var item = await _itemService.AtualizarItem(id, updateDto, usuarioId, email);
             if (item == null) return NotFound();
             return Ok(item);
         }

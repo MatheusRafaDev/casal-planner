@@ -18,8 +18,12 @@ import {
   Package,
   AlertTriangle,
   Share2,
+  FileText,
 } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
+
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -57,6 +61,7 @@ import { groqService, type SugestaoItem } from "@/services/groq";
 import type { Categoria, Item } from "@/services/types";
 import { brl } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
 
 import { iconFor } from "@/components/planejamento/icon-map";
 import { CategoriaFormModal } from "@/components/planejamento/CategoriaFormModal";
@@ -83,6 +88,12 @@ function PlanejamentoPage() {
   const buscaDebounced = useDeferredValue(busca);
   const [filtroStatus, setFiltroStatus] = useState<"todos" | "comprados" | "faltando" | "presentes">("todos");
   const [filtroPagamento, setFiltroPagamento] = useState<"todos" | "normal" | "vr">("todos");
+  const [filtroResponsavel, setFiltroResponsavel] = useState<"todos" | "1" | "2">("todos");
+
+  const { usuario } = useAuth();
+  const isCasal = usuario?.tipoConta === "Casal";
+  const p1 = usuario?.casalInfo?.pessoa1?.nome || "Pessoa 1";
+  const p2 = usuario?.casalInfo?.pessoa2?.nome || "Pessoa 2";
 
   const [novaCategoria, setNovaCategoria] = useState(false);
   const [editandoCategoria, setEditandoCategoria] = useState<Categoria | null>(null);
@@ -117,9 +128,13 @@ function PlanejamentoPage() {
       if (filtroStatus === "faltando" && i.comprado) return false;
       if (filtroStatus === "presentes" && i.origem !== "ganho") return false;
       if (filtroPagamento !== "todos" && i.pagamento !== filtroPagamento) return false;
+      if (isCasal && filtroResponsavel !== "todos") {
+        if (filtroResponsavel === "1" && i.responsavelId !== 1) return false;
+        if (filtroResponsavel === "2" && i.responsavelId !== 2) return false;
+      }
       return true;
     });
-  }, [itens, buscaDebounced, filtroStatus, filtroPagamento]);
+  }, [itens, buscaDebounced, filtroStatus, filtroPagamento, filtroResponsavel, isCasal]);
 
   const namesToResolve = useMemo(() => {
     const names = new Set<string>();
@@ -252,6 +267,80 @@ function PlanejamentoPage() {
     return texto;
   };
 
+  const handleExportarPDF = () => {
+    const itensFiltrados = catAtualId === "tudo" 
+      ? todosItens 
+      : todosItens.filter(it => it.categoriaId === catAtualId);
+    
+    const itensNaoComprados = itensFiltrados.filter(it => !it.comprado);
+    const totalGasto = itensFiltrados.reduce((s, it) => s + (it.preco * it.quantidade), 0);
+    const totalRestante = itensNaoComprados.reduce((s, it) => s + (it.preco * it.quantidade), 0);
+
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(139, 92, 246);
+    doc.text("Lista de Casamento", 14, 20);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(100);
+    doc.text("CasalPlanner", 14, 28);
+    
+    // Info section
+    doc.setFontSize(14);
+    doc.setTextColor(0);
+    doc.text(catAtualId !== "tudo" && catAtual ? `Cômodo: ${catAtual.nome}` : "Todos os cômodos", 14, 45);
+    
+    doc.setFontSize(11);
+    doc.text(`Total gasto: ${brl(totalGasto)}`, 14, 55);
+    doc.text(`Pendente: ${brl(totalRestante)}`, 14, 62);
+    doc.text(`Itens comprados: ${itensFiltrados.filter(it => it.comprado).length}/${itensFiltrados.length}`, 14, 69);
+    
+    // Table data
+    const tableData = itensNaoComprados.map((it, i) => [
+      i + 1,
+      it.nome,
+      it.marca || "-",
+      it.loja || "-",
+      it.quantidade,
+      brl(it.preco),
+      brl(it.preco * it.quantidade),
+    ]);
+    
+    // Generate table
+    autoTable(doc, {
+      startY: 80,
+      head: [["#", "Item", "Marca", "Loja", "Qtd", "Preço", "Total"]],
+      body: tableData,
+      theme: "grid",
+      headStyles: {
+        fillColor: [139, 92, 246],
+        textColor: 255,
+        fontStyle: "bold",
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 250],
+      },
+    });
+    
+    // Footer
+    const pageCount = doc.getNumberOfPages();
+    doc.setFontSize(10);
+    doc.setTextColor(150);
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.text(
+        `Página ${i} de ${pageCount} - Gerado em ${new Date().toLocaleDateString("pt-BR")}`,
+        14,
+        doc.internal.pageSize.height - 10
+      );
+    }
+    
+    doc.save(`lista-casamento-${catAtualId === "tudo" ? "todos" : catAtual?.nome ?? "comodo"}.pdf`);
+    toast.success("PDF gerado com sucesso!");
+  };
+
   // Estimativa de comodo não disponível nessa versão do backend
 
   return (
@@ -263,7 +352,7 @@ function PlanejamentoPage() {
             Organize os itens por cômodo, controle o orçamento e pesquise preços com IA.
           </p>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex flex-wrap gap-2 shrink-0">
           <Button variant="secondary" size="sm" onClick={() => setNovaCategoria(true)}>
             <Plus className="h-4 w-4 mr-1" /> Novo cômodo
           </Button>
@@ -272,6 +361,9 @@ function PlanejamentoPage() {
           </Button>
           <Button variant="outline" size="sm" onClick={handleCompartilhar}>
             <Share2 className="h-4 w-4 mr-1" /> Compartilhar
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportarPDF}>
+            <FileText className="h-4 w-4 mr-1" /> PDF
           </Button>
         </div>
       </header>
@@ -526,6 +618,19 @@ function PlanejamentoPage() {
                       <SelectItem value="vr">VR / VA</SelectItem>
                     </SelectContent>
                   </Select>
+                  {isCasal && (
+                    <Select
+                      value={filtroResponsavel}
+                      onValueChange={(v) => setFiltroResponsavel(v as typeof filtroResponsavel)}
+                    >
+                      <SelectTrigger className="flex-1 min-w-0 sm:w-[140px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="todos">Qualquer resp.</SelectItem>
+                        <SelectItem value="1">{p1}</SelectItem>
+                        <SelectItem value="2">{p2}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               </div>
 
@@ -580,7 +685,7 @@ function PlanejamentoPage() {
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <div className={cn("font-medium truncate", it.comprado && "line-through")}>
+                          <div className={cn("font-medium truncate max-w-full", it.comprado && "line-through")}>
                             {it.nome}
                           </div>
                           {it.marca && (
@@ -613,6 +718,11 @@ function PlanejamentoPage() {
                           )}
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
+                          {isCasal && it.responsavelId && (
+                            <Badge variant="outline" className="text-[10px] py-0 bg-primary/5 text-primary border-primary/20">
+                              {it.responsavelId === 1 ? p1 : p2}
+                            </Badge>
+                          )}
                           <Badge
                             variant="outline"
                             className={cn(

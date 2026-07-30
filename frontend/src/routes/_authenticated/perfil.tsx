@@ -40,6 +40,25 @@ function PerfilPage() {
   const { usuario, refresh, logout } = useAuth();
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
+  const [emailParceiro, setEmailParceiro] = useState("");
+  const [linkConvite, setLinkConvite] = useState("");
+  const [copiado, setCopiado] = useState(false);
+
+  const conviteMutation = useMutation({
+    mutationFn: () => conviteService.criar({ emailParceiro }),
+    onSuccess: (data) => {
+      setLinkConvite(data.linkConvite);
+      toast.success("Convite criado com sucesso!");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const copiarLink = async () => {
+    await navigator.clipboard.writeText(linkConvite);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
+    toast.success("Link copiado!");
+  };
 
   if (!usuario) return null;
   const isCasal = usuario.tipoConta === "Casal";
@@ -57,6 +76,70 @@ function PerfilPage() {
           </p>
         </div>
       </div>
+
+      {!isCasal && (
+        <section className="rounded-2xl border bg-card p-5 shadow-soft">
+          <h2 className="font-display text-lg font-semibold mb-4">Convidar parceiro</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Convide seu parceiro para transformar sua conta individual em uma conta de casal compartilhada.
+          </p>
+          {!linkConvite ? (
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="email-parceiro">Email do parceiro</Label>
+                <Input
+                  id="email-parceiro"
+                  type="email"
+                  placeholder="parceiro@email.com"
+                  value={emailParceiro}
+                  onChange={(e) => setEmailParceiro(e.target.value)}
+                />
+              </div>
+              <Button 
+                onClick={() => conviteMutation.mutate()} 
+                disabled={!emailParceiro || conviteMutation.isPending}
+                className="w-full"
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                {conviteMutation.isPending ? "Criando convite..." : "Criar convite"}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm font-medium mb-2">Link de convite:</p>
+                <div className="flex gap-2">
+                  <Input 
+                    value={linkConvite} 
+                    readOnly 
+                    className="text-xs"
+                  />
+                  <Button 
+                    size="icon" 
+                    variant="outline"
+                    onClick={copiarLink}
+                  >
+                    {copiado ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Compartilhe este link com seu parceiro. O convite é válido por 7 dias.
+              </p>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  setLinkConvite("");
+                  setEmailParceiro("");
+                }}
+              >
+                Criar novo convite
+              </Button>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Dados */}
       <section className="rounded-2xl border bg-card p-5 shadow-soft">

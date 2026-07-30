@@ -22,6 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { iconFor } from "@/components/planejamento/icon-map";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   head: () => ({
@@ -58,6 +59,10 @@ function useIsDark() {
 
 function InicioPage() {
   const isDark = useIsDark();
+  const { usuario } = useAuth();
+  const isCasal = usuario?.tipoConta === "Casal";
+  const p1 = usuario?.casalInfo?.pessoa1?.nome || "Pessoa 1";
+  const p2 = usuario?.casalInfo?.pessoa2?.nome || "Pessoa 2";
 
   const { data: categorias = [] } = useQuery({
     queryKey: ["categorias"],
@@ -388,6 +393,46 @@ function InicioPage() {
               delay={0.1}
             />
           </div>
+
+          {/* Divisão de Gastos (Casal) */}
+          {isCasal && (r?.totalPessoa1 > 0 || r?.totalPessoa2 > 0) && (
+            <div className="rounded-2xl border bg-card p-5 shadow-soft">
+              <h3 className="font-display text-lg font-semibold mb-3">Divisão de Gastos</h3>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                <div className="flex-1 w-full">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="font-medium">{p1}</span>
+                    <span className="font-medium">{p2}</span>
+                  </div>
+                  <div className="flex h-3 w-full rounded-full overflow-hidden bg-muted">
+                    <div 
+                      className="h-full bg-primary transition-all" 
+                      style={{ width: `${(r.totalPessoa1 / ((r.totalPessoa1 + r.totalPessoa2) || 1)) * 100}%` }} 
+                    />
+                    <div 
+                      className="h-full bg-terracota transition-all" 
+                      style={{ width: `${(r.totalPessoa2 / ((r.totalPessoa1 + r.totalPessoa2) || 1)) * 100}%`, backgroundColor: 'var(--terracota, #ec4899)' }} 
+                    />
+                  </div>
+                  <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                    <span>{((r.totalPessoa1 / ((r.totalPessoa1 + r.totalPessoa2) || 1)) * 100).toFixed(0)}%</span>
+                    <span>{((r.totalPessoa2 / ((r.totalPessoa1 + r.totalPessoa2) || 1)) * 100).toFixed(0)}%</span>
+                  </div>
+                </div>
+                
+                <div className="flex gap-6 shrink-0">
+                  <div>
+                    <div className="text-xs text-muted-foreground">{p1}</div>
+                    <div className="text-xl font-display font-semibold text-primary">{brl(r.totalPessoa1)}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">{p2}</div>
+                    <div className="text-xl font-display font-semibold" style={{ color: 'var(--terracota, #ec4899)' }}>{brl(r.totalPessoa2)}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Gráficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

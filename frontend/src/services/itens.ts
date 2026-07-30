@@ -18,6 +18,13 @@ export interface ItemInputDTO {
   clearVarianteSelecionadaId?: boolean;
   origem?: string;
   origemDescricao?: string;
+  responsavelId?: 1 | 2 | null;
+  clearResponsavelId?: boolean;
+  divisaoPagamento?: {
+    valorPessoa1: number;
+    valorPessoa2: number;
+  } | null;
+  clearDivisaoPagamento?: boolean;
 }
 
 export const itensService = {

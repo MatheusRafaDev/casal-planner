@@ -81,6 +81,27 @@ namespace CasalPlanner.Infrastructure.Services
                             new BsonArray { "$Comprado", 1, 0 })) },
                         { "TotalItens",     new BsonDocument("$sum", 1) },
 
+                        { "TotalPessoa1", new BsonDocument("$sum", new BsonDocument("$ifNull", new BsonArray
+                            {
+                                new BsonDocument("$convert", new BsonDocument { { "input", "$DivisaoPagamento.ValorPessoa1" }, { "to", "double" }, { "onError", BsonNull.Value }, { "onNull", BsonNull.Value } }),
+                                new BsonDocument("$cond", new BsonArray
+                                {
+                                    new BsonDocument("$eq", new BsonArray { "$ResponsavelId", 1 }),
+                                    "$ValorTotal",
+                                    0
+                                })
+                            })) },
+                        { "TotalPessoa2", new BsonDocument("$sum", new BsonDocument("$ifNull", new BsonArray
+                            {
+                                new BsonDocument("$convert", new BsonDocument { { "input", "$DivisaoPagamento.ValorPessoa2" }, { "to", "double" }, { "onError", BsonNull.Value }, { "onNull", BsonNull.Value } }),
+                                new BsonDocument("$cond", new BsonArray
+                                {
+                                    new BsonDocument("$eq", new BsonArray { "$ResponsavelId", 2 }),
+                                    "$ValorTotal",
+                                    0
+                                })
+                            })) },
+
                         // Array para calcular porCategoria depois
                         { "PorCategoria",   new BsonDocument("$push", new BsonDocument
                             {
@@ -208,6 +229,8 @@ namespace CasalPlanner.Infrastructure.Services
                 TotalNormal            = ToDecimalSafe(doc.GetValue("TotalNormal",   0)),
                 TotalComprados         = totalComprados,
                 TotalItens             = totalItens,
+                TotalPessoa1           = ToDecimalSafe(doc.GetValue("TotalPessoa1",  0)),
+                TotalPessoa2           = ToDecimalSafe(doc.GetValue("TotalPessoa2",  0)),
                 PorCategoria           = porCategoria,
                 QuantidadePorCategoria = quantidadePorCategoria,
                 CompradosPorCategoria  = compradosPorCategoria,
