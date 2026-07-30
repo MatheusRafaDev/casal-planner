@@ -6,6 +6,7 @@ export interface RegistroIndividualDTO {
   email: string;
   senha: string;
   dataNascimento?: string;
+  metaGlobalEnxoval?: number;
 }
 
 export interface RegistroCasalDTO {
@@ -21,6 +22,7 @@ export interface RegistroCasalDTO {
     senha: string;
     dataNascimento?: string;
   };
+  metaGlobalEnxoval?: number;
 }
 
 export const usuarioService = {
@@ -43,6 +45,7 @@ export const usuarioService = {
         emailPessoa2: dto.pessoa2.email,
         senhaPessoa2: dto.pessoa2.senha,
         dataNascimentoPessoa2: dto.pessoa2.dataNascimento,
+        metaGlobalEnxoval: dto.metaGlobalEnxoval,
       },
     }),
   atualizarPerfil: (dto: Partial<Usuario>) =>

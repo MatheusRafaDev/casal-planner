@@ -305,7 +305,7 @@ function InicioPage() {
   const mensalSeries = [{ name: "Gasto", data: mesValues }];
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
+    <div className="p-4 md:p-8 w-full max-w-[1600px] space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <h1 className="font-display text-3xl md:text-4xl font-semibold">Início</h1>

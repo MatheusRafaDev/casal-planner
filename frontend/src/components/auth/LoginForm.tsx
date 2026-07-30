@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,15 +33,19 @@ export function LoginForm() {
     <form onSubmit={submit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="email">E-mail</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="voce@exemplo.com"
-          required
-          autoComplete="email"
-        />
+        <div className="relative">
+          <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="email"
+            type="email"
+            className="pl-9"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="voce@exemplo.com"
+            required
+            autoComplete="email"
+          />
+        </div>
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -52,14 +57,18 @@ export function LoginForm() {
             Esqueci minha senha
           </Link>
         </div>
-        <Input
-          id="senha"
-          type="password"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-          required
-          autoComplete="current-password"
-        />
+        <div className="relative">
+          <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="senha"
+            type="password"
+            className="pl-9"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+            required
+            autoComplete="current-password"
+          />
+        </div>
       </div>
       <Button type="submit" className="w-full bg-gradient-primary shadow-warm" disabled={loading}>
         {loading ? "Entrando..." : "Entrar"}

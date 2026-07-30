@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Heart } from "lucide-react";
+import { Heart, User as UserIcon, Mail, Lock, Calendar, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,35 +41,50 @@ function PessoaFields({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5 sm:col-span-2">
           <Label>Nome</Label>
-          <Input required value={value.nome} onChange={(e) => onChange({ ...value, nome: e.target.value })} />
+          <div className="relative">
+            <UserIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input required className="pl-9" value={value.nome} onChange={(e) => onChange({ ...value, nome: e.target.value })} />
+          </div>
         </div>
         <div className="space-y-1.5">
           <Label>E-mail</Label>
-          <Input
-            type="email"
-            required
-            value={value.email}
-            onChange={(e) => onChange({ ...value, email: e.target.value })}
-          />
+          <div className="relative">
+            <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="email"
+              required
+              className="pl-9"
+              value={value.email}
+              onChange={(e) => onChange({ ...value, email: e.target.value })}
+            />
+          </div>
         </div>
         <div className="space-y-1.5">
           <Label>Senha</Label>
-          <Input
-            type="password"
-            required
-            minLength={6}
-            value={value.senha}
-            onChange={(e) => onChange({ ...value, senha: e.target.value })}
-          />
+          <div className="relative">
+            <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="password"
+              required
+              minLength={6}
+              className="pl-9"
+              value={value.senha}
+              onChange={(e) => onChange({ ...value, senha: e.target.value })}
+            />
+          </div>
         </div>
 
         <div className="space-y-1.5">
           <Label>Nascimento</Label>
-          <Input
-            value={value.dataNascimento}
-            onChange={(e) => onChange({ ...value, dataNascimento: maskDate(e.target.value) })}
-            placeholder="dd/mm/aaaa"
-          />
+          <div className="relative">
+            <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              className="pl-9"
+              value={value.dataNascimento}
+              onChange={(e) => onChange({ ...value, dataNascimento: maskDate(e.target.value) })}
+              placeholder="dd/mm/aaaa"
+            />
+          </div>
         </div>
 
       </div>
@@ -82,6 +97,7 @@ export function RegistroCasal() {
   const { refresh } = useAuth();
   const [p1, setP1] = useState(emptyPessoa());
   const [p2, setP2] = useState(emptyPessoa());
+  const [metaGlobal, setMetaGlobal] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function submit(e: React.FormEvent) {
@@ -99,7 +115,11 @@ export function RegistroCasal() {
         senha: p.senha,
         dataNascimento: brToIsoDate(p.dataNascimento) ?? undefined,
       });
-      const res = await usuarioService.registrarCasal({ pessoa1: map(p1), pessoa2: map(p2) });
+      const res = await usuarioService.registrarCasal({ 
+        pessoa1: map(p1), 
+        pessoa2: map(p2),
+        metaGlobalEnxoval: metaGlobal ? parseFloat(metaGlobal) : undefined
+      });
       setToken(res.token);
       await refresh();
       toast.success("Conta do casal criada!");
@@ -115,6 +135,21 @@ export function RegistroCasal() {
     <form onSubmit={submit} className="space-y-4">
       <PessoaFields label="Pessoa 1" value={p1} onChange={setP1} />
       <PessoaFields label="Pessoa 2" value={p2} onChange={setP2} />
+      <div className="space-y-2 p-4 rounded-xl border bg-card">
+        <Label>Meta do Enxoval (R$)</Label>
+        <div className="relative">
+          <Target className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="number"
+            min="0"
+            step="0.01"
+            className="pl-9"
+            value={metaGlobal}
+            onChange={(e) => setMetaGlobal(e.target.value)}
+            placeholder="Ex: 5000"
+          />
+        </div>
+      </div>
       <Button type="submit" className="w-full bg-gradient-primary shadow-warm" disabled={loading}>
         {loading ? "Criando..." : "Criar conta do casal"}
       </Button>

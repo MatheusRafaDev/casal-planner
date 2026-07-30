@@ -34,6 +34,8 @@ namespace CasalPlanner.Application.DTOs
         [DataType(DataType.Date)]
         public DateTime DataNascimento { get; set; }
 
+        public decimal? MetaGlobalEnxoval { get; set; }
+
         public DateTime DataInclusao { get; set; } = DateTime.UtcNow;
     }
 
@@ -77,6 +79,8 @@ namespace CasalPlanner.Application.DTOs
         [Required(ErrorMessage = "Data de nascimento da segunda pessoa é obrigatória")]
         [DataType(DataType.Date)]
         public DateTime DataNascimentoPessoa2 { get; set; }
+
+        public decimal? MetaGlobalEnxoval { get; set; }
 
         public DateTime DataInclusao { get; set; } = DateTime.UtcNow;
     }

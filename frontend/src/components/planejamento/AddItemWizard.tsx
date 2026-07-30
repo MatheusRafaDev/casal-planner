@@ -29,6 +29,7 @@ import { groqService } from "@/services/groq";
 import { brl } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { getSuggestions } from "@/lib/suggestions";
+import { iconFor } from "@/components/planejamento/icon-map";
 
 interface Props {
   open: boolean;
@@ -106,6 +107,26 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     const s = getSuggestions(value);
     setSuggestions(s);
     setShowSuggestions(s.length > 0);
+
+    // Auto-preencher cômodo baseado em palavras-chave
+    const lowerValue = value.toLowerCase();
+    const map: Record<string, string[]> = {
+      "cozinha": ["geladeira", "fogão", "fogao", "microondas", "micro-ondas", "forno", "liquidificador", "batedeira", "panela", "talher", "copo", "prato", "air fryer"],
+      "quarto": ["cama", "colchão", "colchao", "guarda-roupa", "travesseiro", "lençol", "lencol", "cobertor", "edredom", "cabeceira", "mesa de cabeceira"],
+      "sala": ["sofá", "sofa", "tv", "televisão", "televisao", "rack", "painel", "tapete", "poltrona"],
+      "banheiro": ["toalha", "chuveiro", "espelho", "saboneteira", "tapete de banheiro", "armário de banheiro"],
+      "lavanderia": ["máquina de lavar", "maquina de lavar", "ferro", "tábua", "tabua", "varal", "aspirador"]
+    };
+
+    for (const [catName, keywords] of Object.entries(map)) {
+      if (keywords.some(k => lowerValue.includes(k))) {
+        const cat = categorias.find(c => c.nome.toLowerCase().includes(catName));
+        if (cat) {
+          setCategoriaId(cat.id);
+        }
+        break;
+      }
+    }
   };
 
   const handleSelectSuggestion = (s: string) => {
@@ -256,9 +277,17 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 <Select value={categoriaId} onValueChange={setCategoriaId}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {categorias.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                    ))}
+                    {categorias.map((c) => {
+                      const Icon = iconFor(c.icon);
+                      return (
+                        <SelectItem key={c.id} value={c.id}>
+                          <div className="flex items-center gap-2">
+                            <Icon className="h-4 w-4 text-muted-foreground" />
+                            {c.nome}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
@@ -285,19 +314,6 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
             )}
           </div>
 
-          <div className={cn("py-2 flex-col overflow-hidden flex-1 min-h-0", step === 2 ? "flex" : "hidden")}>
-            <div className="rounded-xl bg-muted/50 p-4 border border-dashed mb-4 shrink-0 flex items-start gap-3">
-              <div className="bg-primary/10 p-2 rounded-lg shrink-0">
-                <Store className="h-5 w-5 text-primary" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-medium text-sm">Pesquisa de Preços</h3>
-                <p className="text-xs text-muted-foreground">
-                  Encontramos estas opções nas principais lojas para <strong>{nome}</strong>. 
-                  Escolha uma para preencher os dados automaticamente, ou pule esta etapa.
-                </p>
-              </div>
-            </div>
             <div className="flex-1 overflow-hidden flex flex-col min-h-0 bg-background/50 rounded-xl border">
               <div className="p-4 flex-1 overflow-y-auto">
                 <PainelPesquisaPrecos

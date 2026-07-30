@@ -64,7 +64,7 @@ function PerfilPage() {
   const isCasal = usuario.tipoConta === "Casal";
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-6">
+    <div className="p-4 md:p-8 w-full max-w-[1000px] space-y-6">
       <div className="flex items-center gap-3">
         <span className="grid place-items-center h-12 w-12 rounded-full bg-gradient-primary text-primary-foreground shadow-warm">
           <User className="h-5 w-5" />

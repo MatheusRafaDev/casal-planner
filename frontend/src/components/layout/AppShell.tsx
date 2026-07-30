@@ -26,9 +26,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       : usuario?.nomeCompleto;
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-background">
+    <div className="min-h-screen flex flex-col bg-background md:pl-64">
       {/* Sidebar desktop */}
-      <aside className="hidden md:flex md:flex-col md:w-64 border-r bg-sidebar text-sidebar-foreground">
+      <aside className="hidden md:flex md:flex-col w-64 border-r bg-sidebar text-sidebar-foreground fixed inset-y-0 left-0 z-50 overflow-hidden">
         <div className="p-6">
           <Link to="/inicio" className="flex items-center gap-2">
             <img src="/logo.png" alt="Casal Planner" className="h-10 w-10 rounded-lg" />

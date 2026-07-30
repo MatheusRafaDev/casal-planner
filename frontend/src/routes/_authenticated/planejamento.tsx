@@ -344,7 +344,7 @@ function PlanejamentoPage() {
   // Estimativa de comodo não disponível nessa versão do backend
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 md:p-8 w-full max-w-[1600px] space-y-6">
       <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="font-display text-2xl md:text-4xl font-semibold">Planejamento</h1>
@@ -377,15 +377,17 @@ function PlanejamentoPage() {
           <SelectContent>
             <SelectItem value="tudo">Todos os Itens</SelectItem>
             {categorias.map((c) => (
-              <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+              <SelectItem key={c.id} value={c.id}>
+                {c.nome} {c.metaOrcamento ? `(Meta: ${brl(c.metaOrcamento)})` : ""}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-4">
         {/* Desktop: Sidebar with rooms */}
-        <aside className="hidden lg:flex flex-col gap-3 w-[280px] shrink-0">
+        <aside className="hidden lg:flex flex-col gap-3 w-[250px] shrink-0">
           {categoriasQ.isLoading && (
             <div className="text-sm text-muted-foreground">Carregando...</div>
           )}
@@ -541,20 +543,30 @@ function PlanejamentoPage() {
                     </div>
                   </div>
 
-                  <div className="text-left sm:text-right">
-                    <div className="text-xs text-muted-foreground">Total gasto</div>
-                    <div className={cn("font-display text-xl sm:text-2xl font-semibold", catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento ? "text-destructive" : "text-primary")}>
-                      {brl(totalCategoria)}
-                    </div>
-                    {catAtual?.metaOrcamento ? (
-                      <div className="text-xs text-muted-foreground">
-                        de {brl(catAtual.metaOrcamento)}
-                        {totalCategoria > catAtual.metaOrcamento && (
-                          <span className="text-destructive ml-2">({brl(totalCategoria - catAtual.metaOrcamento)} acima)</span>
-                        )}
+                    <div className="text-left sm:text-right">
+                      <div className="text-xs text-muted-foreground">Total gasto</div>
+                      <div className={cn("font-display text-xl sm:text-2xl font-semibold", 
+                        (catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento) || 
+                        (!catAtual && usuario?.metaGlobalEnxoval && totalCategoria > usuario.metaGlobalEnxoval) 
+                          ? "text-destructive" : "text-primary")}>
+                        {brl(totalCategoria)}
                       </div>
-                    ) : null}
-                  </div>
+                      {catAtual?.metaOrcamento ? (
+                        <div className="text-xs text-muted-foreground">
+                          de {brl(catAtual.metaOrcamento)}
+                          {totalCategoria > catAtual.metaOrcamento && (
+                            <span className="text-destructive ml-2">({brl(totalCategoria - catAtual.metaOrcamento)} acima)</span>
+                          )}
+                        </div>
+                      ) : (!catAtual && usuario?.metaGlobalEnxoval) ? (
+                        <div className="text-xs text-muted-foreground">
+                          de {brl(usuario.metaGlobalEnxoval)}
+                          {totalCategoria > usuario.metaGlobalEnxoval && (
+                            <span className="text-destructive ml-2">({brl(totalCategoria - usuario.metaGlobalEnxoval)} acima)</span>
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
                 </div>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -565,20 +577,20 @@ function PlanejamentoPage() {
                     </div>
                     <Progress value={percentComprado} />
                   </div>
-                  {percentMeta !== null && (
+                  {(percentMeta !== null || (!catAtual && usuario?.metaGlobalEnxoval)) && (
                     <div>
                       <div className="flex justify-between text-xs mb-1">
                         <span className="text-muted-foreground">Meta de orçamento</span>
                         <span
                           className={cn(
                             "font-medium",
-                            percentMeta > 100 ? "text-destructive" : "",
+                            (percentMeta !== null ? percentMeta : (totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100) > 100 ? "text-destructive" : "",
                           )}
                         >
-                          {percentMeta.toFixed(0)}%
+                          {percentMeta !== null ? percentMeta.toFixed(0) : ((totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100).toFixed(0)}%
                         </span>
                       </div>
-                      <Progress value={percentMeta} />
+                      <Progress value={percentMeta !== null ? percentMeta : ((totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100)} />
                     </div>
                   )}
                 </div>

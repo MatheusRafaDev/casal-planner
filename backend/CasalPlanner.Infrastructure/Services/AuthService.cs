@@ -52,7 +52,8 @@ namespace CasalPlanner.Infrastructure.Services
                 TipoConta = TipoConta.Individual,
                 IsCasal = false,
                 CreatedAt = DateTime.UtcNow,
-                ModoEscuro = true
+                ModoEscuro = true,
+                MetaGlobalEnxoval = dto.MetaGlobalEnxoval
             };
 
             await _context.Usuarios.InsertOneAsync(usuario);
@@ -102,7 +103,8 @@ namespace CasalPlanner.Infrastructure.Services
                         SenhaHashPessoa2 = BCrypt.Net.BCrypt.HashPassword(dto.SenhaPessoa2, workFactor: 12),
                         DataNascimentoPessoa2 = dto.DataNascimentoPessoa2,
                         CreatedAt = DateTime.UtcNow,
-                    }
+                    },
+                    MetaGlobalEnxoval = dto.MetaGlobalEnxoval
                 };
 
                 await _context.Usuarios.InsertOneAsync(usuario);

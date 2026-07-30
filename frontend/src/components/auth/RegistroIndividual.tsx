@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { User, Mail, Lock, Calendar, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,7 @@ export function RegistroIndividual() {
     email: "",
     senha: "",
     dataNascimento: "",
+    metaGlobalEnxoval: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -29,6 +31,7 @@ export function RegistroIndividual() {
         email: form.email,
         senha: form.senha,
         dataNascimento: brToIsoDate(form.dataNascimento) ?? undefined,
+        metaGlobalEnxoval: form.metaGlobalEnxoval ? parseFloat(form.metaGlobalEnxoval) : undefined,
       });
       setToken(res.token);
       await refresh();
@@ -45,40 +48,72 @@ export function RegistroIndividual() {
     <form onSubmit={submit} className="space-y-4">
       <div className="space-y-2">
         <Label>Nome completo</Label>
-        <Input
-          required
-          value={form.nomeCompleto}
-          onChange={(e) => setForm({ ...form, nomeCompleto: e.target.value })}
-        />
+        <div className="relative">
+          <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            required
+            className="pl-9"
+            value={form.nomeCompleto}
+            onChange={(e) => setForm({ ...form, nomeCompleto: e.target.value })}
+          />
+        </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>E-mail</Label>
-          <Input
-            type="email"
-            required
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-          />
+          <div className="relative">
+            <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="email"
+              required
+              className="pl-9"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
+          </div>
         </div>
         <div className="space-y-2">
           <Label>Senha</Label>
-          <Input
-            type="password"
-            required
-            minLength={6}
-            value={form.senha}
-            onChange={(e) => setForm({ ...form, senha: e.target.value })}
-          />
+          <div className="relative">
+            <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="password"
+              required
+              minLength={6}
+              className="pl-9"
+              value={form.senha}
+              onChange={(e) => setForm({ ...form, senha: e.target.value })}
+            />
+          </div>
         </div>
 
         <div className="space-y-2">
           <Label>Nascimento</Label>
-          <Input
-            value={form.dataNascimento}
-            onChange={(e) => setForm({ ...form, dataNascimento: maskDate(e.target.value) })}
-            placeholder="dd/mm/aaaa"
-          />
+          <div className="relative">
+            <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              className="pl-9"
+              value={form.dataNascimento}
+              onChange={(e) => setForm({ ...form, dataNascimento: maskDate(e.target.value) })}
+              placeholder="dd/mm/aaaa"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Meta do Enxoval (R$)</Label>
+          <div className="relative">
+            <Target className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              className="pl-9"
+              value={form.metaGlobalEnxoval}
+              onChange={(e) => setForm({ ...form, metaGlobalEnxoval: e.target.value })}
+              placeholder="Ex: 5000"
+            />
+          </div>
         </div>
       </div>
 
