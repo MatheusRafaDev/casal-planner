@@ -314,45 +314,48 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
             )}
           </div>
 
-            <div className="flex-1 overflow-hidden flex flex-col min-h-0 bg-background/50 rounded-xl border">
-              <div className="p-4 flex-1 overflow-y-auto">
-                <PainelPesquisaPrecos
-                  initialQuery={queryBusca}
-                  onEscolher={(r) => {
-                    setEscolhido(r);
-                    setPrecoNumerico(r.preco);
-                    setMarca(r.marca ?? "");
-                    setLoja(r.loja ?? "");
-                    setNome(r.titulo);
-                    setStep(3);
-                  }}
-                />
+          {step === 2 && (
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+              <div className="flex-1 overflow-hidden flex flex-col min-h-0 bg-background/50 rounded-xl border">
+                <div className="p-4 flex-1 overflow-y-auto">
+                  <PainelPesquisaPrecos
+                    initialQuery={queryBusca}
+                    onEscolher={(r) => {
+                      setEscolhido(r);
+                      setPrecoNumerico(r.preco);
+                      setMarca(r.marca ?? "");
+                      setLoja(r.loja ?? "");
+                      setNome(r.titulo);
+                      setStep(3);
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="border-t pt-3 mt-4 space-y-2 shrink-0">
+                <Label>Ou informe o preço manualmente</Label>
+                <div className="flex gap-2">
+                  <CurrencyInput
+                    value={precoNumerico}
+                    onValueChange={(v) => {
+                      setPrecoNumerico(v);
+                      setEscolhido(null);
+                    }}
+                    placeholder="R$ 0,00"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      setEscolhido(null);
+                      setStep(3);
+                    }}
+                  >
+                    Usar preço manual
+                  </Button>
+                </div>
               </div>
             </div>
-            <div className="border-t pt-3 mt-4 space-y-2 shrink-0">
-              <Label>Ou informe o preço manualmente</Label>
-              <div className="flex gap-2">
-                <CurrencyInput
-                  value={precoNumerico}
-                  onValueChange={(v) => {
-                    setPrecoNumerico(v);
-                    setEscolhido(null);
-                  }}
-                  placeholder="R$ 0,00"
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    setEscolhido(null);
-                    setStep(3);
-                  }}
-                >
-                  Usar preço manual
-                </Button>
-              </div>
-            </div>
-          </div>
+          )}
 
           {step === 3 && (
             <div className="py-2 space-y-4 overflow-y-auto flex-1 min-h-0">
@@ -561,6 +564,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
 
             </div>
           )}
+
         </div>
 
         <div className="flex justify-between items-center pt-3 border-t">
