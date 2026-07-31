@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { useMotionProps } from "@/hooks/use-reduced-motion";
 import {
   Sparkles,
   Heart,
@@ -48,7 +49,38 @@ const features = [
   },
 ];
 
+type Feature = (typeof features)[number];
+
+function FeatureCard({ f, i }: { f: Feature; i: number }) {
+  const anim = useMotionProps({
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true },
+    transition: { duration: 0.5, delay: i * 0.08 },
+  });
+  return (
+    <motion.div {...anim} className="p-6 rounded-2xl border bg-card shadow-soft">
+      <span className="grid place-items-center h-11 w-11 rounded-xl bg-accent text-accent-foreground mb-4">
+        <f.icon className="h-5 w-5" />
+      </span>
+      <h3 className="font-display text-lg font-semibold mb-1">{f.title}</h3>
+      <p className="text-sm text-muted-foreground">{f.desc}</p>
+    </motion.div>
+  );
+}
+
 function Home_() {
+  const heroText = useMotionProps({
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6 },
+  });
+  const heroCard = useMotionProps({
+    initial: { opacity: 0, scale: 0.95 },
+    animate: { opacity: 1, scale: 1 },
+    transition: { duration: 0.7, delay: 0.15 },
+  });
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -76,9 +108,7 @@ function Home_() {
         <div className="absolute inset-0 bg-gradient-hero opacity-70" />
         <div className="relative max-w-6xl mx-auto px-4 py-20 md:py-28 grid md:grid-cols-2 gap-12 items-center">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            {...heroText}
             className="space-y-6"
           >
             <span className="inline-flex items-center gap-2 rounded-full border bg-card/70 px-3 py-1 text-xs font-medium">
@@ -109,9 +139,7 @@ function Home_() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.15 }}
+            {...heroCard}
             className="relative"
           >
             <div className="rounded-3xl border bg-card p-6 shadow-warm">
@@ -163,20 +191,7 @@ function Home_() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {features.map((f, i) => (
-            <motion.div
-              key={f.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="p-6 rounded-2xl border bg-card shadow-soft"
-            >
-              <span className="grid place-items-center h-11 w-11 rounded-xl bg-accent text-accent-foreground mb-4">
-                <f.icon className="h-5 w-5" />
-              </span>
-              <h3 className="font-display text-lg font-semibold mb-1">{f.title}</h3>
-              <p className="text-sm text-muted-foreground">{f.desc}</p>
-            </motion.div>
+            <FeatureCard key={f.title} f={f} i={i} />
           ))}
         </div>
       </section>
