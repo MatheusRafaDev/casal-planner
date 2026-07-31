@@ -609,9 +609,9 @@ function PlanejamentoPage() {
                     onChange={(e) => setBusca(e.target.value)}
                   />
                 </div>
-                <div className="flex gap-2 min-w-0">
+                <div className="flex flex-wrap gap-2">
                   <Select value={filtroStatus} onValueChange={(v) => setFiltroStatus(v as typeof filtroStatus)}>
-                    <SelectTrigger className="flex-1 min-w-0 sm:w-[140px]"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="min-w-[100px] xs:min-w-[110px] sm:w-[140px]"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
                       <SelectItem value="faltando">Faltando</SelectItem>
@@ -623,7 +623,7 @@ function PlanejamentoPage() {
                     value={filtroPagamento}
                     onValueChange={(v) => setFiltroPagamento(v as typeof filtroPagamento)}
                   >
-                    <SelectTrigger className="flex-1 min-w-0 sm:w-[140px]"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="min-w-[100px] xs:min-w-[110px] sm:w-[140px]"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Qualquer pagamento</SelectItem>
                       <SelectItem value="normal">Dinheiro</SelectItem>
@@ -635,7 +635,7 @@ function PlanejamentoPage() {
                       value={filtroResponsavel}
                       onValueChange={(v) => setFiltroResponsavel(v as typeof filtroResponsavel)}
                     >
-                      <SelectTrigger className="flex-1 min-w-0 sm:w-[140px]"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="min-w-[100px] xs:min-w-[110px] sm:w-[140px]"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="todos">Qualquer resp.</SelectItem>
                         <SelectItem value="1">{p1}</SelectItem>
