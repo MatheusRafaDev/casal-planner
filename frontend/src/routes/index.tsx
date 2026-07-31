@@ -52,7 +52,7 @@ function Home_() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-background/70 backdrop-blur sticky top-0 z-40">
+      <header className="border-b bg-background/70 backdrop-blur sticky top-0 z-40" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-16">
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="Casal Planner" className="h-10 w-10 rounded-lg" />
