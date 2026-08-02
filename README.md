@@ -178,6 +178,17 @@ Feito com ❤️ por **Matheus**
 
 ---
 
+## 🧪 Testes Automatizados
+- O backend já possui um projeto de testes com **xUnit**, **Moq** e **coverlet** em `backend/CasalPlanner.Tests`.
+- O pipeline de CI roda compilação e `dotnet test` automaticamente para evitar regressões nas regras de negócio.
+- Recomendado adicionar testes de unidade adicionais para: categorias, itens, orçamento e pesquisa de preço.
+
+## 🚀 CI
+- Há um workflow GitHub Actions em `.github/workflows/ci.yml` que valida o backend e frontend a cada `push`/`pull_request`.
+- O passo de backend executa `dotnet test` no projeto de teste e garante que a API e os serviços continuem funcionando.
+
+---
+
 <p align="center">
   Se este projeto te ajudou ou te inspirou, deixa uma ⭐ no repositório!
 </p>
