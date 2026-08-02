@@ -31,12 +31,8 @@ function ConvitePage() {
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-4">
           <h1 className="font-display text-2xl font-semibold">Convite inválido</h1>
-          <p className="text-muted-foreground">
-            O link de convite está incompleto ou expirou.
-          </p>
-          <Button onClick={() => navigate({ to: "/login" as any })}>
-            Ir para login
-          </Button>
+          <p className="text-muted-foreground">O link de convite está incompleto ou expirou.</p>
+          <Button onClick={() => navigate({ to: "/login" })}>Ir para login</Button>
         </div>
       </div>
     );
@@ -55,10 +51,7 @@ function ConvitePage() {
               Agora você pode criar sua conta usando o email do convite.
             </p>
           </div>
-          <Button 
-            onClick={() => navigate({ to: "/login" as any })}
-            className="w-full"
-          >
+          <Button onClick={() => navigate({ to: "/login" })} className="w-full">
             Criar minha conta
           </Button>
         </div>
@@ -75,7 +68,7 @@ function ConvitePage() {
             Alguém quer que você seja parceiro no CasalPlanner.
           </p>
         </div>
-        <Button 
+        <Button
           onClick={() => aceitarMutation.mutate()}
           disabled={aceitarMutation.isPending}
           className="w-full"

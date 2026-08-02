@@ -16,7 +16,6 @@ interface Props {
   onEscolher?: (r: PesquisaPrecoResultado) => void;
 }
 
-
 export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
   const [q, setQ] = useState(initialQuery);
   const [ativa, setAtiva] = useState(initialQuery);
@@ -51,7 +50,6 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
   });
 
   const resolvedDomains = dominiosQuery.data ?? {};
-
 
   return (
     <div className="space-y-4">
@@ -91,7 +89,8 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
 
       {query.data?.marcaDetectada && (
         <div className="text-xs text-muted-foreground">
-          Marca detectada: <span className="text-foreground font-medium">{query.data.marcaDetectada}</span>
+          Marca detectada:{" "}
+          <span className="text-foreground font-medium">{query.data.marcaDetectada}</span>
         </div>
       )}
 
@@ -138,17 +137,33 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
                 )}
                 {r.isUsed && <Badge variant="outline">Usado</Badge>}
                 {r.marca && (
-                  <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-5 font-normal bg-muted/30 flex items-center gap-1.5">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] py-0 px-1.5 h-5 font-normal bg-muted/30 flex items-center gap-1.5"
+                  >
                     {getLogoUrl(r.marca, null, resolvedDomains) && (
-                      <img src={getLogoUrl(r.marca, null, resolvedDomains)!} alt="" className="w-3.5 h-3.5 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                      <img
+                        src={getLogoUrl(r.marca, null, resolvedDomains)!}
+                        alt=""
+                        className="w-3.5 h-3.5 rounded-sm"
+                        onError={(e) => (e.currentTarget.style.display = "none")}
+                      />
                     )}
                     {r.marca}
                   </Badge>
                 )}
                 {r.loja && (
-                  <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-5 font-normal bg-muted/30 flex items-center gap-1.5">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] py-0 px-1.5 h-5 font-normal bg-muted/30 flex items-center gap-1.5"
+                  >
                     {getLogoUrl(r.loja, r.link, resolvedDomains) && (
-                      <img src={getLogoUrl(r.loja, r.link, resolvedDomains)!} alt="" className="w-3.5 h-3.5 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                      <img
+                        src={getLogoUrl(r.loja, r.link, resolvedDomains)!}
+                        alt=""
+                        className="w-3.5 h-3.5 rounded-sm"
+                        onError={(e) => (e.currentTarget.style.display = "none")}
+                      />
                     )}
                     {r.loja}
                   </Badge>

@@ -43,7 +43,12 @@ function PessoaFields({
           <Label>Nome</Label>
           <div className="relative">
             <UserIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input required className="pl-9" value={value.nome} onChange={(e) => onChange({ ...value, nome: e.target.value })} />
+            <Input
+              required
+              className="pl-9"
+              value={value.nome}
+              onChange={(e) => onChange({ ...value, nome: e.target.value })}
+            />
           </div>
         </div>
         <div className="space-y-1.5">
@@ -86,7 +91,6 @@ function PessoaFields({
             />
           </div>
         </div>
-
       </div>
     </div>
   );
@@ -115,10 +119,10 @@ export function RegistroCasal() {
         senha: p.senha,
         dataNascimento: brToIsoDate(p.dataNascimento) ?? undefined,
       });
-      const res = await usuarioService.registrarCasal({ 
-        pessoa1: map(p1), 
+      const res = await usuarioService.registrarCasal({
+        pessoa1: map(p1),
         pessoa2: map(p2),
-        metaGlobalEnxoval: metaGlobal ? parseFloat(metaGlobal) : undefined
+        metaGlobalEnxoval: metaGlobal ? parseFloat(metaGlobal) : undefined,
       });
       setToken(res.token);
       await refresh();

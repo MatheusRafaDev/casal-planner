@@ -11,17 +11,25 @@ const CACHE_NAME = "casal-planner-v1";
 const OFFLINE_URL = "/__offline";
 
 // Assets que queremos pré-cachear na instalação
-const PRECACHE_URLS = ["/", "/manifest.json", "/favicon.ico", "/logo.png", "/icons/icon-192.png", "/icons/icon-512.png"];
+const PRECACHE_URLS = [
+  "/",
+  "/manifest.json",
+  "/favicon.ico",
+  "/logo.png",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png",
+];
 
 // ─── Install ──────────────────────────────────────────────────────────────────
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
-      cache.addAll(PRECACHE_URLS.map((url) => new Request(url, { cache: "reload" })).filter(Boolean))
+      cache
+        .addAll(PRECACHE_URLS.map((url) => new Request(url, { cache: "reload" })).filter(Boolean))
         .catch(() => {
           // Falha silenciosa: o SW instala mesmo que algum precache falhe
-        })
-    )
+        }),
+    ),
   );
   // Ativar imediatamente sem aguardar reload
   self.skipWaiting();
@@ -30,11 +38,11 @@ self.addEventListener("install", (event) => {
 // ─── Activate ────────────────────────────────────────────────────────────────
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
-      )
-    )
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))),
+      ),
   );
   self.clients.claim();
 });

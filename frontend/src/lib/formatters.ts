@@ -18,17 +18,14 @@ export const maskBRL = (raw: string): string => {
 export const parseBRL = (masked: string): number => {
   // "R$ 1.234,56" → 1234.56
   const cleaned = masked
-    .replace(/[R$\s]/g, "")  // remove R$
-    .replace(/\./g, "")       // remove separadores de milhar
-    .replace(",", ".");        // virgem → ponto decimal
+    .replace(/[R$\s]/g, "") // remove R$
+    .replace(/\./g, "") // remove separadores de milhar
+    .replace(",", "."); // virgem → ponto decimal
   const n = parseFloat(cleaned);
   return isNaN(n) ? 0 : n;
 };
 
-export const percent = (n: number, digits = 0) =>
-  `${(n * 100).toFixed(digits).replace(".", ",")}%`;
-
-
+export const percent = (n: number, digits = 0) => `${(n * 100).toFixed(digits).replace(".", ",")}%`;
 
 export const maskDate = (v: string) =>
   v
@@ -42,8 +39,6 @@ export const formatDate = (iso: string | Date | null | undefined) => {
   const d = typeof iso === "string" ? new Date(iso) : iso;
   return new Intl.DateTimeFormat("pt-BR").format(d);
 };
-
-
 
 export const brToIsoDate = (v: string) => {
   const digits = v.replace(/\D/g, "");

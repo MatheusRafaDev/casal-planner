@@ -19,11 +19,12 @@ type PessoaLike = NonNullable<Usuario["casalInfo"]>["pessoa1"];
 
 function normalizarPessoa(pessoaRaw: unknown): PessoaLike {
   const p = (pessoaRaw ?? {}) as Record<string, unknown>;
-  const nome = typeof p.nome === "string" && p.nome.trim()
-    ? p.nome
-    : typeof p.nomeCompleto === "string" && p.nomeCompleto.trim()
-      ? p.nomeCompleto
-      : "";
+  const nome =
+    typeof p.nome === "string" && p.nome.trim()
+      ? p.nome
+      : typeof p.nomeCompleto === "string" && p.nomeCompleto.trim()
+        ? p.nomeCompleto
+        : "";
 
   return {
     nome,
@@ -43,17 +44,20 @@ function normalizarUsuario(raw: unknown): Usuario {
   const casalInfoRaw = r.casalInfo as Record<string, unknown> | undefined;
   const pessoa1Raw = casalInfoRaw?.pessoa1 ?? r.pessoa1;
   const pessoa2Raw = casalInfoRaw?.pessoa2 ?? r.pessoa2;
-  const casalInfo = pessoa1Raw && pessoa2Raw
-    ? {
-        pessoa1: normalizarPessoa(pessoa1Raw),
-        pessoa2: normalizarPessoa(pessoa2Raw),
-      }
-    : null;
+  const casalInfo =
+    pessoa1Raw && pessoa2Raw
+      ? {
+          pessoa1: normalizarPessoa(pessoa1Raw),
+          pessoa2: normalizarPessoa(pessoa2Raw),
+        }
+      : null;
   const pl = r.pessoaLogada;
   const pessoaLogada: 1 | 2 | undefined =
-    pl === 2 || pl === "pessoa2" || pl === "2" ? 2 :
-    pl === 1 || pl === "pessoa1" || pl === "1" ? 1 :
-    undefined;
+    pl === 2 || pl === "pessoa2" || pl === "2"
+      ? 2
+      : pl === 1 || pl === "pessoa1" || pl === "1"
+        ? 1
+        : undefined;
   return { ...(raw as Usuario), casalInfo, pessoaLogada };
 }
 

@@ -1,13 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Loader2, Sparkles, AlertTriangle, Check, Store } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ArrowLeft,
+  ArrowRight,
+  Loader2,
+  Sparkles,
+  AlertTriangle,
+  Check,
+  Store,
+} from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
@@ -56,7 +59,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   const [prioridade, setPrioridade] = useState("media");
   const [responsavelId, setResponsavelId] = useState<1 | 2 | null>(null);
   const [dividir, setDividir] = useState(false);
-  const [divisaoPagamento, setDivisaoPagamento] = useState<{ valorPessoa1: number; valorPessoa2: number } | null>(null);
+  const [divisaoPagamento, setDivisaoPagamento] = useState<{
+    valorPessoa1: number;
+    valorPessoa2: number;
+  } | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestRef = useRef<HTMLDivElement>(null);
@@ -111,16 +117,67 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     // Auto-preencher cômodo baseado em palavras-chave
     const lowerValue = value.toLowerCase();
     const map: Record<string, string[]> = {
-      "cozinha": ["geladeira", "fogão", "fogao", "microondas", "micro-ondas", "forno", "liquidificador", "batedeira", "panela", "talher", "copo", "prato", "air fryer"],
-      "quarto": ["cama", "colchão", "colchao", "guarda-roupa", "travesseiro", "lençol", "lencol", "cobertor", "edredom", "cabeceira", "mesa de cabeceira"],
-      "sala": ["sofá", "sofa", "tv", "televisão", "televisao", "rack", "painel", "tapete", "poltrona"],
-      "banheiro": ["toalha", "chuveiro", "espelho", "saboneteira", "tapete de banheiro", "armário de banheiro"],
-      "lavanderia": ["máquina de lavar", "maquina de lavar", "ferro", "tábua", "tabua", "varal", "aspirador"]
+      cozinha: [
+        "geladeira",
+        "fogão",
+        "fogao",
+        "microondas",
+        "micro-ondas",
+        "forno",
+        "liquidificador",
+        "batedeira",
+        "panela",
+        "talher",
+        "copo",
+        "prato",
+        "air fryer",
+      ],
+      quarto: [
+        "cama",
+        "colchão",
+        "colchao",
+        "guarda-roupa",
+        "travesseiro",
+        "lençol",
+        "lencol",
+        "cobertor",
+        "edredom",
+        "cabeceira",
+        "mesa de cabeceira",
+      ],
+      sala: [
+        "sofá",
+        "sofa",
+        "tv",
+        "televisão",
+        "televisao",
+        "rack",
+        "painel",
+        "tapete",
+        "poltrona",
+      ],
+      banheiro: [
+        "toalha",
+        "chuveiro",
+        "espelho",
+        "saboneteira",
+        "tapete de banheiro",
+        "armário de banheiro",
+      ],
+      lavanderia: [
+        "máquina de lavar",
+        "maquina de lavar",
+        "ferro",
+        "tábua",
+        "tabua",
+        "varal",
+        "aspirador",
+      ],
     };
 
     for (const [catName, keywords] of Object.entries(map)) {
-      if (keywords.some(k => lowerValue.includes(k))) {
-        const cat = categorias.find(c => c.nome.toLowerCase().includes(catName));
+      if (keywords.some((k) => lowerValue.includes(k))) {
+        const cat = categorias.find((c) => c.nome.toLowerCase().includes(catName));
         if (cat) {
           setCategoriaId(cat.id);
         }
@@ -149,7 +206,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
       if (dividir && divisaoPagamento) {
         const soma = divisaoPagamento.valorPessoa1 + divisaoPagamento.valorPessoa2;
         if (Math.abs(soma - total) > 0.01) {
-          throw new Error(`A soma da divisão (${brl(soma)}) deve ser igual ao total (${brl(total)}).`);
+          throw new Error(
+            `A soma da divisão (${brl(soma)}) deve ser igual ao total (${brl(total)}).`,
+          );
         }
       }
 
@@ -238,7 +297,12 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col min-h-0 pr-1">
-          <div className={cn("space-y-4 py-2 overflow-y-auto flex-1 min-h-0", step === 1 ? "block" : "hidden")}>
+          <div
+            className={cn(
+              "space-y-4 py-2 overflow-y-auto flex-1 min-h-0",
+              step === 1 ? "block" : "hidden",
+            )}
+          >
             <div className="space-y-2">
               <Label>Nome do item</Label>
               <div className="relative" ref={suggestRef}>
@@ -246,7 +310,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   autoFocus
                   value={nome}
                   onChange={(e) => handleNomeChange(e.target.value)}
-                  onFocus={() => nome.length >= 2 && suggestions.length > 0 && setShowSuggestions(true)}
+                  onFocus={() =>
+                    nome.length >= 2 && suggestions.length > 0 && setShowSuggestions(true)
+                  }
                   onKeyDown={(e) => {
                     if (e.key === "Escape") setShowSuggestions(false);
                     if (e.key === "Enter" && !showSuggestions) avancarDoNome();
@@ -261,7 +327,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                         key={i}
                         type="button"
                         className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors flex items-center gap-2"
-                        onMouseDown={(e) => { e.preventDefault(); handleSelectSuggestion(s); }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleSelectSuggestion(s);
+                        }}
                       >
                         <span className="text-primary text-xs">↗</span>
                         {s}
@@ -275,7 +344,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
               <div className="space-y-2">
                 <Label>Cômodo</Label>
                 <Select value={categoriaId} onValueChange={setCategoriaId}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     {categorias.map((c) => {
                       const Icon = iconFor(c.icon);
@@ -404,11 +475,19 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 </div>
                 <div className="space-y-2">
                   <Label>Marca</Label>
-                  <Input value={marca} onChange={e => setMarca(e.target.value)} placeholder="Ex.: Brastemp" />
+                  <Input
+                    value={marca}
+                    onChange={(e) => setMarca(e.target.value)}
+                    placeholder="Ex.: Brastemp"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Loja</Label>
-                  <Input value={loja} onChange={e => setLoja(e.target.value)} placeholder="Ex.: Fast Shop" />
+                  <Input
+                    value={loja}
+                    onChange={(e) => setLoja(e.target.value)}
+                    placeholder="Ex.: Fast Shop"
+                  />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-3 mt-2">
@@ -426,7 +505,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     onValueChange={(v) => setParcelas(Number(v))}
                     disabled={pagamento === "vr"}
                   >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((p) => (
                         <SelectItem key={p} value={String(p)}>
@@ -440,11 +521,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 </div>
                 <div className="space-y-2">
                   <Label>Prioridade</Label>
-                  <Select
-                    value={prioridade}
-                    onValueChange={(v) => setPrioridade(v)}
-                  >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  <Select value={prioridade} onValueChange={(v) => setPrioridade(v)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="alta">Alta</SelectItem>
                       <SelectItem value="media">Média</SelectItem>
@@ -461,7 +541,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                       if (v === "vr") setParcelas(1);
                     }}
                   >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="normal">Dinheiro</SelectItem>
                       <SelectItem value="vr">VR / VA</SelectItem>
@@ -473,7 +555,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
                         <Label className="text-base">Dividir pagamento entre o casal?</Label>
-                        <p className="text-xs text-muted-foreground">Especifique quanto cada um vai pagar.</p>
+                        <p className="text-xs text-muted-foreground">
+                          Especifique quanto cada um vai pagar.
+                        </p>
                       </div>
                       <Switch
                         checked={dividir}
@@ -481,14 +565,17 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                           setDividir(checked);
                           if (checked) {
                             const total = (escolhido?.preco ?? precoNumerico) * quantidade;
-                            setDivisaoPagamento({ valorPessoa1: total / 2, valorPessoa2: total / 2 });
+                            setDivisaoPagamento({
+                              valorPessoa1: total / 2,
+                              valorPessoa2: total / 2,
+                            });
                           } else {
                             setDivisaoPagamento(null);
                           }
                         }}
                       />
                     </div>
-                    
+
                     {dividir && divisaoPagamento && (
                       <div className="pt-2">
                         <div className="grid gap-4 sm:grid-cols-2">
@@ -513,25 +600,48 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                         </div>
                         <div className="flex justify-between items-center mt-3">
                           <div className="text-xs text-muted-foreground">
-                            Total: {brl(divisaoPagamento.valorPessoa1 + divisaoPagamento.valorPessoa2)} / {brl((escolhido?.preco ?? precoNumerico) * quantidade)}
+                            Total:{" "}
+                            {brl(divisaoPagamento.valorPessoa1 + divisaoPagamento.valorPessoa2)} /{" "}
+                            {brl((escolhido?.preco ?? precoNumerico) * quantidade)}
                           </div>
                           <div className="flex gap-2">
-                            <Button type="button" variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => {
-                              const total = (escolhido?.preco ?? precoNumerico) * quantidade;
-                              setDivisaoPagamento({ valorPessoa1: total, valorPessoa2: 0 });
-                            }}>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs px-2"
+                              onClick={() => {
+                                const total = (escolhido?.preco ?? precoNumerico) * quantidade;
+                                setDivisaoPagamento({ valorPessoa1: total, valorPessoa2: 0 });
+                              }}
+                            >
                               100/0
                             </Button>
-                            <Button type="button" variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => {
-                              const total = (escolhido?.preco ?? precoNumerico) * quantidade;
-                              setDivisaoPagamento({ valorPessoa1: total / 2, valorPessoa2: total / 2 });
-                            }}>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs px-2"
+                              onClick={() => {
+                                const total = (escolhido?.preco ?? precoNumerico) * quantidade;
+                                setDivisaoPagamento({
+                                  valorPessoa1: total / 2,
+                                  valorPessoa2: total / 2,
+                                });
+                              }}
+                            >
                               50/50
                             </Button>
-                            <Button type="button" variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => {
-                              const total = (escolhido?.preco ?? precoNumerico) * quantidade;
-                              setDivisaoPagamento({ valorPessoa1: 0, valorPessoa2: total });
-                            }}>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs px-2"
+                              onClick={() => {
+                                const total = (escolhido?.preco ?? precoNumerico) * quantidade;
+                                setDivisaoPagamento({ valorPessoa1: 0, valorPessoa2: total });
+                              }}
+                            >
                               0/100
                             </Button>
                           </div>
@@ -549,7 +659,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                             else setResponsavelId(Number(v) as 1 | 2);
                           }}
                         >
-                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="none">Sem responsável (juntos)</SelectItem>
                             <SelectItem value="1">{p1}</SelectItem>
@@ -561,10 +673,8 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   </div>
                 )}
               </div>
-
             </div>
           )}
-
         </div>
 
         <div className="flex justify-between items-center pt-3 border-t">

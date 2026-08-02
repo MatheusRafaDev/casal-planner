@@ -71,22 +71,19 @@ import { getLogoUrl } from "@/lib/logos";
 
 export const Route = createFileRoute("/_authenticated/planejamento")({
   head: () => ({
-    meta: [
-      { title: "Planejamento - CasalPlanner" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Planejamento - CasalPlanner" }, { name: "robots", content: "noindex" }],
   }),
   component: PlanejamentoPage,
 });
-
-
 
 function PlanejamentoPage() {
   const qc = useQueryClient();
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
   const buscaDebounced = useDeferredValue(busca);
-  const [filtroStatus, setFiltroStatus] = useState<"todos" | "comprados" | "faltando" | "presentes">("todos");
+  const [filtroStatus, setFiltroStatus] = useState<
+    "todos" | "comprados" | "faltando" | "presentes"
+  >("todos");
   const [filtroPagamento, setFiltroPagamento] = useState<"todos" | "normal" | "vr">("todos");
   const [filtroResponsavel, setFiltroResponsavel] = useState<"todos" | "1" | "2">("todos");
 
@@ -117,7 +114,8 @@ function PlanejamentoPage() {
   });
 
   const todosItens = itensQ.data ?? [];
-  const itens = catAtualId === "tudo" ? todosItens : todosItens.filter(i => i.categoriaId === catAtualId);
+  const itens =
+    catAtualId === "tudo" ? todosItens : todosItens.filter((i) => i.categoriaId === catAtualId);
 
   const itensFiltrados = useMemo(() => {
     const b = buscaDebounced.trim().toLowerCase();
@@ -154,8 +152,6 @@ function PlanejamentoPage() {
 
   const resolvedDomains = dominiosQuery.data ?? {};
 
-
-
   const totalCategoria = itens.reduce((s, i) => s + i.preco * i.quantidade, 0);
   const compradosCategoria = itens.filter((i) => i.comprado).length;
   const percentComprado = itens.length ? (compradosCategoria / itens.length) * 100 : 0;
@@ -171,7 +167,7 @@ function PlanejamentoPage() {
       await qc.cancelQueries({ queryKey: ["itens"] });
       const prev = qc.getQueryData(["itens"]);
       qc.setQueryData(["itens"], (old: Item[] | undefined) =>
-        old?.map((i) => (i.id === id ? { ...i, comprado } : i))
+        old?.map((i) => (i.id === id ? { ...i, comprado } : i)),
       );
       return { prev };
     },
@@ -215,44 +211,43 @@ function PlanejamentoPage() {
 
   const handleCompartilhar = async () => {
     const texto = gerarTextoCompartilhamento();
-    
+
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Minha Lista de Casamento - CasalPlanner',
+          title: "Minha Lista de Casamento - CasalPlanner",
           text: texto,
         });
-        toast.success('Lista compartilhada com sucesso!');
+        toast.success("Lista compartilhada com sucesso!");
       } catch (err) {
-        if ((err as Error).name !== 'AbortError') {
-          toast.error('Erro ao compartilhar');
+        if ((err as Error).name !== "AbortError") {
+          toast.error("Erro ao compartilhar");
         }
       }
     } else {
       // Fallback: copiar para clipboard
       await navigator.clipboard.writeText(texto);
-      toast.success('Lista copiada para a área de transferência!');
+      toast.success("Lista copiada para a área de transferência!");
     }
   };
 
   const gerarTextoCompartilhamento = () => {
-    const itensFiltrados = catAtualId === "tudo" 
-      ? todosItens 
-      : todosItens.filter(it => it.categoriaId === catAtualId);
-    
-    const itensNaoComprados = itensFiltrados.filter(it => !it.comprado);
-    const totalGasto = itensFiltrados.reduce((s, it) => s + (it.preco * it.quantidade), 0);
-    const totalRestante = itensNaoComprados.reduce((s, it) => s + (it.preco * it.quantidade), 0);
-    
+    const itensFiltrados =
+      catAtualId === "tudo" ? todosItens : todosItens.filter((it) => it.categoriaId === catAtualId);
+
+    const itensNaoComprados = itensFiltrados.filter((it) => !it.comprado);
+    const totalGasto = itensFiltrados.reduce((s, it) => s + it.preco * it.quantidade, 0);
+    const totalRestante = itensNaoComprados.reduce((s, it) => s + it.preco * it.quantidade, 0);
+
     let texto = `📋 Lista de Casamento - CasalPlanner\n\n`;
-    
+
     if (catAtualId !== "tudo" && catAtual) {
       texto += `🏠 ${catAtual.nome}\n\n`;
     }
-    
+
     texto += `💰 Total gasto: ${brl(totalGasto)}\n`;
     texto += `📦 Faltam ${itensNaoComprados.length} itens (${brl(totalRestante)})\n\n`;
-    
+
     if (itensNaoComprados.length > 0) {
       texto += `📝 Itens pendentes:\n`;
       itensNaoComprados.forEach((it, i) => {
@@ -261,42 +256,49 @@ function PlanejamentoPage() {
         if (it.loja) texto += `   Loja: ${it.loja}\n`;
       });
     }
-    
-    texto += `\n✅ ${itensFiltrados.filter(it => it.comprado).length} itens já comprados!`;
-    
+
+    texto += `\n✅ ${itensFiltrados.filter((it) => it.comprado).length} itens já comprados!`;
+
     return texto;
   };
 
   const handleExportarPDF = () => {
-    const itensFiltrados = catAtualId === "tudo" 
-      ? todosItens 
-      : todosItens.filter(it => it.categoriaId === catAtualId);
-    
-    const itensNaoComprados = itensFiltrados.filter(it => !it.comprado);
-    const totalGasto = itensFiltrados.reduce((s, it) => s + (it.preco * it.quantidade), 0);
-    const totalRestante = itensNaoComprados.reduce((s, it) => s + (it.preco * it.quantidade), 0);
+    const itensFiltrados =
+      catAtualId === "tudo" ? todosItens : todosItens.filter((it) => it.categoriaId === catAtualId);
+
+    const itensNaoComprados = itensFiltrados.filter((it) => !it.comprado);
+    const totalGasto = itensFiltrados.reduce((s, it) => s + it.preco * it.quantidade, 0);
+    const totalRestante = itensNaoComprados.reduce((s, it) => s + it.preco * it.quantidade, 0);
 
     const doc = new jsPDF();
-    
+
     // Header
     doc.setFontSize(20);
     doc.setTextColor(139, 92, 246);
     doc.text("Lista de Casamento", 14, 20);
-    
+
     doc.setFontSize(12);
     doc.setTextColor(100);
     doc.text("CasalPlanner", 14, 28);
-    
+
     // Info section
     doc.setFontSize(14);
     doc.setTextColor(0);
-    doc.text(catAtualId !== "tudo" && catAtual ? `Cômodo: ${catAtual.nome}` : "Todos os cômodos", 14, 45);
-    
+    doc.text(
+      catAtualId !== "tudo" && catAtual ? `Cômodo: ${catAtual.nome}` : "Todos os cômodos",
+      14,
+      45,
+    );
+
     doc.setFontSize(11);
     doc.text(`Total gasto: ${brl(totalGasto)}`, 14, 55);
     doc.text(`Pendente: ${brl(totalRestante)}`, 14, 62);
-    doc.text(`Itens comprados: ${itensFiltrados.filter(it => it.comprado).length}/${itensFiltrados.length}`, 14, 69);
-    
+    doc.text(
+      `Itens comprados: ${itensFiltrados.filter((it) => it.comprado).length}/${itensFiltrados.length}`,
+      14,
+      69,
+    );
+
     // Table data
     const tableData = itensNaoComprados.map((it, i) => [
       i + 1,
@@ -307,7 +309,7 @@ function PlanejamentoPage() {
       brl(it.preco),
       brl(it.preco * it.quantidade),
     ]);
-    
+
     // Generate table
     autoTable(doc, {
       startY: 80,
@@ -323,7 +325,7 @@ function PlanejamentoPage() {
         fillColor: [245, 245, 250],
       },
     });
-    
+
     // Footer
     const pageCount = doc.getNumberOfPages();
     doc.setFontSize(10);
@@ -333,11 +335,13 @@ function PlanejamentoPage() {
       doc.text(
         `Página ${i} de ${pageCount} - Gerado em ${new Date().toLocaleDateString("pt-BR")}`,
         14,
-        doc.internal.pageSize.height - 10
+        doc.internal.pageSize.height - 10,
       );
     }
-    
-    doc.save(`lista-casamento-${catAtualId === "tudo" ? "todos" : catAtual?.nome ?? "comodo"}.pdf`);
+
+    doc.save(
+      `lista-casamento-${catAtualId === "tudo" ? "todos" : (catAtual?.nome ?? "comodo")}.pdf`,
+    );
     toast.success("PDF gerado com sucesso!");
   };
 
@@ -370,7 +374,10 @@ function PlanejamentoPage() {
 
       {/* Mobile: Select dropdown for rooms */}
       <div className="lg:hidden">
-        <Select value={catAtualId} onValueChange={(v) => setCategoriaSelecionada(v === "tudo" ? "tudo" : v)}>
+        <Select
+          value={catAtualId}
+          onValueChange={(v) => setCategoriaSelecionada(v === "tudo" ? "tudo" : v)}
+        >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Selecione um cômodo" />
           </SelectTrigger>
@@ -396,7 +403,7 @@ function PlanejamentoPage() {
               "group flex items-center gap-3 rounded-xl border p-3 transition-all cursor-pointer",
               catAtualId === "tudo"
                 ? "border-primary bg-primary/5 shadow-soft"
-                : "hover:bg-accent/40 hover:border-accent"
+                : "hover:bg-accent/40 hover:border-accent",
             )}
             onClick={() => setCategoriaSelecionada("tudo")}
           >
@@ -407,7 +414,9 @@ function PlanejamentoPage() {
               <div className="font-medium truncate">Todos os Itens</div>
               <div className="text-xs text-muted-foreground mt-0.5">
                 <div className="flex justify-between items-center">
-                  <span>{todosItens.filter(i => i.comprado).length}/{todosItens.length} itens</span>
+                  <span>
+                    {todosItens.filter((i) => i.comprado).length}/{todosItens.length} itens
+                  </span>
                   <span className="font-medium text-foreground">
                     {brl(todosItens.reduce((s, i) => s + i.preco * i.quantidade, 0))}
                   </span>
@@ -418,10 +427,10 @@ function PlanejamentoPage() {
           {categorias.map((c) => {
             const I = iconFor(c.icon);
             const ativo = c.id === catAtualId;
-            const cItens = todosItens.filter(it => it.categoriaId === c.id);
-            const cComprados = cItens.filter(it => it.comprado).length;
-            const cGasto = cItens.reduce((s, it) => s + (it.preco * it.quantidade), 0);
-            
+            const cItens = todosItens.filter((it) => it.categoriaId === c.id);
+            const cComprados = cItens.filter((it) => it.comprado).length;
+            const cGasto = cItens.reduce((s, it) => s + it.preco * it.quantidade, 0);
+
             return (
               <div
                 key={c.id}
@@ -430,7 +439,10 @@ function PlanejamentoPage() {
                   ativo
                     ? "border-primary bg-primary/5 shadow-soft"
                     : "hover:bg-accent/40 hover:border-accent",
-                  c.metaOrcamento && cGasto > c.metaOrcamento && !ativo && "border-destructive/50 bg-destructive/5"
+                  c.metaOrcamento &&
+                    cGasto > c.metaOrcamento &&
+                    !ativo &&
+                    "border-destructive/50 bg-destructive/5",
                 )}
                 onClick={() => setCategoriaSelecionada(c.id)}
               >
@@ -451,13 +463,24 @@ function PlanejamentoPage() {
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5">
                     <div className="flex justify-between items-center">
-                      <span>{cComprados}/{cItens.length} itens</span>
-                      <span className={cn("font-medium", c.metaOrcamento && cGasto > c.metaOrcamento && "text-destructive")}>{brl(cGasto)}</span>
+                      <span>
+                        {cComprados}/{cItens.length} itens
+                      </span>
+                      <span
+                        className={cn(
+                          "font-medium",
+                          c.metaOrcamento && cGasto > c.metaOrcamento && "text-destructive",
+                        )}
+                      >
+                        {brl(cGasto)}
+                      </span>
                     </div>
                     {c.metaOrcamento ? (
                       <div className="mt-1.5 space-y-1">
                         <div className="flex justify-between text-[10px] text-muted-foreground/80">
-                          <span>{brl(cGasto)} de {brl(c.metaOrcamento)}</span>
+                          <span>
+                            {brl(cGasto)} de {brl(c.metaOrcamento)}
+                          </span>
                         </div>
                         <div className="h-1 w-full bg-border rounded-full overflow-hidden">
                           <div
@@ -467,7 +490,7 @@ function PlanejamentoPage() {
                                 ? "bg-emerald-500"
                                 : cGasto / c.metaOrcamento <= 1
                                   ? "bg-amber-500"
-                                  : "bg-destructive"
+                                  : "bg-destructive",
                             )}
                             style={{ width: `${Math.min(100, (cGasto / c.metaOrcamento) * 100)}%` }}
                           />
@@ -543,30 +566,41 @@ function PlanejamentoPage() {
                     </div>
                   </div>
 
-                    <div className="text-left sm:text-right">
-                      <div className="text-xs text-muted-foreground">Total gasto</div>
-                      <div className={cn("font-display text-xl sm:text-2xl font-semibold", 
-                        (catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento) || 
-                        (!catAtual && usuario?.metaGlobalEnxoval && totalCategoria > usuario.metaGlobalEnxoval) 
-                          ? "text-destructive" : "text-primary")}>
-                        {brl(totalCategoria)}
-                      </div>
-                      {catAtual?.metaOrcamento ? (
-                        <div className="text-xs text-muted-foreground">
-                          de {brl(catAtual.metaOrcamento)}
-                          {totalCategoria > catAtual.metaOrcamento && (
-                            <span className="text-destructive ml-2">({brl(totalCategoria - catAtual.metaOrcamento)} acima)</span>
-                          )}
-                        </div>
-                      ) : (!catAtual && usuario?.metaGlobalEnxoval) ? (
-                        <div className="text-xs text-muted-foreground">
-                          de {brl(usuario.metaGlobalEnxoval)}
-                          {totalCategoria > usuario.metaGlobalEnxoval && (
-                            <span className="text-destructive ml-2">({brl(totalCategoria - usuario.metaGlobalEnxoval)} acima)</span>
-                          )}
-                        </div>
-                      ) : null}
+                  <div className="text-left sm:text-right">
+                    <div className="text-xs text-muted-foreground">Total gasto</div>
+                    <div
+                      className={cn(
+                        "font-display text-xl sm:text-2xl font-semibold",
+                        (catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento) ||
+                          (!catAtual &&
+                            usuario?.metaGlobalEnxoval &&
+                            totalCategoria > usuario.metaGlobalEnxoval)
+                          ? "text-destructive"
+                          : "text-primary",
+                      )}
+                    >
+                      {brl(totalCategoria)}
                     </div>
+                    {catAtual?.metaOrcamento ? (
+                      <div className="text-xs text-muted-foreground">
+                        de {brl(catAtual.metaOrcamento)}
+                        {totalCategoria > catAtual.metaOrcamento && (
+                          <span className="text-destructive ml-2">
+                            ({brl(totalCategoria - catAtual.metaOrcamento)} acima)
+                          </span>
+                        )}
+                      </div>
+                    ) : !catAtual && usuario?.metaGlobalEnxoval ? (
+                      <div className="text-xs text-muted-foreground">
+                        de {brl(usuario.metaGlobalEnxoval)}
+                        {totalCategoria > usuario.metaGlobalEnxoval && (
+                          <span className="text-destructive ml-2">
+                            ({brl(totalCategoria - usuario.metaGlobalEnxoval)} acima)
+                          </span>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -584,13 +618,28 @@ function PlanejamentoPage() {
                         <span
                           className={cn(
                             "font-medium",
-                            (percentMeta !== null ? percentMeta : (totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100) > 100 ? "text-destructive" : "",
+                            (percentMeta !== null
+                              ? percentMeta
+                              : (totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100) > 100
+                              ? "text-destructive"
+                              : "",
                           )}
                         >
-                          {percentMeta !== null ? percentMeta.toFixed(0) : ((totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100).toFixed(0)}%
+                          {percentMeta !== null
+                            ? percentMeta.toFixed(0)
+                            : ((totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100).toFixed(
+                                0,
+                              )}
+                          %
                         </span>
                       </div>
-                      <Progress value={percentMeta !== null ? percentMeta : ((totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100)} />
+                      <Progress
+                        value={
+                          percentMeta !== null
+                            ? percentMeta
+                            : (totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100
+                        }
+                      />
                     </div>
                   )}
                 </div>
@@ -610,8 +659,13 @@ function PlanejamentoPage() {
                   />
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Select value={filtroStatus} onValueChange={(v) => setFiltroStatus(v as typeof filtroStatus)}>
-                    <SelectTrigger className="min-w-[100px] xs:min-w-[110px] sm:w-[140px]"><SelectValue /></SelectTrigger>
+                  <Select
+                    value={filtroStatus}
+                    onValueChange={(v) => setFiltroStatus(v as typeof filtroStatus)}
+                  >
+                    <SelectTrigger className="min-w-[100px] xs:min-w-[110px] sm:w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
                       <SelectItem value="faltando">Faltando</SelectItem>
@@ -623,7 +677,9 @@ function PlanejamentoPage() {
                     value={filtroPagamento}
                     onValueChange={(v) => setFiltroPagamento(v as typeof filtroPagamento)}
                   >
-                    <SelectTrigger className="min-w-[100px] xs:min-w-[110px] sm:w-[140px]"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="min-w-[100px] xs:min-w-[110px] sm:w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Qualquer pagamento</SelectItem>
                       <SelectItem value="normal">Dinheiro</SelectItem>
@@ -635,7 +691,9 @@ function PlanejamentoPage() {
                       value={filtroResponsavel}
                       onValueChange={(v) => setFiltroResponsavel(v as typeof filtroResponsavel)}
                     >
-                      <SelectTrigger className="min-w-[100px] xs:min-w-[110px] sm:w-[140px]"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="min-w-[100px] xs:min-w-[110px] sm:w-[140px]">
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="todos">Qualquer resp.</SelectItem>
                         <SelectItem value="1">{p1}</SelectItem>
@@ -687,51 +745,92 @@ function PlanejamentoPage() {
                       ) : (
                         <div
                           className="h-12 w-12 rounded-lg grid place-items-center text-white shrink-0"
-                          style={{ backgroundColor: categorias.find(c => c.id === it.categoriaId)?.bg ?? "#27272a" }}
+                          style={{
+                            backgroundColor:
+                              categorias.find((c) => c.id === it.categoriaId)?.bg ?? "#27272a",
+                          }}
                         >
                           {(() => {
-                            const I = iconFor(categorias.find(c => c.id === it.categoriaId)?.icon ?? "package");
+                            const I = iconFor(
+                              categorias.find((c) => c.id === it.categoriaId)?.icon ?? "package",
+                            );
                             return <I className="h-5 w-5" />;
                           })()}
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <div className={cn("font-medium truncate max-w-full", it.comprado && "line-through")}>
+                          <div
+                            className={cn(
+                              "font-medium truncate max-w-full",
+                              it.comprado && "line-through",
+                            )}
+                          >
                             {it.nome}
                           </div>
                           {it.marca && (
-                            <Badge variant="secondary" className="text-[10px] py-0 px-1.5 h-4 font-normal flex items-center gap-1">
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] py-0 px-1.5 h-4 font-normal flex items-center gap-1"
+                            >
                               {getLogoUrl(it.marca, null, resolvedDomains) && (
-                                <img src={getLogoUrl(it.marca, null, resolvedDomains)!} alt="" className="w-3 h-3 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                <img
+                                  src={getLogoUrl(it.marca, null, resolvedDomains)!}
+                                  alt=""
+                                  className="w-3 h-3 rounded-sm"
+                                  onError={(e) => (e.currentTarget.style.display = "none")}
+                                />
                               )}
                               {it.marca}
                             </Badge>
                           )}
-                          {it.loja && (
-                            it.linkProduto ? (
-                              <a href={it.linkProduto} target="_blank" rel="noreferrer" className="hover:opacity-80 transition-opacity">
-                                <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4 font-normal bg-muted/30 flex items-center gap-1 cursor-pointer">
+                          {it.loja &&
+                            (it.linkProduto ? (
+                              <a
+                                href={it.linkProduto}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="hover:opacity-80 transition-opacity"
+                              >
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] py-0 px-1.5 h-4 font-normal bg-muted/30 flex items-center gap-1 cursor-pointer"
+                                >
                                   {getLogoUrl(it.loja, it.linkProduto, resolvedDomains) && (
-                                    <img src={getLogoUrl(it.loja, it.linkProduto, resolvedDomains)!} alt="" className="w-3 h-3 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                    <img
+                                      src={getLogoUrl(it.loja, it.linkProduto, resolvedDomains)!}
+                                      alt=""
+                                      className="w-3 h-3 rounded-sm"
+                                      onError={(e) => (e.currentTarget.style.display = "none")}
+                                    />
                                   )}
                                   {it.loja}
                                   <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
                                 </Badge>
                               </a>
                             ) : (
-                              <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4 font-normal bg-muted/30 flex items-center gap-1">
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] py-0 px-1.5 h-4 font-normal bg-muted/30 flex items-center gap-1"
+                              >
                                 {getLogoUrl(it.loja, null, resolvedDomains) && (
-                                  <img src={getLogoUrl(it.loja, null, resolvedDomains)!} alt="" className="w-3 h-3 rounded-sm" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                  <img
+                                    src={getLogoUrl(it.loja, null, resolvedDomains)!}
+                                    alt=""
+                                    className="w-3 h-3 rounded-sm"
+                                    onError={(e) => (e.currentTarget.style.display = "none")}
+                                  />
                                 )}
                                 {it.loja}
                               </Badge>
-                            )
-                          )}
+                            ))}
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
                           {isCasal && it.responsavelId && (
-                            <Badge variant="outline" className="text-[10px] py-0 bg-primary/5 text-primary border-primary/20">
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] py-0 bg-primary/5 text-primary border-primary/20"
+                            >
                               {it.responsavelId === 1 ? p1 : p2}
                             </Badge>
                           )}
@@ -765,7 +864,9 @@ function PlanejamentoPage() {
 
                     <div className="flex items-center justify-between gap-3 pt-2 border-t">
                       <div className="text-left min-w-0">
-                        <div className="font-display font-semibold truncate">{brl(it.preco * it.quantidade)}</div>
+                        <div className="font-display font-semibold truncate">
+                          {brl(it.preco * it.quantidade)}
+                        </div>
                         <div className="text-xs text-muted-foreground">
                           <span>
                             {it.quantidade}× {brl(it.preco)}
@@ -868,9 +969,7 @@ function PlanejamentoPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() =>
-                excluindoCategoria && excluirCategoria.mutate(excluindoCategoria.id)
-              }
+              onClick={() => excluindoCategoria && excluirCategoria.mutate(excluindoCategoria.id)}
             >
               Remover
             </AlertDialogAction>
@@ -878,10 +977,7 @@ function PlanejamentoPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog
-        open={!!excluindoItem}
-        onOpenChange={(o) => !o && setExcluindoItem(null)}
-      >
+      <AlertDialog open={!!excluindoItem} onOpenChange={(o) => !o && setExcluindoItem(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remover este item?</AlertDialogTitle>

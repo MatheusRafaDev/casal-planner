@@ -1,15 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useMotionProps } from "@/hooks/use-reduced-motion";
-import {
-  Sparkles,
-  Heart,
-  Home,
-  Wallet,
-  Search,
-  ShieldCheck,
-  ArrowRight,
-} from "lucide-react";
+import { Sparkles, Heart, Home, Wallet, Search, ShieldCheck, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
@@ -84,7 +76,10 @@ function Home_() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-background/70 backdrop-blur sticky top-0 z-40" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+      <header
+        className="border-b bg-background/70 backdrop-blur sticky top-0 z-40"
+        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      >
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-16">
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="Casal Planner" className="h-10 w-10 rounded-lg" />
@@ -107,16 +102,12 @@ function Home_() {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-hero opacity-70" />
         <div className="relative max-w-6xl mx-auto px-4 py-20 md:py-28 grid md:grid-cols-2 gap-12 items-center">
-          <motion.div
-            {...heroText}
-            className="space-y-6"
-          >
+          <motion.div {...heroText} className="space-y-6">
             <span className="inline-flex items-center gap-2 rounded-full border bg-card/70 px-3 py-1 text-xs font-medium">
               <Sparkles className="h-3 w-3 text-terracota" /> Novo: pesquisa de preço com IA
             </span>
             <h1 className="font-display text-4xl md:text-6xl font-semibold leading-[1.05]">
-              A casa nova{" "}
-              <span className="italic text-primary">merece</span> um plano bonito.
+              A casa nova <span className="italic text-primary">merece</span> um plano bonito.
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl">
               Liste o que precisa por cômodo, distribua entre VR e dinheiro, e deixe a IA achar o
@@ -133,15 +124,12 @@ function Home_() {
               </Button>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2">
-              <ShieldCheck className="h-4 w-4 text-primary" /> Dados protegidos, seus itens ficam
-              só com você.
+              <ShieldCheck className="h-4 w-4 text-primary" /> Dados protegidos, seus itens ficam só
+              com você.
             </div>
           </motion.div>
 
-          <motion.div
-            {...heroCard}
-            className="relative"
-          >
+          <motion.div {...heroCard} className="relative">
             <div className="rounded-3xl border bg-card p-6 shadow-warm">
               <div className="flex items-center justify-between mb-4">
                 <div className="font-display text-lg">Cozinha</div>
@@ -161,9 +149,7 @@ function Home_() {
                     className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2.5"
                   >
                     <div className="flex items-center gap-2">
-                      <span
-                        className={`h-2 w-2 rounded-full ${i.ok ? "bg-primary" : "bg-mel"}`}
-                      />
+                      <span className={`h-2 w-2 rounded-full ${i.ok ? "bg-primary" : "bg-mel"}`} />
                       <span className="text-sm">{i.n}</span>
                     </div>
                     <span className="text-sm font-medium">{i.p}</span>

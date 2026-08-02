@@ -4,10 +4,7 @@ import { WizardRecuperarSenha } from "@/components/auth/WizardRecuperarSenha";
 
 export const Route = createFileRoute("/recuperar-senha")({
   head: () => ({
-    meta: [
-      { title: "Recuperar senha — Casal Planner" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Recuperar senha — Casal Planner" }, { name: "robots", content: "noindex" }],
   }),
   component: RecuperarPage,
 });

@@ -2,7 +2,19 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { User, Moon, Sun, Trash2, KeyRound, Target, Save, ChevronDown, Share2, Copy, Check } from "lucide-react";
+import {
+  User,
+  Moon,
+  Sun,
+  Trash2,
+  KeyRound,
+  Target,
+  Save,
+  ChevronDown,
+  Share2,
+  Copy,
+  Check,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/lib/theme-context";
 import { usuarioService } from "@/services/usuario";
@@ -28,10 +40,7 @@ import { maskDate, brToIsoDate, formatDate } from "@/lib/formatters";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
-    meta: [
-      { title: "Perfil — Casal Planner" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Perfil — Casal Planner" }, { name: "robots", content: "noindex" }],
   }),
   component: PerfilPage,
 });
@@ -81,7 +90,8 @@ function PerfilPage() {
         <section className="rounded-2xl border bg-card p-5 shadow-soft">
           <h2 className="font-display text-lg font-semibold mb-4">Convidar parceiro</h2>
           <p className="text-sm text-muted-foreground mb-4">
-            Convide seu parceiro para transformar sua conta individual em uma conta de casal compartilhada.
+            Convide seu parceiro para transformar sua conta individual em uma conta de casal
+            compartilhada.
           </p>
           {!linkConvite ? (
             <div className="space-y-3">
@@ -95,8 +105,8 @@ function PerfilPage() {
                   onChange={(e) => setEmailParceiro(e.target.value)}
                 />
               </div>
-              <Button 
-                onClick={() => conviteMutation.mutate()} 
+              <Button
+                onClick={() => conviteMutation.mutate()}
                 disabled={!emailParceiro || conviteMutation.isPending}
                 className="w-full"
               >
@@ -109,16 +119,8 @@ function PerfilPage() {
               <div className="p-3 bg-muted rounded-lg">
                 <p className="text-sm font-medium mb-2">Link de convite:</p>
                 <div className="flex gap-2">
-                  <Input 
-                    value={linkConvite} 
-                    readOnly 
-                    className="text-xs"
-                  />
-                  <Button 
-                    size="icon" 
-                    variant="outline"
-                    onClick={copiarLink}
-                  >
+                  <Input value={linkConvite} readOnly className="text-xs" />
+                  <Button size="icon" variant="outline" onClick={copiarLink}>
                     {copiado ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
@@ -126,9 +128,9 @@ function PerfilPage() {
               <p className="text-xs text-muted-foreground">
                 Compartilhe este link com seu parceiro. O convite é válido por 7 dias.
               </p>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   setLinkConvite("");
                   setEmailParceiro("");
@@ -199,10 +201,7 @@ function PerfilPage() {
       </section>
 
       {/* Meta */}
-      <MetaEnxovalCard
-        metaUsuario={usuario.metaGlobalEnxoval ?? null}
-        onSaved={refresh}
-      />
+      <MetaEnxovalCard metaUsuario={usuario.metaGlobalEnxoval ?? null} onSaved={refresh} />
 
       {/* Senha */}
       <TrocarSenhaCard />
@@ -233,9 +232,7 @@ function PerfilPage() {
 
       {/* Zona perigosa */}
       <section className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
-        <h2 className="font-display text-lg font-semibold text-destructive mb-3">
-          Zona sensível
-        </h2>
+        <h2 className="font-display text-lg font-semibold text-destructive mb-3">Zona sensível</h2>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={logout}>
             Sair da conta
@@ -250,8 +247,8 @@ function PerfilPage() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Excluir conta permanentemente?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Todos os cômodos, itens, metas e pesquisas serão apagados. Essa ação não pode
-                  ser desfeita.
+                  Todos os cômodos, itens, metas e pesquisas serão apagados. Essa ação não pode ser
+                  desfeita.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -297,9 +294,7 @@ function PessoaForm({
 }) {
   const [nome, setNome] = useState(dados.nome ?? "");
   const [email, setEmail] = useState(dados.email ?? "");
-  const [nasc, setNasc] = useState(
-    dados.dataNascimento ? formatDate(dados.dataNascimento) : "",
-  );
+  const [nasc, setNasc] = useState(dados.dataNascimento ? formatDate(dados.dataNascimento) : "");
 
   useEffect(() => {
     setNome(dados.nome ?? "");
@@ -350,9 +345,12 @@ function PessoaForm({
 
         <div>
           <Label>Data de nascimento</Label>
-          <Input value={nasc} onChange={(e) => setNasc(maskDate(e.target.value))} placeholder="dd/mm/aaaa" />
+          <Input
+            value={nasc}
+            onChange={(e) => setNasc(maskDate(e.target.value))}
+            placeholder="dd/mm/aaaa"
+          />
         </div>
-
       </div>
       <Button type="submit" disabled={mut.isPending} className="bg-gradient-primary">
         <Save className="h-4 w-4 mr-2" />
@@ -403,11 +401,7 @@ function MetaEnxovalCard({
           mut.mutate();
         }}
       >
-        <CurrencyInput
-          value={valor}
-          onValueChange={setValor}
-          placeholder="R$ 0,00"
-        />
+        <CurrencyInput value={valor} onValueChange={setValor} placeholder="R$ 0,00" />
         <Button type="submit" disabled={mut.isPending} className="bg-gradient-primary">
           Salvar
         </Button>
@@ -425,9 +419,9 @@ function TrocarSenhaCard() {
   const emailDaConta =
     usuario?.tipoConta === "Casal"
       ? usuario.pessoaLogada === 2
-        ? usuario.casalInfo?.pessoa2.email ?? usuario.email ?? ""
-        : usuario.casalInfo?.pessoa1.email ?? usuario.email ?? ""
-      : usuario?.email ?? "";
+        ? (usuario.casalInfo?.pessoa2.email ?? usuario.email ?? "")
+        : (usuario.casalInfo?.pessoa1.email ?? usuario.email ?? "")
+      : (usuario?.email ?? "");
   const mut = useMutation({
     mutationFn: () => usuarioService.alterarSenha(emailDaConta, atual, nova),
     onSuccess: () => {
@@ -475,15 +469,30 @@ function TrocarSenhaCard() {
           >
             <div>
               <Label>Senha atual</Label>
-              <Input type="password" value={atual} onChange={(e) => setAtual(e.target.value)} required />
+              <Input
+                type="password"
+                value={atual}
+                onChange={(e) => setAtual(e.target.value)}
+                required
+              />
             </div>
             <div>
               <Label>Nova senha</Label>
-              <Input type="password" value={nova} onChange={(e) => setNova(e.target.value)} required />
+              <Input
+                type="password"
+                value={nova}
+                onChange={(e) => setNova(e.target.value)}
+                required
+              />
             </div>
             <div>
               <Label>Confirmar</Label>
-              <Input type="password" value={conf} onChange={(e) => setConf(e.target.value)} required />
+              <Input
+                type="password"
+                value={conf}
+                onChange={(e) => setConf(e.target.value)}
+                required
+              />
             </div>
             <div className="md:col-span-3">
               <Button type="submit" disabled={mut.isPending} className="bg-gradient-primary">

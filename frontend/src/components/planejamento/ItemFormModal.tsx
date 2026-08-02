@@ -2,7 +2,13 @@ import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ChevronDown, ExternalLink, AlertTriangle } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
@@ -90,7 +96,7 @@ export function ItemFormModal({
   }, [open, item, categoriaId, initial]);
 
   const [debouncedNome, setDebouncedNome] = useState("");
-  
+
   useEffect(() => {
     const t = setTimeout(() => {
       setDebouncedNome(form.nome);
@@ -121,15 +127,17 @@ export function ItemFormModal({
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nome.trim()) return toast.error("Informe o nome");
-    
+
     const payload = { ...form };
-    
+
     if (dividir && payload.divisaoPagamento) {
       const soma = payload.divisaoPagamento.valorPessoa1 + payload.divisaoPagamento.valorPessoa2;
       const total = payload.preco * payload.quantidade;
       // Allow minor floating point diffs
       if (Math.abs(soma - total) > 0.01) {
-        return toast.error(`A soma da divisão (${brl(soma)}) deve ser igual ao total (${brl(total)}).`);
+        return toast.error(
+          `A soma da divisão (${brl(soma)}) deve ser igual ao total (${brl(total)}).`,
+        );
       }
     } else {
       payload.clearDivisaoPagamento = true;
@@ -139,7 +147,7 @@ export function ItemFormModal({
     if (payload.responsavelId === null) {
       payload.clearResponsavelId = true;
     }
-    
+
     mutation.mutate(payload);
   };
 
@@ -155,9 +163,7 @@ export function ItemFormModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] sm:w-full max-w-[95vw] sm:max-w-lg max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-display">
-            {isEdit ? "Editar item" : "Novo item"}
-          </DialogTitle>
+          <DialogTitle className="font-display">{isEdit ? "Editar item" : "Novo item"}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={submit} className="space-y-4">
@@ -169,7 +175,7 @@ export function ItemFormModal({
                   src={form.fotoUrl}
                   alt={form.nome}
                   className="h-36 w-full max-w-xs rounded-xl object-contain border bg-muted/30"
-                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                  onError={(e) => (e.currentTarget.style.display = "none")}
                 />
                 {form.linkProduto && (
                   <a
@@ -237,7 +243,9 @@ export function ItemFormModal({
                 onValueChange={(v) => set("parcelas", Number(v))}
                 disabled={form.pagamento === "vr"}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((p) => (
                     <SelectItem key={p} value={String(p)}>
@@ -256,7 +264,9 @@ export function ItemFormModal({
                   if (v === "vr") set("parcelas", 1);
                 }}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="normal">Dinheiro</SelectItem>
                   <SelectItem value="vr">VR / VA</SelectItem>
@@ -265,11 +275,10 @@ export function ItemFormModal({
             </div>
             <div className="space-y-2">
               <Label>Prioridade</Label>
-              <Select
-                value={form.prioridade}
-                onValueChange={(v) => set("prioridade", v)}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select value={form.prioridade} onValueChange={(v) => set("prioridade", v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="alta">Alta</SelectItem>
                   <SelectItem value="media">Média</SelectItem>
@@ -279,11 +288,10 @@ export function ItemFormModal({
             </div>
             <div className="space-y-2">
               <Label>Origem</Label>
-              <Select
-                value={form.origem ?? "comprado"}
-                onValueChange={(v) => set("origem", v)}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select value={form.origem ?? "comprado"} onValueChange={(v) => set("origem", v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="comprado">Será comprado</SelectItem>
                   <SelectItem value="ganho">Ganho / Presente</SelectItem>
@@ -295,7 +303,9 @@ export function ItemFormModal({
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-base">Dividir pagamento entre o casal?</Label>
-                    <p className="text-xs text-muted-foreground">Especifique quanto cada um vai pagar.</p>
+                    <p className="text-xs text-muted-foreground">
+                      Especifique quanto cada um vai pagar.
+                    </p>
                   </div>
                   <Switch
                     checked={dividir}
@@ -303,14 +313,17 @@ export function ItemFormModal({
                       setDividir(checked);
                       if (checked) {
                         const total = form.preco * form.quantidade;
-                        set("divisaoPagamento", { valorPessoa1: total / 2, valorPessoa2: total / 2 });
+                        set("divisaoPagamento", {
+                          valorPessoa1: total / 2,
+                          valorPessoa2: total / 2,
+                        });
                       } else {
                         set("divisaoPagamento", null);
                       }
                     }}
                   />
                 </div>
-                
+
                 {dividir && form.divisaoPagamento && (
                   <div className="pt-2">
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -335,25 +348,50 @@ export function ItemFormModal({
                     </div>
                     <div className="flex justify-between items-center mt-3">
                       <div className="text-xs text-muted-foreground">
-                        Total: {brl(form.divisaoPagamento.valorPessoa1 + form.divisaoPagamento.valorPessoa2)} / {brl(form.preco * form.quantidade)}
+                        Total:{" "}
+                        {brl(
+                          form.divisaoPagamento.valorPessoa1 + form.divisaoPagamento.valorPessoa2,
+                        )}{" "}
+                        / {brl(form.preco * form.quantidade)}
                       </div>
                       <div className="flex gap-2">
-                        <Button type="button" variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => {
-                          const total = form.preco * form.quantidade;
-                          set("divisaoPagamento", { valorPessoa1: total, valorPessoa2: 0 });
-                        }}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs px-2"
+                          onClick={() => {
+                            const total = form.preco * form.quantidade;
+                            set("divisaoPagamento", { valorPessoa1: total, valorPessoa2: 0 });
+                          }}
+                        >
                           100/0
                         </Button>
-                        <Button type="button" variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => {
-                          const total = form.preco * form.quantidade;
-                          set("divisaoPagamento", { valorPessoa1: total / 2, valorPessoa2: total / 2 });
-                        }}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs px-2"
+                          onClick={() => {
+                            const total = form.preco * form.quantidade;
+                            set("divisaoPagamento", {
+                              valorPessoa1: total / 2,
+                              valorPessoa2: total / 2,
+                            });
+                          }}
+                        >
                           50/50
                         </Button>
-                        <Button type="button" variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => {
-                          const total = form.preco * form.quantidade;
-                          set("divisaoPagamento", { valorPessoa1: 0, valorPessoa2: total });
-                        }}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs px-2"
+                          onClick={() => {
+                            const total = form.preco * form.quantidade;
+                            set("divisaoPagamento", { valorPessoa1: 0, valorPessoa2: total });
+                          }}
+                        >
                           0/100
                         </Button>
                       </div>
@@ -371,7 +409,9 @@ export function ItemFormModal({
                         else set("responsavelId", Number(v) as 1 | 2);
                       }}
                     >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Sem responsável (juntos)</SelectItem>
                         <SelectItem value="1">{p1}</SelectItem>
@@ -384,14 +424,15 @@ export function ItemFormModal({
             )}
             <div className="space-y-2 sm:col-span-2">
               <Label>Cômodo</Label>
-              <Select
-                value={form.categoriaId}
-                onValueChange={(v) => set("categoriaId", v)}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select value={form.categoriaId} onValueChange={(v) => set("categoriaId", v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {categorias.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.nome}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -402,8 +443,10 @@ export function ItemFormModal({
                 className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 onClick={() => setShowLink((s) => !s)}
               >
-                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showLink ? 'rotate-180' : ''}`} />
-                {showLink ? 'Ocultar link do produto' : 'Editar link do produto'}
+                <ChevronDown
+                  className={`h-3.5 w-3.5 transition-transform ${showLink ? "rotate-180" : ""}`}
+                />
+                {showLink ? "Ocultar link do produto" : "Editar link do produto"}
               </button>
               {showLink && (
                 <Input

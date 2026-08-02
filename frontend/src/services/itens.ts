@@ -34,7 +34,7 @@ export const itensService = {
   atualizar: (id: string, dto: Partial<ItemInputDTO>) =>
     api<Item>(`/api/itens/${id}`, { method: "PUT", body: dto }),
   toggleComprado: (id: string, comprado: boolean) =>
-    api<Item>(`/api/itens/${id}/comprado`, { method: "PUT", body: { comprado } }),
+    api<Item>(`/api/itens/${id}/comprado`, { method: "PATCH", body: { comprado } }),
   moverCategoria: (id: string, categoriaId: string) =>
     api<Item>(`/api/itens/${id}/categoria`, {
       method: "PUT",

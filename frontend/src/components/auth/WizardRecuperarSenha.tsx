@@ -119,12 +119,7 @@ export function WizardRecuperarSenha() {
           <Button className="w-full bg-gradient-primary" disabled={loading || codigo.length < 6}>
             {loading ? "Validando..." : "Validar código"}
           </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            className="w-full"
-            onClick={() => setPasso(1)}
-          >
+          <Button type="button" variant="ghost" className="w-full" onClick={() => setPasso(1)}>
             <ArrowLeft className="h-4 w-4 mr-2" /> Trocar e-mail
           </Button>
         </form>

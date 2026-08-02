@@ -26,17 +26,20 @@ import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   head: () => ({
-    meta: [
-      { title: "Início — Casal Planner" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Início — Casal Planner" }, { name: "robots", content: "noindex" }],
   }),
   component: InicioPage,
 });
 
 const FALLBACK_COLORS = [
-  "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#3b82f6",
-  "#f43f5e", "#06b6d4", "#a855f7",
+  "#8b5cf6",
+  "#ec4899",
+  "#f59e0b",
+  "#10b981",
+  "#3b82f6",
+  "#f43f5e",
+  "#06b6d4",
+  "#a855f7",
 ];
 
 /** Reads a CSS variable value at runtime (needed for ApexCharts which operates outside React) */
@@ -107,13 +110,16 @@ function InicioPage() {
       cor: c.cor ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length],
     })) ?? [];
 
-  const chartConfig = dadosCategoria.reduce((acc, c, i) => {
-    acc[c.nomeBase] = {
-      label: c.nome,
-      color: c.cor,
-    };
-    return acc;
-  }, {} as Record<string, { label: string; color: string }>);
+  const chartConfig = dadosCategoria.reduce(
+    (acc, c, i) => {
+      acc[c.nomeBase] = {
+        label: c.nome,
+        color: c.cor,
+      };
+      return acc;
+    },
+    {} as Record<string, { label: string; color: string }>,
+  );
 
   const dadosVrNormal = [
     { nome: "Dinheiro", valor: r?.totalNormal ?? 0 },
@@ -125,9 +131,10 @@ function InicioPage() {
 
   const semDados = categorias.length === 0 && (!r || (r.totalItens ?? 0) === 0);
 
-  const totalParcelado = itens.length > 0
-    ? itens.filter((i) => (i.parcelas ?? 1) > 1).reduce((s, i) => s + i.preco * i.quantidade, 0)
-    : 0;
+  const totalParcelado =
+    itens.length > 0
+      ? itens.filter((i) => (i.parcelas ?? 1) > 1).reduce((s, i) => s + i.preco * i.quantidade, 0)
+      : 0;
 
   // ─── ApexCharts theme config ───────────────────────────────────────────────
   const chartTheme = isDark ? "dark" : "light";
@@ -325,9 +332,10 @@ function InicioPage() {
             <div className="min-w-0 flex-1">
               <div className="text-sm text-muted-foreground">Progresso do enxoval</div>
               <div className="font-display text-xl font-semibold truncate">
-                {brl(r?.totalGeral)} <span className="text-muted-foreground text-base">de {brl(meta)}</span>
+                {brl(r?.totalGeral)}{" "}
+                <span className="text-muted-foreground text-base">de {brl(meta)}</span>
               </div>
-              {(meta - (r?.totalGeral ?? 0)) > 0 && (
+              {meta - (r?.totalGeral ?? 0) > 0 && (
                 <div className="text-xs text-muted-foreground mt-1">
                   Faltam {brl(meta - (r?.totalGeral ?? 0))}
                 </div>
@@ -395,7 +403,7 @@ function InicioPage() {
           </div>
 
           {/* Divisão de Gastos (Casal) */}
-          {isCasal && (r?.totalPessoa1 > 0 || r?.totalPessoa2 > 0) && (
+          {isCasal && r && (r.totalPessoa1 > 0 || r.totalPessoa2 > 0) && (
             <div className="rounded-2xl border bg-card p-5 shadow-soft">
               <h3 className="font-display text-lg font-semibold mb-3">Divisão de Gastos</h3>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
@@ -405,29 +413,47 @@ function InicioPage() {
                     <span className="font-medium">{p2}</span>
                   </div>
                   <div className="flex h-3 w-full rounded-full overflow-hidden bg-muted">
-                    <div 
-                      className="h-full bg-primary transition-all" 
-                      style={{ width: `${(r.totalPessoa1 / ((r.totalPessoa1 + r.totalPessoa2) || 1)) * 100}%` }} 
+                    <div
+                      className="h-full bg-primary transition-all"
+                      style={{
+                        width: `${(r.totalPessoa1 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100}%`,
+                      }}
                     />
-                    <div 
-                      className="h-full bg-terracota transition-all" 
-                      style={{ width: `${(r.totalPessoa2 / ((r.totalPessoa1 + r.totalPessoa2) || 1)) * 100}%`, backgroundColor: 'var(--terracota, #ec4899)' }} 
+                    <div
+                      className="h-full bg-terracota transition-all"
+                      style={{
+                        width: `${(r.totalPessoa2 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100}%`,
+                        backgroundColor: "var(--terracota, #ec4899)",
+                      }}
                     />
                   </div>
                   <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                    <span>{((r.totalPessoa1 / ((r.totalPessoa1 + r.totalPessoa2) || 1)) * 100).toFixed(0)}%</span>
-                    <span>{((r.totalPessoa2 / ((r.totalPessoa1 + r.totalPessoa2) || 1)) * 100).toFixed(0)}%</span>
+                    <span>
+                      {((r.totalPessoa1 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100).toFixed(0)}
+                      %
+                    </span>
+                    <span>
+                      {((r.totalPessoa2 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100).toFixed(0)}
+                      %
+                    </span>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-6 shrink-0">
                   <div>
                     <div className="text-xs text-muted-foreground">{p1}</div>
-                    <div className="text-xl font-display font-semibold text-primary">{brl(r.totalPessoa1)}</div>
+                    <div className="text-xl font-display font-semibold text-primary">
+                      {brl(r.totalPessoa1)}
+                    </div>
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground">{p2}</div>
-                    <div className="text-xl font-display font-semibold" style={{ color: 'var(--terracota, #ec4899)' }}>{brl(r.totalPessoa2)}</div>
+                    <div
+                      className="text-xl font-display font-semibold"
+                      style={{ color: "var(--terracota, #ec4899)" }}
+                    >
+                      {brl(r.totalPessoa2)}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -439,7 +465,9 @@ function InicioPage() {
             {/* Pie Chart — Gasto por cômodo */}
             <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
               <h3 className="font-display text-lg font-semibold mb-1">Gasto por cômodo</h3>
-              <p className="text-xs text-muted-foreground mb-4">Distribuição de valores por cômodo</p>
+              <p className="text-xs text-muted-foreground mb-4">
+                Distribuição de valores por cômodo
+              </p>
               {dadosCategoria.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-16 text-center">Sem gastos ainda.</p>
               ) : (
@@ -467,13 +495,18 @@ function InicioPage() {
             {/* Bar — Gasto por categoria */}
             <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
               <h3 className="font-display text-lg font-semibold mb-1">Gasto por categoria</h3>
-              <p className="text-xs text-muted-foreground mb-4">Distribuição de valores por cômodo</p>
+              <p className="text-xs text-muted-foreground mb-4">
+                Distribuição de valores por cômodo
+              </p>
               {dadosCategoria.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-16 text-center">Sem gastos ainda.</p>
               ) : (
-                <div id="bar-chart-container" className="w-full overflow-hidden" style={{ height: 300 }}>
+                <div
+                  id="bar-chart-container"
+                  className="w-full overflow-hidden"
+                  style={{ height: 300 }}
+                >
                   <ReactApexChart
-                    key={`bar-${isDark}`}
                     type="bar"
                     options={{ ...barOptions, chart: { ...barOptions.chart, width: "100%" } }}
                     series={barSeries}
@@ -489,10 +522,15 @@ function InicioPage() {
           {temMensais && (
             <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
               <h3 className="font-display text-lg font-semibold mb-1">Comparativo mensal</h3>
-              <p className="text-xs text-muted-foreground mb-4">Evolução dos gastos nos últimos meses</p>
-              <div id="mensal-chart-container" className="w-full overflow-hidden" style={{ height: 220 }}>
+              <p className="text-xs text-muted-foreground mb-4">
+                Evolução dos gastos nos últimos meses
+              </p>
+              <div
+                id="mensal-chart-container"
+                className="w-full overflow-hidden"
+                style={{ height: 220 }}
+              >
                 <ReactApexChart
-                  key={`mensal-${isDark}`}
                   type="bar"
                   options={{ ...mensalOptions, chart: { ...mensalOptions.chart, width: "100%" } }}
                   series={mensalSeries}
@@ -507,7 +545,9 @@ function InicioPage() {
           {r?.porCategoria && r.porCategoria.length > 0 && (
             <div className="rounded-2xl border bg-card p-5 shadow-soft">
               <h3 className="font-display text-lg font-semibold mb-1">Progresso por cômodo</h3>
-              <p className="text-xs text-muted-foreground mb-4">Quanto já foi gasto em relação à meta de cada cômodo</p>
+              <p className="text-xs text-muted-foreground mb-4">
+                Quanto já foi gasto em relação à meta de cada cômodo
+              </p>
               <div className="space-y-4">
                 {r.porCategoria.map((c) => {
                   const metaC = c.metaOrcamento ?? 0;
@@ -574,7 +614,11 @@ function InicioPage() {
               </>
             ) : (
               <>
-                {iaMutation.data ? <RefreshCw className="h-4 w-4 mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                {iaMutation.data ? (
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-2" />
+                )}
                 {iaMutation.data ? "Atualizar" : "Gerar resumo do enxoval"}
               </>
             )}

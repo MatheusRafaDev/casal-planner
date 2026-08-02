@@ -3,8 +3,10 @@ import { Input } from "@/components/ui/input";
 import { maskBRL, parseBRL } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 
-interface CurrencyInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value" | "type"> {
+interface CurrencyInputProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "onChange" | "value" | "type"
+> {
   /** Valor numérico controlado (ex: 1234.56) */
   value: number | string | null | undefined;
   /** Callback com o valor numérico já parseado */

@@ -25,7 +25,7 @@ export const pesquisaPrecosService = {
       nome_validado?: string;
       query_utilizada?: string;
       total?: number;
-    }>('/api/pesquisaprecos', {
+    }>("/api/pesquisaprecos", {
       query: { q, marca },
     });
 

@@ -9,6 +9,8 @@ type RawResumo = Partial<Resumo> & {
     totalVr?: number;
     totalItens?: number;
     totalComprados?: number;
+    totalPessoa1?: number;
+    totalPessoa2?: number;
     porCategoria?: Record<string, number>;
     quantidadePorCategoria?: Record<string, number>;
     compradosPorCategoria?: Record<string, number>;
@@ -62,6 +64,8 @@ export function adaptarResumo(raw: RawResumo, categorias: Categoria[] = []): Res
     totalVr: atual.totalVR ?? atual.totalVr ?? 0,
     totalItens: atual.totalItens ?? 0,
     itensComprados: atual.totalComprados ?? 0,
+    totalPessoa1: atual.totalPessoa1 ?? 0,
+    totalPessoa2: atual.totalPessoa2 ?? 0,
     metaGlobal: enxoval.metaGlobalEnxoval ?? null,
     percentualMeta: enxoval.percentualMetaGlobal ?? null,
     mesAtual: comparativo.mesAtual ?? 0,

@@ -15,15 +15,15 @@ export interface AceitarConviteDto {
 }
 
 export const conviteService = {
-  criar: (dto: CriarConviteDto) => 
+  criar: (dto: CriarConviteDto) =>
     api<ConviteResponseDto>("/api/usuario/convite", {
       method: "POST",
-      body: JSON.stringify(dto),
+      body: dto,
     }),
-  
-  aceitar: (dto: AceitarConviteDto) => 
+
+  aceitar: (dto: AceitarConviteDto) =>
     api<{ message: string }>("/api/usuario/aceitar-convite", {
       method: "POST",
-      body: JSON.stringify(dto),
+      body: dto,
     }),
 };

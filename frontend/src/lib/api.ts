@@ -3,8 +3,7 @@
  * Injeta JWT do localStorage, normaliza erros e devolve JSON tipado.
  */
 
-export const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) 
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string | undefined;
 
 export const TOKEN_STORAGE_KEY = "cp_token";
 
@@ -60,19 +59,18 @@ export async function api<T = unknown>(path: string, opts: ApiOptions = {}): Pro
     response = await fetch(url.toString(), {
       ...rest,
       headers: finalHeaders,
-      body:
-        body === undefined
-          ? undefined
-          : body instanceof FormData
-            ? body
-            : JSON.stringify(body),
+      body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
     });
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       throw error;
     }
     if (error instanceof TypeError) {
-      throw new ApiError("Sem conexão com o servidor. Verifique sua internet e tente novamente.", 0, null);
+      throw new ApiError(
+        "Sem conexão com o servidor. Verifique sua internet e tente novamente.",
+        0,
+        null,
+      );
     }
     throw error;
   }
@@ -85,8 +83,7 @@ export async function api<T = unknown>(path: string, opts: ApiOptions = {}): Pro
     const message =
       (isJson && data && typeof data === "object" && "message" in (data as Record<string, unknown>)
         ? String((data as Record<string, unknown>).message)
-        : null) ??
-      (typeof data === "string" && data ? data : `Erro ${response.status}`);
+        : null) ?? (typeof data === "string" && data ? data : `Erro ${response.status}`);
     throw new ApiError(message, response.status, data);
   }
 
