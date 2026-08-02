@@ -11,10 +11,15 @@ import { ApiError } from "@/lib/api";
 
 type Passo = 1 | 2 | 3;
 
-export function WizardRecuperarSenha() {
+interface WizardProps {
+  initialEmail?: string;
+  startStep?: 1 | 2 | 3;
+}
+
+export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: WizardProps) {
   const navigate = useNavigate();
-  const [passo, setPasso] = useState<Passo>(1);
-  const [email, setEmail] = useState("");
+  const [passo, setPasso] = useState<Passo>(startStep);
+  const [email, setEmail] = useState(initialEmail);
   const [codigo, setCodigo] = useState("");
   const [token, setToken] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
