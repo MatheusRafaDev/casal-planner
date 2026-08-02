@@ -663,7 +663,7 @@ function PlanejamentoPage() {
                     value={filtroStatus}
                     onValueChange={(v) => setFiltroStatus(v as typeof filtroStatus)}
                   >
-                    <SelectTrigger className="min-w-[100px] xs:min-w-[110px] sm:w-[140px]">
+                    <SelectTrigger className="flex-1 min-w-[110px] sm:flex-none sm:w-[140px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -677,7 +677,7 @@ function PlanejamentoPage() {
                     value={filtroPagamento}
                     onValueChange={(v) => setFiltroPagamento(v as typeof filtroPagamento)}
                   >
-                    <SelectTrigger className="min-w-[100px] xs:min-w-[110px] sm:w-[140px]">
+                    <SelectTrigger className="flex-1 min-w-[150px] sm:flex-none sm:w-[170px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -691,7 +691,7 @@ function PlanejamentoPage() {
                       value={filtroResponsavel}
                       onValueChange={(v) => setFiltroResponsavel(v as typeof filtroResponsavel)}
                     >
-                      <SelectTrigger className="min-w-[100px] xs:min-w-[110px] sm:w-[140px]">
+                      <SelectTrigger className="flex-1 min-w-[130px] sm:flex-none sm:w-[150px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
