@@ -18,6 +18,7 @@ namespace CasalPlanner.Domain.Entities
         public TipoConta TipoConta { get; set; } = TipoConta.Individual;
 
         // Para contas individuais
+        public string? Provider { get; set; } = "local";
         public string? NomeCompleto { get; set; }
         public string? Email { get; set; }
         public string? SenhaHash { get; set; }
@@ -55,6 +56,7 @@ namespace CasalPlanner.Domain.Entities
     public class CasalInfo
     {
         // Pessoa 1
+        public string? ProviderPessoa1 { get; set; } = "local";
         public string NomeCompletoPessoa1 { get; set; } = string.Empty;
         public string EmailPessoa1 { get; set; } = string.Empty;
         [BsonElement("senhaHashPessoa1")]
@@ -71,6 +73,7 @@ namespace CasalPlanner.Domain.Entities
         public DateTime? ResetTokenExpiresAtPessoa1 { get; set; }
 
         // Pessoa 2
+        public string? ProviderPessoa2 { get; set; } = "local";
         public string NomeCompletoPessoa2 { get; set; } = string.Empty;
         public string EmailPessoa2 { get; set; } = string.Empty;
         [BsonElement("senhaHashPessoa2")]

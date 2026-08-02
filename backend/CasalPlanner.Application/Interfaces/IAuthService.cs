@@ -8,6 +8,7 @@ public interface IAuthService
     // Registro
     Task<Usuario?> Registrar(RegistroDto dto);
     Task<Usuario?> RegistrarCasal(RegistroCasalDto dto);
+    Task<Usuario> CriarUsuarioViaGoogleAsync(string email, string nome);
 
     // Consulta
     Task<Usuario?> ObterUsuarioPorEmail(string email);

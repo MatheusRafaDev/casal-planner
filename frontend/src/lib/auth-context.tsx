@@ -8,6 +8,7 @@ interface AuthState {
   loading: boolean;
   isAuthenticated: boolean;
   login: (email: string, senha: string) => Promise<Usuario>;
+  loginComGoogle: (token: string) => Promise<Usuario>;
   logout: () => void;
   setUsuario: (u: Usuario | null) => void;
   refresh: () => Promise<void>;
@@ -96,6 +97,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return u;
   }, []);
 
+  const loginComGoogle = useCallback(async (token: string) => {
+    const res = await authService.loginComGoogle(token);
+    setToken(res.token);
+    const u = normalizarUsuario(res.usuario);
+    setUsuario(u);
+    return u;
+  }, []);
+
   const logout = useCallback(() => {
     setToken(null);
     setUsuario(null);
@@ -109,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         isAuthenticated: !!usuario,
         login,
+        loginComGoogle,
         logout,
         setUsuario,
         refresh,

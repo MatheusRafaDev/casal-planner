@@ -10,6 +10,7 @@ using CasalPlanner.API.Helpers;
 using MongoDB.Driver;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
+using Google.Apis.Auth;
 
 namespace CasalPlanner.API.Controllers
 {
@@ -20,15 +21,18 @@ namespace CasalPlanner.API.Controllers
         private readonly IAuthService _authService;
         private readonly MongoDbContext _context;
         private readonly ILogger<AuthController> _logger;
+        private readonly IConfiguration _configuration;
 
         public AuthController(
-            IAuthService authService, 
+            IAuthService authService,
             MongoDbContext context,
-            ILogger<AuthController> logger)
+            ILogger<AuthController> logger,
+            IConfiguration configuration)
         {
             _authService = authService;
             _context = context;
             _logger = logger;
+            _configuration = configuration;
         }
 
         private string GetUsuarioId() =>
@@ -76,7 +80,6 @@ namespace CasalPlanner.API.Controllers
             );
             usuario.LastLoginAt = DateTime.UtcNow;
 
-            // Gera JWT
             string token = isCasal
                 ? _authService.GerarTokenCasal(usuario, pessoa)
                 : _authService.GerarToken(usuario);
@@ -94,6 +97,80 @@ namespace CasalPlanner.API.Controllers
                 token,
                 usuario = usuarioMapeado
             });
+        }
+
+        [HttpPost("google")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleAuthDto dto)
+        {
+            var clientId = _configuration["Google:ClientId"]
+                ?? Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+
+            if (string.IsNullOrEmpty(clientId))
+                return StatusCode(500, new { message = "Google Client ID não configurado no servidor." });
+
+            GoogleJsonWebSignature.Payload payload;
+            try
+            {
+                payload = await GoogleJsonWebSignature.ValidateAsync(dto.Token, new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { clientId }
+                });
+            }
+            catch (InvalidJwtException)
+            {
+                return Unauthorized(new { message = "Token do Google inválido." });
+            }
+
+            if (!payload.EmailVerified)
+                return Unauthorized(new { message = "E-mail do Google não verificado." });
+
+            var emailNormalizado = payload.Email.Trim().ToLowerInvariant();
+            _logger.LogInformation("Google Login para: {Email}", emailNormalizado);
+
+            var usuario = await _authService.ObterUsuarioPorEmail(emailNormalizado);
+            var isCasal = false;
+            string pessoa = "";
+
+            if (usuario == null)
+            {
+                usuario = await _authService.ObterCasalPorEmail(emailNormalizado);
+                if (usuario != null)
+                {
+                    isCasal = true;
+                    pessoa = usuario.CasalInfo?.EmailPessoa1 == emailNormalizado ? "pessoa1" : "pessoa2";
+                }
+            }
+
+            if (usuario == null)
+            {
+                usuario = await _authService.CriarUsuarioViaGoogleAsync(
+                    emailNormalizado,
+                    payload.Name ?? "Usuário Google"
+                );
+                _logger.LogInformation("Nova conta Individual criada via Google: {Email}", emailNormalizado);
+            }
+            else if (!isCasal && (usuario.Provider == "local" || string.IsNullOrEmpty(usuario.Provider)))
+            {
+                await _context.Usuarios.UpdateOneAsync(
+                    u => u.Id == usuario.Id,
+                    Builders<Usuario>.Update.Set(u => u.Provider, "both"));
+                usuario.Provider = "both";
+            }
+
+            await _context.Usuarios.UpdateOneAsync(
+                u => u.Id == usuario.Id,
+                Builders<Usuario>.Update.Set(u => u.LastLoginAt, DateTime.UtcNow));
+            usuario.LastLoginAt = DateTime.UtcNow;
+
+            string token = isCasal
+                ? _authService.GerarTokenCasal(usuario, pessoa)
+                : _authService.GerarToken(usuario);
+
+            var usuarioMapeado = isCasal
+                ? UsuarioMapper.MapearCasal(usuario, pessoa)
+                : UsuarioMapper.MapearIndividual(usuario);
+
+            return Ok(new { success = true, message = "Login realizado com sucesso", token, usuario = usuarioMapeado });
         }
 
         [HttpPost("logout")]
@@ -117,7 +194,6 @@ namespace CasalPlanner.API.Controllers
             if (usuario == null)
                 return NotFound();
 
-            // Get pessoaLogada from JWT token for casal accounts
             var pessoaLogada = User.FindFirst("PessoaLogada")?.Value;
 
             var usuarioMapeado = usuario.TipoConta == TipoConta.Casal

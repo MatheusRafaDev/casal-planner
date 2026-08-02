@@ -1,7 +1,8 @@
-// Services/EmailService.cs
+﻿// Services/EmailService.cs
 using System.Net;
 using System.Net.Mail;
 
+using Resend;
 using CasalPlanner.Application.Interfaces;
 
 namespace CasalPlanner.Infrastructure.Services
@@ -16,6 +17,42 @@ namespace CasalPlanner.Infrastructure.Services
         {
             _configuration = configuration;
             _logger = logger;
+        }
+
+        private async Task<bool> EnviarViaResendAsync(MailMessage mailMessage, string logContexto)
+        {
+            var resendApiKey = Environment.GetEnvironmentVariable("RESEND_API_KEY") ?? _configuration["Resend:ApiKey"];
+            if (string.IsNullOrEmpty(resendApiKey))
+                return false;
+
+            try
+            {
+                var resendFrom = Environment.GetEnvironmentVariable("RESEND_FROM_EMAIL")
+                    ?? _configuration["Resend:FromEmail"]
+                    ?? "onboarding@resend.dev";
+
+                IResend resend = ResendClient.Create(resendApiKey);
+                var destinatario = mailMessage.To[0].Address;
+
+                var msg = new Resend.EmailMessage
+                {
+                    From = resendFrom,
+                    Subject = mailMessage.Subject,
+                    HtmlBody = mailMessage.Body,
+                };
+                msg.To.Add(destinatario);
+
+                var response = await resend.EmailSendAsync(msg);
+                _logger.LogInformation("Email ({Contexto}) enviado via Resend para {Email}. Id: {Id}",
+                    logContexto, destinatario, response.Content);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao enviar email ({Contexto}) via Resend para {Email}",
+                    logContexto, mailMessage.To[0].Address);
+                return false;
+            }
         }
 
         public async Task<bool> EnviarCodigoRedefinicaoSenha(string email, string codigo, string nome = "")
@@ -399,6 +436,9 @@ namespace CasalPlanner.Infrastructure.Services
                 };
 
                 mailMessage.To.Add(email);
+
+                if (await EnviarViaResendAsync(mailMessage, "recuperacao-senha"))
+                    return true;
                 await client.SendMailAsync(mailMessage);
 
                 _logger.LogInformation("✅ Email de recuperação enviado com sucesso para {Email}", email);
@@ -626,6 +666,9 @@ namespace CasalPlanner.Infrastructure.Services
                 };
 
                 mailMessage.To.Add(email);
+
+                if (await EnviarViaResendAsync(mailMessage, "boas-vindas"))
+                    return true;
                 await client.SendMailAsync(mailMessage);
 
                 _logger.LogInformation("✅ Email de boas-vindas enviado para {Email}", email);
@@ -821,6 +864,9 @@ namespace CasalPlanner.Infrastructure.Services
                 };
 
                 mailMessage.To.Add(email);
+
+                if (await EnviarViaResendAsync(mailMessage, "exclusao-conta"))
+                    return true;
                 await client.SendMailAsync(mailMessage);
 
                 _logger.LogInformation("✅ Email de confirmação de exclusão enviado para {Email}", email);
@@ -1010,6 +1056,9 @@ namespace CasalPlanner.Infrastructure.Services
                 };
 
                 mailMessage.To.Add(email);
+
+                if (await EnviarViaResendAsync(mailMessage, "senha-alterada"))
+                    return true;
                 await client.SendMailAsync(mailMessage);
 
                 _logger.LogInformation("✅ Aviso de senha alterada enviado para {Email}", email);
@@ -1198,6 +1247,9 @@ namespace CasalPlanner.Infrastructure.Services
                 };
 
                 mailMessage.To.Add(email);
+
+                if (await EnviarViaResendAsync(mailMessage, "convite-parceiro"))
+                    return true;
                 await client.SendMailAsync(mailMessage);
 
                 _logger.LogInformation("✅ Email de convite enviado para {Email}", email);

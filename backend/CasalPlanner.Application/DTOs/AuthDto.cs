@@ -2,6 +2,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CasalPlanner.Application.DTOs
 {
+    public class GoogleAuthDto
+    {
+        [Required]
+        public string Token { get; set; } = string.Empty;
+    }
+
     // ========== LOGIN ==========
     public class LoginDto
     {

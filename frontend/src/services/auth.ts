@@ -8,6 +8,12 @@ export const authService = {
       auth: false,
       body: { email, senha },
     }),
+  loginComGoogle: (token: string) =>
+    api<LoginResponse>("/api/auth/google", {
+      method: "POST",
+      auth: false,
+      body: { token },
+    }),
   logout: () => api("/api/auth/logout", { method: "POST" }),
   me: () => api<Usuario>("/api/auth/me"),
 };

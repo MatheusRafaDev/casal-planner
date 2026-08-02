@@ -60,6 +60,25 @@ namespace CasalPlanner.Infrastructure.Services
             return usuario;
         }
 
+        public async Task<Usuario> CriarUsuarioViaGoogleAsync(string email, string nome)
+        {
+            var usuario = new Usuario
+            {
+                NomeCompleto = nome,
+                Email = NormalizarEmail(email),
+                SenhaHash = string.Empty,
+                TipoConta = TipoConta.Individual,
+                Provider = "google",
+                IsCasal = false,
+                IsAtivo = true,
+                CreatedAt = DateTime.UtcNow,
+                ModoEscuro = true,
+            };
+
+            await _context.Usuarios.InsertOneAsync(usuario);
+            return usuario;
+        }
+
         public async Task<Usuario?> RegistrarCasal(RegistroCasalDto dto)
         {
             try
