@@ -187,14 +187,21 @@ export function LoginForm() {
       </Button>
 
       {googleClientId && (
-        <div className="mt-4 flex justify-center">
-          <div className="w-full max-w-[320px] rounded-2xl border border-border bg-white shadow-sm">
-            <div
-              id="google-signin-button"
-              ref={googleBtnRef}
-              className="min-h-[48px]"
-              aria-label="Entrar com Google"
-            />
+        <div className="space-y-3">
+          <div className="flex items-center justify-center gap-3 text-xs uppercase text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
+            <span>ou</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+          <div className="flex justify-center">
+            <div className="w-full max-w-[320px] rounded-2xl border border-border bg-white shadow-sm">
+              <div
+                id="google-signin-button"
+                ref={googleBtnRef}
+                className="min-h-[48px]"
+                aria-label="Entrar com Google"
+              />
+            </div>
           </div>
         </div>
       )}
