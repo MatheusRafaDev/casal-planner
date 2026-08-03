@@ -35,7 +35,7 @@ function normalizarPessoa(pessoaRaw: unknown): PessoaLike {
   };
 }
 
-function normalizarUsuario(raw: unknown): Usuario {
+export function normalizarUsuario(raw: unknown): Usuario {
   const r = (raw ?? {}) as Record<string, unknown> & {
     casalInfo?: Usuario["casalInfo"];
     pessoa1?: unknown;

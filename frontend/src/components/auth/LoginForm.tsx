@@ -36,6 +36,20 @@ export function LoginForm() {
   const { login, loginComGoogle } = useAuth();
   const navigate = useNavigate();
   const googleBtnRef = useRef<HTMLDivElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const senhaInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const emailEl = emailInputRef.current;
+    const senhaEl = senhaInputRef.current;
+
+    if (emailEl?.value && emailEl.value !== email) {
+      setEmail(emailEl.value);
+    }
+    if (senhaEl?.value && senhaEl.value !== senha) {
+      setSenha(senhaEl.value);
+    }
+  }, [email, senha]);
 
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
@@ -92,6 +106,7 @@ export function LoginForm() {
             id="email"
             type="email"
             className="pl-9"
+            ref={emailInputRef}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="voce@exemplo.com"
@@ -113,6 +128,7 @@ export function LoginForm() {
             id="senha"
             type="password"
             className="pl-9"
+            ref={senhaInputRef}
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
             required
@@ -125,24 +141,25 @@ export function LoginForm() {
       </Button>
 
       {googleClientId && (
-        <>
-          <div className="relative my-2">
+        <div className="rounded-3xl border border-border bg-muted/10 p-4">
+          <div className="relative mb-4">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-border" />
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">ou</span>
+            <div className="relative flex justify-center text-xs uppercase text-muted-foreground">
+              <span className="bg-muted/10 px-3">ou</span>
             </div>
           </div>
 
-          {/* O SDK do Google renderiza o botão aqui */}
-          <div
-            id="google-signin-button"
-            ref={googleBtnRef}
-            className="flex justify-center min-h-[44px]"
-            aria-label="Entrar com Google"
-          />
-        </>
+          <div className="rounded-2xl border border-border bg-background shadow-sm">
+            <div
+              id="google-signin-button"
+              ref={googleBtnRef}
+              className="flex min-h-[48px] items-center justify-center px-1"
+              aria-label="Entrar com Google"
+            />
+          </div>
+        </div>
       )}
     </form>
   );

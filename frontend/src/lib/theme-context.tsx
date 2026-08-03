@@ -43,7 +43,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (usuario?.id) {
       usuarioService
         .toggleModoEscuro(usuario.id, t === "dark")
-        .then((u) => setUsuario(u))
+        .then((u) => setUsuario(normalizarUsuario(u)))
         .catch(() => {});
     }
   };
