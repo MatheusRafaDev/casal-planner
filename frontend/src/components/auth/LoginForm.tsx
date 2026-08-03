@@ -39,8 +39,6 @@ declare global {
 }
 
 export function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const { login, loginComGoogle } = useAuth();
@@ -49,40 +47,69 @@ export function LoginForm() {
   const emailInputRef = useRef<HTMLInputElement>(null);
   const senhaInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const emailEl = emailInputRef.current;
-    const senhaEl = senhaInputRef.current;
-
-    if (emailEl?.value && emailEl.value !== email) {
-      setEmail(emailEl.value);
-    }
-    if (senhaEl?.value && senhaEl.value !== senha) {
-      setSenha(senhaEl.value);
-    }
-  }, [email, senha]);
-
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
   useEffect(() => {
-    if (!googleClientId || !window.google || !googleBtnRef.current) return;
+    if (!googleClientId || !googleBtnRef.current) return;
 
-    if (!googleInitialized) {
-      window.google.accounts.id.initialize({
-        client_id: googleClientId,
-        callback: handleGoogleCredential,
+    let timeoutId: number | undefined;
+    let canceled = false;
+    let attempts = 0;
+
+    const renderGoogleButton = () => {
+      if (!window.google || !googleBtnRef.current) return;
+
+      if (!googleInitialized) {
+        window.google.accounts.id.initialize({
+          client_id: googleClientId,
+          callback: handleGoogleCredential,
+        });
+        googleInitialized = true;
+      }
+
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        theme: "filled_blue",
+        size: "large",
+        type: "standard",
+        text: "signin_with",
+        shape: "rectangular",
+        logo_alignment: "left",
+        width: 280,
       });
-      googleInitialized = true;
+    };
+
+    const tryRender = () => {
+      if (canceled) return;
+      if (window.google) {
+        renderGoogleButton();
+        return;
+      }
+
+      if (attempts >= 25) return;
+      attempts += 1;
+      timeoutId = window.setTimeout(tryRender, 200);
+    };
+
+    if (!window.google) {
+      const existingScript = document.getElementById("google-client-script") as HTMLScriptElement | null;
+      if (!existingScript) {
+        const scriptElement = document.createElement("script");
+        scriptElement.id = "google-client-script";
+        scriptElement.src = "https://accounts.google.com/gsi/client";
+        scriptElement.async = true;
+        scriptElement.defer = true;
+        document.head.appendChild(scriptElement);
+      }
     }
 
-    window.google.accounts.id.renderButton(googleBtnRef.current, {
-      theme: "filled_blue",
-      size: "large",
-      type: "standard",
-      text: "signin_with",
-      shape: "rectangular",
-      logo_alignment: "left",
-      width: 280,
-    });
+    tryRender();
+
+    return () => {
+      canceled = true;
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleClientId]);
 
@@ -101,6 +128,8 @@ export function LoginForm() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    const email = emailInputRef.current?.value ?? "";
+    const senha = senhaInputRef.current?.value ?? "";
     setLoading(true);
     try {
       await login(email, senha);
@@ -114,21 +143,21 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4">
+    <form onSubmit={submit} className="space-y-4" autoComplete="on" suppressHydrationWarning>
       <div className="space-y-2">
         <Label htmlFor="email">E-mail</Label>
         <div className="relative">
           <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             id="email"
+            name="email"
             type="email"
             className="pl-9"
             ref={emailInputRef}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            defaultValue=""
             placeholder="voce@exemplo.com"
             required
-            autoComplete="email"
+            autoComplete="username"
           />
         </div>
       </div>
@@ -143,11 +172,11 @@ export function LoginForm() {
           <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             id="senha"
+            name="password"
             type="password"
             className="pl-9"
             ref={senhaInputRef}
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
+            defaultValue=""
             required
             autoComplete="current-password"
           />
@@ -158,24 +187,13 @@ export function LoginForm() {
       </Button>
 
       {googleClientId && (
-        <div className="rounded-3xl border border-border bg-muted/10 p-4">
-          <div className="relative mb-4">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase text-muted-foreground">
-              <span className="bg-muted/10 px-3">ou</span>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-background shadow-sm">
-            <div
-              id="google-signin-button"
-              ref={googleBtnRef}
-              className="min-h-[48px]"
-              aria-label="Entrar com Google"
-            />
-          </div>
+        <div className="mt-4">
+          <div
+            id="google-signin-button"
+            ref={googleBtnRef}
+            className="min-h-[48px]"
+            aria-label="Entrar com Google"
+          />
         </div>
       )}
     </form>
