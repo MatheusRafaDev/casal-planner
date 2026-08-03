@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TrocarSenhaRouteImport } from './routes/trocar-senha'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ConviteRouteImport } from './routes/convite'
@@ -18,6 +19,11 @@ import { Route as AuthenticatedPlanejamentoRouteImport } from './routes/_authent
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
 
+const TrocarSenhaRoute = TrocarSenhaRouteImport.update({
+  id: '/trocar-senha',
+  path: '/trocar-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
   id: '/recuperar-senha',
   path: '/recuperar-senha',
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/convite': typeof ConviteRoute
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/trocar-senha': typeof TrocarSenhaRoute
   '/inicio': typeof AuthenticatedInicioRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/planejamento': typeof AuthenticatedPlanejamentoRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/convite': typeof ConviteRoute
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/trocar-senha': typeof TrocarSenhaRoute
   '/inicio': typeof AuthenticatedInicioRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/planejamento': typeof AuthenticatedPlanejamentoRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/convite': typeof ConviteRoute
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/trocar-senha': typeof TrocarSenhaRoute
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/planejamento': typeof AuthenticatedPlanejamentoRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
     | '/convite'
     | '/login'
     | '/recuperar-senha'
+    | '/trocar-senha'
     | '/inicio'
     | '/perfil'
     | '/planejamento'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
     | '/convite'
     | '/login'
     | '/recuperar-senha'
+    | '/trocar-senha'
     | '/inicio'
     | '/perfil'
     | '/planejamento'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/convite'
     | '/login'
     | '/recuperar-senha'
+    | '/trocar-senha'
     | '/_authenticated/inicio'
     | '/_authenticated/perfil'
     | '/_authenticated/planejamento'
@@ -125,10 +137,18 @@ export interface RootRouteChildren {
   ConviteRoute: typeof ConviteRoute
   LoginRoute: typeof LoginRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
+  TrocarSenhaRoute: typeof TrocarSenhaRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/trocar-senha': {
+      id: '/trocar-senha'
+      path: '/trocar-senha'
+      fullPath: '/trocar-senha'
+      preLoaderRoute: typeof TrocarSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recuperar-senha': {
       id: '/recuperar-senha'
       path: '/recuperar-senha'
@@ -209,6 +229,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConviteRoute: ConviteRoute,
   LoginRoute: LoginRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
+  TrocarSenhaRoute: TrocarSenhaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

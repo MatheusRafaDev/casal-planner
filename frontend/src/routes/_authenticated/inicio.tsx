@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import {
   Wallet,
   ShoppingBag,
@@ -10,6 +12,7 @@ import {
   CreditCard,
   RefreshCw,
   Bot,
+  FileText,
 } from "lucide-react";
 import ReactApexChart from "react-apexcharts";
 import type { ApexOptions } from "apexcharts";
@@ -23,6 +26,7 @@ import { iconFor } from "@/components/planejamento/icon-map";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import type { Item } from "@/services/types";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   head: () => ({
@@ -251,10 +255,21 @@ function InicioPage() {
 
   const donutSeries = dadosVrNormal.map((d) => d.valor);
 
-  // Bar chart mensal
-  const mesNames = ["Retrasado", "Passado", "Atual"];
+  // Bar chart mensal — com nomes reais dos meses
+  const hoje = new Date();
+  const MESES_PT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+  const mesAtualNome = MESES_PT[hoje.getMonth()];
+  const mesPassadoNome = MESES_PT[(hoje.getMonth() + 11) % 12];
+  const mesRetrasadoNome = MESES_PT[(hoje.getMonth() + 10) % 12];
+  const mesNames = [mesRetrasadoNome, mesPassadoNome, mesAtualNome];
   const mesValues = [r?.mesRetrasado ?? 0, r?.mesPassado ?? 0, r?.mesAtual ?? 0];
   const primaryColor = cssVar("--primary") || "#8b5cf6";
+
+  // Variação % do mês atual em relação ao passado
+  const variacaoAtual =
+    (r?.mesPassado ?? 0) > 0
+      ? (((r?.mesAtual ?? 0) - (r?.mesPassado ?? 0)) / (r?.mesPassado ?? 0)) * 100
+      : null;
 
   const mensalOptions: ApexOptions = {
     chart: {
@@ -311,6 +326,130 @@ function InicioPage() {
 
   const mensalSeries = [{ name: "Gasto", data: mesValues }];
 
+  // ─── Gerador de Relatório PDF Financeiro ───────────────────────────────────
+  const gerarRelatorioFinanceiro = () => {
+    const doc = new jsPDF();
+    const hoje = new Date();
+    const dataStr = hoje.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+    const nomesCasal = isCasal ? `${p1} & ${p2}` : usuario?.nomeCompleto ?? "CasalPlanner";
+
+    // ── Cabeçalho ──
+    doc.setFillColor(139, 92, 246);
+    doc.rect(0, 0, 210, 35, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("Relatório Financeiro", 14, 16);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${nomesCasal}  •  ${dataStr}`, 14, 27);
+
+    // ── Métricas principais ──
+    doc.setTextColor(50, 50, 50);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Resumo Geral", 14, 48);
+
+    const totalGeral = r?.totalGeral ?? 0;
+    const totalItens = r?.totalItens ?? 0;
+    const totalComprados = r?.itensComprados ?? 0;
+    const metaVal = r?.metaGlobal ?? 0;
+    const pctMeta = metaVal > 0 ? Math.min(100, (totalGeral / metaVal) * 100) : null;
+    const totalParcelado = itens.filter((i: Item) => (i.parcelas ?? 1) > 1)
+      .reduce((s: number, i: Item) => s + i.preco * i.quantidade, 0);
+
+    const metricas = [
+      ["Total Gasto", brl(totalGeral)],
+      ["Total de Itens", `${totalItens} itens (${totalComprados} comprados)`],
+      ["Meta Global", metaVal > 0 ? `${brl(metaVal)} (${pctMeta?.toFixed(1)}% atingido)` : "Não definida"],
+      ["Em Parcelas", brl(totalParcelado)],
+      ["Apenas Dinheiro", brl(r?.totalNormal ?? 0)],
+      ["VR / VA", brl(r?.totalVr ?? 0)],
+    ];
+
+    autoTable(doc, {
+      startY: 53,
+      head: [["Métrica", "Valor"]],
+      body: metricas,
+      theme: "grid",
+      headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [248, 245, 255] },
+      columnStyles: { 1: { halign: "right", fontStyle: "bold" } },
+      styles: { fontSize: 10 },
+    });
+
+    // ── Por Categoria ──
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const afterMetricas = (doc as any).lastAutoTable?.finalY ?? 115;
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(50, 50, 50);
+    doc.text("Gastos por Cômodo", 14, afterMetricas + 12);
+
+    const porCategoria = (r?.porCategoria ?? []).map((c) => [
+      c.categoriaNome,
+      brl(c.totalGasto),
+      `${c.totalItens ?? 0} itens`,
+      c.metaOrcamento ? brl(c.metaOrcamento) : "—",
+    ]);
+
+    autoTable(doc, {
+      startY: afterMetricas + 17,
+      head: [["Cômodo", "Gasto", "Itens", "Meta"]],
+      body: porCategoria.length > 0 ? porCategoria : [["Nenhuma categoria", "—", "—", "—"]],
+      theme: "striped",
+      headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: "bold" },
+      columnStyles: { 1: { halign: "right" }, 3: { halign: "right" } },
+      styles: { fontSize: 9 },
+    });
+
+    // ── Top Itens por Valor ──
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const afterCat = (doc as any).lastAutoTable?.finalY ?? 180;
+    if (afterCat < 240) {
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(50, 50, 50);
+      doc.text("Top 10 Itens por Valor", 14, afterCat + 12);
+
+      const topItens = [...itens]
+        .sort((a: Item, b: Item) => (b.preco * b.quantidade) - (a.preco * a.quantidade))
+        .slice(0, 10)
+        .map((i: Item) => [
+          i.nome,
+          i.marca ?? "—",
+          brl(i.preco),
+          `×${i.quantidade}`,
+          brl(i.preco * i.quantidade),
+          i.comprado ? "✓" : "○",
+        ]);
+
+      autoTable(doc, {
+        startY: afterCat + 17,
+        head: [["Item", "Marca", "Preço", "Qtd", "Total", "Comprado"]],
+        body: topItens.length > 0 ? topItens : [["Nenhum item", "—", "—", "—", "—", "—"]],
+        theme: "striped",
+        headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: "bold" },
+        columnStyles: { 2: { halign: "right" }, 4: { halign: "right" }, 5: { halign: "center" } },
+        styles: { fontSize: 8 },
+      });
+    }
+
+    // ── Rodapé ──
+    const pages = doc.getNumberOfPages();
+    doc.setFontSize(8);
+    doc.setTextColor(160);
+    for (let i = 1; i <= pages; i++) {
+      doc.setPage(i);
+      doc.text(
+        `Página ${i} de ${pages}  •  CasalPlanner  •  Gerado em ${dataStr}`,
+        14, doc.internal.pageSize.height - 8
+      );
+    }
+
+    doc.save(`relatorio-financeiro-${hoje.toISOString().slice(0, 10)}.pdf`);
+  };
+
   return (
     <div className="p-4 md:p-8 w-full max-w-[1600px] space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -318,11 +457,21 @@ function InicioPage() {
           <h1 className="font-display text-3xl md:text-4xl font-semibold">Início</h1>
           <p className="text-muted-foreground">Seu enxoval em números.</p>
         </div>
-        <Button asChild className="bg-gradient-primary shadow-warm shrink-0">
-          <Link to="/planejamento">
-            Ir para o planejamento <ArrowRight className="h-4 w-4 ml-2" />
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2 shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={gerarRelatorioFinanceiro}
+            className="border-primary/40 text-primary hover:bg-primary/10"
+          >
+            <FileText className="h-4 w-4 mr-1" /> Relatório PDF
+          </Button>
+          <Button asChild className="bg-gradient-primary shadow-warm">
+            <Link to="/planejamento">
+              Ir para o planejamento <ArrowRight className="h-4 w-4 ml-2" />
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Progresso do Enxoval */}
@@ -521,9 +670,23 @@ function InicioPage() {
           {/* Comparativo mensal */}
           {temMensais && (
             <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
-              <h3 className="font-display text-lg font-semibold mb-1">Comparativo mensal</h3>
+              <div className="flex items-center gap-3 mb-1 flex-wrap">
+                <h3 className="font-display text-lg font-semibold">Comparativo mensal</h3>
+                {variacaoAtual !== null && (
+                  <span
+                    className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                      variacaoAtual >= 0
+                        ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                        : "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+                    }`}
+                  >
+                    {variacaoAtual >= 0 ? "+" : ""}
+                    {variacaoAtual.toFixed(1)}% vs {mesPassadoNome}
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground mb-4">
-                Evolução dos gastos nos últimos meses
+                Evolução dos gastos nos últimos 3 meses
               </p>
               <div
                 id="mensal-chart-container"

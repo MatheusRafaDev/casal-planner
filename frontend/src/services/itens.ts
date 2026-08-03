@@ -27,8 +27,35 @@ export interface ItemInputDTO {
   clearDivisaoPagamento?: boolean;
 }
 
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 export const itensService = {
   listar: () => api<Item[]>("/api/itens"),
+  listarPaginado: (params: {
+    categoriaId?: string;
+    busca?: string;
+    status?: string;
+    pagamento?: string;
+    responsavelId?: number;
+    page: number;
+    pageSize: number;
+  }) => {
+    const qs = new URLSearchParams();
+    if (params.categoriaId) qs.append("categoriaId", params.categoriaId);
+    if (params.busca) qs.append("busca", params.busca);
+    if (params.status) qs.append("status", params.status);
+    if (params.pagamento) qs.append("pagamento", params.pagamento);
+    if (params.responsavelId) qs.append("responsavelId", params.responsavelId.toString());
+    qs.append("page", params.page.toString());
+    qs.append("pageSize", params.pageSize.toString());
+    return api<PagedResult<Item>>(`/api/itens/page?${qs.toString()}`);
+  },
   porCategoria: (categoriaId: string) => api<Item[]>(`/api/itens/categoria/${categoriaId}`),
   criar: (dto: ItemInputDTO) => api<Item>("/api/itens", { method: "POST", body: dto }),
   atualizar: (id: string, dto: Partial<ItemInputDTO>) =>

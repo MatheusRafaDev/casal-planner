@@ -42,6 +42,21 @@ namespace CasalPlanner.API.Controllers
             return Ok(itens);
         }
 
+        [HttpGet("page")]
+        public async Task<IActionResult> GetItensPaginated(
+            [FromQuery] string? categoriaId,
+            [FromQuery] string? busca,
+            [FromQuery] string? status,
+            [FromQuery] string? pagamento,
+            [FromQuery] int? responsavelId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
+        {
+            var usuarioId = GetUsuarioId();
+            var pagedResult = await _itemService.GetItensPaginated(usuarioId, categoriaId, busca, status, pagamento, responsavelId, page, pageSize);
+            return Ok(pagedResult);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetItem(string id)
         {

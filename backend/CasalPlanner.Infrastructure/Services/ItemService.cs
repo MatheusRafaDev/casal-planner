@@ -2,6 +2,8 @@ using CasalPlanner.Domain.Entities;
 using CasalPlanner.Application.DTOs;
 using CasalPlanner.Infrastructure.Persistence;
 using MongoDB.Driver;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 using CasalPlanner.Application.Interfaces;
 
@@ -12,11 +14,22 @@ namespace CasalPlanner.Infrastructure.Services
     {
         private readonly MongoDbContext _context;
         private readonly IPushService _pushService;
+        private readonly ILogger<ItemService> _logger;
+        private readonly IEmailService _emailService;
+        private readonly IMemoryCache _cache;
 
-        public ItemService(MongoDbContext context, IPushService pushService)
+        public ItemService(
+            MongoDbContext context, 
+            IPushService pushService, 
+            ILogger<ItemService> logger,
+            IEmailService emailService,
+            IMemoryCache cache)
         {
             _context = context;
             _pushService = pushService;
+            _logger = logger;
+            _emailService = emailService;
+            _cache = cache;
         }
 
         public async Task<List<Item>> GetItensByUsuarioId(string usuarioId)
@@ -25,6 +38,52 @@ namespace CasalPlanner.Infrastructure.Services
                 .Find(i => i.UsuarioId == usuarioId)
                 .SortByDescending(i => i.CreatedAt)
                 .ToListAsync();
+        }
+
+        public async Task<PagedResult<Item>> GetItensPaginated(string usuarioId, string? categoriaId, string? busca, string? status, string? pagamento, int? responsavelId, int page, int pageSize)
+        {
+            var builder = Builders<Item>.Filter;
+            var filter = builder.Eq(i => i.UsuarioId, usuarioId);
+
+            if (!string.IsNullOrEmpty(categoriaId) && categoriaId != "tudo")
+                filter &= builder.Eq(i => i.CategoriaId, categoriaId);
+
+            if (!string.IsNullOrEmpty(busca))
+            {
+                var buscaLower = busca.ToLower();
+                var buscaFilter = builder.Regex(i => i.Nome, new MongoDB.Bson.BsonRegularExpression(buscaLower, "i")) |
+                                  builder.Regex(i => i.Marca, new MongoDB.Bson.BsonRegularExpression(buscaLower, "i"));
+                filter &= buscaFilter;
+            }
+
+            if (!string.IsNullOrEmpty(status) && status != "todos")
+            {
+                if (status == "comprados") filter &= builder.Eq(i => i.Comprado, true);
+                else if (status == "faltando") filter &= builder.Eq(i => i.Comprado, false);
+                else if (status == "presentes") filter &= builder.Eq(i => i.Origem, "ganho");
+            }
+
+            if (!string.IsNullOrEmpty(pagamento) && pagamento != "todos")
+                filter &= builder.Eq(i => i.Pagamento, pagamento);
+
+            if (responsavelId.HasValue && responsavelId.Value > 0)
+                filter &= builder.Eq(i => i.ResponsavelId, responsavelId.Value);
+
+            var totalCount = await _context.Itens.CountDocumentsAsync(filter);
+            var items = await _context.Itens
+                .Find(filter)
+                .SortByDescending(i => i.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Limit(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<Item>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
         }
 
         public async Task<Item?> GetItemById(string id, string usuarioId)
@@ -81,14 +140,43 @@ namespace CasalPlanner.Infrastructure.Services
 
             await _context.Itens.InsertOneAsync(item);
 
-            // Fetch user for push notifications
+            // Dispara push em background — não bloqueia a resposta HTTP
             var usuario = await _context.Usuarios.Find(u => u.Id == usuarioId).FirstOrDefaultAsync();
             if (usuario != null && usuario.IsCasal)
             {
                 int currentPessoaId = (usuario.CasalInfo?.EmailPessoa2 == emailAutenticado) ? 2 : 1;
-                await _pushService.SendPushToPartnerAsync(usuario, currentPessoaId, 
-                    "Novo Item Adicionado", 
-                    $"Um novo item foi adicionado: {item.Nome}");
+                var itemNome = item.Nome;
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _pushService.SendPushToPartnerAsync(usuario, currentPessoaId,
+                            "Novo Item Adicionado",
+                            $"Um novo item foi adicionado: {itemNome}");
+
+                        var cacheKey = $"email_throttle_{usuarioId}";
+                        if (!_cache.TryGetValue(cacheKey, out _))
+                        {
+                            string emailParceiro = currentPessoaId == 1 ? usuario.CasalInfo?.EmailPessoa2 ?? "" : usuario.CasalInfo?.EmailPessoa1 ?? "";
+                            string nomeParceiro = currentPessoaId == 1 ? usuario.CasalInfo?.NomeCompletoPessoa2 ?? "" : usuario.CasalInfo?.NomeCompletoPessoa1 ?? "";
+                            
+                            if (!string.IsNullOrEmpty(emailParceiro))
+                            {
+                                await _emailService.EnviarNotificacaoParceiroAsync(
+                                    emailParceiro,
+                                    nomeParceiro,
+                                    "Novo Item Adicionado",
+                                    $"Um novo item foi adicionado à lista: {itemNome}");
+                                
+                                _cache.Set(cacheKey, true, TimeSpan.FromMinutes(30));
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Falha ao enviar notificação de novo item (background). Item: {Nome}", itemNome);
+                    }
+                });
             }
 
             return item;
@@ -241,13 +329,43 @@ namespace CasalPlanner.Infrastructure.Services
 
             if (item != null && comprado)
             {
+                // Dispara push em background — não bloqueia a resposta HTTP
                 var usuario = await _context.Usuarios.Find(u => u.Id == usuarioId).FirstOrDefaultAsync();
                 if (usuario != null && usuario.IsCasal)
                 {
                     int currentPessoaId = (usuario.CasalInfo?.EmailPessoa2 == emailAutenticado) ? 2 : 1;
-                    await _pushService.SendPushToPartnerAsync(usuario, currentPessoaId,
-                        "Item Comprado!",
-                        $"O item '{item.Nome}' foi marcado como comprado.");
+                    var itemNome = item.Nome;
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _pushService.SendPushToPartnerAsync(usuario, currentPessoaId,
+                                "Item Comprado!",
+                                $"O item '{itemNome}' foi marcado como comprado.");
+
+                            var cacheKey = $"email_throttle_{usuarioId}";
+                            if (!_cache.TryGetValue(cacheKey, out _))
+                            {
+                                string emailParceiro = currentPessoaId == 1 ? usuario.CasalInfo?.EmailPessoa2 ?? "" : usuario.CasalInfo?.EmailPessoa1 ?? "";
+                                string nomeParceiro = currentPessoaId == 1 ? usuario.CasalInfo?.NomeCompletoPessoa2 ?? "" : usuario.CasalInfo?.NomeCompletoPessoa1 ?? "";
+                                
+                                if (!string.IsNullOrEmpty(emailParceiro))
+                                {
+                                    await _emailService.EnviarNotificacaoParceiroAsync(
+                                        emailParceiro,
+                                        nomeParceiro,
+                                        "Item Comprado",
+                                        $"O item '{itemNome}' foi marcado como comprado.");
+                                    
+                                    _cache.Set(cacheKey, true, TimeSpan.FromMinutes(30));
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Falha ao enviar notificação de item comprado (background). Item: {Nome}", itemNome);
+                        }
+                    });
                 }
             }
 

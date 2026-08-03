@@ -1,5 +1,5 @@
 import { useState, useMemo, useDeferredValue } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Plus,
@@ -108,31 +108,28 @@ function PlanejamentoPage() {
   const catAtualId = categoriaSelecionada ?? "tudo";
   const catAtual = categorias.find((c) => c.id === catAtualId) ?? null;
 
-  const itensQ = useQuery({
-    queryKey: ["itens"],
-    queryFn: () => itensService.listar(),
+  const itensQ = useInfiniteQuery({
+    queryKey: ["itens-paginado", catAtualId, buscaDebounced, filtroStatus, filtroPagamento, filtroResponsavel],
+    queryFn: ({ pageParam = 1 }) =>
+      itensService.listarPaginado({
+        categoriaId: catAtualId === "tudo" ? undefined : catAtualId,
+        busca: buscaDebounced.trim() || undefined,
+        status: filtroStatus !== "todos" ? filtroStatus : undefined,
+        pagamento: filtroPagamento !== "todos" ? filtroPagamento : undefined,
+        responsavelId: isCasal && filtroResponsavel !== "todos" ? Number(filtroResponsavel) : undefined,
+        page: pageParam as number,
+        pageSize: 20,
+      }),
+    getNextPageParam: (lastPage) =>
+      lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
+    initialPageParam: 1,
   });
 
-  const todosItens = itensQ.data ?? [];
-  const itens =
-    catAtualId === "tudo" ? todosItens : todosItens.filter((i) => i.categoriaId === catAtualId);
-
-  const itensFiltrados = useMemo(() => {
-    const b = buscaDebounced.trim().toLowerCase();
-    return itens.filter((i) => {
-      if (b && !i.nome.toLowerCase().includes(b) && !(i.marca ?? "").toLowerCase().includes(b))
-        return false;
-      if (filtroStatus === "comprados" && !i.comprado) return false;
-      if (filtroStatus === "faltando" && i.comprado) return false;
-      if (filtroStatus === "presentes" && i.origem !== "ganho") return false;
-      if (filtroPagamento !== "todos" && i.pagamento !== filtroPagamento) return false;
-      if (isCasal && filtroResponsavel !== "todos") {
-        if (filtroResponsavel === "1" && i.responsavelId !== 1) return false;
-        if (filtroResponsavel === "2" && i.responsavelId !== 2) return false;
-      }
-      return true;
-    });
-  }, [itens, buscaDebounced, filtroStatus, filtroPagamento, filtroResponsavel, isCasal]);
+  // Lista plana de todos os itens das páginas carregadas
+  const itensFiltrados = useMemo(
+    () => itensQ.data?.pages.flatMap((p) => p.items) ?? [],
+    [itensQ.data],
+  );
 
   const namesToResolve = useMemo(() => {
     const names = new Set<string>();
@@ -143,6 +140,14 @@ function PlanejamentoPage() {
     return Array.from(names);
   }, [itensFiltrados]);
 
+  // Query separada para totais da sidebar (traz tudo sem filtro de busca/status)
+  const todosItensQ = useQuery({
+    queryKey: ["itens"],
+    queryFn: () => itensService.listar(),
+    staleTime: 60_000,
+  });
+  const todosItens = todosItensQ.data ?? [];
+
   const dominiosQuery = useQuery({
     queryKey: ["dominios", namesToResolve],
     queryFn: () => groqService.descobrirDominios(namesToResolve),
@@ -152,9 +157,15 @@ function PlanejamentoPage() {
 
   const resolvedDomains = dominiosQuery.data ?? {};
 
-  const totalCategoria = itens.reduce((s, i) => s + i.preco * i.quantidade, 0);
-  const compradosCategoria = itens.filter((i) => i.comprado).length;
-  const percentComprado = itens.length ? (compradosCategoria / itens.length) * 100 : 0;
+  const totalCategoria = todosItens
+    .filter((i) => catAtualId === "tudo" || i.categoriaId === catAtualId)
+    .reduce((s, i) => s + i.preco * i.quantidade, 0);
+  const compradosCategoria = todosItens
+    .filter((i) => catAtualId === "tudo" || i.categoriaId === catAtualId)
+    .filter((i) => i.comprado).length;
+  const itensCategoria = todosItens
+    .filter((i) => catAtualId === "tudo" || i.categoriaId === catAtualId);
+  const percentComprado = itensCategoria.length ? (compradosCategoria / itensCategoria.length) * 100 : 0;
   const percentMeta =
     catAtual?.metaOrcamento && catAtual.metaOrcamento > 0
       ? Math.min(100, (totalCategoria / catAtual.metaOrcamento) * 100)
@@ -164,18 +175,25 @@ function PlanejamentoPage() {
     mutationFn: ({ id, comprado }: { id: string; comprado: boolean }) =>
       itensService.toggleComprado(id, comprado),
     onMutate: async ({ id, comprado }) => {
-      await qc.cancelQueries({ queryKey: ["itens"] });
-      const prev = qc.getQueryData(["itens"]);
-      qc.setQueryData(["itens"], (old: Item[] | undefined) =>
-        old?.map((i) => (i.id === id ? { ...i, comprado } : i)),
-      );
-      return { prev };
+      await qc.cancelQueries({ queryKey: ["itens-paginado"] });
+      // Optimistic update nas páginas do infinite query
+      qc.setQueriesData({ queryKey: ["itens-paginado"] }, (old: unknown) => {
+        if (!old || typeof old !== "object") return old;
+        const data = old as { pages: Array<{ items: Item[] }> };
+        return {
+          ...data,
+          pages: data.pages.map((page) => ({
+            ...page,
+            items: page.items.map((i: Item) => (i.id === id ? { ...i, comprado } : i)),
+          })),
+        };
+      });
     },
-    onError: (err, newTodo, context) => {
-      qc.setQueryData(["itens"], context?.prev);
+    onError: () => {
       toast.error("Erro ao atualizar item");
     },
     onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["itens-paginado"] });
       qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
     },
@@ -184,6 +202,7 @@ function PlanejamentoPage() {
   const excluirItem = useMutation({
     mutationFn: (id: string) => itensService.excluir(id),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["itens-paginado"] });
       qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
       toast.success("Item removido");
@@ -560,7 +579,7 @@ function PlanejamentoPage() {
                           )}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {itens.length} itens · {compradosCategoria} comprados
+                          {itensCategoria.length} itens · {compradosCategoria} comprados
                         </div>
                       </div>
                     </div>
@@ -914,8 +933,35 @@ function PlanejamentoPage() {
                       </DropdownMenu>
                     </div>
                   </div>
-                ))}
-              </div>
+                  ))}
+
+                  {/* Carregar mais / paginação */}
+                  {itensQ.hasNextPage && (
+                    <div className="pt-2 flex justify-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => itensQ.fetchNextPage()}
+                        disabled={itensQ.isFetchingNextPage}
+                        className="w-full sm:w-auto"
+                      >
+                        {itensQ.isFetchingNextPage ? (
+                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Carregando...</>
+                        ) : (
+                          "Carregar mais itens"
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                  {!itensQ.hasNextPage && itensFiltrados.length > 0 && (
+                    <p className="text-center text-xs text-muted-foreground pt-2">
+                      {itensFiltrados.length} iten{itensFiltrados.length !== 1 ? "s" : ""} exibido{itensFiltrados.length !== 1 ? "s" : ""}
+                      {itensQ.data?.pages[0]?.totalCount
+                        ? ` de ${itensQ.data.pages[0].totalCount} total`
+                        : ""}
+                    </p>
+                  )}
+                </div>
             </>
           ) : (
             <div className="rounded-2xl border border-dashed p-16 text-center bg-gradient-warm">

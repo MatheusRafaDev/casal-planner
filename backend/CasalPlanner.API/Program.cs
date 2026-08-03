@@ -115,11 +115,15 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
     // que é preenchido corretamente pelo UseForwardedHeaders
     options.ClientIdHeader = "X-ClientId";
     var authLimit = builder.Environment.IsDevelopment() ? 100 : 10;
+    // Limite agressivo para pesquisa de preços: chama Groq + SerpAPI (APIs pagas com quota)
+    var pesquisaLimit = builder.Environment.IsDevelopment() ? 50 : 10;
     options.GeneralRules = new List<RateLimitRule>
     {
-        new() { Endpoint = "*",                Period = "1m",  Limit = 100 },
-        new() { Endpoint = "POST:/api/auth/*", Period = "10m", Limit = authLimit },
+        new() { Endpoint = "*",                          Period = "1m",  Limit = 100 },
+        new() { Endpoint = "POST:/api/auth/*",           Period = "10m", Limit = authLimit },
         new() { Endpoint = "POST:/api/recuperarsenha/*", Period = "10m", Limit = authLimit },
+        // Pesquisa de preços: limite por IP (10 req/hora em prod) — protege Groq + SerpAPI
+        new() { Endpoint = "GET:/api/pesquisaprecos",    Period = "1h",  Limit = pesquisaLimit },
     };
 });
 builder.Services.AddInMemoryRateLimiting();
@@ -440,6 +444,39 @@ try
         new CreateIndexModel<Item>(
             Builders<Item>.IndexKeys.Ascending(i => i.Origem),
             new CreateIndexOptions { Name = "idx_itens_origem", Background = true }),
+    });
+
+    // Índices da coleção Usuarios
+    // Cobre: login individual, login casal, busca por email, recuperação de senha e convite
+    await dbContext.Usuarios.Indexes.CreateManyAsync(new[]
+    {
+        // Login / registro individual — campo mais consultado
+        new CreateIndexModel<Usuario>(
+            Builders<Usuario>.IndexKeys.Ascending(u => u.Email),
+            new CreateIndexOptions { Name = "idx_usuarios_email", Background = true }),
+
+        // Login / busca por email casal — Sparse porque só casais têm CasalInfo
+        new CreateIndexModel<Usuario>(
+            Builders<Usuario>.IndexKeys.Ascending("CasalInfo.EmailPessoa1"),
+            new CreateIndexOptions { Name = "idx_usuarios_casalinfo_email1", Background = true, Sparse = true }),
+
+        new CreateIndexModel<Usuario>(
+            Builders<Usuario>.IndexKeys.Ascending("CasalInfo.EmailPessoa2"),
+            new CreateIndexOptions { Name = "idx_usuarios_casalinfo_email2", Background = true, Sparse = true }),
+
+        // Recuperação de senha individual (ResetToken e ResetCode)
+        new CreateIndexModel<Usuario>(
+            Builders<Usuario>.IndexKeys.Ascending(u => u.ResetToken),
+            new CreateIndexOptions { Name = "idx_usuarios_resetToken", Background = true, Sparse = true }),
+
+        new CreateIndexModel<Usuario>(
+            Builders<Usuario>.IndexKeys.Ascending(u => u.ResetCode),
+            new CreateIndexOptions { Name = "idx_usuarios_resetCode", Background = true, Sparse = true }),
+
+        // Convite de parceiro (token de convite)
+        new CreateIndexModel<Usuario>(
+            Builders<Usuario>.IndexKeys.Ascending(u => u.ConviteParceiroToken),
+            new CreateIndexOptions { Name = "idx_usuarios_conviteToken", Background = true, Sparse = true }),
     });
 
     Console.WriteLine("✅ Índices verificados com sucesso");

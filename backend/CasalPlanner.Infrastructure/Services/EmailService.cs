@@ -1,4 +1,4 @@
-﻿// Services/EmailService.cs
+// Services/EmailService.cs
 using System.Net;
 using System.Net.Mail;
 
@@ -1258,6 +1258,59 @@ namespace CasalPlanner.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Erro ao enviar email de convite para {Email}", email);
+                return false;
+            }
+        }
+        public async Task<bool> EnviarNotificacaoParceiroAsync(string emailDestino, string nomeParceiro, string assunto, string mensagem)
+        {
+            try
+            {
+                var body = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ text-align: center; margin-bottom: 30px; }}
+        .content {{ background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px; }}
+        .footer {{ text-align: center; font-size: 12px; color: #666; margin-top: 30px; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1 style='color: #8b5cf6;'>CasalPlanner</h1>
+        </div>
+        <div class='content'>
+            <p>Olá!</p>
+            <p>Seu parceiro(a) <strong>{nomeParceiro}</strong> tem uma atualização na lista:</p>
+            <p style='font-size: 16px; font-weight: bold; padding: 15px; background: #fff; border-left: 4px solid #8b5cf6;'>
+                {mensagem}
+            </p>
+            <p>Acesse o <a href='{SITE_URL}' style='color: #8b5cf6;'>CasalPlanner</a> para conferir.</p>
+        </div>
+        <div class='footer'>
+            <p>Este é um e-mail automático, por favor não responda.</p>
+        </div>
+    </div>
+</body>
+</html>";
+
+                var mailMessage = new MailMessage
+                {
+                    Subject = assunto,
+                    Body = body,
+                    IsBodyHtml = true
+                };
+                mailMessage.To.Add(emailDestino);
+
+                return await EnviarViaResendAsync(mailMessage, "NotificacaoParceiro");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao enviar notificação de parceiro para {Email}", emailDestino);
                 return false;
             }
         }

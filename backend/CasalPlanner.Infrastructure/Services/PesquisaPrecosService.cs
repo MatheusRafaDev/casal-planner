@@ -35,7 +35,15 @@ public class PesquisaPrecosService : IPesquisaPrecosService
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
 
-        // 1. Normalizar query
+        // 1. Cache rápido com a query bruta (evita chamar Groq desnecessariamente)
+        var rawCacheKey = $"pesquisa:{PriceTextHelper.NormalizeSearchQuery(q.Trim())}";
+        if (_cache.TryGetValue(rawCacheKey, out List<ProdutoDto>? cachedRaw) && cachedRaw != null)
+        {
+            _logger.LogInformation("Cache HIT (raw) para query: {Query}", q);
+            return (cachedRaw, marca?.Trim() ?? "", q.Trim(), q.Trim());
+        }
+
+        // 2. Normalizar query via Groq (só chama se não havia cache)
         var marcaIdentificada = marca?.Trim() ?? "";
         var nomeValidado = q.Trim();
 
@@ -57,14 +65,17 @@ public class PesquisaPrecosService : IPesquisaPrecosService
         var queryFinal = BuildFinalQuery(marcaIdentificada, nomeValidado);
         var cacheKey = $"pesquisa:{PriceTextHelper.NormalizeSearchQuery(queryFinal)}";
 
-        // 2. Verificar cache
+        // 3. Cache com a query normalizada (caso a query bruta e normalizada difiram)
         if (_cache.TryGetValue(cacheKey, out List<ProdutoDto>? cached) && cached != null)
         {
-            _logger.LogInformation("Cache HIT para query: {Query}", queryFinal);
+            _logger.LogInformation("Cache HIT (normalizado) para query: {Query}", queryFinal);
+            // Popula também o cache da query bruta para próximas chamadas
+            _cache.Set(rawCacheKey, cached, new MemoryCacheEntryOptions()
+                .SetSlidingExpiration(TimeSpan.FromMinutes(_options.CacheExpirationMinutes)));
             return (cached, marcaIdentificada, nomeValidado, queryFinal);
         }
 
-        // 3. Pesquisa paralela em todos os providers
+        // 4. Pesquisa paralela em todos os providers
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_options.TimeoutSeconds));
         var providerTasks = _providers.Select(p => RunProviderSafelyAsync(p, queryFinal, cts.Token));
         var allResults = await Task.WhenAll(providerTasks);
@@ -91,10 +102,13 @@ public class PesquisaPrecosService : IPesquisaPrecosService
             .Take(25)
             .ToList();
 
-        // 7. Guardar no cache
+        // 7. Guardar no cache (ambas as chaves: raw e normalizada)
         var cacheOptions = new MemoryCacheEntryOptions()
             .SetSlidingExpiration(TimeSpan.FromMinutes(_options.CacheExpirationMinutes));
         _cache.Set(cacheKey, ordenados, cacheOptions);
+        // Popula a chave bruta para evitar chamada ao Groq em buscas repetidas
+        if (rawCacheKey != cacheKey)
+            _cache.Set(rawCacheKey, ordenados, cacheOptions);
 
         sw.Stop();
         _logger.LogInformation("Pesquisa finalizada em {Ms}ms. {Total} produtos retornados após deduplicação.",
