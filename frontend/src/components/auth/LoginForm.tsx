@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api";
 
+let googleInitialized = false;
+
 // Tipagem mínima para o Google Identity Services SDK
 declare global {
   interface Window {
@@ -20,7 +22,15 @@ declare global {
           }) => void;
           renderButton: (
             element: HTMLElement,
-            options: { theme: string; size: string; width: string }
+            options: {
+              theme: string;
+              size: string;
+              type?: string;
+              text?: string;
+              shape?: string;
+              logo_alignment?: string;
+              width?: number | string;
+            }
           ) => void;
         };
       };
@@ -56,19 +66,22 @@ export function LoginForm() {
   useEffect(() => {
     if (!googleClientId || !window.google || !googleBtnRef.current) return;
 
-    window.google.accounts.id.initialize({
-      client_id: googleClientId,
-      callback: handleGoogleCredential,
-    });
+    if (!googleInitialized) {
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: handleGoogleCredential,
+      });
+      googleInitialized = true;
+    }
 
     window.google.accounts.id.renderButton(googleBtnRef.current, {
       theme: "filled_blue",
       size: "large",
-      width: "100%",
       type: "standard",
       text: "signin_with",
       shape: "rectangular",
       logo_alignment: "left",
+      width: 280,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleClientId]);
