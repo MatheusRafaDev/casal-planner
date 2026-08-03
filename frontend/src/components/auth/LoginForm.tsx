@@ -62,9 +62,13 @@ export function LoginForm() {
     });
 
     window.google.accounts.id.renderButton(googleBtnRef.current, {
-      theme: "outline",
+      theme: "filled_blue",
       size: "large",
       width: "100%",
+      type: "standard",
+      text: "signin_with",
+      shape: "rectangular",
+      logo_alignment: "left",
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleClientId]);
@@ -155,7 +159,7 @@ export function LoginForm() {
             <div
               id="google-signin-button"
               ref={googleBtnRef}
-              className="flex min-h-[48px] items-center justify-center px-1"
+              className="min-h-[48px]"
               aria-label="Entrar com Google"
             />
           </div>
