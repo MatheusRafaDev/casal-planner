@@ -63,17 +63,17 @@
   --radius: 0.875rem;
 
   /* Casal Planner — paleta roxa moderna e acolhedora */
-  --background: oklch(0.985 0.006 300);
-  --foreground: oklch(0.22 0.04 300);
+  --background: oklch(0.982 0.012 85);
+  --foreground: oklch(0.27 0.035 145);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.04 300);
+  --card-foreground: oklch(0.27 0.035 145);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.22 0.04 300);
 
-  --primary: oklch(0.52 0.2 300);
-  --primary-foreground: oklch(0.985 0.006 300);
-  --primary-glow: oklch(0.72 0.18 305);
+  --primary: oklch(0.47 0.10 150);
+  --primary-foreground: oklch(0.99 0.01 85);
+  --primary-glow: oklch(0.64 0.12 150);
 
   --secondary: oklch(0.95 0.02 300);
   --secondary-foreground: oklch(0.3 0.05 300);
@@ -81,8 +81,8 @@
   --muted: oklch(0.96 0.012 300);
   --muted-foreground: oklch(0.5 0.03 300);
 
-  --accent: oklch(0.93 0.04 310);
-  --accent-foreground: oklch(0.32 0.08 300);
+  --accent: oklch(0.92 0.045 75);
+  --accent-foreground: oklch(0.31 0.06 70);
 
   --terracota: oklch(0.65 0.16 20);
   --terracota-foreground: oklch(0.985 0.006 300);
@@ -95,22 +95,22 @@
 
   --border: oklch(0.9 0.02 300);
   --input: oklch(0.9 0.02 300);
-  --ring: oklch(0.52 0.2 300);
+  --ring: oklch(0.47 0.10 150);
 
-  --chart-1: oklch(0.52 0.2 300);
-  --chart-2: oklch(0.72 0.18 305);
+  --chart-1: oklch(0.47 0.10 150);
+  --chart-2: oklch(0.65 0.16 20);
   --chart-3: oklch(0.65 0.16 20);
   --chart-4: oklch(0.6 0.14 260);
   --chart-5: oklch(0.78 0.14 75);
 
   --sidebar: oklch(0.97 0.015 300);
   --sidebar-foreground: oklch(0.3 0.05 300);
-  --sidebar-primary: oklch(0.52 0.2 300);
-  --sidebar-primary-foreground: oklch(0.985 0.006 300);
+  --sidebar-primary: oklch(0.47 0.10 150);
+  --sidebar-primary-foreground: oklch(0.99 0.01 85);
   --sidebar-accent: oklch(0.93 0.03 305);
   --sidebar-accent-foreground: oklch(0.32 0.08 300);
   --sidebar-border: oklch(0.9 0.02 300);
-  --sidebar-ring: oklch(0.52 0.2 300);
+  --sidebar-ring: oklch(0.47 0.10 150);
 
   --gradient-hero: linear-gradient(135deg, oklch(0.94 0.05 300) 0%, oklch(0.88 0.09 295) 55%, oklch(0.78 0.14 285) 100%);
   --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--primary-glow) 100%);

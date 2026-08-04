@@ -379,19 +379,31 @@ function PlanejamentoPage() {
             Organize os itens por cômodo, controle o orçamento e pesquise preços com IA.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2 shrink-0">
-          <Button variant="secondary" size="sm" onClick={() => setNovaCategoria(true)}>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button variant="secondary" size="sm" className="hidden sm:inline-flex" onClick={() => setNovaCategoria(true)}>
             <Plus className="h-4 w-4 mr-1" /> Novo cômodo
           </Button>
           <Button size="sm" onClick={() => setWizardOpen(true)} disabled={categorias.length === 0}>
             <Sparkles className="h-4 w-4 mr-1" /> Adicionar item
           </Button>
-          <Button variant="outline" size="sm" onClick={handleCompartilhar}>
+          <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={handleCompartilhar}>
             <Share2 className="h-4 w-4 mr-1" /> Compartilhar
           </Button>
-          <Button variant="outline" size="sm" onClick={handleExportarPDF}>
+          <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={handleExportarPDF}>
             <FileText className="h-4 w-4 mr-1" /> PDF
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="sm:hidden" aria-label="Mais ações">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setNovaCategoria(true)}><Plus className="h-4 w-4" /> Novo cômodo</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleCompartilhar}><Share2 className="h-4 w-4" /> Compartilhar</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportarPDF}><FileText className="h-4 w-4" /> Exportar PDF</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
@@ -671,7 +683,7 @@ function PlanejamentoPage() {
               </div>
 
               {/* Filtros */}
-              <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <div className="relative flex-1 min-w-0">
                   <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -681,12 +693,12 @@ function PlanejamentoPage() {
                     onChange={(e) => setBusca(e.target.value)}
                   />
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className={cn("grid gap-2", isCasal ? "grid-cols-1 xs:grid-cols-2 lg:grid-cols-3" : "grid-cols-1 xs:grid-cols-2")}>
                   <Select
                     value={filtroStatus}
                     onValueChange={(v) => setFiltroStatus(v as typeof filtroStatus)}
                   >
-                    <SelectTrigger className="flex-1 min-w-[110px] sm:flex-none sm:w-[140px]">
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -700,7 +712,7 @@ function PlanejamentoPage() {
                     value={filtroPagamento}
                     onValueChange={(v) => setFiltroPagamento(v as typeof filtroPagamento)}
                   >
-                    <SelectTrigger className="flex-1 min-w-[150px] sm:flex-none sm:w-[170px]">
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -714,7 +726,7 @@ function PlanejamentoPage() {
                       value={filtroResponsavel}
                       onValueChange={(v) => setFiltroResponsavel(v as typeof filtroResponsavel)}
                     >
-                      <SelectTrigger className="flex-1 min-w-[130px] sm:flex-none sm:w-[150px]">
+                      <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -728,7 +740,7 @@ function PlanejamentoPage() {
               </div>
 
               {/* Itens */}
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
                 {itensQ.isLoading && (
                   <div className="text-sm text-muted-foreground">Carregando itens...</div>
                 )}
@@ -748,7 +760,7 @@ function PlanejamentoPage() {
                   <div
                     key={it.id}
                     className={cn(
-                      "flex flex-col gap-3 rounded-xl border bg-card p-3 hover:shadow-soft transition-shadow",
+                      "flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-soft hover:shadow-elegant transition-all duration-200",
                       it.comprado && "opacity-70",
                     )}
                   >
@@ -794,7 +806,7 @@ function PlanejamentoPage() {
                           {it.marca && (
                             <Badge
                               variant="secondary"
-                              className="text-[10px] py-0 px-1.5 h-4 font-normal flex items-center gap-1"
+                              className="hidden"
                             >
                               {getLogoUrl(it.marca, null, resolvedDomains) && (
                                 <img
@@ -817,7 +829,7 @@ function PlanejamentoPage() {
                               >
                                 <Badge
                                   variant="outline"
-                                  className="text-[10px] py-0 px-1.5 h-4 font-normal bg-muted/30 flex items-center gap-1 cursor-pointer"
+                                  className="hidden"
                                 >
                                   {getLogoUrl(it.loja, it.linkProduto, resolvedDomains) && (
                                     <img
@@ -834,7 +846,7 @@ function PlanejamentoPage() {
                             ) : (
                               <Badge
                                 variant="outline"
-                                className="text-[10px] py-0 px-1.5 h-4 font-normal bg-muted/30 flex items-center gap-1"
+                                className="hidden"
                               >
                                 {getLogoUrl(it.loja, null, resolvedDomains) && (
                                   <img
@@ -849,10 +861,11 @@ function PlanejamentoPage() {
                             ))}
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
+                          <span className="truncate">{[it.marca, it.loja, it.pagamento === "vr" ? "VR / VA" : "Dinheiro", isCasal && it.responsavelId ? (it.responsavelId === 1 ? p1 : p2) : null].filter(Boolean).join(" · ")}</span>
                           {isCasal && it.responsavelId && (
                             <Badge
                               variant="outline"
-                              className="text-[10px] py-0 bg-primary/5 text-primary border-primary/20"
+                              className="hidden"
                             >
                               {it.responsavelId === 1 ? p1 : p2}
                             </Badge>
@@ -860,24 +873,24 @@ function PlanejamentoPage() {
                           <Badge
                             variant="outline"
                             className={cn(
-                              "text-[10px] py-0",
+                              "hidden",
                               it.pagamento === "vr" && "border-primary text-primary",
                             )}
                           >
                             {it.pagamento === "vr" ? "VR" : "Dinheiro"}
                           </Badge>
                           {it.origem === "ganho" && (
-                            <Badge className="text-[10px] py-0 bg-emerald-500 hover:bg-emerald-600 text-white border-transparent">
+                            <Badge className="ml-auto text-[10px] py-0 bg-emerald-600 hover:bg-emerald-600 text-white border-transparent">
                               🎁 Presente
                             </Badge>
                           )}
                           {it.prioridade === "alta" && (
-                            <Badge className="text-[10px] py-0 bg-red-600 hover:bg-red-700 text-white border-transparent">
+                            <Badge className="ml-auto text-[10px] py-0 bg-terracota hover:bg-terracota/90 text-terracota-foreground border-transparent">
                               Alta
                             </Badge>
                           )}
                           {it.prioridade === "baixa" && (
-                            <Badge className="text-[10px] py-0" variant="secondary">
+                            <Badge className="ml-auto text-[10px] py-0 bg-mel text-mel-foreground border-transparent">
                               Baixa
                             </Badge>
                           )}
