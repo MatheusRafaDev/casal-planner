@@ -124,6 +124,7 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
         new() { Endpoint = "POST:/api/recuperarsenha/*", Period = "10m", Limit = authLimit },
         // Pesquisa de preços: limite por IP (10 req/hora em prod) — protege Groq + SerpAPI
         new() { Endpoint = "GET:/api/pesquisaprecos",    Period = "1h",  Limit = pesquisaLimit },
+        new() { Endpoint = "POST:/api/registropreco/analisar", Period = "1h", Limit = pesquisaLimit },
     };
 });
 builder.Services.AddInMemoryRateLimiting();
@@ -214,6 +215,19 @@ builder.Services.AddHttpClient("groq", client =>
 {
     client.BaseAddress = new Uri("https://api.groq.com/");
     client.Timeout = TimeSpan.FromSeconds(10);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+builder.Services.AddHttpClient<GroqVisionService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.groq.com/");
+    client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+builder.Services.AddHttpClient<GeocodingService>(client =>
+{
+    client.BaseAddress = new Uri("https://nominatim.openstreetmap.org/");
+    client.Timeout = TimeSpan.FromSeconds(10);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("CasalPlanner/1.0 (price-photo-geocoding)");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
@@ -421,6 +435,10 @@ try
             Builders<Item>.IndexKeys.Ascending(i => i.UsuarioId).Ascending(i => i.CreatedAt),
             new CreateIndexOptions { Name = "idx_itens_usuarioId_createdAt", Background = true }),
     });
+
+    await dbContext.RegistrosPreco.Indexes.CreateOneAsync(new CreateIndexModel<RegistroPrecoFoto>(
+        Builders<RegistroPrecoFoto>.IndexKeys.Ascending(r => r.UsuarioId).Descending(r => r.DataCompra),
+        new CreateIndexOptions { Name = "idx_registros_preco_usuario_data", Background = true }));
 
     await dbContext.Categorias.Indexes.CreateManyAsync(new[]
     {

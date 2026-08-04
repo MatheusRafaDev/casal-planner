@@ -68,6 +68,9 @@ import { CategoriaFormModal } from "@/components/planejamento/CategoriaFormModal
 import { ItemFormModal } from "@/components/planejamento/ItemFormModal";
 import { AddItemWizard } from "@/components/planejamento/AddItemWizard";
 import { getLogoUrl } from "@/lib/logos";
+import { CapturaPrecoFoto } from "@/components/planejamento/CapturaPrecoFoto";
+import { ConfirmarRegistroPreco } from "@/components/planejamento/ConfirmarRegistroPreco";
+import type { AnaliseFotoPreco } from "@/services/registro-preco";
 
 export const Route = createFileRoute("/_authenticated/planejamento")({
   head: () => ({
@@ -98,6 +101,7 @@ function PlanejamentoPage() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [editandoItem, setEditandoItem] = useState<Item | null>(null);
   const [excluindoItem, setExcluindoItem] = useState<Item | null>(null);
+  const [registroFoto, setRegistroFoto] = useState<{ item: Item; dados: AnaliseFotoPreco } | null>(null);
 
   const categoriasQ = useQuery({
     queryKey: ["categorias"],
@@ -897,6 +901,12 @@ function PlanejamentoPage() {
                           )}
                         </div>
                       </div>
+                      <div className="flex items-center gap-1">
+                        <CapturaPrecoFoto
+                          itemNome={it.nome}
+                          onAnalisado={(dados) => setRegistroFoto({ item: it, dados })}
+                          onFalha={() => setRegistroFoto({ item: it, dados: { produtoNome: it.nome, marca: it.marca, preco: it.preco, endereco: "", nomeMercado: it.loja } })}
+                        />
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button size="sm" variant="ghost">
@@ -931,6 +941,7 @@ function PlanejamentoPage() {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      </div>
                     </div>
                   </div>
                   ))}
@@ -999,6 +1010,13 @@ function PlanejamentoPage() {
           item={editandoItem}
         />
       )}
+      <ConfirmarRegistroPreco
+        open={!!registroFoto}
+        onOpenChange={(open) => !open && setRegistroFoto(null)}
+        itemId={registroFoto?.item.id ?? ""}
+        dados={registroFoto?.dados ?? null}
+        onSalvo={() => setRegistroFoto(null)}
+      />
 
       <AlertDialog
         open={!!excluindoCategoria}

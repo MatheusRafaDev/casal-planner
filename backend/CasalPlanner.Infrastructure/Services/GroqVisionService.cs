@@ -1,0 +1,84 @@
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using CasalPlanner.Application.DTOs;
+
+namespace CasalPlanner.Infrastructure.Services;
+
+public class GroqVisionService
+{
+    private static readonly string[] VisionModelPriority =
+    [
+        "meta-llama/llama-4-scout-17b-16e-instruct",
+        "meta-llama/llama-4-maverick-17b-128e-instruct"
+    ];
+
+    private readonly HttpClient _httpClient;
+    private readonly ILogger<GroqVisionService> _logger;
+    private readonly string _apiKey;
+    private string? _visionModel;
+    private DateTime _modelCheckedAt = DateTime.MinValue;
+
+    public GroqVisionService(HttpClient httpClient, ILogger<GroqVisionService> logger)
+    {
+        _httpClient = httpClient;
+        _logger = logger;
+        _apiKey = Environment.GetEnvironmentVariable("GROQ_API_KEY") ?? string.Empty;
+    }
+
+    public async Task<AnalisarFotoPrecoResponse> AnalisarAsync(string imagemBase64, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(_apiKey)) throw new InvalidOperationException("A análise por foto não está configurada.");
+        var model = await GetVisionModelAsync(cancellationToken);
+        var imageUrl = imagemBase64.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase)
+            ? imagemBase64 : $"data:image/jpeg;base64,{imagemBase64}";
+        var body = new
+        {
+            model,
+            temperature = 0,
+            response_format = new { type = "json_object" },
+            messages = new object[]
+            {
+                new { role = "system", content = "Você extrai dados de etiquetas de preço brasileiras. Responda apenas JSON válido, sem markdown: {\"produtoNome\": string, \"marca\": string|null, \"preco\": number, \"unidade\": string|null}. Use 0 quando o preço não estiver legível." },
+                new { role = "user", content = new object[] { new { type = "text", text = "Leia a etiqueta desta foto." }, new { type = "image_url", image_url = new { url = imageUrl } } } }
+            }
+        };
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "openai/v1/chat/completions")
+        {
+            Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogWarning("Groq Vision retornou {StatusCode}.", response.StatusCode);
+            throw new InvalidOperationException("Não foi possível ler a foto agora.");
+        }
+
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+        var content = json.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
+        var cleanJson = RemoveMarkdownFence(content);
+        var result = JsonSerializer.Deserialize<AnalisarFotoPrecoResponse>(cleanJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        if (result is null || string.IsNullOrWhiteSpace(result.ProdutoNome)) throw new InvalidOperationException("Não consegui identificar o produto na foto.");
+        return result;
+    }
+
+    private async Task<string> GetVisionModelAsync(CancellationToken cancellationToken)
+    {
+        if (_visionModel is not null && DateTime.UtcNow - _modelCheckedAt < TimeSpan.FromMinutes(30)) return _visionModel;
+        using var request = new HttpRequestMessage(HttpMethod.Get, "openai/v1/models");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+        var ids = json.RootElement.GetProperty("data").EnumerateArray().Select(m => m.GetProperty("id").GetString()).Where(id => !string.IsNullOrWhiteSpace(id)).Cast<string>().ToList();
+        _visionModel = VisionModelPriority.FirstOrDefault(ids.Contains)
+            ?? ids.FirstOrDefault(id => id.Contains("llama-4", StringComparison.OrdinalIgnoreCase) && id.Contains("instruct", StringComparison.OrdinalIgnoreCase));
+        _modelCheckedAt = DateTime.UtcNow;
+        if (_visionModel is null) throw new InvalidOperationException("Nenhum modelo de visão compatível está disponível na conta Groq.");
+        return _visionModel;
+    }
+
+    private static string RemoveMarkdownFence(string? content) => (content ?? string.Empty).Trim().Replace("```json", string.Empty, StringComparison.OrdinalIgnoreCase).Replace("```", string.Empty).Trim();
+}

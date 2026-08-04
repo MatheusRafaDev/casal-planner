@@ -11,6 +11,7 @@ public class MongoDbContext
     private readonly IMongoCollection<Usuario> _usuarios;
     private readonly IMongoCollection<Categoria> _categorias;
     private readonly IMongoCollection<Item> _itens;
+    private readonly IMongoCollection<RegistroPrecoFoto> _registrosPreco;
 
     public MongoDbContext(IOptions<MongoDBSettings> settings)
     {
@@ -20,11 +21,13 @@ public class MongoDbContext
         _usuarios = _database.GetCollection<Usuario>("Usuarios");
         _categorias = _database.GetCollection<Categoria>("Categorias");
         _itens = _database.GetCollection<Item>("Itens");
+        _registrosPreco = _database.GetCollection<RegistroPrecoFoto>("RegistrosPreco");
     }
 
     public IMongoCollection<Usuario> Usuarios => _usuarios;
     public IMongoCollection<Categoria> Categorias => _categorias;
     public IMongoCollection<Item> Itens => _itens;
+    public IMongoCollection<RegistroPrecoFoto> RegistrosPreco => _registrosPreco;
 
     public async Task SeedDataAsync()
     {
