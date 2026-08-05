@@ -14,6 +14,7 @@ export interface AnaliseFotoPreco {
 export interface ConfirmarRegistroPreco extends AnaliseFotoPreco {
   itemId?: string | null;
   dataCompra?: string;
+  imagemBase64?: string | null;
 }
 
 export const registroPrecoService = {
