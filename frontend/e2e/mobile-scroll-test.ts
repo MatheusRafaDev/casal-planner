@@ -69,10 +69,13 @@ test.describe("Mobile Scroll Test - Início", () => {
       // Preencher credenciais de teste
       await page.fill('input[type="email"]', "teste@teste.com");
       await page.fill('input[type="password"]', "123456");
-      await page.click('button[type="submit"]');
 
-      // Aguardar redirecionamento para /inicio
-      await page.waitForURL("**/inicio", { timeout: 10000 });
+      // Aguardar a navegação que resulta do submit de forma atômica
+      await Promise.all([
+        page.waitForURL("**/inicio", { timeout: 20000 }), // timeout aumentado
+        page.click('button[type="submit"]'),
+      ]);
+
       await page.waitForLoadState("networkidle");
 
       const result = await checkHorizontalScroll(page, `Início ${vp.name}`);
@@ -100,10 +103,12 @@ test.describe("Mobile Scroll Test - Planejamento", () => {
       // Preencher credenciais de teste
       await page.fill('input[type="email"]', "teste@teste.com");
       await page.fill('input[type="password"]', "123456");
-      await page.click('button[type="submit"]');
 
       // Aguardar redirecionamento e navegar para planejamento
-      await page.waitForURL("**/inicio", { timeout: 10000 });
+      await Promise.all([
+        page.waitForURL("**/inicio", { timeout: 20000 }),
+        page.click('button[type="submit"]'),
+      ]);
       await page.waitForLoadState("networkidle");
 
       // Navegar para planejamento
