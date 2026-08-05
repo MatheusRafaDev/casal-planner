@@ -27,10 +27,11 @@ declare global {
   }
 }
 
-function GoogleLogo({ className }: { className?: string }) {
+function GoogleLogo({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <svg
       className={className}
+      style={style}
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
@@ -260,7 +261,7 @@ export function LoginForm() {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
             ) : (
-              <GoogleLogo style={{ width: "1.125rem", height: "1.125rem", flexShrink: 0 } as React.CSSProperties} />
+              <GoogleLogo style={{ width: "1.125rem", height: "1.125rem", flexShrink: 0 }} />
             )}
             <span>{googleLoading ? "Entrando..." : "Continuar com Google"}</span>
           </button>
