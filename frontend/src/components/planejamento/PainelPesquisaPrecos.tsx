@@ -1,15 +1,18 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, ExternalLink, Loader2, ShieldCheck, Store, Package } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { pesquisaPrecosService } from "@/services/pesquisa-precos";
+import {
+  pesquisaPrecosService,
+  type PesquisaPrecoPorFotoResposta,
+} from "@/services/pesquisa-precos";
 import { brl } from "@/lib/formatters";
 import { groqService } from "@/services/groq";
-import { useEffect, useMemo } from "react";
 import { getLogoUrl } from "@/lib/logos";
 import type { PesquisaPrecoResultado } from "@/services/types";
+import { PesquisaPrecosPorFoto } from "./PesquisaPrecosPorFoto";
 
 interface Props {
   initialQuery?: string;
@@ -17,6 +20,7 @@ interface Props {
 }
 
 export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
+  const queryClient = useQueryClient();
   const [q, setQ] = useState(initialQuery);
   const [ativa, setAtiva] = useState(initialQuery);
 
@@ -51,6 +55,18 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
 
   const resolvedDomains = dominiosQuery.data ?? {};
 
+  const handleResultadoFoto = (resultado: PesquisaPrecoPorFotoResposta) => {
+    const nomeIdentificado = resultado.produtoIdentificado.produtoNome.trim();
+    queryClient.setQueryData(["pesquisa-precos", nomeIdentificado], resultado);
+    setQ(nomeIdentificado);
+    setAtiva(nomeIdentificado);
+  };
+
+  const handleFalhaFoto = () => {
+    setQ("");
+    setAtiva("");
+  };
+
   return (
     <div className="space-y-4">
       <form
@@ -75,6 +91,11 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
             }}
           />
         </div>
+        <PesquisaPrecosPorFoto
+          disabled={query.isFetching}
+          onResultado={handleResultadoFoto}
+          onFalha={handleFalhaFoto}
+        />
         <Button type="submit" disabled={query.isFetching}>
           {query.isFetching ? (
             <>

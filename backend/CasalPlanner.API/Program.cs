@@ -124,6 +124,7 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
         new() { Endpoint = "POST:/api/recuperarsenha/*", Period = "10m", Limit = authLimit },
         // Pesquisa de preços: limite por IP (10 req/hora em prod) — protege Groq + SerpAPI
         new() { Endpoint = "GET:/api/pesquisaprecos",    Period = "1h",  Limit = pesquisaLimit },
+        new() { Endpoint = "POST:/api/pesquisaprecos/analisar-foto", Period = "1h", Limit = pesquisaLimit },
         new() { Endpoint = "POST:/api/registropreco/analisar", Period = "1h", Limit = pesquisaLimit },
     };
 });

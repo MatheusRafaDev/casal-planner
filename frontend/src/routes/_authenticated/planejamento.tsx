@@ -54,6 +54,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import { categoriasService } from "@/services/categorias";
 import { itensService } from "@/services/itens";
@@ -100,6 +101,7 @@ function PlanejamentoPage() {
   const [excluindoCategoria, setExcluindoCategoria] = useState<Categoria | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [editandoItem, setEditandoItem] = useState<Item | null>(null);
+  const [imagemAmpliada, setImagemAmpliada] = useState<Item | null>(null);
   const [excluindoItem, setExcluindoItem] = useState<Item | null>(null);
   const [registroFoto, setRegistroFoto] = useState<{ item: Item; dados: AnaliseFotoPreco } | null>(null);
 
@@ -772,11 +774,18 @@ function PlanejamentoPage() {
                         }
                       />
                       {it.fotoUrl ? (
-                        <img
-                          src={it.fotoUrl}
-                          alt=""
-                          className="h-12 w-12 rounded-lg object-cover border shrink-0"
-                        />
+                        <button
+                          type="button"
+                          onClick={() => setImagemAmpliada(it)}
+                          className="h-12 w-12 shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          aria-label={`Ampliar imagem de ${it.nome}`}
+                        >
+                          <img
+                            src={it.fotoUrl}
+                            alt={it.nome}
+                            className="h-12 w-12 rounded-lg border object-cover transition-transform hover:scale-105"
+                          />
+                        </button>
                       ) : (
                         <div
                           className="h-12 w-12 rounded-lg grid place-items-center text-white shrink-0"
@@ -795,14 +804,17 @@ function PlanejamentoPage() {
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <div
+                          <button
+                            type="button"
+                            onClick={() => setEditandoItem(it)}
+                            title="Editar item"
                             className={cn(
-                              "font-medium truncate max-w-full",
+                              "max-w-full truncate text-left font-medium hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                               it.comprado && "line-through",
                             )}
                           >
                             {it.nome}
-                          </div>
+                          </button>
                           {it.marca && (
                             <Badge
                               variant="secondary"
@@ -1023,6 +1035,20 @@ function PlanejamentoPage() {
           item={editandoItem}
         />
       )}
+      <Dialog open={!!imagemAmpliada} onOpenChange={(open) => !open && setImagemAmpliada(null)}>
+        <DialogContent className="max-w-4xl p-4">
+          <DialogHeader>
+            <DialogTitle className="pr-8">{imagemAmpliada?.nome}</DialogTitle>
+          </DialogHeader>
+          {imagemAmpliada?.fotoUrl && (
+            <img
+              src={imagemAmpliada.fotoUrl}
+              alt={imagemAmpliada.nome}
+              className="max-h-[75dvh] w-full rounded-lg object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
       <ConfirmarRegistroPreco
         open={!!registroFoto}
         onOpenChange={(open) => !open && setRegistroFoto(null)}
