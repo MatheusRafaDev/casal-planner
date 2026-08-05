@@ -10,7 +10,7 @@ interface AuthState {
   login: (email: string, senha: string) => Promise<Usuario>;
   loginComGoogle: (token: string) => Promise<Usuario>;
   logout: () => void;
-  setUsuario: (u: Usuario | null) => void;
+  setUsuario: (u: Usuario | null | ((prev: Usuario | null) => Usuario | null)) => void;
   refresh: () => Promise<void>;
 }
 
@@ -63,23 +63,23 @@ export function normalizarUsuario(raw: unknown): Usuario {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [usuario, setUsuarioState] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
     if (typeof window === "undefined") return;
     const token = window.localStorage.getItem(TOKEN_STORAGE_KEY);
     if (!token) {
-      setUsuario(null);
+      setUsuarioState(null);
       setLoading(false);
       return;
     }
     try {
       const u = await authService.me();
-      setUsuario(normalizarUsuario(u));
+      setUsuarioState(normalizarUsuario(u));
     } catch {
       setToken(null);
-      setUsuario(null);
+      setUsuarioState(null);
     } finally {
       setLoading(false);
     }
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await authService.login(email, senha);
     setToken(res.token);
     const u = normalizarUsuario(res.usuario);
-    setUsuario(u);
+    setUsuarioState(u);
     return u;
   }, []);
 
@@ -101,14 +101,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await authService.loginComGoogle(token);
     setToken(res.token);
     const u = normalizarUsuario(res.usuario);
-    setUsuario(u);
+    setUsuarioState(u);
     return u;
   }, []);
 
   const logout = useCallback(() => {
     setToken(null);
-    setUsuario(null);
+    setUsuarioState(null);
     authService.logout().catch(() => {});
+  }, []);
+
+  const setUsuario = useCallback((u: Usuario | null | ((prev: Usuario | null) => Usuario | null)) => {
+    setUsuarioState(u);
   }, []);
 
   return (
