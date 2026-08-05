@@ -6,7 +6,7 @@ import { registroPrecoService, type AnaliseFotoPreco } from "@/services/registro
 
 interface Props {
   itemNome: string;
-  onAnalisado: (analise: AnaliseFotoPreco) => void;
+  onAnalisado: (analise: AnaliseFotoPreco, imagemBase64: string) => void;
   onFalha: () => void;
 }
 
@@ -39,7 +39,8 @@ export function CapturaPrecoFoto({ itemNome, onAnalisado, onFalha }: Props) {
     setCarregando(true);
     try {
       const [imagemBase64, location] = await Promise.all([toBase64(file), getLocation()]);
-      onAnalisado(await registroPrecoService.analisar(imagemBase64, location.latitude, location.longitude));
+      const analise = await registroPrecoService.analisar(imagemBase64, location.latitude, location.longitude);
+      onAnalisado(analise, imagemBase64);
     } catch {
       toast.error("Não consegui ler a foto. Tente de novo ou preencha manualmente.");
       onFalha();
