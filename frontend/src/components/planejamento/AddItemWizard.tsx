@@ -363,8 +363,8 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
             <div className="space-y-3 pb-4 border-b">
               <Label>Identificar utilizando foto</Label>
               <div className="grid grid-cols-2 gap-3">
-                <input ref={cameraInputRef} className="hidden" type="file" accept="image/*" capture="environment" onChange={(e) => handleFile(e.target.files?.[0])} />
-                <input ref={fileInputRef} className="hidden" type="file" accept="image/*" onChange={(e) => handleFile(e.target.files?.[0])} />
+                <input ref={cameraInputRef} className="hidden" type="file" accept="image/png, image/jpeg, image/heic, image/heif, image/webp" capture="environment" onChange={(e) => handleFile(e.target.files?.[0])} />
+                <input ref={fileInputRef} className="hidden" type="file" accept="image/png, image/jpeg, image/heic, image/heif, image/webp" onChange={(e) => handleFile(e.target.files?.[0])} />
                 <Button type="button" variant="outline" className="h-20 flex flex-col gap-2 bg-background/50 hover:bg-accent" disabled={analisandoFoto} onClick={() => cameraInputRef.current?.click()}>
                   <Camera className="h-6 w-6 text-primary" />
                   Tirar foto
