@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { iconFor } from "@/components/planejamento/icon-map";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import type { Item } from "@/services/types";
 
@@ -66,6 +66,21 @@ function useIsDark() {
 
 function InicioPage() {
   const isDark = useIsDark();
+  const isMounted = useRef(false);
+  const [chartsReady, setChartsReady] = useState(false);
+
+  useEffect(() => {
+    isMounted.current = true;
+    // Pequeno delay para garantir que o DOM está estável antes de renderizar ApexCharts
+    const t = setTimeout(() => {
+      if (isMounted.current) setChartsReady(true);
+    }, 50);
+    return () => {
+      isMounted.current = false;
+      clearTimeout(t);
+      setChartsReady(false);
+    };
+  }, []);
   const { usuario } = useAuth();
   const isCasal = usuario?.tipoConta === "Casal";
   const p1 = usuario?.casalInfo?.pessoa1?.nome || "Pessoa 1";
@@ -655,13 +670,15 @@ function InicioPage() {
                   className="w-full overflow-hidden"
                   style={{ height: 300 }}
                 >
-                  <ReactApexChart
-                    type="bar"
-                    options={{ ...barOptions, chart: { ...barOptions.chart, width: "100%" } }}
-                    series={barSeries}
-                    height={300}
-                    width="100%"
-                  />
+                  {chartsReady && (
+                    <ReactApexChart
+                      type="bar"
+                      options={{ ...barOptions, chart: { ...barOptions.chart, width: "100%" } }}
+                      series={barSeries}
+                      height={300}
+                      width="100%"
+                    />
+                  )}
                 </div>
               )}
             </div>
@@ -693,13 +710,15 @@ function InicioPage() {
                 className="w-full overflow-hidden"
                 style={{ height: 220 }}
               >
-                <ReactApexChart
-                  type="bar"
-                  options={{ ...mensalOptions, chart: { ...mensalOptions.chart, width: "100%" } }}
-                  series={mensalSeries}
-                  height={220}
-                  width="100%"
-                />
+                {chartsReady && (
+                  <ReactApexChart
+                    type="bar"
+                    options={{ ...mensalOptions, chart: { ...mensalOptions.chart, width: "100%" } }}
+                    series={mensalSeries}
+                    height={220}
+                    width="100%"
+                  />
+                )}
               </div>
             </div>
           )}

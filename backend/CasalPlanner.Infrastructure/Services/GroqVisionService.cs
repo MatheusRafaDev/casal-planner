@@ -7,17 +7,21 @@ namespace CasalPlanner.Infrastructure.Services;
 
 public class GroqVisionService
 {
-    private static readonly string[] VisionModelPriority =
+    // Modelos com suporte a visão (imagens) ativos no Groq.
+    // Atualizado: llama-3.2-vision foi descontinuado. Usar Qwen ou Llama 4.
+    private static readonly string[] VisionModels =
     [
-        "llama-3.2-11b-vision-preview",
-        "llama-3.2-90b-vision-preview"
+        "meta-llama/llama-4-scout-17b-16e-instruct",   // Llama 4 Scout (visão nativa)
+        "meta-llama/llama-4-maverick-17b-128e-instruct", // Llama 4 Maverick
+        "qwen/qwen3.6-27b",                             // Qwen com suporte a imagem
+        "llama-3.2-11b-vision-preview",                // Legado — pode falhar
+        "llama-3.2-90b-vision-preview"                 // Legado — pode falhar
     ];
+
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<GroqVisionService> _logger;
     private readonly string _apiKey;
-    private string? _visionModel;
-    private DateTime _modelCheckedAt = DateTime.MinValue;
 
     public GroqVisionService(HttpClient httpClient, ILogger<GroqVisionService> logger)
     {
@@ -28,10 +32,47 @@ public class GroqVisionService
 
     public async Task<AnalisarFotoPrecoResponse> AnalisarAsync(string imagemBase64, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(_apiKey)) throw new InvalidOperationException("A análise por foto não está configurada.");
-        var model = await GetVisionModelAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(_apiKey))
+            throw new InvalidOperationException("A análise por foto não está configurada.");
+
         var imageUrl = imagemBase64.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase)
-            ? imagemBase64 : $"data:image/jpeg;base64,{imagemBase64}";
+            ? imagemBase64
+            : $"data:image/jpeg;base64,{imagemBase64}";
+
+        // Tenta cada modelo em ordem até um funcionar.
+        // Ignora modelos que retornam model_not_found (sem acesso ou descontinuados).
+        Exception? lastException = null;
+        foreach (var model in VisionModels)
+        {
+            try
+            {
+                _logger.LogInformation("Tentando modelo de visão: {Model}", model);
+                return await CallGroqAsync(model, imageUrl, cancellationToken);
+            }
+            catch (InvalidOperationException ex) when (
+                ex.Message.Contains("model_not_found") ||
+                ex.Message.Contains("model_decommissioned") ||
+                ex.Message.Contains("does not exist") ||
+                ex.Message.Contains("404") ||
+                ex.Message.Contains("BadRequest") ||     // 400 = modelo deprecado
+                ex.Message.Contains("400") ||
+                ex.Message.Contains("deprecat"))         // deprecation message body
+            {
+                _logger.LogWarning("Modelo {Model} não disponível. Tentando próximo.", model);
+                lastException = ex;
+            }
+        }
+
+        // Todos os modelos falharam
+        _logger.LogError(lastException, "Nenhum modelo de visão funcionou.");
+        throw new InvalidOperationException(
+            "Não há nenhum modelo de visão disponível na sua conta Groq. " +
+            $"Modelos testados: {string.Join(", ", VisionModels)}. " +
+            "Verifique sua conta em console.groq.com.");
+    }
+
+    private async Task<AnalisarFotoPrecoResponse> CallGroqAsync(string model, string imageUrl, CancellationToken cancellationToken)
+    {
         var body = new
         {
             model,
@@ -39,8 +80,20 @@ public class GroqVisionService
             response_format = new { type = "json_object" },
             messages = new object[]
             {
-                new { role = "system", content = "Você identifica produtos e extrai preços de fotos. Se a foto for apenas do produto, identifique o produto (nome, marca, modelo). Se houver etiqueta de preço visível (ou se for apenas uma foto da etiqueta), extraia também o preço. Responda apenas JSON válido, sem markdown: {\"produtoNome\": string, \"marca\": string|null, \"modelo\": string|null, \"preco\": number|null, \"unidade\": string|null}. Use null quando o preço ou outros dados não estiverem disponíveis ou legíveis na imagem." },
-                new { role = "user", content = new object[] { new { type = "text", text = "Identifique o produto e os dados de preço (se houver) nesta foto." }, new { type = "image_url", image_url = new { url = imageUrl } } } }
+                new
+                {
+                    role = "system",
+                    content = "Você identifica produtos e extrai preços de fotos. Se a foto for apenas do produto, identifique o produto (nome, marca, modelo). Se houver etiqueta de preço visível (ou se for apenas uma foto da etiqueta), extraia também o preço. Responda apenas JSON válido, sem markdown: {\"produtoNome\": string, \"marca\": string|null, \"modelo\": string|null, \"preco\": number|null, \"unidade\": string|null}. Use null quando o preço ou outros dados não estiverem disponíveis ou legíveis na imagem."
+                },
+                new
+                {
+                    role = "user",
+                    content = new object[]
+                    {
+                        new { type = "text", text = "Identifique o produto e os dados de preço (se houver) nesta foto." },
+                        new { type = "image_url", image_url = new { url = imageUrl } }
+                    }
+                }
             }
         };
 
@@ -49,37 +102,38 @@ public class GroqVisionService
             Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
         };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+
         using var response = await _httpClient.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
             var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogWarning("Groq Vision retornou {StatusCode}. Body: {Body}", response.StatusCode, errorContent);
+            _logger.LogWarning("Groq Vision retornou {StatusCode} com modelo {Model}. Body: {Body}",
+                response.StatusCode, model, errorContent);
             throw new InvalidOperationException($"Erro da IA ({response.StatusCode}): {errorContent}");
         }
 
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
-        var content = json.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
+        var content = json.RootElement
+            .GetProperty("choices")[0]
+            .GetProperty("message")
+            .GetProperty("content")
+            .GetString();
+
         var cleanJson = RemoveMarkdownFence(content);
-        var result = JsonSerializer.Deserialize<AnalisarFotoPrecoResponse>(cleanJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        if (result is null || string.IsNullOrWhiteSpace(result.ProdutoNome)) throw new InvalidOperationException("Não consegui identificar o produto na foto.");
+        var result = JsonSerializer.Deserialize<AnalisarFotoPrecoResponse>(
+            cleanJson,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        if (result is null || string.IsNullOrWhiteSpace(result.ProdutoNome))
+            throw new InvalidOperationException("Não consegui identificar o produto na foto.");
+
+        _logger.LogInformation("Análise concluída com modelo {Model}: {Produto}", model, result.ProdutoNome);
         return result;
     }
 
-    private async Task<string> GetVisionModelAsync(CancellationToken cancellationToken)
-    {
-        if (_visionModel is not null && DateTime.UtcNow - _modelCheckedAt < TimeSpan.FromMinutes(30)) return _visionModel;
-        using var request = new HttpRequestMessage(HttpMethod.Get, "openai/v1/models");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-        using var response = await _httpClient.SendAsync(request, cancellationToken);
-        response.EnsureSuccessStatusCode();
-        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
-        var ids = json.RootElement.GetProperty("data").EnumerateArray().Select(m => m.GetProperty("id").GetString()).Where(id => !string.IsNullOrWhiteSpace(id)).Cast<string>().ToList();
-        _visionModel = VisionModelPriority.FirstOrDefault(ids.Contains)
-            ?? ids.FirstOrDefault(id => id.Contains("llama-3.2", StringComparison.OrdinalIgnoreCase) && id.Contains("vision", StringComparison.OrdinalIgnoreCase));
-        _modelCheckedAt = DateTime.UtcNow;
-        if (_visionModel is null) throw new InvalidOperationException("Nenhum modelo de visão compatível está disponível na conta Groq.");
-        return _visionModel;
-    }
-
-    private static string RemoveMarkdownFence(string? content) => (content ?? string.Empty).Trim().Replace("```json", string.Empty, StringComparison.OrdinalIgnoreCase).Replace("```", string.Empty).Trim();
+    private static string RemoveMarkdownFence(string? content) =>
+        (content ?? string.Empty).Trim()
+            .Replace("```json", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Replace("```", string.Empty)
+            .Trim();
 }

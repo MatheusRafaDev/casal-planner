@@ -60,6 +60,7 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
+  const [googleError, setGoogleError] = useState(false);
   const { login, loginComGoogle } = useAuth();
   const navigate = useNavigate();
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -77,15 +78,20 @@ export function LoginForm() {
     const initGoogle = () => {
       if (!window.google) return;
 
-      if (!googleInitialized) {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: handleGoogleCredential,
-        });
-        googleInitialized = true;
+      try {
+        if (!googleInitialized) {
+          window.google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: handleGoogleCredential,
+          });
+          googleInitialized = true;
+        }
+        if (!canceled) setGoogleReady(true);
+      } catch {
+        // Google GSI falhou (ex: origin não cadastrada no Google Cloud Console).
+        // Silencia o erro e esconde o botão do Google.
+        if (!canceled) setGoogleError(true);
       }
-
-      if (!canceled) setGoogleReady(true);
     };
 
     const tryInit = () => {
@@ -198,7 +204,7 @@ export function LoginForm() {
         {loading ? "Entrando..." : "Entrar"}
       </Button>
 
-      {googleClientId && (
+      {googleClientId && !googleError && (
         <div className="space-y-3">
           <div className="flex items-center justify-center gap-3 text-xs uppercase text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
