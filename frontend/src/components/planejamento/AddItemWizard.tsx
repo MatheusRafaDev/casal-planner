@@ -58,7 +58,48 @@ function getLocation(): Promise<{ latitude?: number; longitude?: number }> {
 function toBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        
+        if (ctx) {
+          ctx.fillStyle = "white";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, width, height);
+        }
+        
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+        resolve(dataUrl);
+      };
+      img.onerror = reject;
+      if (e.target?.result) {
+        img.src = e.target.result as string;
+      } else {
+        reject(new Error("Failed to load image"));
+      }
+    };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
@@ -363,8 +404,8 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
             <div className="space-y-3 pb-4 border-b">
               <Label>Identificar utilizando foto</Label>
               <div className="grid grid-cols-2 gap-3">
-                <input ref={cameraInputRef} className="hidden" type="file" accept="image/png, image/jpeg, image/heic, image/heif, image/webp" capture="environment" onChange={(e) => handleFile(e.target.files?.[0])} />
-                <input ref={fileInputRef} className="hidden" type="file" accept="image/png, image/jpeg, image/heic, image/heif, image/webp" onChange={(e) => handleFile(e.target.files?.[0])} />
+                <input ref={cameraInputRef} className="hidden" type="file" accept="image/jpeg, image/png, image/webp" capture="environment" onChange={(e) => handleFile(e.target.files?.[0])} />
+                <input ref={fileInputRef} className="hidden" type="file" accept="image/jpeg, image/png, image/webp" onChange={(e) => handleFile(e.target.files?.[0])} />
                 <Button type="button" variant="outline" className="h-20 flex flex-col gap-2 bg-background/50 hover:bg-accent" disabled={analisandoFoto} onClick={() => cameraInputRef.current?.click()}>
                   <Camera className="h-6 w-6 text-primary" />
                   Tirar foto
