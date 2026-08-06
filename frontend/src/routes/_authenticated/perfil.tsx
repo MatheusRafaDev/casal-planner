@@ -4,8 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   User,
-  Moon,
-  Sun,
   Trash2,
   KeyRound,
   Target,
@@ -16,7 +14,7 @@ import {
   Check,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { useTheme } from "@/lib/theme-context";
+
 import { usuarioService } from "@/services/usuario";
 import { resumoService } from "@/services/resumo";
 import { conviteService } from "@/services/convite";
@@ -47,7 +45,7 @@ export const Route = createFileRoute("/_authenticated/perfil")({
 
 function PerfilPage() {
   const { usuario, refresh, logout } = useAuth();
-  const { theme, toggle } = useTheme();
+
   const navigate = useNavigate();
   const [emailParceiro, setEmailParceiro] = useState("");
   const [linkConvite, setLinkConvite] = useState("");
@@ -206,29 +204,7 @@ function PerfilPage() {
       {/* Senha */}
       <TrocarSenhaCard />
 
-      {/* Preferências */}
-      <section className="rounded-2xl border bg-card p-5 shadow-soft">
-        <h2 className="font-display text-lg font-semibold mb-4">Preferências</h2>
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="font-medium text-sm">Modo escuro</div>
-            <div className="text-xs text-muted-foreground">
-              Salvo na sua conta e sincronizado nos dispositivos.
-            </div>
-          </div>
-          <Button variant="outline" onClick={toggle}>
-            {theme === "dark" ? (
-              <>
-                <Sun className="h-4 w-4 mr-2" /> Claro
-              </>
-            ) : (
-              <>
-                <Moon className="h-4 w-4 mr-2" /> Escuro
-              </>
-            )}
-          </Button>
-        </div>
-      </section>
+
 
       {/* Zona perigosa */}
       <section className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5">

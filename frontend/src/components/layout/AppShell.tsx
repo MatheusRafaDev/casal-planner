@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, LayoutGrid, User, LogOut, Moon, Sun, Download } from "lucide-react";
+import { Home, LayoutGrid, User, LogOut, Download } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { useTheme } from "@/lib/theme-context";
+
 import { usePwa } from "@/hooks/use-pwa";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,7 @@ const nav = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { usuario, logout } = useAuth();
-  const { theme, toggle } = useTheme();
+
   const { installPrompt, triggerInstall } = usePwa();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -61,9 +61,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="p-4 border-t space-y-2">
           <div className="text-xs text-muted-foreground truncate">Olá, {nome ?? "usuário"}</div>
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm" className="flex-1" onClick={toggle}>
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
             {installPrompt && (
               <Button
                 variant="ghost"
@@ -93,9 +90,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="font-display font-semibold">Casal Planner</span>
           </Link>
           <div className="flex gap-1">
-            <Button variant="ghost" size="sm" onClick={toggle} aria-label="Alternar tema">
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
             {installPrompt && (
               <Button
                 variant="ghost"

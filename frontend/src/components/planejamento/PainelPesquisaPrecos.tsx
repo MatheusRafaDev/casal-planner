@@ -4,10 +4,8 @@ import { Search, ExternalLink, Loader2, ShieldCheck, Store, Package } from "luci
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  pesquisaPrecosService,
-  type PesquisaPrecoPorFotoResposta,
-} from "@/services/pesquisa-precos";
+import { ConfirmarRegistroPreco } from "./ConfirmarRegistroPreco";
+import type { AnaliseFotoPreco } from "@/services/registro-preco";
 import { brl } from "@/lib/formatters";
 import { groqService } from "@/services/groq";
 import { getLogoUrl } from "@/lib/logos";
@@ -23,6 +21,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
   const queryClient = useQueryClient();
   const [q, setQ] = useState(initialQuery);
   const [ativa, setAtiva] = useState(initialQuery);
+  const [registroFoto, setRegistroFoto] = useState<AnaliseFotoPreco | null>(null);
 
   useEffect(() => {
     setQ(initialQuery);
@@ -55,11 +54,15 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
 
   const resolvedDomains = dominiosQuery.data ?? {};
 
-  const handleResultadoFoto = (resultado: PesquisaPrecoPorFotoResposta) => {
-    const nomeIdentificado = resultado.produtoIdentificado.produtoNome.trim();
-    queryClient.setQueryData(["pesquisa-precos", nomeIdentificado], resultado);
+  const handleResultadoFoto = (resultado: AnaliseFotoPreco) => {
+    const nomeIdentificado = resultado.produtoNome.trim();
+    // Inicia a pesquisa online
     setQ(nomeIdentificado);
     setAtiva(nomeIdentificado);
+    // Se achou preço, abre o modal de registrar
+    if (resultado.preco && resultado.preco > 0) {
+      setRegistroFoto(resultado);
+    }
   };
 
   const handleFalhaFoto = () => {
@@ -125,7 +128,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
         </div>
       )}
 
-      <div className="space-y-2 max-h-[50dvh] overflow-y-auto pr-1">
+      <div className="space-y-2 max-h-[50dvh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {query.data?.resultados?.map((r, i) => (
           <div
             key={`${r.link}-${i}`}
@@ -220,6 +223,14 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
           </div>
         )}
       </div>
+
+      <ConfirmarRegistroPreco
+        open={!!registroFoto}
+        onOpenChange={(open) => !open && setRegistroFoto(null)}
+        itemId={null}
+        dados={registroFoto}
+        onSalvo={() => setRegistroFoto(null)}
+      />
     </div>
   );
 }

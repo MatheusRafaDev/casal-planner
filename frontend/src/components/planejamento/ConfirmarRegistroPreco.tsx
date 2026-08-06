@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { registroPrecoService, type AnaliseFotoPreco } from "@/services/registro-preco";
 
-interface Props { open: boolean; onOpenChange: (open: boolean) => void; itemId: string; dados: AnaliseFotoPreco | null; onSalvo: () => void; }
+interface Props { open: boolean; onOpenChange: (open: boolean) => void; itemId: string | null; dados: AnaliseFotoPreco | null; onSalvo: () => void; }
 
 export function ConfirmarRegistroPreco({ open, onOpenChange, itemId, dados, onSalvo }: Props) {
   const [form, setForm] = useState<AnaliseFotoPreco>({ produtoNome: "", preco: 0, endereco: "" });
@@ -21,7 +21,7 @@ export function ConfirmarRegistroPreco({ open, onOpenChange, itemId, dados, onSa
     if (!form.produtoNome.trim() || !form.endereco.trim()) { toast.error("Preencha o produto e o endereço antes de salvar."); return; }
     setSalvando(true);
     try {
-      await registroPrecoService.confirmar({ ...form, itemId });
+      await registroPrecoService.confirmar({ ...form, itemId, preco: form.preco || 0 });
       toast.success("Preço registrado no histórico.");
       onSalvo();
       onOpenChange(false);
@@ -34,7 +34,7 @@ export function ConfirmarRegistroPreco({ open, onOpenChange, itemId, dados, onSa
       <div className="grid gap-3">
         <Input value={form.produtoNome} onChange={(e) => setField("produtoNome", e.target.value)} placeholder="Produto" />
         <div className="grid grid-cols-2 gap-3"><Input value={form.marca ?? ""} onChange={(e) => setField("marca", e.target.value || null)} placeholder="Marca" /><Input value={form.unidade ?? ""} onChange={(e) => setField("unidade", e.target.value || null)} placeholder="Unidade (ex.: 1 kg)" /></div>
-        <CurrencyInput value={form.preco} onValueChange={(value) => setField("preco", value)} />
+        <CurrencyInput value={form.preco || 0} onValueChange={(value) => setField("preco", value)} />
         <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground flex gap-2"><MapPin className="h-4 w-4 shrink-0 text-primary" /><span>Endereço sugerido pela sua localização. Corrija-o se necessário antes de salvar.</span></div>
         <Input value={form.endereco} onChange={(e) => setField("endereco", e.target.value)} placeholder="Endereço" />
         <Input value={form.nomeMercado ?? ""} onChange={(e) => setField("nomeMercado", e.target.value || null)} placeholder="Nome do mercado (opcional)" />

@@ -9,29 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TrocarSenhaRouteImport } from './routes/trocar-senha'
-import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as ConviteRouteImport } from './routes/convite'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedPlanejamentoRouteImport } from './routes/_authenticated/planejamento'
-import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as ConviteRouteImport } from './routes/convite'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
+import { Route as TrocarSenhaRouteImport } from './routes/trocar-senha'
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
+import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
+import { Route as AuthenticatedPlanejamentoRouteImport } from './routes/_authenticated/planejamento'
 
-const TrocarSenhaRoute = TrocarSenhaRouteImport.update({
-  id: '/trocar-senha',
-  path: '/trocar-senha',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
-  id: '/recuperar-senha',
-  path: '/recuperar-senha',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConviteRoute = ConviteRouteImport.update({
@@ -39,14 +33,30 @@ const ConviteRoute = ConviteRouteImport.update({
   path: '/convite',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
+  id: '/recuperar-senha',
+  path: '/recuperar-senha',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TrocarSenhaRoute = TrocarSenhaRouteImport.update({
+  id: '/trocar-senha',
+  path: '/trocar-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
+  id: '/inicio',
+  path: '/inicio',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPlanejamentoRoute =
   AuthenticatedPlanejamentoRouteImport.update({
@@ -54,16 +64,6 @@ const AuthenticatedPlanejamentoRoute =
     path: '/planejamento',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
-  id: '/perfil',
-  path: '/perfil',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
-  id: '/inicio',
-  path: '/inicio',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -142,32 +142,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/trocar-senha': {
-      id: '/trocar-senha'
-      path: '/trocar-senha'
-      fullPath: '/trocar-senha'
-      preLoaderRoute: typeof TrocarSenhaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/recuperar-senha': {
-      id: '/recuperar-senha'
-      path: '/recuperar-senha'
-      fullPath: '/recuperar-senha'
-      preLoaderRoute: typeof RecuperarSenhaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/convite': {
-      id: '/convite'
-      path: '/convite'
-      fullPath: '/convite'
-      preLoaderRoute: typeof ConviteRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -177,18 +156,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/convite': {
+      id: '/convite'
+      path: '/convite'
+      fullPath: '/convite'
+      preLoaderRoute: typeof ConviteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/planejamento': {
-      id: '/_authenticated/planejamento'
-      path: '/planejamento'
-      fullPath: '/planejamento'
-      preLoaderRoute: typeof AuthenticatedPlanejamentoRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recuperar-senha': {
+      id: '/recuperar-senha'
+      path: '/recuperar-senha'
+      fullPath: '/recuperar-senha'
+      preLoaderRoute: typeof RecuperarSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trocar-senha': {
+      id: '/trocar-senha'
+      path: '/trocar-senha'
+      fullPath: '/trocar-senha'
+      preLoaderRoute: typeof TrocarSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/inicio': {
+      id: '/_authenticated/inicio'
+      path: '/inicio'
+      fullPath: '/inicio'
+      preLoaderRoute: typeof AuthenticatedInicioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/perfil': {
@@ -198,11 +198,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPerfilRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/inicio': {
-      id: '/_authenticated/inicio'
-      path: '/inicio'
-      fullPath: '/inicio'
-      preLoaderRoute: typeof AuthenticatedInicioRouteImport
+    '/_authenticated/planejamento': {
+      id: '/_authenticated/planejamento'
+      path: '/planejamento'
+      fullPath: '/planejamento'
+      preLoaderRoute: typeof AuthenticatedPlanejamentoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }

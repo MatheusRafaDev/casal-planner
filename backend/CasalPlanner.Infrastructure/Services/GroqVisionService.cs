@@ -39,8 +39,8 @@ public class GroqVisionService
             response_format = new { type = "json_object" },
             messages = new object[]
             {
-                new { role = "system", content = "Você extrai dados de etiquetas de preço brasileiras. Responda apenas JSON válido, sem markdown: {\"produtoNome\": string, \"marca\": string|null, \"preco\": number, \"unidade\": string|null}. Use 0 quando o preço não estiver legível." },
-                new { role = "user", content = new object[] { new { type = "text", text = "Leia a etiqueta desta foto." }, new { type = "image_url", image_url = new { url = imageUrl } } } }
+                new { role = "system", content = "Você identifica produtos e extrai preços de fotos. Se a foto for apenas do produto, identifique o produto (nome, marca, modelo). Se houver etiqueta de preço visível (ou se for apenas uma foto da etiqueta), extraia também o preço. Responda apenas JSON válido, sem markdown: {\"produtoNome\": string, \"marca\": string|null, \"modelo\": string|null, \"preco\": number|null, \"unidade\": string|null}. Use null quando o preço ou outros dados não estiverem disponíveis ou legíveis na imagem." },
+                new { role = "user", content = new object[] { new { type = "text", text = "Identifique o produto e os dados de preço (se houver) nesta foto." }, new { type = "image_url", image_url = new { url = imageUrl } } } }
             }
         };
 

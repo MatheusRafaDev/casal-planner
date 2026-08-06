@@ -28,25 +28,7 @@ interface PesquisaPrecoRespostaBruta {
   total?: number;
 }
 
-export interface ProdutoIdentificadoFoto {
-  produtoNome: string;
-  marca?: string | null;
-  preco: number;
-  unidade?: string | null;
-}
 
-export interface PesquisaPrecoPorFotoResposta extends PesquisaPrecoResposta {
-  produtoIdentificado: ProdutoIdentificadoFoto;
-}
-
-interface PesquisaPrecoPorFotoRespostaBruta extends PesquisaPrecoRespostaBruta {
-  produto_identificado?: {
-    produto_nome?: string;
-    marca?: string | null;
-    preco?: number | null;
-    unidade?: string | null;
-  };
-}
 
 function mapearResposta(raw: PesquisaPrecoRespostaBruta, queryOriginal: string): PesquisaPrecoResposta {
   return {
@@ -78,26 +60,5 @@ export const pesquisaPrecosService = {
     });
 
     return mapearResposta(raw, q);
-  },
-  analisarFoto: async (imagemBase64: string): Promise<PesquisaPrecoPorFotoResposta> => {
-    const raw = await api<PesquisaPrecoPorFotoRespostaBruta>("/api/pesquisaprecos/analisar-foto", {
-      method: "POST",
-      body: { imagemBase64 },
-    });
-    const produtoIdentificado = raw.produto_identificado;
 
-    if (!produtoIdentificado?.produto_nome) {
-      throw new Error("Não consegui identificar o produto na foto, tente digitar manualmente.");
-    }
-
-    return {
-      ...mapearResposta(raw, produtoIdentificado.produto_nome),
-      produtoIdentificado: {
-        produtoNome: produtoIdentificado.produto_nome,
-        marca: produtoIdentificado.marca,
-        preco: Number(produtoIdentificado.preco ?? 0),
-        unidade: produtoIdentificado.unidade,
-      },
-    };
-  },
 };

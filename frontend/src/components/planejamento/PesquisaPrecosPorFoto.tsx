@@ -2,18 +2,26 @@ import { useRef, useState } from "react";
 import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  pesquisaPrecosService,
-  type PesquisaPrecoPorFotoResposta,
-} from "@/services/pesquisa-precos";
+import { registroPrecoService, type AnaliseFotoPreco } from "@/services/registro-preco";
 
 interface Props {
   disabled?: boolean;
-  onResultado: (resultado: PesquisaPrecoPorFotoResposta) => void;
+  onResultado: (resultado: AnaliseFotoPreco) => void;
   onFalha: () => void;
 }
 
-type Etapa = "Identificando produto..." | "Buscando preços..." | null;
+type Etapa = "Capturando localização..." | "Identificando produto..." | null;
+
+function getLocation(): Promise<{ latitude?: number; longitude?: number }> {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve({});
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => resolve({ latitude: coords.latitude, longitude: coords.longitude }),
+      () => resolve({}),
+      { enableHighAccuracy: false, timeout: 8_000, maximumAge: 60_000 },
+    );
+  });
+}
 
 function toBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -31,11 +39,17 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
   const handleFile = async (file?: File) => {
     if (!file) return;
 
-    setEtapa("Identificando produto...");
-    const etapaBuscaTimer = window.setTimeout(() => setEtapa("Buscando preços..."), 800);
-
+    setEtapa("Capturando localização...");
     try {
-      const resultado = await pesquisaPrecosService.analisarFoto(await toBase64(file));
+      const [imagemBase64, location] = await Promise.all([toBase64(file), getLocation()]);
+      
+      setEtapa("Identificando produto...");
+      const resultado = await registroPrecoService.analisar(
+        imagemBase64,
+        location.latitude,
+        location.longitude
+      );
+      
       onResultado(resultado);
     } catch (error) {
       const mensagem =
@@ -45,7 +59,6 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
       toast.error(mensagem);
       onFalha();
     } finally {
-      window.clearTimeout(etapaBuscaTimer);
       setEtapa(null);
       if (inputRef.current) inputRef.current.value = "";
     }

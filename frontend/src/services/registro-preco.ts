@@ -3,7 +3,8 @@ import { api } from "@/lib/api";
 export interface AnaliseFotoPreco {
   produtoNome: string;
   marca?: string | null;
-  preco: number;
+  modelo?: string | null;
+  preco?: number | null;
   unidade?: string | null;
   endereco: string;
   nomeMercado?: string | null;

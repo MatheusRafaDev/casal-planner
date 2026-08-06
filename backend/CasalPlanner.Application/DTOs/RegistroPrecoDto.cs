@@ -10,17 +10,14 @@ public class AnalisarFotoPrecoRequest
     public double? Longitude { get; set; }
 }
 
-public class AnalisarFotoPesquisaPrecosRequest
-{
-    [Required, MaxLength(12_000_000)]
-    public string ImagemBase64 { get; set; } = string.Empty;
-}
+
 
 public class AnalisarFotoPrecoResponse
 {
     public string ProdutoNome { get; set; } = string.Empty;
     public string? Marca { get; set; }
-    public decimal Preco { get; set; }
+    public string? Modelo { get; set; }
+    public decimal? Preco { get; set; }
     public string? Unidade { get; set; }
     public string Endereco { get; set; } = string.Empty;
     public string? NomeMercado { get; set; }

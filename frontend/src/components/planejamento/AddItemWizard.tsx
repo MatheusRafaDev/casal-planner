@@ -9,6 +9,8 @@ import {
   AlertTriangle,
   Check,
   Store,
+  Camera,
+  Upload,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -28,6 +30,7 @@ import { useAuth } from "@/lib/auth-context";
 import { PainelPesquisaPrecos } from "./PainelPesquisaPrecos";
 import type { Categoria, PesquisaPrecoResultado } from "@/services/types";
 import { itensService } from "@/services/itens";
+import { registroPrecoService } from "@/services/registro-preco";
 import { groqService } from "@/services/groq";
 import { brl } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
@@ -39,6 +42,26 @@ interface Props {
   onOpenChange: (o: boolean) => void;
   categorias: Categoria[];
   categoriaInicialId: string;
+}
+
+function getLocation(): Promise<{ latitude?: number; longitude?: number }> {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve({});
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => resolve({ latitude: coords.latitude, longitude: coords.longitude }),
+      () => resolve({}),
+      { enableHighAccuracy: false, timeout: 8_000, maximumAge: 60_000 },
+    );
+  });
+}
+
+function toBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 type Step = 1 | 2 | 3;
@@ -66,6 +89,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [analisandoFoto, setAnalisandoFoto] = useState(false);
 
   const reset = () => {
     setStep(1);
@@ -180,16 +206,46 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         const cat = categorias.find((c) => c.nome.toLowerCase().includes(catName));
         if (cat) {
           setCategoriaId(cat.id);
+          return cat.id;
         }
         break;
       }
     }
+    return null;
   };
 
   const handleSelectSuggestion = (s: string) => {
-    setNome(s);
+    handleNomeChange(s);
     setSuggestions([]);
     setShowSuggestions(false);
+  };
+
+  const handleFile = async (file?: File) => {
+    if (!file) return;
+    setAnalisandoFoto(true);
+    try {
+      const [imagemBase64, location] = await Promise.all([toBase64(file), getLocation()]);
+      const analise = await registroPrecoService.analisar(imagemBase64, location.latitude, location.longitude);
+      
+      const nomeIdentificado = analise.produtoNome.trim();
+      handleNomeChange(nomeIdentificado); // Isso já vai tentar preencher o cômodo
+      setMarca(analise.marca ?? "");
+      setLoja(analise.nomeMercado ?? "");
+      
+      if (analise.preco && analise.preco > 0) {
+        setPrecoNumerico(analise.preco);
+        setStep(3); // Pula direto para a confirmação
+      } else {
+        setQueryBusca(nomeIdentificado);
+        setStep(2); // Vai para a pesquisa online
+      }
+    } catch {
+      toast.error("Não consegui ler a foto. Tente preencher manualmente.");
+    } finally {
+      setAnalisandoFoto(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (cameraInputRef.current) cameraInputRef.current.value = "";
+    }
   };
 
   const dupQuery = useQuery({
@@ -200,6 +256,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
 
   const criar = useMutation({
     mutationFn: async () => {
+      if (!categoriaId) throw new Error("Selecione um cômodo");
       const preco = escolhido?.preco ?? precoNumerico;
       const total = preco * quantidade;
 
@@ -299,12 +356,33 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         <div className="flex-1 overflow-hidden flex flex-col min-h-0 pr-1">
           <div
             className={cn(
-              "space-y-4 py-2 overflow-y-auto flex-1 min-h-0",
+              "space-y-4 py-2 overflow-y-auto flex-1 min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
               step === 1 ? "block" : "hidden",
             )}
           >
+            <div className="space-y-3 pb-4 border-b">
+              <Label>Identificar utilizando foto</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <input ref={cameraInputRef} className="hidden" type="file" accept="image/*" capture="environment" onChange={(e) => handleFile(e.target.files?.[0])} />
+                <input ref={fileInputRef} className="hidden" type="file" accept="image/*" onChange={(e) => handleFile(e.target.files?.[0])} />
+                <Button type="button" variant="outline" className="h-20 flex flex-col gap-2 bg-background/50 hover:bg-accent" disabled={analisandoFoto} onClick={() => cameraInputRef.current?.click()}>
+                  <Camera className="h-6 w-6 text-primary" />
+                  Tirar foto
+                </Button>
+                <Button type="button" variant="outline" className="h-20 flex flex-col gap-2 bg-background/50 hover:bg-accent" disabled={analisandoFoto} onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="h-6 w-6 text-primary" />
+                  Subir foto
+                </Button>
+              </div>
+              {analisandoFoto && (
+                <div className="flex items-center justify-center text-sm text-primary pt-2">
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analisando imagem...
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
-              <Label>Nome do item</Label>
+              <Label>Ou preencha manualmente</Label>
               <div className="relative" ref={suggestRef}>
                 <Input
                   autoFocus
@@ -388,7 +466,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
           {step === 2 && (
             <div className="flex-1 overflow-hidden flex flex-col min-h-0">
               <div className="flex-1 overflow-hidden flex flex-col min-h-0 bg-background/50 rounded-xl border">
-                <div className="p-4 flex-1 overflow-y-auto">
+                <div className="p-4 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                   <PainelPesquisaPrecos
                     initialQuery={queryBusca}
                     onEscolher={(r) => {
@@ -402,10 +480,11 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   />
                 </div>
               </div>
-              <div className="border-t pt-3 mt-4 space-y-2 shrink-0">
-                <Label>Ou informe o preço manualmente</Label>
-                <div className="flex gap-2">
+              <div className="border-t pt-3 mt-4 space-y-3 shrink-0 flex flex-col items-center">
+                <Label className="text-center w-full">Ou informe o preço manualmente</Label>
+                <div className="flex gap-2 items-center justify-center">
                   <CurrencyInput
+                    className="w-32 text-center"
                     value={precoNumerico}
                     onValueChange={(v) => {
                       setPrecoNumerico(v);
@@ -429,13 +508,22 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
           )}
 
           {step === 3 && (
-            <div className="py-2 space-y-4 overflow-y-auto flex-1 min-h-0">
+            <div className="py-2 space-y-4 overflow-y-auto flex-1 min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               <div className="rounded-xl border p-4 bg-gradient-warm">
                 <div className="font-display text-lg font-semibold">{nome}</div>
-                <div className="flex flex-wrap gap-2 mt-2 text-sm text-muted-foreground">
-                  <Badge variant="secondary">
-                    {categorias.find((c) => c.id === categoriaId)?.nome ?? "Cômodo"}
-                  </Badge>
+                <div className="flex flex-wrap gap-2 mt-2 text-sm text-muted-foreground items-center">
+                  <Select value={categoriaId} onValueChange={setCategoriaId}>
+                    <SelectTrigger className="h-6 text-xs w-[140px] px-2 py-0">
+                      <SelectValue placeholder="Selecione um cômodo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categorias.map((c) => (
+                        <SelectItem key={c.id} value={c.id} className="text-xs">
+                          {c.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {escolhido?.loja && <Badge variant="outline">{escolhido.loja}</Badge>}
                   {escolhido?.marca && <Badge variant="outline">{escolhido.marca}</Badge>}
                 </div>

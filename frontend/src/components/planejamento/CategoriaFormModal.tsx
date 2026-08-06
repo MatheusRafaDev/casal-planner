@@ -140,21 +140,6 @@ export function CategoriaFormModal({ open, onOpenChange, categoria }: Props) {
             />
           </div>
 
-          <div className="rounded-lg border p-3 flex items-center gap-3 bg-muted/40">
-            <span
-              className="grid place-items-center h-10 w-10 rounded-lg text-white shadow-soft"
-              style={{ backgroundColor: bg }}
-            >
-              {(() => {
-                const I = iconFor(icon);
-                return <I className="h-5 w-5" />;
-              })()}
-            </span>
-            <div>
-              <div className="font-medium">{nome || "Nome do cômodo"}</div>
-              <div className="text-xs text-muted-foreground">Pré-visualização</div>
-            </div>
-          </div>
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
