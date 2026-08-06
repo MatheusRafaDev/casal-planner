@@ -9,8 +9,8 @@ public class GroqVisionService
 {
     private static readonly string[] VisionModelPriority =
     [
-        "meta-llama/llama-4-scout-17b-16e-instruct",
-        "meta-llama/llama-4-maverick-17b-128e-instruct"
+        "llama-3.2-11b-vision-preview",
+        "llama-3.2-90b-vision-preview"
     ];
 
     private readonly HttpClient _httpClient;
@@ -52,8 +52,9 @@ public class GroqVisionService
         using var response = await _httpClient.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogWarning("Groq Vision retornou {StatusCode}.", response.StatusCode);
-            throw new InvalidOperationException("Não foi possível ler a foto agora.");
+            var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogWarning("Groq Vision retornou {StatusCode}. Body: {Body}", response.StatusCode, errorContent);
+            throw new InvalidOperationException($"Erro da IA ({response.StatusCode}): {errorContent}");
         }
 
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
@@ -74,7 +75,7 @@ public class GroqVisionService
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
         var ids = json.RootElement.GetProperty("data").EnumerateArray().Select(m => m.GetProperty("id").GetString()).Where(id => !string.IsNullOrWhiteSpace(id)).Cast<string>().ToList();
         _visionModel = VisionModelPriority.FirstOrDefault(ids.Contains)
-            ?? ids.FirstOrDefault(id => id.Contains("llama-4", StringComparison.OrdinalIgnoreCase) && id.Contains("instruct", StringComparison.OrdinalIgnoreCase));
+            ?? ids.FirstOrDefault(id => id.Contains("llama-3.2", StringComparison.OrdinalIgnoreCase) && id.Contains("vision", StringComparison.OrdinalIgnoreCase));
         _modelCheckedAt = DateTime.UtcNow;
         if (_visionModel is null) throw new InvalidOperationException("Nenhum modelo de visão compatível está disponível na conta Groq.");
         return _visionModel;

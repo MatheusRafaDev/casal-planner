@@ -54,7 +54,7 @@ public class RegistroPrecoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Falha ao analisar foto de preço para o usuário {UsuarioId}", GetUsuarioId());
-            return StatusCode(StatusCodes.Status502BadGateway, new { message = "Não consegui ler a foto. Tente de novo ou preencha manualmente." });
+            return StatusCode(StatusCodes.Status502BadGateway, new { message = $"Não consegui ler a foto. Detalhes do erro: {ex.Message} {ex.InnerException?.Message}" });
         }
     }
 
