@@ -37,8 +37,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { LogoBadge } from "@/components/ui/LogoBadge";
 import {
   Select,
+  Tooltip,
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -100,6 +102,7 @@ function PlanejamentoPage() {
   const [editandoItem, setEditandoItem] = useState<Item | null>(null);
   const [imagemAmpliada, setImagemAmpliada] = useState<Item | null>(null);
   const [excluindoItem, setExcluindoItem] = useState<Item | null>(null);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const categoriasQ = useQuery({
     queryKey: ["categorias"],
@@ -769,17 +772,18 @@ function PlanejamentoPage() {
                           toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
                         }
                       />
-                      {it.fotoUrl ? (
+                      {it.fotoUrl && !imageErrors[it.id] ? (
                         <button
                           type="button"
                           onClick={() => setImagemAmpliada(it)}
-                          className="h-12 w-12 shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          className="h-12 w-12 shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-white"
                           aria-label={`Ampliar imagem de ${it.nome}`}
                         >
                           <img
                             src={it.fotoUrl}
                             alt={it.nome}
-                            className="h-12 w-12 rounded-lg border object-cover transition-transform hover:scale-105"
+                            className="h-12 w-12 rounded-lg border object-contain transition-transform hover:scale-105"
+                            onError={() => setImageErrors((prev) => ({ ...prev, [it.id]: true }))}
                           />
                         </button>
                       ) : (
@@ -816,14 +820,7 @@ function PlanejamentoPage() {
                               variant="secondary"
                               className="hidden"
                             >
-                              {getLogoUrl(it.marca, null, resolvedDomains) && (
-                                <img
-                                  src={getLogoUrl(it.marca, null, resolvedDomains)!}
-                                  alt=""
-                                  className="w-3 h-3 rounded-sm"
-                                  onError={(e) => (e.currentTarget.style.display = "none")}
-                                />
-                              )}
+                              <LogoBadge url={getLogoUrl(it.marca, null, resolvedDomains)} />
                               {it.marca}
                             </Badge>
                           )}
@@ -839,14 +836,7 @@ function PlanejamentoPage() {
                                   variant="outline"
                                   className="hidden"
                                 >
-                                  {getLogoUrl(it.loja, it.linkProduto, resolvedDomains) && (
-                                    <img
-                                      src={getLogoUrl(it.loja, it.linkProduto, resolvedDomains)!}
-                                      alt=""
-                                      className="w-3 h-3 rounded-sm"
-                                      onError={(e) => (e.currentTarget.style.display = "none")}
-                                    />
-                                  )}
+                                  <LogoBadge url={getLogoUrl(it.loja, it.linkProduto, resolvedDomains)} />
                                   {it.loja}
                                   <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
                                 </Badge>
@@ -856,14 +846,7 @@ function PlanejamentoPage() {
                                 variant="outline"
                                 className="hidden"
                               >
-                                {getLogoUrl(it.loja, null, resolvedDomains) && (
-                                  <img
-                                    src={getLogoUrl(it.loja, null, resolvedDomains)!}
-                                    alt=""
-                                    className="w-3 h-3 rounded-sm"
-                                    onError={(e) => (e.currentTarget.style.display = "none")}
-                                  />
-                                )}
+                                <LogoBadge url={getLogoUrl(it.loja, null, resolvedDomains)} />
                                 {it.loja}
                               </Badge>
                             ))}

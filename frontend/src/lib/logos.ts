@@ -120,7 +120,9 @@ const DOMINIOS_CONHECIDOS: Record<string, string> = {
 };
 
 export const getFaviconUrl = (domain: string) =>
-  `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+  domain === "mercadolivre.com.br"
+    ? `https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.73/mercadolibre/favicon.svg`
+    : `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
 /** Normaliza um nome para lookup no mapa local */
 const normalizar = (s: string) => s.toLowerCase().trim();

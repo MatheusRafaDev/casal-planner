@@ -66,6 +66,7 @@ export function ItemFormModal({
   const [form, setForm] = useState<ItemInputDTO>(empty(categoriaId));
   const [showLink, setShowLink] = useState(false);
   const [dividir, setDividir] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -92,6 +93,7 @@ export function ItemFormModal({
         setForm({ ...empty(categoriaId), ...initial });
         setDividir(false);
       }
+      setImageError(false);
     }
   }, [open, item, categoriaId, initial]);
 
@@ -168,14 +170,14 @@ export function ItemFormModal({
 
         <form onSubmit={submit} className="space-y-4">
           {/* Foto do produto (só no modo editar) */}
-          {isEdit && form.fotoUrl && (
+          {isEdit && form.fotoUrl && !imageError && (
             <div className="flex justify-center">
               <div className="relative group">
                 <img
                   src={form.fotoUrl}
                   alt={form.nome}
-                  className="h-36 w-full max-w-xs rounded-xl object-contain border bg-muted/30"
-                  onError={(e) => (e.currentTarget.style.display = "none")}
+                  className="h-36 w-full max-w-xs rounded-xl object-contain border bg-white"
+                  onError={() => setImageError(true)}
                 />
                 {form.linkProduto && (
                   <a

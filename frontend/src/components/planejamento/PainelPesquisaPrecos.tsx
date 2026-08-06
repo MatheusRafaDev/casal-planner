@@ -11,6 +11,7 @@ import { groqService } from "@/services/groq";
 import { getLogoUrl } from "@/lib/logos";
 import type { PesquisaPrecoResultado } from "@/services/types";
 import { PesquisaPrecosPorFoto } from "./PesquisaPrecosPorFoto";
+import { LogoBadge } from "@/components/ui/LogoBadge";
 
 interface Props {
   initialQuery?: string;
@@ -22,6 +23,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
   const [q, setQ] = useState(initialQuery);
   const [ativa, setAtiva] = useState(initialQuery);
   const [registroFoto, setRegistroFoto] = useState<AnaliseFotoPreco | null>(null);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setQ(initialQuery);
@@ -134,15 +136,16 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
             key={`${r.link}-${i}`}
             className="p-3 rounded-xl border bg-card hover:shadow-soft transition-shadow flex gap-3"
           >
-            {r.thumbnail ? (
+            {r.thumbnail && !imageErrors[`${r.link}-${i}`] ? (
               <img
                 src={r.thumbnail}
                 alt=""
-                className="h-16 w-16 rounded-lg object-cover border bg-muted"
+                className="h-16 w-16 rounded-lg object-contain border bg-white"
                 loading="lazy"
+                onError={() => setImageErrors((prev) => ({ ...prev, [`${r.link}-${i}`]: true }))}
               />
             ) : (
-              <div className="h-16 w-16 rounded-lg border grid place-items-center bg-muted">
+              <div className="h-16 w-16 rounded-lg border grid place-items-center bg-muted shrink-0">
                 <Package className="h-5 w-5 text-muted-foreground" />
               </div>
             )}
@@ -165,14 +168,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
                     variant="outline"
                     className="text-[10px] py-0 px-1.5 h-5 font-normal bg-muted/30 flex items-center gap-1.5"
                   >
-                    {getLogoUrl(r.marca, null, resolvedDomains) && (
-                      <img
-                        src={getLogoUrl(r.marca, null, resolvedDomains)!}
-                        alt=""
-                        className="w-3.5 h-3.5 rounded-sm"
-                        onError={(e) => (e.currentTarget.style.display = "none")}
-                      />
-                    )}
+                    <LogoBadge url={getLogoUrl(r.marca, null, resolvedDomains)} className="w-3.5 h-3.5 rounded-sm" />
                     {r.marca}
                   </Badge>
                 )}
@@ -181,14 +177,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
                     variant="outline"
                     className="text-[10px] py-0 px-1.5 h-5 font-normal bg-muted/30 flex items-center gap-1.5"
                   >
-                    {getLogoUrl(r.loja, r.link, resolvedDomains) && (
-                      <img
-                        src={getLogoUrl(r.loja, r.link, resolvedDomains)!}
-                        alt=""
-                        className="w-3.5 h-3.5 rounded-sm"
-                        onError={(e) => (e.currentTarget.style.display = "none")}
-                      />
-                    )}
+                    <LogoBadge url={getLogoUrl(r.loja, r.link, resolvedDomains)} className="w-3.5 h-3.5 rounded-sm" />
                     {r.loja}
                   </Badge>
                 )}

@@ -8,16 +8,12 @@ namespace CasalPlanner.Infrastructure.Services;
 public class GroqVisionService
 {
     // Modelos com suporte a visão (imagens) ativos no Groq.
-    // Atualizado: llama-3.2-vision foi descontinuado. Usar Qwen ou Llama 4.
+    // Atualizado: Llama 4 Scout e Llama 3.2 vision foram descontinuados/falhando.
     private static readonly string[] VisionModels =
     [
-        "meta-llama/llama-4-scout-17b-16e-instruct",   // Llama 4 Scout (visão nativa)
-        "meta-llama/llama-4-maverick-17b-128e-instruct", // Llama 4 Maverick
-        "qwen/qwen3.6-27b",                             // Qwen com suporte a imagem
-        "llama-3.2-11b-vision-preview",                // Legado — pode falhar
-        "llama-3.2-90b-vision-preview"                 // Legado — pode falhar
+        "meta-llama/llama-4-maverick-17b-128e-instruct", // Llama 4 Maverick (mais preciso)
+        "qwen/qwen3.6-27b"                              // Qwen como fallback
     ];
-
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<GroqVisionService> _logger;
@@ -83,7 +79,7 @@ public class GroqVisionService
                 new
                 {
                     role = "system",
-                    content = "Você identifica produtos e extrai preços de fotos. Se a foto for apenas do produto, identifique o produto (nome, marca, modelo). Se houver etiqueta de preço visível (ou se for apenas uma foto da etiqueta), extraia também o preço. Responda apenas JSON válido, sem markdown: {\"produtoNome\": string, \"marca\": string|null, \"modelo\": string|null, \"preco\": number|null, \"unidade\": string|null}. Use null quando o preço ou outros dados não estiverem disponíveis ou legíveis na imagem."
+                    content = "Você identifica produtos e extrai preços de fotos. Ignore mãos, pessoas ou fundo. Leia textos parciais ou borrados o melhor que puder. Considere que a imagem pode estar rotacionada de lado ou de cabeça para baixo. Sempre dê uma estimativa educada e preencha os dados em vez de desistir. Responda apenas JSON válido: {\"produtoNome\": string, \"marca\": string|null, \"modelo\": string|null, \"preco\": number|null, \"unidade\": string|null}. Use null quando o dado não estiver disponível."
                 },
                 new
                 {

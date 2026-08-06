@@ -56,52 +56,80 @@ function getLocation(): Promise<{ latitude?: number; longitude?: number }> {
 }
 
 function toBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        
-        const MAX_WIDTH = 1200;
-        const MAX_HEIGHT = 1200;
-        let width = img.width;
-        let height = img.height;
-
+  return new Promise(async (resolve, reject) => {
+    try {
+      const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+      const maxSize = 1600;
+      let { width, height } = bitmap;
+      
+      if (width > maxSize || height > maxSize) {
         if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
+          height = Math.round((height * maxSize) / width);
+          width = maxSize;
         } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
+          width = Math.round((width * maxSize) / height);
+          height = maxSize;
         }
-
-        canvas.width = width;
-        canvas.height = height;
-        
-        if (ctx) {
-          ctx.fillStyle = "white";
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0, width, height);
-        }
-        
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
-        resolve(dataUrl);
-      };
-      img.onerror = reject;
-      if (e.target?.result) {
-        img.src = e.target.result as string;
-      } else {
-        reject(new Error("Failed to load image"));
       }
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas context is null");
+      
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(bitmap, 0, 0, width, height);
+
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    } catch (error) {
+      // Fallback em caso de erro no createImageBitmap
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          
+          if (ctx) {
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, width, height);
+          }
+          
+          resolve(canvas.toDataURL("image/jpeg", 0.8));
+        };
+        img.onerror = reject;
+        if (e.target?.result) {
+          img.src = e.target.result as string;
+        } else {
+          reject(new Error("Failed to load image"));
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    }
   });
 }
 
