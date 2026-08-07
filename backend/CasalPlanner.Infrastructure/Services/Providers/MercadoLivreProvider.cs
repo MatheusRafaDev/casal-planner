@@ -1,7 +1,7 @@
 using System.Text.Json;
 using CasalPlanner.Application.DTOs;
 using CasalPlanner.Application.Interfaces;
-using CasalPlanner.Infrastructure.Helpers;
+using CasalPlanner.Application.Helpers;
 
 namespace CasalPlanner.Infrastructure.Services.Providers;
 

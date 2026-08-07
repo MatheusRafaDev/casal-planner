@@ -24,10 +24,10 @@ public class MongoDbContext
         _registrosPreco = _database.GetCollection<RegistroPrecoFoto>("RegistrosPreco");
     }
 
-    public IMongoCollection<Usuario> Usuarios => _usuarios;
-    public IMongoCollection<Categoria> Categorias => _categorias;
-    public IMongoCollection<Item> Itens => _itens;
-    public IMongoCollection<RegistroPrecoFoto> RegistrosPreco => _registrosPreco;
+    public virtual IMongoCollection<Usuario> Usuarios => _usuarios;
+    public virtual IMongoCollection<Categoria> Categorias => _categorias;
+    public virtual IMongoCollection<Item> Itens => _itens;
+    public virtual IMongoCollection<RegistroPrecoFoto> RegistrosPreco => _registrosPreco;
 
     public async Task SeedDataAsync()
     {

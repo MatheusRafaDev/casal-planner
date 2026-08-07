@@ -235,6 +235,69 @@ namespace CasalPlanner.Infrastructure.Services
             return (handler, descriptor);
         }
 
+        public async Task<(string Token, DateTime ExpiraEm)> GerarERegistrarRefreshToken(string usuarioId, string? pessoa = null)
+        {
+            var tokenBytes = new byte[64];
+            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            rng.GetBytes(tokenBytes);
+            var token = Convert.ToBase64String(tokenBytes);
+            var expiraEm = DateTime.UtcNow.AddDays(30);
+
+            var update = Builders<Usuario>.Update;
+            UpdateDefinition<Usuario> updateDef;
+
+            if (string.IsNullOrEmpty(pessoa))
+            {
+                updateDef = update
+                    .Set(u => u.RefreshToken, token)
+                    .Set(u => u.RefreshTokenExpiraEm, expiraEm);
+            }
+            else if (pessoa == "pessoa1")
+            {
+                updateDef = update
+                    .Set(u => u.CasalInfo!.RefreshTokenPessoa1, token)
+                    .Set(u => u.CasalInfo!.RefreshTokenExpiraEmPessoa1, expiraEm);
+            }
+            else
+            {
+                updateDef = update
+                    .Set(u => u.CasalInfo!.RefreshTokenPessoa2, token)
+                    .Set(u => u.CasalInfo!.RefreshTokenExpiraEmPessoa2, expiraEm);
+            }
+
+            await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioId, updateDef);
+
+            return (token, expiraEm);
+        }
+
+        public async Task<(Usuario? Usuario, string? Pessoa)> ValidarRefreshToken(string refreshToken)
+        {
+            // Busca como individual
+            var individual = await _context.Usuarios
+                .Find(u => u.TipoConta == TipoConta.Individual && 
+                           u.RefreshToken == refreshToken && 
+                           u.RefreshTokenExpiraEm > DateTime.UtcNow)
+                .FirstOrDefaultAsync();
+
+            if (individual != null)
+                return (individual, null);
+
+            // Busca como casal (Pessoa 1 ou Pessoa 2)
+            var casal = await _context.Usuarios
+                .Find(u => u.TipoConta == TipoConta.Casal && 
+                           ((u.CasalInfo.RefreshTokenPessoa1 == refreshToken && u.CasalInfo.RefreshTokenExpiraEmPessoa1 > DateTime.UtcNow) ||
+                            (u.CasalInfo.RefreshTokenPessoa2 == refreshToken && u.CasalInfo.RefreshTokenExpiraEmPessoa2 > DateTime.UtcNow)))
+                .FirstOrDefaultAsync();
+
+            if (casal != null)
+            {
+                var isPessoa1 = casal.CasalInfo?.RefreshTokenPessoa1 == refreshToken;
+                return (casal, isPessoa1 ? "pessoa1" : "pessoa2");
+            }
+
+            return (null, null);
+        }
+
         // ========== PERFIL ==========
 
         public async Task<Usuario?> AtualizarPerfilCasal(string id, AtualizarCasalDto dto)

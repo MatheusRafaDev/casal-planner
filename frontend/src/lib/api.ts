@@ -58,6 +58,7 @@ export async function api<T = unknown>(path: string, opts: ApiOptions = {}): Pro
   try {
     response = await fetch(url.toString(), {
       ...rest,
+      credentials: "include",
       headers: finalHeaders,
       body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
     });
@@ -73,6 +74,36 @@ export async function api<T = unknown>(path: string, opts: ApiOptions = {}): Pro
       );
     }
     throw error;
+  }
+
+  if (response.status === 401 && !url.pathname.includes("/auth/refresh") && !url.pathname.includes("/auth/login")) {
+    try {
+      const refreshUrl = new URL(`${API_BASE_URL}/api/auth/refresh`);
+      const refreshResponse = await fetch(refreshUrl.toString(), {
+        method: "POST",
+        credentials: "include",
+        headers: { Accept: "application/json" }
+      });
+      if (refreshResponse.ok) {
+        const refreshData = await refreshResponse.json();
+        if (refreshData.token) {
+          setToken(refreshData.token);
+          if (auth) {
+            finalHeaders["Authorization"] = `Bearer ${refreshData.token}`;
+          }
+          response = await fetch(url.toString(), {
+            ...rest,
+            credentials: "include",
+            headers: finalHeaders,
+            body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
+          });
+        }
+      } else {
+        setToken(null);
+      }
+    } catch {
+      setToken(null);
+    }
   }
 
   const contentType = response.headers.get("content-type") ?? "";

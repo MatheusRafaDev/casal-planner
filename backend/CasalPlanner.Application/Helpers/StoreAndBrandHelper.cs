@@ -1,4 +1,4 @@
-namespace CasalPlanner.Infrastructure.Helpers;
+namespace CasalPlanner.Application.Helpers;
 
 public static class StoreAndBrandHelper
 {

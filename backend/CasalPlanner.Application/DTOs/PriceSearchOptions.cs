@@ -1,4 +1,4 @@
-namespace CasalPlanner.Infrastructure.Configurations;
+namespace CasalPlanner.Application.DTOs;
 
 public class PriceSearchOptions
 {

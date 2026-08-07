@@ -68,12 +68,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     if (typeof window === "undefined") return;
-    const token = window.localStorage.getItem(TOKEN_STORAGE_KEY);
-    if (!token) {
-      setUsuarioState(null);
-      setLoading(false);
-      return;
-    }
     try {
       const u = await authService.me();
       setUsuarioState(normalizarUsuario(u));

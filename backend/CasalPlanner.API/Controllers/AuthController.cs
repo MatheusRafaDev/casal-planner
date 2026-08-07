@@ -22,17 +22,44 @@ namespace CasalPlanner.API.Controllers
         private readonly MongoDbContext _context;
         private readonly ILogger<AuthController> _logger;
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _environment;
 
         public AuthController(
             IAuthService authService,
             MongoDbContext context,
             ILogger<AuthController> logger,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IWebHostEnvironment environment)
         {
             _authService = authService;
             _context = context;
             _logger = logger;
             _configuration = configuration;
+            _environment = environment;
+        }
+
+        private void SetTokenCookie(string token, string? refreshToken = null)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = !_environment.IsDevelopment(),
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            };
+            Response.Cookies.Append("cp_token", token, cookieOptions);
+
+            if (!string.IsNullOrEmpty(refreshToken))
+            {
+                var refreshCookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = !_environment.IsDevelopment(),
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddDays(30)
+                };
+                Response.Cookies.Append("cp_refresh_token", refreshToken, refreshCookieOptions);
+            }
         }
 
         private string GetUsuarioId() =>
@@ -83,6 +110,10 @@ namespace CasalPlanner.API.Controllers
             string token = isCasal
                 ? _authService.GerarTokenCasal(usuario, pessoa)
                 : _authService.GerarToken(usuario);
+
+            var refreshTokenResult = await _authService.GerarERegistrarRefreshToken(usuario.Id!, isCasal ? pessoa : null);
+
+            SetTokenCookie(token, refreshTokenResult.Token);
 
             _logger.LogInformation("Login realizado com sucesso: {Email}", dto.Email);
 
@@ -166,6 +197,10 @@ namespace CasalPlanner.API.Controllers
                 ? _authService.GerarTokenCasal(usuario, pessoa)
                 : _authService.GerarToken(usuario);
 
+            var refreshTokenResult = await _authService.GerarERegistrarRefreshToken(usuario.Id!, isCasal ? pessoa : null);
+
+            SetTokenCookie(token, refreshTokenResult.Token);
+
             var usuarioMapeado = isCasal
                 ? UsuarioMapper.MapearCasal(usuario, pessoa)
                 : UsuarioMapper.MapearIndividual(usuario);
@@ -176,7 +211,37 @@ namespace CasalPlanner.API.Controllers
         [HttpPost("logout")]
         public IActionResult Logout()
         {
+            Response.Cookies.Delete("cp_token");
+            Response.Cookies.Delete("cp_refresh_token");
             return Ok(new { message = "Logout realizado com sucesso" });
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh()
+        {
+            if (!Request.Cookies.TryGetValue("cp_refresh_token", out var refreshToken) || string.IsNullOrEmpty(refreshToken))
+            {
+                return Unauthorized(new { message = "Refresh token não fornecido." });
+            }
+
+            var (usuario, pessoa) = await _authService.ValidarRefreshToken(refreshToken);
+
+            if (usuario == null)
+            {
+                return Unauthorized(new { message = "Refresh token inválido ou expirado." });
+            }
+
+            // Rotacionar refresh token
+            var isCasal = usuario.TipoConta == TipoConta.Casal;
+            string token = isCasal
+                ? _authService.GerarTokenCasal(usuario, pessoa!)
+                : _authService.GerarToken(usuario);
+
+            var novoRefreshToken = await _authService.GerarERegistrarRefreshToken(usuario.Id!, isCasal ? pessoa : null);
+
+            SetTokenCookie(token, novoRefreshToken.Token);
+
+            return Ok(new { success = true, token });
         }
 
         [Authorize]

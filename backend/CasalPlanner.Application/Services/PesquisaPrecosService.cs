@@ -3,23 +3,25 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using CasalPlanner.Application.DTOs;
 using CasalPlanner.Application.Interfaces;
-using CasalPlanner.Infrastructure.Configurations;
-using CasalPlanner.Infrastructure.Helpers;
+using CasalPlanner.Application.Helpers;
+using CasalPlanner.Application.DTOs;
+using CasalPlanner.Application.Interfaces;
+using CasalPlanner.Application.Helpers;
 
-namespace CasalPlanner.Infrastructure.Services;
+namespace CasalPlanner.Application.Services;
 
 public class PesquisaPrecosService : IPesquisaPrecosService
 {
     private readonly IEnumerable<IPriceProvider> _providers;
     private readonly IMemoryCache _cache;
-    private readonly GroqService _groqService;
+    private readonly IGroqService _groqService;
     private readonly ILogger<PesquisaPrecosService> _logger;
     private readonly PriceSearchOptions _options;
 
     public PesquisaPrecosService(
         IEnumerable<IPriceProvider> providers,
         IMemoryCache cache,
-        GroqService groqService,
+        IGroqService groqService,
         ILogger<PesquisaPrecosService> logger,
         IOptions<PriceSearchOptions> options)
     {

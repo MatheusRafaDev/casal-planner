@@ -1,10 +1,12 @@
 using System.Text;
 using System.Text.Json;
 using CasalPlanner.Application.DTOs;
+using CasalPlanner.Application.DTOs;
+using CasalPlanner.Application.Interfaces;
 
 namespace CasalPlanner.Infrastructure.Services
 {
-    public class GroqService
+    public class GroqService : IGroqService
     {
         private static readonly JsonSerializerOptions LlmJsonOptions = new()
         {
@@ -608,10 +610,4 @@ Se não souber o domínio oficial de um nome, omita-o do JSON. Exemplo:
         }
     }
 
-    public class StoreValidationResult
-    {
-        public bool IsTrusted { get; set; }
-        public bool IsMarketplace { get; set; }
-        public string StoreType { get; set; } = "desconhecida";
-    }
 }

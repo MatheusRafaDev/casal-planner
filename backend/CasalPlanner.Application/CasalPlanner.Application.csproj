@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <!-- DTOs use [Required]/[EmailAddress] etc. -->
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.10" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
   </ItemGroup>
 

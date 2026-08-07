@@ -44,6 +44,10 @@ namespace CasalPlanner.Domain.Entities
         public string? ConviteParceiroToken { get; set; }
         public string? ConviteParceiroEmail { get; set; }
         public DateTime? ConviteParceiroExpiraEm { get; set; }
+
+        // Refresh Token - Individual
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiraEm { get; set; }
     }
 
     public enum TipoConta
@@ -72,6 +76,9 @@ namespace CasalPlanner.Domain.Entities
         public string? ResetTokenPessoa1 { get; set; }
         public DateTime? ResetTokenExpiresAtPessoa1 { get; set; }
 
+        public string? RefreshTokenPessoa1 { get; set; }
+        public DateTime? RefreshTokenExpiraEmPessoa1 { get; set; }
+
         // Pessoa 2
         public string? ProviderPessoa2 { get; set; } = "local";
         public string NomeCompletoPessoa2 { get; set; } = string.Empty;
@@ -89,6 +96,9 @@ namespace CasalPlanner.Domain.Entities
 
         public string? ResetTokenPessoa2 { get; set; }
         public DateTime? ResetTokenExpiresAtPessoa2 { get; set; }
+
+        public string? RefreshTokenPessoa2 { get; set; }
+        public DateTime? RefreshTokenExpiraEmPessoa2 { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }

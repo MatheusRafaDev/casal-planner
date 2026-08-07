@@ -8,8 +8,10 @@ using CasalPlanner.Domain.Entities;
 using CasalPlanner.Infrastructure.Persistence;
 using CasalPlanner.Application.Interfaces;
 using CasalPlanner.Infrastructure.Services;
+using CasalPlanner.Application.Services;
+using CasalPlanner.Infrastructure.Repositories;
 using CasalPlanner.Infrastructure.Services.Providers;
-using CasalPlanner.Infrastructure.Configurations;
+using CasalPlanner.Application.DTOs;
 using DotNetEnv;
 using MongoDB.Driver;
 using AspNetCoreRateLimit;
@@ -170,7 +172,13 @@ builder.Services.AddAuthentication(options =>
         {
             var authHeader = context.Request.Headers["Authorization"].ToString();
             if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+            {
                 context.Token = authHeader["Bearer ".Length..].Trim();
+            }
+            else if (context.Request.Cookies.TryGetValue("cp_token", out var token))
+            {
+                context.Token = token;
+            }
 
             return Task.CompletedTask;
         }
@@ -279,9 +287,12 @@ if (priceSearchConfig.EnableAmazon)
 builder.Services.AddScoped<IPesquisaPrecosService, PesquisaPrecosService>();
 
 // ===== 7.3. DEMAIS SERVICES =====
+builder.Services.AddSingleton<IGroqService, GroqService>();
 builder.Services.AddSingleton<GroqService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IItemRepository, ItemRepository>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IResumoService, ResumoService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
