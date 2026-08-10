@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronDown, ExternalLink, AlertTriangle, Camera, Upload, X } from "lucide-react";
+import { ChevronDown, ExternalLink, AlertTriangle, Camera, Upload, X, Type, Tag, Store, CircleDollarSign, Hash, CreditCard, Wallet, Zap, Gift, LayoutGrid } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -256,7 +256,10 @@ export function ItemFormModal({
           )}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
-              <Label>Nome</Label>
+              <Label className="flex items-center gap-1.5">
+                <Type className="h-3.5 w-3.5 text-muted-foreground" />
+                Nome
+              </Label>
               <Input value={form.nome} onChange={(e) => set("nome", e.target.value)} autoFocus />
               {!isEdit && dupQuery.data?.duplicata && (
                 <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 flex gap-2 text-sm mt-2">
@@ -268,15 +271,24 @@ export function ItemFormModal({
               )}
             </div>
             <div className="space-y-2">
-              <Label>Marca</Label>
+              <Label className="flex items-center gap-1.5">
+                <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                Marca
+              </Label>
               <Input value={form.marca ?? ""} onChange={(e) => set("marca", e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Loja</Label>
+              <Label className="flex items-center gap-1.5">
+                <Store className="h-3.5 w-3.5 text-muted-foreground" />
+                Loja
+              </Label>
               <Input value={form.loja ?? ""} onChange={(e) => set("loja", e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Preço unitário</Label>
+              <Label className="flex items-center gap-1.5">
+                <CircleDollarSign className="h-3.5 w-3.5 text-muted-foreground" />
+                Preço unitário
+              </Label>
               <CurrencyInput
                 value={form.preco}
                 onValueChange={(v) => set("preco", v)}
@@ -284,7 +296,10 @@ export function ItemFormModal({
               />
             </div>
             <div className="space-y-2">
-              <Label>Quantidade</Label>
+              <Label className="flex items-center gap-1.5">
+                <Hash className="h-3.5 w-3.5 text-muted-foreground" />
+                Quantidade
+              </Label>
               <Input
                 type="number"
                 min="1"
@@ -295,7 +310,10 @@ export function ItemFormModal({
             </div>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Label>Parcelas</Label>
+                <Label className="flex items-center gap-1.5">
+                  <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
+                  Parcelas
+                </Label>
                 {(form.parcelas ?? 1) > 1 && (
                   <span className="text-xs text-muted-foreground">
                     {brl(form.preco / (form.parcelas ?? 1))}/parcela
@@ -320,7 +338,10 @@ export function ItemFormModal({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Pagamento</Label>
+              <Label className="flex items-center gap-1.5">
+                <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
+                Pagamento
+              </Label>
               <Select
                 value={form.pagamento}
                 onValueChange={(v) => {
@@ -338,7 +359,10 @@ export function ItemFormModal({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Prioridade</Label>
+              <Label className="flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5 text-muted-foreground" />
+                Prioridade
+              </Label>
               <Select value={form.prioridade} onValueChange={(v) => set("prioridade", v)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -351,7 +375,10 @@ export function ItemFormModal({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Origem</Label>
+              <Label className="flex items-center gap-1.5">
+                <Gift className="h-3.5 w-3.5 text-muted-foreground" />
+                Origem
+              </Label>
               <Select value={form.origem ?? "comprado"} onValueChange={(v) => set("origem", v)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -487,7 +514,10 @@ export function ItemFormModal({
               </div>
             )}
             <div className="space-y-2 sm:col-span-2">
-              <Label>Cômodo</Label>
+              <Label className="flex items-center gap-1.5">
+                <LayoutGrid className="h-3.5 w-3.5 text-muted-foreground" />
+                Cômodo
+              </Label>
               <Select value={form.categoriaId} onValueChange={(v) => set("categoriaId", v)}>
                 <SelectTrigger>
                   <SelectValue />
