@@ -61,4 +61,5 @@ export const pesquisaPrecosService = {
 
     return mapearResposta(raw, q);
 
+  },
 };

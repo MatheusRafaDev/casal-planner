@@ -8,6 +8,7 @@ import { ConfirmarRegistroPreco } from "./ConfirmarRegistroPreco";
 import type { AnaliseFotoPreco } from "@/services/registro-preco";
 import { brl } from "@/lib/formatters";
 import { groqService } from "@/services/groq";
+import { pesquisaPrecosService } from "@/services/pesquisa-precos";
 import { getLogoUrl } from "@/lib/logos";
 import type { PesquisaPrecoResultado } from "@/services/types";
 import { PesquisaPrecosPorFoto } from "./PesquisaPrecosPorFoto";

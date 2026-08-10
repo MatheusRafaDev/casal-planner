@@ -1,6 +1,6 @@
 using CasalPlanner.Application.DTOs;
 using CasalPlanner.Application.Interfaces;
-using CasalPlanner.Infrastructure.Configurations;
+using CasalPlanner.Application.Services;
 using CasalPlanner.Infrastructure.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -12,7 +12,7 @@ namespace CasalPlanner.Tests;
 
 public class PesquisaPrecosServiceTests
 {
-    private readonly GroqService _groqService;
+    private readonly IGroqService _groqService;
     private readonly IMemoryCache _cache;
     private readonly Mock<ILogger<PesquisaPrecosService>> _loggerMock;
     private readonly IOptions<PriceSearchOptions> _options;

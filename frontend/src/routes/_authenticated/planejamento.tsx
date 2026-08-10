@@ -40,7 +40,6 @@ import {
 import { LogoBadge } from "@/components/ui/LogoBadge";
 import {
   Select,
-  Tooltip,
   SelectContent,
   SelectItem,
   SelectTrigger,

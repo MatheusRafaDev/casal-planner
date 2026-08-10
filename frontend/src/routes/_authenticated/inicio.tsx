@@ -14,9 +14,10 @@ import {
   Bot,
   FileText,
 } from "lucide-react";
-import ReactApexChart from "react-apexcharts";
-import type { ApexOptions } from "apexcharts";
-import { Pie, PieChart, Cell, Bar, BarChart, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import {
+  Pie, PieChart, Cell,
+  Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer,
+} from "recharts";
 import { resumoService } from "@/services/resumo";
 import { groqService } from "@/services/groq";
 import { brl } from "@/lib/formatters";
@@ -24,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { iconFor } from "@/components/planejamento/icon-map";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import type { Item } from "@/services/types";
 
@@ -46,41 +47,7 @@ const FALLBACK_COLORS = [
   "#a855f7",
 ];
 
-/** Reads a CSS variable value at runtime (needed for ApexCharts which operates outside React) */
-function cssVar(name: string) {
-  if (typeof window === "undefined") return "#8b5cf6";
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#8b5cf6";
-}
-
-function useIsDark() {
-  const [dark, setDark] = useState(false);
-  useEffect(() => {
-    const check = () => setDark(document.documentElement.classList.contains("dark"));
-    check();
-    const observer = new MutationObserver(check);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
-  return dark;
-}
-
 function InicioPage() {
-  const isDark = useIsDark();
-  const isMounted = useRef(false);
-  const [chartsReady, setChartsReady] = useState(false);
-
-  useEffect(() => {
-    isMounted.current = true;
-    // Pequeno delay para garantir que o DOM está estável antes de renderizar ApexCharts
-    const t = setTimeout(() => {
-      if (isMounted.current) setChartsReady(true);
-    }, 50);
-    return () => {
-      isMounted.current = false;
-      clearTimeout(t);
-      setChartsReady(false);
-    };
-  }, []);
   const { usuario } = useAuth();
   const isCasal = usuario?.tipoConta === "Casal";
   const p1 = usuario?.casalInfo?.pessoa1?.nome || "Pessoa 1";
@@ -155,191 +122,24 @@ function InicioPage() {
       ? itens.filter((i) => (i.parcelas ?? 1) > 1).reduce((s, i) => s + i.preco * i.quantidade, 0)
       : 0;
 
-  // ─── ApexCharts theme config ───────────────────────────────────────────────
-  const chartTheme = isDark ? "dark" : "light";
-  const cardBg = isDark ? "#1e1a2e" : "#ffffff";
-  const textColor = isDark ? "#c4b5fd" : "#3d2b6b";
-  const mutedColor = isDark ? "#7c6fa0" : "#9d86c8";
-  const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(139,92,246,0.12)";
-
-  // Bar chart — Gastos por categoria
-  const barOptions: ApexOptions = {
-    chart: {
-      type: "bar",
-      background: "transparent",
-      toolbar: { show: false },
-      animations: { enabled: true, speed: 600, animateGradually: { enabled: true, delay: 80 } },
-    },
-    theme: { mode: chartTheme },
-    plotOptions: {
-      bar: {
-        borderRadius: 8,
-        borderRadiusApplication: "end",
-        distributed: true,
-        columnWidth: "55%",
-      },
-    },
-    dataLabels: { enabled: false },
-    legend: { show: false },
-    xaxis: {
-      categories: dadosCategoria.map((d) => d.nome),
-      labels: {
-        style: { colors: mutedColor, fontSize: "11px" },
-        rotate: dadosCategoria.length > 4 ? -30 : 0,
-      },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      labels: {
-        style: { colors: mutedColor, fontSize: "11px" },
-        formatter: (v) => `R$${(v / 1000).toFixed(0)}k`,
-      },
-    },
-    colors: dadosCategoria.map((d) => d.cor),
-    grid: {
-      borderColor,
-      strokeDashArray: 4,
-      xaxis: { lines: { show: false } },
-    },
-    tooltip: {
-      theme: chartTheme,
-      y: { formatter: (v) => brl(v) },
-    },
-    fill: {
-      type: "gradient",
-      gradient: {
-        shade: isDark ? "dark" : "light",
-        type: "vertical",
-        shadeIntensity: 0.3,
-        opacityFrom: 1,
-        opacityTo: 0.75,
-      },
-    },
-  };
-
-  const barSeries = [{ name: "Gasto", data: dadosCategoria.map((d) => d.valor) }];
-
-  // Donut chart — Dinheiro vs VR
-  const donutOptions: ApexOptions = {
-    chart: {
-      type: "donut",
-      background: "transparent",
-      animations: { enabled: true, speed: 600 },
-    },
-    theme: { mode: chartTheme },
-    labels: dadosVrNormal.map((d) => d.nome),
-    colors: [cssVar("--primary") || "#8b5cf6", cssVar("--terracota") || "#ec4899"],
-    stroke: { show: false },
-    plotOptions: {
-      pie: {
-        donut: {
-          size: "65%",
-          labels: {
-            show: true,
-            total: {
-              show: true,
-              label: "Total",
-              color: textColor,
-              fontSize: "13px",
-              formatter: (w) =>
-                brl(w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0)),
-            },
-            value: {
-              color: textColor,
-              fontSize: "18px",
-              fontWeight: "600",
-              formatter: (v) => brl(Number(v)),
-            },
-          },
-        },
-      },
-    },
-    dataLabels: { enabled: false },
-    legend: {
-      position: "bottom",
-      fontSize: "12px",
-      labels: { colors: mutedColor },
-      markers: { size: 8 },
-    },
-    tooltip: {
-      theme: chartTheme,
-      y: { formatter: (v) => brl(v) },
-    },
-  };
-
-  const donutSeries = dadosVrNormal.map((d) => d.valor);
-
   // Bar chart mensal — com nomes reais dos meses
   const hoje = new Date();
   const MESES_PT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
   const mesAtualNome = MESES_PT[hoje.getMonth()];
   const mesPassadoNome = MESES_PT[(hoje.getMonth() + 11) % 12];
   const mesRetrasadoNome = MESES_PT[(hoje.getMonth() + 10) % 12];
-  const mesNames = [mesRetrasadoNome, mesPassadoNome, mesAtualNome];
-  const mesValues = [r?.mesRetrasado ?? 0, r?.mesPassado ?? 0, r?.mesAtual ?? 0];
-  const primaryColor = cssVar("--primary") || "#8b5cf6";
+
+  const dadosMensais = [
+    { mes: mesRetrasadoNome, valor: r?.mesRetrasado ?? 0 },
+    { mes: mesPassadoNome, valor: r?.mesPassado ?? 0 },
+    { mes: mesAtualNome, valor: r?.mesAtual ?? 0 },
+  ];
 
   // Variação % do mês atual em relação ao passado
   const variacaoAtual =
     (r?.mesPassado ?? 0) > 0
       ? (((r?.mesAtual ?? 0) - (r?.mesPassado ?? 0)) / (r?.mesPassado ?? 0)) * 100
       : null;
-
-  const mensalOptions: ApexOptions = {
-    chart: {
-      type: "bar",
-      background: "transparent",
-      toolbar: { show: false },
-      animations: { enabled: true, speed: 500 },
-    },
-    theme: { mode: chartTheme },
-    plotOptions: {
-      bar: {
-        borderRadius: 8,
-        borderRadiusApplication: "end",
-        columnWidth: "45%",
-        colors: {
-          ranges: [{ from: 0, to: 999999999, color: primaryColor }],
-        },
-      },
-    },
-    dataLabels: { enabled: false },
-    xaxis: {
-      categories: mesNames,
-      labels: { style: { colors: mutedColor, fontSize: "12px" } },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      labels: {
-        style: { colors: mutedColor, fontSize: "11px" },
-        formatter: (v) => `R$${(v / 1000).toFixed(0)}k`,
-      },
-    },
-    grid: {
-      borderColor,
-      strokeDashArray: 4,
-      xaxis: { lines: { show: false } },
-    },
-    tooltip: {
-      theme: chartTheme,
-      y: { formatter: (v) => brl(v) },
-    },
-    fill: {
-      type: "gradient",
-      gradient: {
-        shade: isDark ? "dark" : "light",
-        type: "vertical",
-        shadeIntensity: 0.25,
-        opacityFrom: 1,
-        opacityTo: 0.7,
-      },
-    },
-    colors: [primaryColor],
-  };
-
-  const mensalSeries = [{ name: "Gasto", data: mesValues }];
 
   // ─── Gerador de Relatório PDF Financeiro ───────────────────────────────────
   const gerarRelatorioFinanceiro = () => {
@@ -665,21 +465,31 @@ function InicioPage() {
               {dadosCategoria.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-16 text-center">Sem gastos ainda.</p>
               ) : (
-                <div
-                  id="bar-chart-container"
-                  className="w-full overflow-hidden"
-                  style={{ height: 300 }}
-                >
-                  {chartsReady && (
-                    <ReactApexChart
-                      type="bar"
-                      options={{ ...barOptions, chart: { ...barOptions.chart, width: "100%" } }}
-                      series={barSeries}
-                      height={300}
-                      width="100%"
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={dadosCategoria} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
+                    <XAxis
+                      dataKey="nome"
+                      tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                      axisLine={false}
+                      tickLine={false}
                     />
-                  )}
-                </div>
+                    <YAxis
+                      tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip
+                      formatter={(v: number) => [brl(v), "Gasto"]}
+                      contentStyle={{ borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)" }}
+                    />
+                    <Bar dataKey="valor" radius={[6, 6, 0, 0]}>
+                      {dadosCategoria.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.cor} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               )}
             </div>
           </div>
@@ -705,21 +515,27 @@ function InicioPage() {
               <p className="text-xs text-muted-foreground mb-4">
                 Evolução dos gastos nos últimos 3 meses
               </p>
-              <div
-                id="mensal-chart-container"
-                className="w-full overflow-hidden"
-                style={{ height: 220 }}
-              >
-                {chartsReady && (
-                  <ReactApexChart
-                    type="bar"
-                    options={{ ...mensalOptions, chart: { ...mensalOptions.chart, width: "100%" } }}
-                    series={mensalSeries}
-                    height={220}
-                    width="100%"
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={dadosMensais} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
+                  <XAxis
+                    dataKey="mes"
+                    tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
+                    axisLine={false}
+                    tickLine={false}
                   />
-                )}
-              </div>
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
+                  />
+                  <Tooltip
+                    formatter={(v: number) => [brl(v), "Gasto"]}
+                    contentStyle={{ borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)" }}
+                  />
+                  <Bar dataKey="valor" fill="var(--primary)" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           )}
 

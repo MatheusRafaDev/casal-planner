@@ -4,9 +4,6 @@ using Microsoft.Extensions.Options;
 using CasalPlanner.Application.DTOs;
 using CasalPlanner.Application.Interfaces;
 using CasalPlanner.Application.Helpers;
-using CasalPlanner.Application.DTOs;
-using CasalPlanner.Application.Interfaces;
-using CasalPlanner.Application.Helpers;
 
 namespace CasalPlanner.Application.Services;
 

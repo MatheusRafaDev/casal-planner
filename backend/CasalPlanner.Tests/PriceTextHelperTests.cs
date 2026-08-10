@@ -1,4 +1,4 @@
-using CasalPlanner.Infrastructure.Helpers;
+using CasalPlanner.Application.Helpers;
 using Xunit;
 
 namespace CasalPlanner.Tests;
