@@ -189,7 +189,7 @@ function Home_() {
             Pronto para montar a casa dos sonhos?
           </h2>
           <p className="text-muted-foreground mt-3 max-w-xl mx-auto">
-            Crie sua conta em menos de 1 minuto — individual ou de casal — e comece agora.
+            Crie sua conta em menos de 1 minuto individual ou de casal e comece agora.
           </p>
           <div className="mt-6 flex justify-center gap-3">
             <Button asChild size="lg" className="bg-gradient-primary shadow-warm">
