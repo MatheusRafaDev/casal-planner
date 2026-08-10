@@ -1,326 +1,412 @@
-# 🏠 Casal Planner
+# ?? Casal Planner
 
-> **Organize as compras da casa nova junto com quem você ama.**
-> App full-stack para controle de orçamento doméstico por cômodo, com divisão de pagamento entre o casal, pesquisa de preços com IA e PWA instalável.
+<div align="center">
 
-👉 **Acesse:** https://casalplanner.vercel.app/
+> **Organize as compras da casa nova junto com quem voc� ama.**
+
+App full-stack para planejamento de enxoval dom�stico por c�modo, com divis�o de pagamento entre o casal, pesquisa de pre�os com IA e PWA instal�vel.
+
+[![Deploy Status](https://img.shields.io/badge/deploy-live-brightgreen?style=for-the-badge)](https://casalplanner.vercel.app/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
+[![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=for-the-badge&logo=dotnet)](https://dotnet.microsoft.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-7.0-47A248?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
+
+**?? Acesse agora: [casalplanner.vercel.app](https://casalplanner.vercel.app/)**
+
+</div>
 
 ---
 
-## 📋 Índice
+## ?? �ndice
 
 - [Sobre o Projeto](#-sobre-o-projeto)
 - [Funcionalidades](#-funcionalidades)
-- [Tecnologias](#️-tecnologias)
-- [Arquitetura](#️-arquitetura)
+- [Tecnologias](#?-tecnologias)
+- [Arquitetura](#?-arquitetura)
 - [Estrutura do Projeto](#-estrutura-do-projeto)
 - [Endpoints da API](#-endpoints-da-api)
 - [Testes](#-testes)
+- [Rodando Localmente](#-rodando-localmente)
 - [Autor](#-autor)
 
 ---
 
-## 🎯 Sobre o Projeto
+## ?? Sobre o Projeto
 
-O **Casal Planner** nasceu de uma necessidade real: organizar as compras de quem está montando a primeira casa. O app permite que duas pessoas (ou uma só) planejem, acompanhem e controlem gastos domésticos de forma colaborativa — com suporte a pagamento normal e VR/VA, divisão de valores entre o casal, e um painel de pesquisa de preços que usa IA para validar produtos e comparar lojas em tempo real.
+O **Casal Planner** nasceu de uma necessidade real: organizar as compras de quem est� montando a primeira casa. O app permite que duas pessoas (ou uma s�) planejem, acompanhem e controlem gastos dom�sticos de forma colaborativa � com suporte a pagamento normal e VR/VA, divis�o de valores entre o casal, e um painel de pesquisa de pre�os que usa IA para validar produtos e comparar lojas em tempo real.
 
-**Público-alvo:**
-- Casais montando a primeira casa
-- Pessoas que querem organizar compras domésticas por ambiente
-- Quem precisa controlar orçamento familiar com separação VR/VA e divisão de despesas
-
----
-
-## ✨ Funcionalidades
-
-### 👥 Gestão de Usuários
-- Conta individual ou conta casal (dois e-mails vinculados a uma única conta)
-- Login local (e-mail/senha) e **login social com Google**
-- Convite de parceiro(a) por e-mail para virar conta casal
-- Autenticação via **JWT**, com renovação de `LastLoginAt` a cada login
-- Senhas com hashing **BCrypt**
-- Recuperação de senha por código/token, com e-mail transacional
-- Edição de perfil individual e de perfil casal
-- Alternância de modo escuro/claro persistida no perfil
-- Exclusão de conta
-
-### 🏷️ Categorias (Cômodos)
-- CRUD completo de categorias personalizadas
-- Categorias padrão protegidas contra edição/exclusão
-- Personalização de nome, ícone e cor
-- Reordenação de categorias (endpoint dedicado `PUT /reordenar`)
-
-### 📦 Itens
-- CRUD completo de itens dentro de cada categoria, com paginação (`GET /api/itens/page`)
-- Campos: nome, marca, preço, quantidade, parcelas, loja, link do produto, foto
-- Pagamento **Normal** ou **VR/VA**
-- Prioridade do item
-- **Variantes de produto** (ex.: cor/tamanho) com variante selecionada
-- **Divisão de pagamento entre o casal** (valor por pessoa)
-- Toggle rápido de "comprado"
-- Mover item entre categorias sem recriar o registro
-- Rastreio de origem do item (comprado manualmente vs. sugerido pela IA)
-
-### 💰 Resumo Financeiro
-- Totais gerais, por tipo de pagamento (Normal/VR-VA) e por categoria
-- Progresso de itens comprados vs. pendentes
-- Acompanhamento de meta de orçamento do enxoval
-
-### 🔍 Pesquisa de Preços com IA
-- Busca paralela em múltiplos provedores (Google Shopping, Mercado Livre, Amazon — habilitáveis via configuração)
-- **Validação inteligente do produto** via Groq (Llama 3.1): identifica marca e normaliza o nome buscado
-- Deduplicação de resultados por similaridade de texto, mantendo o menor preço
-- Pontuação (score) por confiabilidade da loja, avaliação, uso do produto etc.
-- **Cache em memória** da pesquisa (chave bruta + normalizada) para reduzir custo de chamadas pagas (Groq/SerpAPI)
-- Descoberta automática de domínio/logo das lojas
-
-### 🤖 Outras Features de IA (Groq)
-- Sugestão de itens faltantes por cômodo
-- Detecção de item duplicado/redundante antes de cadastrar
-- Estimativa de orçamento por cômodo e cidade
-- Geração de um resumo textual do progresso do enxoval do casal
-
-### 🔔 Notificações Push (Web Push / VAPID)
-- Inscrição do navegador para push notifications
-- Chaves VAPID geradas por uma ferramenta de linha de comando própria (`KeyGen`)
-
-### 🎨 Experiência de Uso
-- **PWA instalável** (manifest + service worker), com hook próprio de detecção de instalação
-- Modo escuro / claro
-- Interface responsiva mobile-first, com navegação por bottom bar
-- Exportação de relatórios em **PDF** (jsPDF)
-- Gráficos de gastos (ApexCharts / Recharts)
-- Animações com Framer Motion, com suporte a "reduced motion"
+**P�blico-alvo:**
+- ?? Casais montando a primeira casa
+- ?? Pessoas que querem organizar compras dom�sticas por ambiente
+- ?? Quem precisa controlar or�amento com separa��o VR/VA e divis�o de despesas
 
 ---
 
-## 🛠️ Tecnologias
+## ? Funcionalidades
+
+### ?? Dashboard � In�cio
+
+A p�gina inicial � o painel central do app, mostrando uma vis�o geral de tudo que foi planejado:
+
+- **Cards de resumo financeiro**: total gasto, total pendente, itens comprados e progresso da meta
+- **Barra de progresso da meta**: compara��o visual entre o total gasto e a meta de or�amento configurada
+- **Resumo por tipo de pagamento**: gastos separados em Dinheiro vs. VR/VA, com cards individuais
+- **Resumo por c�modo**: lista com valor total, itens comprados e alertas de or�amento estourado
+- **Gr�ficos de gastos**: visualiza��o do enxoval por c�modo com ApexCharts/Recharts
+
+---
+
+### ?? Planejamento � Controle do Enxoval
+
+A p�gina principal do app. Toda a gest�o do enxoval acontece aqui:
+
+#### ??? C�modos (Categorias)
+- Crie quantos c�modos quiser (Sala, Cozinha, Quarto, Banheiro, etc.)
+- **�cone personalizado** para cada c�modo (mais de 20 �cones dispon�veis)
+- **Cor personalizada** do c�modo
+- **Meta de or�amento por c�modo**: defina um teto de gasto e acompanhe visualmente
+- **Alerta de or�amento estourado**: �cone e destaque visual quando o gasto ultrapassa a meta
+- Sidebar no desktop com totais por c�modo e barra de progresso inline
+- Select dropdown elegante no mobile para trocar de c�modo
+
+#### ?? Itens � Wizard em 3 etapas
+Para adicionar itens de forma guiada e r�pida:
+
+1. **Etapa 1 � Identifica��o**: nome do item (com autocomplete de sugest�es), c�modo e quantidade
+2. **Etapa 2 � Pesquisa de pre�os**: resultados em tempo real de m�ltiplos e-commerces
+3. **Etapa 3 � Confirma��o**: resumo completo com foto, pre�o, parcelamento e divis�o
+
+Cada item possui:
+- Nome, marca, loja
+- Pre�o unit�rio e quantidade
+- Parcelas (1x a 12x) com c�lculo autom�tico por parcela
+- Forma de pagamento: **Dinheiro** ou **VR / VA**
+- Prioridade: Alta, M�dia ou Baixa
+- Origem: **Ser� comprado** ou **Ganho / Presente**
+- Link do produto externo
+- Foto do produto (upload manual ou captura por c�mera)
+
+#### ?? Filtros e Busca
+- **Busca por texto**: filtra por nome do item ou marca em tempo real
+- **Filtro por status**: Todos / Faltando / Comprados / Presentes
+- **Filtro por pagamento**: Qualquer / Dinheiro / VR-VA
+- **Filtro por respons�vel** *(conta casal)*: filtrar itens de uma pessoa espec�fica
+
+#### ?? Exporta��o
+- **Exportar PDF**: relat�rio completo dos itens pendentes com tabela formatada
+- **Compartilhar lista**: via Web Share API (WhatsApp, etc.) ou c�pia para o clipboard
+
+---
+
+### ?? IA Integrada (Groq + Llama 3.1)
+
+| Feature | Como funciona |
+|---|---|
+| **?? Identifica��o por foto** | Tire uma foto de um produto ou nota fiscal � a IA identifica nome, marca, loja e pre�o automaticamente |
+| **?? Autocomplete inteligente** | Sugest�es de itens comuns conforme voc� digita |
+| **?? Detec��o de duplicata** | Antes de cadastrar, a IA verifica se j� existe um item similar no mesmo c�modo |
+| **?? Sugest�es por c�modo** | A IA sugere itens que podem estar faltando baseado no c�modo selecionado |
+| **?? Pesquisa de pre�os** | Busca paralela em Google Shopping, Mercado Livre e Amazon com valida��o via IA |
+| **??? Logo das lojas** | Descobre automaticamente o dom�nio e logo das marcas/lojas dos itens |
+
+---
+
+### ?? Divis�o de Pagamento *(conta casal)*
+
+Para contas casal, � poss�vel em cada item:
+
+- **Definir um respons�vel**: quem vai comprar (Pessoa 1 ou Pessoa 2)
+- **Dividir o custo**: especificar quanto cada um vai pagar, com bot�es r�pidos **50/50**, **100/0** e **0/100**
+- Valida��o autom�tica: a soma das partes deve ser igual ao total do item
+
+---
+
+### ?? Perfil e Conta
+
+- Edi��o de nome, foto de perfil e informa��es do casal
+- **Meta global do enxoval**: valor-alvo total para controle financeiro
+- Alternar entre modo escuro e claro (persistido na conta)
+- Troca de senha com verifica��o da senha atual
+- Exclus�o de conta
+- **Convite de parceiro(a)**: envie um convite por e-mail para vincular duas contas em uma conta casal
+
+---
+
+### ?? Autentica��o
+
+- Registro como **conta individual** ou **conta casal**
+- Login com e-mail e senha
+- **Login social com Google** (OAuth 2.0)
+- Recupera��o de senha por c�digo enviado ao e-mail (3 etapas: solicitar ? validar c�digo ? redefinir)
+- JWT Bearer com refresh de `LastLoginAt` a cada login
+- Senhas com hashing BCrypt
+
+---
+
+### ?? Experi�ncia de Uso
+
+- **PWA instal�vel**: adicione ao celular como app nativo (manifest + service worker)
+- **Modo escuro** completo com paleta calibrada em oklch
+- **Design responsivo** mobile-first: bottom navigation bar no mobile, sidebar e header adaptado para tablet e desktop
+- **Atualiza��es otimistas**: modais fecham imediatamente ao salvar, sem travar aguardando o servidor
+- **Autofill respeitado**: campos preenchidos pelo navegador seguem o tema dark do app
+- **Notifica��es Push** (Web Push / VAPID): suporte a notifica��es nativas no browser
+
+---
+
+## ??? Tecnologias
 
 ### Frontend
 
 | Tecnologia | Uso |
-| --- | --- |
-| React 19 | Biblioteca principal |
-| TanStack Start + TanStack Router | Framework full-stack e roteamento file-based |
-| TanStack Query | Cache e sincronização de dados assíncronos |
-| TypeScript | Tipagem estática |
-| Tailwind CSS v4 | Estilização utilitária |
-| Radix UI / shadcn-style components | Componentes acessíveis |
-| Framer Motion | Animações |
-| ApexCharts + Recharts | Gráficos |
-| jsPDF + jspdf-autotable | Exportação de relatórios em PDF |
-| Zod | Validação de esquemas |
-| Vite | Build tool |
-| Playwright | Testes end-to-end |
+|---|---|
+| **React 19** | Biblioteca principal |
+| **TanStack Router** | Roteamento file-based com type safety |
+| **TanStack Query** | Cache, sincroniza��o e optimistic updates |
+| **TypeScript** | Tipagem est�tica em todo o projeto |
+| **Tailwind CSS v4** | Estiliza��o com design system pr�prio |
+| **Radix UI / shadcn** | Componentes acess�veis e personaliz�veis |
+| **Framer Motion** | Anima��es com suporte a reduced motion |
+| **ApexCharts + Recharts** | Gr�ficos de gastos |
+| **jsPDF + jspdf-autotable** | Exporta��o de relat�rios em PDF |
+| **Sonner** | Toast notifications |
+| **Zod** | Valida��o de esquemas |
+| **Vite** | Build tool ultrarr�pido |
+| **Playwright** | Testes end-to-end |
 
 ### Backend
 
-| Tecnologia | Versão | Uso |
-| --- | --- | --- |
-| ASP.NET Core | 8.0 (runtime .NET 9 na imagem Docker) | API RESTful |
-| JWT Bearer | — | Autenticação |
-| BCrypt.Net | — | Hashing de senhas |
-| Google.Apis.Auth | — | Validação de login social Google |
-| WebPush (VAPID) | — | Notificações push |
-| Serilog | — | Logging estruturado |
-| AspNetCoreRateLimit | — | Rate limiting por IP e por rota |
-| Swagger / OpenAPI | — | Documentação da API (ambiente de desenvolvimento) |
+| Tecnologia | Uso |
+|---|---|
+| **ASP.NET Core 8** | API RESTful |
+| **JWT Bearer** | Autentica��o stateless |
+| **BCrypt.Net** | Hashing seguro de senhas |
+| **Google.Apis.Auth** | Valida��o de login social Google |
+| **WebPush (VAPID)** | Notifica��es push nativas |
+| **Serilog** | Logging estruturado |
+| **AspNetCoreRateLimit** | Rate limiting por IP e por rota |
+| **Swagger / OpenAPI** | Documenta��o interativa (dev) |
 
 ### Banco de Dados
 
 | Tecnologia | Uso |
-| --- | --- |
-| MongoDB 7.0 | Armazenamento NoSQL principal |
-| MongoDB Driver (.NET) | Acesso ao banco via C# |
+|---|---|
+| **MongoDB 7.0** | Armazenamento NoSQL principal |
+| **MongoDB Driver (.NET)** | Acesso ao banco via C# |
 
-Índices dedicados para consultas por usuário, categoria, data de criação, e-mails de conta casal, tokens de reset de senha e convite de parceiro.
+### Integra��es Externas
 
-### Integrações Externas
-
-| Serviço | Uso |
-| --- | --- |
-| **Groq API** (Llama 3.1 8B) | Validação de produtos, sugestões, detecção de duplicata, estimativas e resumo do enxoval |
-| **SerpAPI / Google Shopping / Mercado Livre / Amazon** | Pesquisa de preços em e-commerces |
-| **Resend / SMTP** | Envio de e-mails transacionais (recuperação de senha, convite) |
+| Servi�o | Uso |
+|---|---|
+| **Groq API** (Llama 3.1 8B) | Identifica��o por foto, sugest�es, detec��o de duplicata |
+| **SerpAPI / Google Shopping** | Pesquisa de pre�os |
+| **Mercado Livre API** | Pesquisa de pre�os no ML |
+| **Amazon** | Pesquisa de pre�os na Amazon |
+| **Resend / SMTP** | E-mails transacionais (recupera��o de senha, convite) |
 | **Google OAuth** | Login social |
 
 ### Infraestrutura
 
 | Tecnologia | Uso |
-| --- | --- |
-| Docker (multi-stage build) | Containerização do backend |
-| Vercel | Deploy do frontend |
+|---|---|
+| **Docker** (multi-stage build) | Containeriza��o do backend |
+| **Vercel** | Deploy do frontend com CI/CD autom�tico |
 
 ---
 
-## 🏗️ Arquitetura
+## ??? Arquitetura
 
-O backend segue **Clean Architecture**, com 4 projetos e dependências apontando sempre para dentro:
-
-```
-CasalPlanner.API  ──depends on──▶  CasalPlanner.Infrastructure ──┐
-        │                                                        ├──▶ CasalPlanner.Application ──▶ CasalPlanner.Domain
-        └──────────────────depends on───────────────────────────┘
-```
-
-- **Domain** — entidades puras (`Usuario`, `Item`, `Categoria`, `ItemVariante`, `CasalInfo`) e exceções de domínio. Sem dependência de framework, exceto atributos de serialização Bson.
-- **Application** — DTOs e interfaces de serviço (`IAuthService`, `IItemService`, `IResumoService`, `IEmailService`, `IRecuperarSenhaService`, `IPesquisaPrecosService`, `IPriceProvider`). É o contrato que os Controllers deveriam enxergar.
-- **Infrastructure** — implementações concretas (`AuthService`, `ItemService`, `ResumoService`, `EmailService`, `RecuperarSenhaService`, `GroqService`, `PesquisaPrecosService`, providers de preço) e o `MongoDbContext`.
-- **API** — composition root: Controllers, middlewares, `Program.cs`, configuração de JWT/CORS/rate limit/segurança.
-
-> ⚠️ Alguns Controllers (`AuthController`, `CategoriasController`, `GroqController`, `RecuperarSenhaController`, `UsuarioController`) ainda acessam o `MongoDbContext` diretamente para consultas ad-hoc, além dos Services — um ponto de melhoria conhecido para se aproximar de uma Clean Architecture mais estrita.
+O backend segue **Clean Architecture**, com 4 projetos e depend�ncias sempre apontando para dentro:
 
 ```
-┌───────────────────────────────────────────────────────────────────┐
-│                    FRONTEND (React 19 + TanStack Start)            │
-│  ┌──────────┐  ┌──────────────┐  ┌─────────────────────────────┐  │
-│  │  Auth /  │  │  Planejamento │  │  Pesquisa de Preços +       │  │
-│  │  Perfil  │  │  (Itens +     │  │  Sugestões de IA (Groq)     │  │
-│  │          │  │   Categorias) │  │                             │  │
-│  └──────────┘  └──────────────┘  └─────────────────────────────┘  │
-└──────────────────────────────┬──────────────────────────────────┘
-                                │ HTTP / REST + JWT Bearer
-┌──────────────────────────────▼──────────────────────────────────┐
-│                     BACKEND (ASP.NET Core 8)                     │
-│  ┌────────────┐  ┌───────────────┐  ┌──────────────────────────┐│
-│  │   Auth /   │  │   Itens /     │  │   Pesquisa de Preços +   ││
-│  │  Usuario   │  │  Categorias / │  │   Groq (IA)              ││
-│  │ Controller │  │   Resumo      │  │                          ││
-│  └────────────┘  └───────┬───────┘  └────────────┬─────────────┘│
-└──────────────────────────┼───────────────────────┼───────────────┘
-                           │                       │
-                ┌──────────▼──────────┐   ┌────────▼─────────┐
-                │     MongoDB 7.0     │   │  Groq / SerpAPI / │
-                │ (Usuários, Itens,   │   │  Google Shopping /│
-                │  Categorias)        │   │  Mercado Livre    │
-                └─────────────────────┘   └───────────────────┘
+CasalPlanner.API  --?  CasalPlanner.Infrastructure --+
+       �                                              +--? CasalPlanner.Application --? CasalPlanner.Domain
+       +---------------------------------------------+
+```
+
+- **Domain** � entidades puras (`Usuario`, `Item`, `Categoria`, `CasalInfo`) e exce��es de dom�nio
+- **Application** � DTOs e interfaces de servi�o (`IAuthService`, `IItemService`, `IPesquisaPrecosService`)
+- **Infrastructure** � implementa��es concretas, `MongoDbContext` e providers de pre�o
+- **API** � composition root: Controllers, middlewares, `Program.cs`, JWT/CORS/rate limit
+
+```
++----------------------------------------------------------+
+�              FRONTEND (React 19 + TanStack)               �
+�  +----------+  +----------------+  +------------------+  �
+�  �  Auth /  �  � Planejamento   �  � Pesquisa Pre�os  �  �
+�  �  Perfil  �  � Itens + C�modos�  � + IA (Groq)      �  �
+�  +----------+  +----------------+  +------------------+  �
++----------------------------------------------------------+
+                         � HTTP / REST + JWT Bearer
++------------------------?---------------------------------+
+�               BACKEND (ASP.NET Core 8)                    �
+�  +------------+  +-----------------+  +---------------+  �
+�  � Auth /     �  � Itens /         �  � Pesquisa +    �  �
+�  � Usuario    �  � Categorias /    �  � Groq (IA)     �  �
+�  +------------+  +-----------------+  +---------------+  �
++---------------------------+-------------------+----------+
+                            �                   �
+               +------------?----+   +----------?----------+
+               �   MongoDB 7.0   �   � Groq / SerpAPI /    �
+               � (Usu�rios,      �   � Google Shopping /   �
+               �  Itens, C�modos)�   � Mercado Livre       �
+               +-----------------+   +---------------------+
 ```
 
 ---
 
-## 📁 Estrutura do Projeto
+## ?? Estrutura do Projeto
 
 ```
 casal-planner/
-├── backend/
-│   ├── CasalPlanner.Domain/          # Entidades e exceções
-│   ├── CasalPlanner.Application/     # DTOs e interfaces
-│   ├── CasalPlanner.Infrastructure/  # Implementações, MongoDB, providers de preço
-│   ├── CasalPlanner.API/             # Controllers, Program.cs, Dockerfile
-│   ├── CasalPlanner.Tests/           # Testes unitários (xUnit)
-│   └── KeyGen/                       # Utilitário CLI para gerar chaves VAPID
-└── frontend/
-    ├── src/
-    │   ├── routes/                   # Rotas file-based (TanStack Router)
-    │   ├── components/                # Componentes de auth, layout, planejamento e UI
-    │   ├── services/                  # Camada de chamadas à API
-    │   ├── lib/                       # Cliente HTTP, contexto de auth/tema, formatters
-    │   └── hooks/                     # Hooks (PWA, mobile, reduced motion)
-    ├── public/                        # manifest.json, service worker
-    └── e2e/                           # Testes end-to-end (Playwright)
++-- backend/
+�   +-- CasalPlanner.Domain/          # Entidades e exce��es de dom�nio
+�   +-- CasalPlanner.Application/     # DTOs e interfaces de servi�o
+�   +-- CasalPlanner.Infrastructure/  # Implementa��es, MongoDB, providers de pre�o
+�   +-- CasalPlanner.API/             # Controllers, Program.cs, Dockerfile
+�   +-- CasalPlanner.Tests/           # Testes unit�rios (xUnit)
+�   +-- KeyGen/                       # CLI para gerar chaves VAPID
++-- frontend/
+    +-- src/
+    �   +-- routes/
+    �   �   +-- index.tsx             # Landing page / Login
+    �   �   +-- login.tsx             # Tela de login
+    �   �   +-- convite.tsx           # Aceite de convite de casal
+    �   �   +-- recuperar-senha.tsx   # Fluxo de recupera��o de senha
+    �   �   +-- _authenticated/
+    �   �       +-- inicio.tsx        # Dashboard principal
+    �   �       +-- planejamento.tsx  # Gest�o do enxoval
+    �   �       +-- perfil.tsx        # Configura��es de conta
+    �   +-- components/
+    �   �   +-- planejamento/         # AddItemWizard, ItemFormModal, etc.
+    �   �   +-- auth/                 # Forms de login e registro
+    �   �   +-- layout/               # Sidebar, BottomNav, Header
+    �   �   +-- ui/                   # Design system (Button, Input, Dialog...)
+    �   +-- services/                 # Camada de chamadas � API REST
+    �   +-- lib/                      # Cliente HTTP, auth-context, formatters
+    �   +-- hooks/                    # usePWA, useMobile, useReducedMotion
+    +-- public/                       # manifest.json, service worker, �cones
+    +-- e2e/                          # Testes end-to-end (Playwright)
 ```
 
 ---
 
-## 📡 Endpoints da API
+## ?? Endpoints da API
 
-### Autenticação (`/api/auth`)
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| POST | `/login` | Login local (individual ou casal) |
+### Autentica��o (`/api/auth`)
+| M�todo | Rota | Descri��o |
+|---|---|---|
+| POST | `/login` | Login local |
 | POST | `/google` | Login/registro via Google OAuth |
 | POST | `/logout` | Logout |
-| GET | `/me` | Dados do usuário autenticado |
+| GET | `/me` | Dados do usu�rio autenticado |
 
-### Usuário (`/api/usuario`)
-| Método | Rota | Descrição |
-| --- | --- | --- |
+### Usu�rio (`/api/usuario`)
+| M�todo | Rota | Descri��o |
+|---|---|---|
 | POST | `/registrar` | Registro individual |
 | POST | `/registrar-casal` | Registro como casal |
-| GET | `/me` | Perfil do usuário logado |
-| PUT | `/perfil-casal/{id}` | Edição de perfil casal |
-| PUT | `/perfil` | Edição de perfil individual |
+| PUT | `/perfil-casal/{id}` | Edi��o de perfil casal |
+| PUT | `/perfil` | Edi��o de perfil individual |
 | PUT | `/modo-escuro/{id}` | Alternar modo escuro |
-| POST | `/alterar-senha` | Troca de senha (com verificação da atual) |
+| POST | `/alterar-senha` | Troca de senha |
 | DELETE | `/usuario/{id}` | Excluir conta |
-| POST | `/convite` | Convidar parceiro(a) |
+| POST | `/convite` | Convidar parceiro(a) por e-mail |
 | POST | `/aceitar-convite` | Aceitar convite e virar conta casal |
-| GET | `/push/vapidPublicKey` | Chave pública VAPID para push |
-| POST | `/push/subscribe` | Inscrever navegador em notificações push |
+| GET | `/push/vapidPublicKey` | Chave VAPID p�blica |
+| POST | `/push/subscribe` | Inscrever em notifica��es push |
 
-### Recuperação de Senha (`/api/recuperarsenha`)
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| POST | `/esqueci-senha` | Solicitar código de recuperação |
-| POST | `/validar-codigo` | Validar código recebido |
+### Recupera��o de Senha (`/api/recuperarsenha`)
+| M�todo | Rota | Descri��o |
+|---|---|---|
+| POST | `/esqueci-senha` | Solicitar c�digo |
+| POST | `/validar-codigo` | Validar c�digo recebido |
 | POST | `/redefinir-senha` | Definir nova senha |
 
 ### Categorias (`/api/categorias`)
-| Método | Rota | Descrição |
-| --- | --- | --- |
+| M�todo | Rota | Descri��o |
+|---|---|---|
 | GET | `/` | Listar categorias |
-| GET | `/{id}` | Detalhe de uma categoria |
 | POST | `/` | Criar categoria |
 | PUT | `/{id}` | Editar categoria |
 | DELETE | `/{id}` | Excluir categoria |
-| GET | `/usuario` | Categorias do usuário logado |
 | PUT | `/reordenar` | Reordenar categorias |
 
 ### Itens (`/api/itens`)
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| GET | `/` | Listar itens |
-| GET | `/page` | Listar itens paginados |
-| GET | `/{id}` | Detalhe de um item |
+| M�todo | Rota | Descri��o |
+|---|---|---|
+| GET | `/` | Listar todos os itens |
+| GET | `/page` | Listar com pagina��o e filtros |
 | POST | `/` | Criar item |
 | PUT | `/{id}` | Editar item |
-| PATCH | `/{id}/comprado` | Alternar status "comprado" |
-| PUT | `/{id}/categoria` | Mover item entre categorias |
+| PATCH | `/{id}/comprado` | Toggle status "comprado" |
+| PUT | `/{id}/categoria` | Mover item entre c�modos |
 | DELETE | `/{id}` | Excluir item |
-| GET | `/categoria/{categoriaId}` | Itens de uma categoria |
 
 ### Resumo (`/api/resumo`)
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| GET | `/` | Resumo financeiro (totais, VR/VA, progresso, meta do enxoval) |
+| M�todo | Rota | Descri��o |
+|---|---|---|
+| GET | `/` | Totais, progresso, VR/VA e meta do enxoval |
 
-### Pesquisa de Preços (`/api/pesquisaprecos`)
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| GET | `/` | Buscar preços de um produto em múltiplos provedores |
+### Pesquisa de Pre�os (`/api/pesquisaprecos`)
+| M�todo | Rota | Descri��o |
+|---|---|---|
+| GET | `/` | Buscar pre�os em m�ltiplos provedores |
 
 ### IA / Groq (`/api/groq`)
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| GET | `/sugestoes-comodo` | Sugerir itens faltantes por cômodo |
-| POST | `/detectar-duplicata` | Detectar item redundante antes de cadastrar |
-| GET | `/estimativa-comodo` | Estimar orçamento por cômodo/cidade |
-| GET | `/resumo-enxoval` | Gerar resumo textual do progresso do enxoval |
-| POST | `/dominios` | Descobrir domínio/logo de lojas |
+| M�todo | Rota | Descri��o |
+|---|---|---|
+| GET | `/sugestoes-comodo` | Sugerir itens faltantes por c�modo |
+| POST | `/detectar-duplicata` | Detectar item redundante |
+| GET | `/estimativa-comodo` | Estimar or�amento por c�modo/cidade |
+| POST | `/dominios` | Descobrir dom�nio/logo de lojas |
 
-> Todos os endpoints (exceto login, registro, Google, recuperação de senha e health check) exigem JWT Bearer. Rate limiting aplicado por IP: rotas de autenticação e pesquisa de preços têm limites mais restritos por consumirem serviços pagos externos.
+> ?? Todos os endpoints (exceto login, registro, Google, recupera��o de senha e health check) exigem **JWT Bearer**. Rate limiting aplicado por IP.
 
 ### Health Check
-`GET /health` — status da API, ambiente e origens CORS permitidas.
+`GET /health` � status da API, ambiente e origens CORS permitidas.
 
 ---
 
-## 🧪 Testes
+## ?? Testes
 
-- **Backend**: testes unitários em xUnit (`CasalPlanner.Tests`) cobrindo helpers de texto/preço e o serviço de pesquisa de preços.
+- **Backend**: testes unit�rios em xUnit (`CasalPlanner.Tests`) cobrindo helpers de texto/pre�o e o servi�o de pesquisa de pre�os.
 - **Frontend**: testes end-to-end com Playwright (`frontend/e2e`).
 
-> Cobertura de testes ainda é enxuta perto do tamanho do domínio (autenticação, cálculo de resumo financeiro e divisão de pagamento não têm testes dedicados hoje) — é a principal frente aberta para reforçar antes de novas features.
+---
 
+## ?? Rodando Localmente
+
+### Backend
+
+```bash
+cd backend/CasalPlanner.API
+# Configure appsettings.Development.json com:
+# - MongoDB connection string
+# - Groq API key
+# - SerpAPI key
+# - Resend API key
+# - Google OAuth credentials
+dotnet run
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
 ---
 
-## 👤 Autor
+## ?? Autor
 
-Feito com ❤️ por **Matheus**
+Feito com ?? por **Matheus**
 
-[LinkedIn](https://linkedin.com/in/matheus-rafael-50a676219) · [GitHub](https://github.com/MatheusRafaDev)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/matheus-rafael-50a676219)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/MatheusRafaDev)
 
 ---
 
-Se este projeto te ajudou ou te inspirou, deixa uma ⭐ no repositório!
+Se este projeto te ajudou ou te inspirou, deixa uma ? no reposit�rio!
