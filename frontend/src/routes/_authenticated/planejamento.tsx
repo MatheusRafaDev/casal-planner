@@ -373,39 +373,39 @@ function PlanejamentoPage() {
 
   return (
     <div className="p-4 md:p-8 w-full max-w-[1600px] space-y-6">
-      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="font-display text-2xl md:text-4xl font-semibold">Planejamento</h1>
-          <p className="text-muted-foreground text-sm">
-            Organize os itens por cômodo, controle o orçamento e pesquise preços com IA.
-          </p>
+      <header className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <h1 className="font-display text-2xl md:text-4xl font-semibold leading-tight">Planejamento</h1>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button variant="secondary" size="sm" className="hidden sm:inline-flex" onClick={() => setNovaCategoria(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Novo cômodo
+            </Button>
+            <Button size="sm" onClick={() => setWizardOpen(true)} disabled={categorias.length === 0}>
+              <Sparkles className="h-4 w-4 mr-1" /> Adicionar item
+            </Button>
+            <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={handleCompartilhar}>
+              <Share2 className="h-4 w-4 mr-1" /> Compartilhar
+            </Button>
+            <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={handleExportarPDF}>
+              <FileText className="h-4 w-4 mr-1" /> PDF
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="sm:hidden" aria-label="Mais ações">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setNovaCategoria(true)}><Plus className="h-4 w-4" /> Novo cômodo</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCompartilhar}><Share2 className="h-4 w-4" /> Compartilhar</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportarPDF}><FileText className="h-4 w-4" /> Exportar PDF</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Button variant="secondary" size="sm" className="hidden sm:inline-flex" onClick={() => setNovaCategoria(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Novo cômodo
-          </Button>
-          <Button size="sm" onClick={() => setWizardOpen(true)} disabled={categorias.length === 0}>
-            <Sparkles className="h-4 w-4 mr-1" /> Adicionar item
-          </Button>
-          <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={handleCompartilhar}>
-            <Share2 className="h-4 w-4 mr-1" /> Compartilhar
-          </Button>
-          <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={handleExportarPDF}>
-            <FileText className="h-4 w-4 mr-1" /> PDF
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="sm:hidden" aria-label="Mais ações">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setNovaCategoria(true)}><Plus className="h-4 w-4" /> Novo cômodo</DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCompartilhar}><Share2 className="h-4 w-4" /> Compartilhar</DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExportarPDF}><FileText className="h-4 w-4" /> Exportar PDF</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <p className="text-muted-foreground text-sm max-w-xl">
+          Organize os itens por cômodo, controle o orçamento e pesquise preços com IA.
+        </p>
       </header>
 
       {/* Mobile: Select dropdown for rooms */}
