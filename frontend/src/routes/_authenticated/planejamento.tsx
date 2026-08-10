@@ -61,7 +61,7 @@ import { categoriasService } from "@/services/categorias";
 import { itensService } from "@/services/itens";
 import { groqService, type SugestaoItem } from "@/services/groq";
 import type { Categoria, Item } from "@/services/types";
-import { brl } from "@/lib/formatters";
+import { brl, toTitleCase } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 
@@ -97,6 +97,7 @@ function PlanejamentoPage() {
   const [novaCategoria, setNovaCategoria] = useState(false);
   const [editandoCategoria, setEditandoCategoria] = useState<Categoria | null>(null);
   const [excluindoCategoria, setExcluindoCategoria] = useState<Categoria | null>(null);
+  const [adicionandoItem, setAdicionandoItem] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [editandoItem, setEditandoItem] = useState<Item | null>(null);
   const [imagemAmpliada, setImagemAmpliada] = useState<Item | null>(null);
@@ -488,7 +489,7 @@ function PlanejamentoPage() {
                   <I className="h-5 w-5" />
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate flex items-center gap-2">
+                  <div className="font-medium truncate flex items-center gap-2 capitalize">
                     {c.nome}
                     {c.metaOrcamento && cGasto > c.metaOrcamento && (
                       <span className="text-destructive" title="Orçamento estourado">
@@ -586,7 +587,7 @@ function PlanejamentoPage() {
                         })()}
                       </span>
                       <div>
-                        <div className="font-display text-xl sm:text-2xl font-semibold flex items-center gap-2">
+                        <div className="font-display text-xl sm:text-2xl font-semibold flex items-center gap-2 capitalize">
                           {catAtual ? catAtual.nome : "Todos os itens"}
                           {catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento && (
                             <span className="text-destructive" title="Orçamento estourado">
@@ -742,10 +743,10 @@ function PlanejamentoPage() {
               {/* Itens */}
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
                 {itensQ.isLoading && (
-                  <div className="text-sm text-muted-foreground">Carregando itens...</div>
+                  <div className="col-span-full text-sm text-center text-muted-foreground">Carregando itens...</div>
                 )}
                 {!itensQ.isLoading && itensFiltrados.length === 0 && (
-                  <div className="rounded-xl border border-dashed p-10 text-center">
+                  <div className="col-span-full rounded-xl border border-dashed p-10 text-center">
                     <Sparkles className="h-6 w-6 mx-auto text-primary mb-2" />
                     <p className="text-sm text-muted-foreground">
                       Nenhum item por aqui ainda. Que tal adicionar o primeiro?
@@ -764,8 +765,9 @@ function PlanejamentoPage() {
                       it.comprado && "opacity-70",
                     )}
                   >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
                       <Checkbox
+                        className="mt-1"
                         checked={it.comprado}
                         onCheckedChange={() =>
                           toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
@@ -775,19 +777,19 @@ function PlanejamentoPage() {
                         <button
                           type="button"
                           onClick={() => setImagemAmpliada(it)}
-                          className="h-12 w-12 shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-white"
+                          className="h-16 w-16 shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-white/50 dark:bg-white/10 overflow-hidden border border-border/50"
                           aria-label={`Ampliar imagem de ${it.nome}`}
                         >
                           <img
                             src={it.fotoUrl}
                             alt={it.nome}
-                            className="h-12 w-12 rounded-lg border object-contain transition-transform hover:scale-105"
+                            className="h-full w-full object-cover transition-transform hover:scale-110"
                             onError={() => setImageErrors((prev) => ({ ...prev, [it.id]: true }))}
                           />
                         </button>
                       ) : (
                         <div
-                          className="h-12 w-12 rounded-lg grid place-items-center text-white shrink-0"
+                          className="h-16 w-16 rounded-xl grid place-items-center text-white shrink-0 shadow-sm"
                           style={{
                             backgroundColor:
                               categorias.find((c) => c.id === it.categoriaId)?.bg ?? "#27272a",
@@ -797,78 +799,60 @@ function PlanejamentoPage() {
                             const I = iconFor(
                               categorias.find((c) => c.id === it.categoriaId)?.icon ?? "package",
                             );
-                            return <I className="h-5 w-5" />;
+                            return <I className="h-7 w-7" />;
                           })()}
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setEditandoItem(it)}
-                            title="Editar item"
-                            className={cn(
-                              "max-w-full truncate text-left font-medium hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                              it.comprado && "line-through",
-                            )}
-                          >
-                            {it.nome}
-                          </button>
-                          {it.marca && (
-                            <Badge
-                              variant="secondary"
-                              className="hidden"
-                            >
-                              <LogoBadge url={getLogoUrl(it.marca, null, resolvedDomains)} />
-                              {it.marca}
-                            </Badge>
+                        {/* Nome do item */}
+                        <button
+                          type="button"
+                          onClick={() => setEditandoItem(it)}
+                          title="Editar item"
+                          className={cn(
+                            "max-w-full truncate text-left font-medium hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 block",
+                            it.comprado && "line-through",
                           )}
-                          {it.loja &&
-                            (it.linkProduto ? (
-                              <a
-                                href={it.linkProduto}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="hover:opacity-80 transition-opacity"
-                              >
-                                <Badge
-                                  variant="outline"
-                                  className="hidden"
-                                >
-                                  <LogoBadge url={getLogoUrl(it.loja, it.linkProduto, resolvedDomains)} />
-                                  {it.loja}
-                                  <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
-                                </Badge>
-                              </a>
-                            ) : (
-                              <Badge
-                                variant="outline"
-                                className="hidden"
-                              >
-                                <LogoBadge url={getLogoUrl(it.loja, null, resolvedDomains)} />
-                                {it.loja}
+                        >
+                          {toTitleCase(it.nome)}
+                        </button>
+
+                        {/* Logos + nomes de marca e loja */}
+                        {(it.marca || it.loja) && (
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            {it.marca && (
+                              <Badge variant="secondary" className="gap-1 px-1.5 py-0.5 text-[11px]">
+                                <LogoBadge url={getLogoUrl(it.marca, null, resolvedDomains)} />
+                                {toTitleCase(it.marca)}
                               </Badge>
-                            ))}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
-                          <span className="truncate">{[it.marca, it.loja, it.pagamento === "vr" ? "VR / VA" : "Dinheiro", isCasal && it.responsavelId ? (it.responsavelId === 1 ? p1 : p2) : null].filter(Boolean).join(" · ")}</span>
-                          {isCasal && it.responsavelId && (
-                            <Badge
-                              variant="outline"
-                              className="hidden"
-                            >
-                              {it.responsavelId === 1 ? p1 : p2}
-                            </Badge>
-                          )}
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              "hidden",
-                              it.pagamento === "vr" && "border-primary text-primary",
                             )}
-                          >
-                            {it.pagamento === "vr" ? "VR" : "Dinheiro"}
-                          </Badge>
+                            {it.loja &&
+                              (it.linkProduto ? (
+                                <a href={it.linkProduto} target="_blank" rel="noreferrer" className="hover:opacity-80 transition-opacity">
+                                  <Badge variant="outline" className="gap-1 px-1.5 py-0.5 text-[11px]">
+                                    <LogoBadge url={getLogoUrl(it.loja, it.linkProduto, resolvedDomains)} />
+                                    {toTitleCase(it.loja)}
+                                    <ExternalLink className="w-2.5 h-2.5 ml-0.5 opacity-60" />
+                                  </Badge>
+                                </a>
+                              ) : (
+                                <Badge variant="outline" className="gap-1 px-1.5 py-0.5 text-[11px]">
+                                  <LogoBadge url={getLogoUrl(it.loja, null, resolvedDomains)} />
+                                  {toTitleCase(it.loja)}
+                                </Badge>
+                              ))}
+                          </div>
+                        )}
+
+                        {/* Metadados secundários */}
+                        <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                          <span className="truncate">
+                            {[
+                              toTitleCase(categorias.find(c => c.id === it.categoriaId)?.nome),
+                              it.pagamento === "vr" ? "VR / VA" : "Dinheiro",
+                              isCasal && it.responsavelId ? (it.responsavelId === 1 ? p1 : p2) : null
+                            ].filter(Boolean).join(" · ")}
+                          </span>
                           {it.origem === "ganho" && (
                             <Badge className="ml-auto text-[10px] py-0 bg-emerald-600 hover:bg-emerald-600 text-white border-transparent">
                               🎁 Presente
@@ -946,7 +930,7 @@ function PlanejamentoPage() {
 
                   {/* Carregar mais / paginação */}
                   {itensQ.hasNextPage && (
-                    <div className="pt-2 flex justify-center">
+                    <div className="col-span-full pt-2 flex justify-center">
                       <Button
                         variant="outline"
                         size="sm"
@@ -963,7 +947,7 @@ function PlanejamentoPage() {
                     </div>
                   )}
                   {!itensQ.hasNextPage && itensFiltrados.length > 0 && (
-                    <p className="text-center text-xs text-muted-foreground pt-2">
+                    <p className="col-span-full text-center text-xs text-muted-foreground pt-2">
                       {itensFiltrados.length} iten{itensFiltrados.length !== 1 ? "s" : ""} exibido{itensFiltrados.length !== 1 ? "s" : ""}
                       {itensQ.data?.pages[0]?.totalCount
                         ? ` de ${itensQ.data.pages[0].totalCount} total`
@@ -998,6 +982,13 @@ function PlanejamentoPage() {
         onOpenChange={setWizardOpen}
         categorias={categorias}
         categoriaInicialId={catAtualId === "tudo" ? "" : catAtualId}
+      />
+      <ItemFormModal
+        open={adicionandoItem}
+        onOpenChange={setAdicionandoItem}
+        categorias={categorias}
+        categoriaId={catAtualId === "tudo" && categorias.length > 0 ? categorias[0].id : (catAtualId || "")}
+        item={null}
       />
       {catAtualId && (
         <ItemFormModal

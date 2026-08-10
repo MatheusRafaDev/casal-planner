@@ -11,6 +11,12 @@ import {
   Store,
   Camera,
   Upload,
+  Hash,
+  Tag,
+  CreditCard,
+  Zap,
+  Gift,
+  Wallet,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -149,6 +155,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   const [parcelas, setParcelas] = useState(1);
   const [pagamento, setPagamento] = useState<"normal" | "vr">("normal");
   const [prioridade, setPrioridade] = useState("media");
+  const [origem, setOrigem] = useState<"comprado" | "ganho">("comprado");
   const [responsavelId, setResponsavelId] = useState<1 | 2 | null>(null);
   const [dividir, setDividir] = useState(false);
   const [divisaoPagamento, setDivisaoPagamento] = useState<{
@@ -177,6 +184,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     setParcelas(1);
     setPagamento("normal");
     setPrioridade("media");
+    setOrigem("comprado");
     setResponsavelId(null);
     setDividir(false);
     setDivisaoPagamento(null);
@@ -364,11 +372,13 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         parcelas,
         pagamento,
         prioridade,
+        origem,
         responsavelId: dividir ? null : responsavelId,
         divisaoPagamento: dividir ? divisaoPagamento : null,
       });
     },
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["itens-paginado"] });
       qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
       toast.success("Item adicionado ao cômodo");
@@ -596,7 +606,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 <div className="font-display text-lg font-semibold">{nome}</div>
                 <div className="flex flex-wrap gap-2 mt-2 text-sm text-muted-foreground items-center">
                   <Select value={categoriaId} onValueChange={setCategoriaId}>
-                    <SelectTrigger className="h-6 text-xs w-[140px] px-2 py-0">
+                    <SelectTrigger className="h-6 text-xs min-w-[160px] w-auto px-2 py-0">
                       <SelectValue placeholder="Selecione um cômodo" />
                     </SelectTrigger>
                     <SelectContent>
@@ -626,11 +636,17 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 </div>
                 {/* Preview: imagem do item (upload manual ou thumbnail online) */}
                 {(fotoPreviewUrl || escolhido?.thumbnail) && (
-                  <div className="relative mt-4">
+                  <div className="relative mt-4 w-full h-72 rounded-2xl overflow-hidden border bg-background/50">
+                    {/* Fundo Desfocado Premium */}
+                    <div 
+                      className="absolute inset-0 bg-cover bg-center opacity-30 blur-2xl scale-110" 
+                      style={{ backgroundImage: `url(${fotoPreviewUrl ?? escolhido!.thumbnail})` }} 
+                    />
+                    {/* Imagem Principal */}
                     <img
                       src={fotoPreviewUrl ?? escolhido!.thumbnail}
                       alt=""
-                      className="h-32 w-full max-w-full rounded-lg border object-contain bg-white/60"
+                      className="relative h-full w-full object-contain drop-shadow-xl"
                     />
                     {fotoPreviewUrl && (
                       <button
@@ -688,7 +704,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
 
               <div className="grid gap-4 sm:grid-cols-3 mt-2">
                 <div className="space-y-2">
-                  <Label>Quantidade</Label>
+                  <Label className="flex items-center gap-1.5">
+                    <Hash className="h-3.5 w-3.5 text-muted-foreground" />
+                    Quantidade
+                  </Label>
                   <Input
                     type="number"
                     min="1"
@@ -698,7 +717,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Marca</Label>
+                  <Label className="flex items-center gap-1.5">
+                    <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                    Marca
+                  </Label>
                   <Input
                     value={marca}
                     onChange={(e) => setMarca(e.target.value)}
@@ -706,7 +728,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Loja</Label>
+                  <Label className="flex items-center gap-1.5">
+                    <Store className="h-3.5 w-3.5 text-muted-foreground" />
+                    Loja
+                  </Label>
                   <Input
                     value={loja}
                     onChange={(e) => setLoja(e.target.value)}
@@ -717,7 +742,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
               <div className="grid gap-4 sm:grid-cols-3 mt-2">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <Label>Parcelas</Label>
+                    <Label className="flex items-center gap-1.5">
+                      <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
+                      Parcelas
+                    </Label>
                     {parcelas > 1 && (
                       <span className="text-xs text-muted-foreground">
                         {brl((escolhido?.preco ?? precoNumerico) / parcelas)}/parcela
@@ -744,7 +772,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Prioridade</Label>
+                  <Label className="flex items-center gap-1.5">
+                    <Zap className="h-3.5 w-3.5 text-muted-foreground" />
+                    Prioridade
+                  </Label>
                   <Select value={prioridade} onValueChange={(v) => setPrioridade(v)}>
                     <SelectTrigger>
                       <SelectValue />
@@ -757,7 +788,25 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Pagamento</Label>
+                  <Label className="flex items-center gap-1.5">
+                    <Gift className="h-3.5 w-3.5 text-muted-foreground" />
+                    Origem
+                  </Label>
+                  <Select value={origem} onValueChange={(v) => setOrigem(v as "comprado" | "ganho")}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="comprado">Será comprado</SelectItem>
+                      <SelectItem value="ganho">Ganho / Presente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1.5">
+                    <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
+                    Pagamento
+                  </Label>
                   <Select
                     value={pagamento}
                     onValueChange={(v) => {

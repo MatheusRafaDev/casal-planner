@@ -48,3 +48,15 @@ export const brToIsoDate = (v: string) => {
   const yyyy = digits.slice(4, 8);
   return `${yyyy}-${mm}-${dd}`;
 };
+
+/**
+ * Converte qualquer string (TUDO MAIÚSCULO, tudo minúsculo, ou mista)
+ * para Title Case (primeira letra de cada palavra em maiúscula).
+ * Ex.: "GELADEIRA BRASTEMP" → "Geladeira Brastemp"
+ */
+export const toTitleCase = (str: string | null | undefined): string => {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+};

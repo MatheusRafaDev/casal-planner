@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronDown, ExternalLink, AlertTriangle } from "lucide-react";
+import { ChevronDown, ExternalLink, AlertTriangle, Camera, Upload, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -67,6 +67,7 @@ export function ItemFormModal({
   const [showLink, setShowLink] = useState(false);
   const [dividir, setDividir] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -118,6 +119,7 @@ export function ItemFormModal({
       return itensService.criar(dto);
     },
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["itens-paginado"] });
       qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
       toast.success(isEdit ? "Item atualizado" : "Item adicionado");
@@ -163,57 +165,96 @@ export function ItemFormModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:w-full max-w-[95vw] sm:max-w-lg max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:w-full max-w-[95vw] sm:max-w-lg max-h-[90dvh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <DialogHeader>
           <DialogTitle className="font-display">{isEdit ? "Editar item" : "Novo item"}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={submit} className="space-y-4">
-          {/* Foto do produto (só no modo editar) */}
-          {isEdit && form.fotoUrl && !imageError && !form.fotoFile && (
+          {/* Foto do produto - clique/hover para trocar */}
+          {isEdit && (
             <div className="flex justify-center">
-              <div className="relative group">
-                <img
-                  src={form.fotoUrl}
-                  alt={form.nome}
-                  className="h-36 w-full max-w-xs rounded-xl object-contain border bg-white"
-                  onError={() => setImageError(true)}
-                />
-                {form.linkProduto && (
-                  <a
-                    href={form.linkProduto}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <ExternalLink className="h-6 w-6 text-white" />
-                  </a>
-                )}
-              </div>
-            </div>
-          )}
-          {form.fotoFile && (
-            <div className="flex justify-center">
-              <img
-                src={URL.createObjectURL(form.fotoFile)}
-                alt="Preview"
-                className="h-36 w-full max-w-xs rounded-xl object-contain border bg-white"
-              />
-            </div>
-          )}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2 sm:col-span-2">
-              <Label>Foto do Item</Label>
-              <Input
+              <input
+                ref={fileInputRef}
                 type="file"
                 accept="image/jpeg, image/png, image/webp"
+                className="hidden"
                 onChange={(e) => {
                   if (e.target.files?.[0]) {
                     set("fotoFile", e.target.files[0]);
+                    setImageError(false);
                   }
                 }}
               />
+              {form.fotoFile ? (
+                <div className="relative group cursor-pointer w-full max-w-sm mx-auto h-72 rounded-2xl overflow-hidden border bg-background/50" onClick={() => fileInputRef.current?.click()}>
+                  {/* Fundo Desfocado Premium */}
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center opacity-30 blur-2xl scale-110" 
+                    style={{ backgroundImage: `url(${URL.createObjectURL(form.fotoFile)})` }} 
+                  />
+                  {/* Imagem Principal */}
+                  <img
+                    src={URL.createObjectURL(form.fotoFile)}
+                    alt="Preview"
+                    className="relative h-full w-full object-contain drop-shadow-xl"
+                  />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                    <Camera className="h-5 w-5 text-white" />
+                    <span className="text-white text-xs font-medium">Trocar foto</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); set("fotoFile", undefined as unknown as File); }}
+                    className="absolute top-1.5 right-1.5 rounded-full bg-black/60 text-white p-0.5 hover:bg-black/80 transition-colors opacity-0 group-hover:opacity-100"
+                    title="Remover foto"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : form.fotoUrl && !imageError ? (
+                <div className="relative group cursor-pointer w-full max-w-sm mx-auto h-72 rounded-2xl overflow-hidden border bg-background/50" onClick={() => fileInputRef.current?.click()}>
+                  {/* Fundo Desfocado Premium */}
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center opacity-30 blur-2xl scale-110" 
+                    style={{ backgroundImage: `url(${form.fotoUrl})` }} 
+                  />
+                  {/* Imagem Principal */}
+                  <img
+                    src={form.fotoUrl}
+                    alt={form.nome}
+                    className="relative h-full w-full object-contain drop-shadow-xl"
+                    onError={() => setImageError(true)}
+                  />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                    <Camera className="h-5 w-5 text-white" />
+                    <span className="text-white text-xs font-medium">Trocar foto</span>
+                  </div>
+                  {form.linkProduto && (
+                    <a
+                      href={form.linkProduto}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute bottom-2 right-2 rounded-full bg-black/50 p-1.5 hover:bg-black/70 transition-colors"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5 text-white" />
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex flex-col items-center justify-center gap-2 h-24 w-full max-w-xs rounded-xl border border-dashed border-border/60 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
+                >
+                  <Upload className="h-5 w-5" />
+                  <span className="text-xs">Adicionar foto</span>
+                </button>
+              )}
             </div>
+          )}
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
               <Label>Nome</Label>
               <Input value={form.nome} onChange={(e) => set("nome", e.target.value)} autoFocus />
