@@ -588,51 +588,7 @@ function InicioPage() {
         </>
       )}
 
-      {/* Resumo da IA */}
-      <div className="rounded-2xl border bg-card p-5 shadow-soft relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
-          <Bot className="w-32 h-32" />
-        </div>
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4 relative z-10">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <h3 className="font-display text-lg font-semibold">Resumo Inteligente</h3>
-          </div>
-          <Button
-            variant={iaMutation.data ? "outline" : "default"}
-            size="sm"
-            className={!iaMutation.data ? "bg-gradient-primary" : ""}
-            disabled={iaMutation.isPending}
-            onClick={() => iaMutation.mutate()}
-          >
-            {iaMutation.isPending ? (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Gerando...
-              </>
-            ) : (
-              <>
-                {iaMutation.data ? (
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                ) : (
-                  <Sparkles className="h-4 w-4 mr-2" />
-                )}
-                {iaMutation.data ? "Atualizar" : "Gerar resumo do enxoval"}
-              </>
-            )}
-          </Button>
-        </div>
-        {iaMutation.data && (
-          <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground whitespace-pre-wrap relative z-10">
-            {iaMutation.data.resumo}
-          </div>
-        )}
-        {!iaMutation.data && !iaMutation.isPending && (
-          <p className="text-sm text-muted-foreground relative z-10">
-            Peça para a IA gerar um resumo narrativo sobre o status do seu enxoval.
-          </p>
-        )}
-      </div>
+
     </div>
   );
 }

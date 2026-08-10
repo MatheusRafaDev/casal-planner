@@ -45,12 +45,17 @@ export function CategoriaFormModal({ open, onOpenChange, categoria }: Props) {
       if (isEdit && categoria) return categoriasService.atualizar(categoria.id, dto);
       return categoriasService.criar(dto);
     },
+    onMutate: async (dto) => {
+      onOpenChange(false);
+      toast.success(isEdit ? "Salvando cômodo..." : "Criando cômodo...");
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["categorias"] });
-      toast.success(isEdit ? "Cômodo atualizado" : "Cômodo criado");
-      onOpenChange(false);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      toast.error(e.message);
+      onOpenChange(true);
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {

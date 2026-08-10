@@ -205,6 +205,16 @@
     font-feature-settings: "ss01", "ss02";
     letter-spacing: -0.01em;
   }
+
+  /* Ajuste para inputs com preenchimento automático do navegador (autofill) */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--color-background) inset !important;
+    -webkit-text-fill-color: var(--color-foreground) !important;
+    caret-color: var(--color-foreground) !important;
+  }
 }
 
 @utility bg-gradient-hero {

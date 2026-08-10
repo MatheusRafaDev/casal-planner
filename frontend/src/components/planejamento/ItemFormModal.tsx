@@ -118,14 +118,19 @@ export function ItemFormModal({
       if (isEdit && item) return itensService.atualizar(item.id, dto);
       return itensService.criar(dto);
     },
+    onMutate: async (dto) => {
+      onOpenChange(false);
+      toast.success(isEdit ? "Salvando alterações..." : "Adicionando item...");
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["itens-paginado"] });
       qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
-      toast.success(isEdit ? "Item atualizado" : "Item adicionado");
-      onOpenChange(false);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      toast.error(e.message);
+      onOpenChange(true); // reabre se falhar
+    },
   });
 
   const submit = (e: React.FormEvent) => {

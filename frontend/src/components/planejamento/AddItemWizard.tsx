@@ -377,15 +377,20 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         divisaoPagamento: dividir ? divisaoPagamento : null,
       });
     },
+    onMutate: async () => {
+      onOpenChange(false);
+      toast.success("Adicionando item ao cômodo...");
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["itens-paginado"] });
       qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
-      toast.success("Item adicionado ao cômodo");
-      onOpenChange(false);
       reset();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      toast.error(e.message);
+      onOpenChange(true);
+    },
   });
 
   const avancarDoNome = async () => {
