@@ -31,6 +31,7 @@ public class Item
     public string Loja { get; set; } = string.Empty;
     public string LinkProduto { get; set; } = "";
     public string FotoUrl { get; set; } = "";
+    public string? FotoPublicId { get; set; }
 
     public int Parcelas { get; set; } = 1;
     public List<string> Variantes { get; set; } = new List<string>();

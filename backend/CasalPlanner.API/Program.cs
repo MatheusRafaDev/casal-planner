@@ -298,6 +298,7 @@ builder.Services.AddScoped<IResumoService, ResumoService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IRecuperarSenhaService, RecuperarSenhaService>();
 builder.Services.AddScoped<IPushService, PushService>();
+builder.Services.AddSingleton<CloudinaryService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

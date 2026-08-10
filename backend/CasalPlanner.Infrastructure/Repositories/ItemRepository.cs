@@ -1,4 +1,4 @@
-﻿using CasalPlanner.Domain.Entities;
+using CasalPlanner.Domain.Entities;
 using CasalPlanner.Application.DTOs;
 using CasalPlanner.Application.Interfaces;
 using CasalPlanner.Infrastructure.Persistence;
@@ -95,6 +95,7 @@ namespace CasalPlanner.Infrastructure.Repositories
             if (dto.Loja != null) updates.Add(update.Set(i => i.Loja, dto.Loja));
             if (dto.LinkProduto != null) updates.Add(update.Set(i => i.LinkProduto, dto.LinkProduto));
             if (dto.FotoUrl != null) updates.Add(update.Set(i => i.FotoUrl, dto.FotoUrl));
+            if (dto.FotoPublicId != null) updates.Add(update.Set(i => i.FotoPublicId, dto.FotoPublicId));
             if (!string.IsNullOrEmpty(dto.Origem)) updates.Add(update.Set(i => i.Origem, dto.Origem));
             if (dto.Parcelas.HasValue) updates.Add(update.Set(i => i.Parcelas, dto.Parcelas.Value));
             if (dto.OrigemDescricao != null) updates.Add(update.Set(i => i.OrigemDescricao, dto.OrigemDescricao));

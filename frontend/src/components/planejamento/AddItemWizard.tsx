@@ -160,7 +160,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   const suggestRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const itemFotoInputRef = useRef<HTMLInputElement>(null);
   const [analisandoFoto, setAnalisandoFoto] = useState(false);
+  const [fotoFile, setFotoFile] = useState<File | null>(null);
+  const [fotoPreviewUrl, setFotoPreviewUrl] = useState<string | null>(null);
 
   const reset = () => {
     setStep(1);
@@ -179,6 +182,11 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     setDivisaoPagamento(null);
     setSuggestions([]);
     setShowSuggestions(false);
+    setFotoFile(null);
+    setFotoPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
   };
 
   const { usuario } = useAuth();
@@ -301,6 +309,11 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
       setMarca(analise.marca ?? "");
       setLoja(analise.nomeMercado ?? "");
       
+      // Store the image to be used as the item's photo
+      if (fotoPreviewUrl) URL.revokeObjectURL(fotoPreviewUrl);
+      setFotoFile(file);
+      setFotoPreviewUrl(URL.createObjectURL(file));
+
       if (analise.preco && analise.preco > 0) {
         setPrecoNumerico(analise.preco);
         setStep(3); // Pula direto para a confirmação
@@ -346,6 +359,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         loja: loja.trim() || undefined,
         linkProduto: escolhido?.link ?? undefined,
         fotoUrl: escolhido?.thumbnail ?? undefined,
+        fotoFile: fotoFile ?? undefined,
         marca: marca.trim() || undefined,
         parcelas,
         pagamento,
@@ -610,13 +624,66 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     </div>
                   </div>
                 </div>
-                {escolhido?.thumbnail && (
-                  <img
-                    src={escolhido.thumbnail}
-                    alt=""
-                    className="mt-4 h-32 w-full max-w-full rounded-lg border object-contain"
-                  />
+                {/* Preview: imagem do item (upload manual ou thumbnail online) */}
+                {(fotoPreviewUrl || escolhido?.thumbnail) && (
+                  <div className="relative mt-4">
+                    <img
+                      src={fotoPreviewUrl ?? escolhido!.thumbnail}
+                      alt=""
+                      className="h-32 w-full max-w-full rounded-lg border object-contain bg-white/60"
+                    />
+                    {fotoPreviewUrl && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          URL.revokeObjectURL(fotoPreviewUrl);
+                          setFotoPreviewUrl(null);
+                          setFotoFile(null);
+                          if (itemFotoInputRef.current) itemFotoInputRef.current.value = "";
+                        }}
+                        className="absolute top-1 right-1 rounded-full bg-black/60 text-white text-xs px-1.5 py-0.5 hover:bg-black/80 transition-colors"
+                        title="Remover foto"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
                 )}
+                {/* Botão para adicionar foto do item (só aparece se não há thumbnail online) */}
+                {!escolhido?.thumbnail && !fotoPreviewUrl && (
+                  <button
+                    type="button"
+                    onClick={() => itemFotoInputRef.current?.click()}
+                    className="mt-4 w-full rounded-lg border border-dashed border-border/60 py-3 text-xs text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Upload className="h-3.5 w-3.5" />
+                    Adicionar foto do item
+                  </button>
+                )}
+                {/* Se tem thumbnail mas quer substituir */}
+                {escolhido?.thumbnail && !fotoPreviewUrl && (
+                  <button
+                    type="button"
+                    onClick={() => itemFotoInputRef.current?.click()}
+                    className="mt-2 w-full text-xs text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1"
+                  >
+                    <Upload className="h-3 w-3" />
+                    Substituir por foto própria
+                  </button>
+                )}
+                <input
+                  ref={itemFotoInputRef}
+                  type="file"
+                  accept="image/jpeg, image/png, image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (fotoPreviewUrl) URL.revokeObjectURL(fotoPreviewUrl);
+                    setFotoFile(file);
+                    setFotoPreviewUrl(URL.createObjectURL(file));
+                  }}
+                />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-3 mt-2">

@@ -1,4 +1,4 @@
-﻿using CasalPlanner.Domain.Entities;
+using CasalPlanner.Domain.Entities;
 using CasalPlanner.Application.DTOs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Memory;
@@ -83,6 +83,7 @@ namespace CasalPlanner.Application.Services
                 Loja = dto.Loja,
                 LinkProduto = dto.LinkProduto,
                 FotoUrl = dto.FotoUrl,
+                FotoPublicId = dto.FotoPublicId,
                 Origem = dto.Origem ?? "comprado",
                 OrigemDescricao = dto.OrigemDescricao,
                 Parcelas = dto.Parcelas,

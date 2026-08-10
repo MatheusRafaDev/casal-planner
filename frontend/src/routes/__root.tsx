@@ -13,6 +13,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { Toaster } from "@/components/ui/sonner";
+import { clearAppData } from "@/lib/clear-app-data";
 
 function NotFoundComponent() {
   return (
@@ -144,6 +145,15 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      if (!sessionStorage.getItem("app_initialized")) {
+        clearAppData();
+        sessionStorage.setItem("app_initialized", "true");
+      }
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

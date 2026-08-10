@@ -14,10 +14,12 @@ namespace CasalPlanner.API.Controllers
     public class ItensController : ControllerBase
     {
         private readonly IItemService _itemService;
+        private readonly CloudinaryService _cloudinaryService;
 
-        public ItensController(IItemService itemService)
+        public ItensController(IItemService itemService, CloudinaryService cloudinaryService)
         {
             _itemService = itemService;
+            _cloudinaryService = cloudinaryService;
         }
 
         private string GetUsuarioId()
@@ -67,19 +69,44 @@ namespace CasalPlanner.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CriarItem([FromBody] CriarItemDto dto)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> CriarItem([FromForm] CriarItemDto dto, IFormFile? fotoFile)
         {
             var usuarioId = GetUsuarioId();
             var email = GetUsuarioEmailAutenticado();
+
+            if (fotoFile != null && fotoFile.Length > 0)
+            {
+                var (url, publicId) = await _cloudinaryService.UploadImageAsync(fotoFile);
+                dto.FotoUrl = url;
+                dto.FotoPublicId = publicId;
+            }
+
             var item = await _itemService.CriarItem(dto, usuarioId, email);
             return CreatedAtAction(nameof(GetItem), new { id = item.Id }, item);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> AtualizarItem(string id, [FromBody] AtualizarItemDto dto)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> AtualizarItem(string id, [FromForm] AtualizarItemDto dto, IFormFile? fotoFile)
         {
             var usuarioId = GetUsuarioId();
             var email = GetUsuarioEmailAutenticado();
+
+            if (fotoFile != null && fotoFile.Length > 0)
+            {
+                // Delete old image if there is one
+                var itemAtual = await _itemService.GetItemById(id, usuarioId);
+                if (itemAtual != null && !string.IsNullOrEmpty(itemAtual.FotoPublicId))
+                {
+                    await _cloudinaryService.DeleteImageAsync(itemAtual.FotoPublicId);
+                }
+
+                var (url, publicId) = await _cloudinaryService.UploadImageAsync(fotoFile);
+                dto.FotoUrl = url;
+                dto.FotoPublicId = publicId;
+            }
+
             var item = await _itemService.AtualizarItem(id, dto, usuarioId, email);
             if (item == null) return NotFound();
             return Ok(item);
@@ -110,6 +137,14 @@ namespace CasalPlanner.API.Controllers
         public async Task<IActionResult> DeletarItem(string id)
         {
             var usuarioId = GetUsuarioId();
+
+            // Delete image from Cloudinary if exists
+            var item = await _itemService.GetItemById(id, usuarioId);
+            if (item != null && !string.IsNullOrEmpty(item.FotoPublicId))
+            {
+                await _cloudinaryService.DeleteImageAsync(item.FotoPublicId);
+            }
+
             var deletado = await _itemService.DeletarItem(id, usuarioId);
             if (!deletado) return NotFound();
             return NoContent();
@@ -124,4 +159,3 @@ namespace CasalPlanner.API.Controllers
         }
     }
 }
-

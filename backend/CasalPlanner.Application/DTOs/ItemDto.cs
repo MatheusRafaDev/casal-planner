@@ -34,6 +34,7 @@ namespace CasalPlanner.Application.DTOs
         public string Loja { get; set; } = string.Empty;
         public string LinkProduto { get; set; } = string.Empty;
         public string FotoUrl { get; set; } = string.Empty;
+        public string? FotoPublicId { get; set; }
 
         [JsonPropertyName("parcelas")]
         public int Parcelas { get; set; } = 1;
@@ -73,6 +74,7 @@ namespace CasalPlanner.Application.DTOs
         public string? Loja { get; set; }
         public string? LinkProduto { get; set; }
         public string? FotoUrl { get; set; }
+        public string? FotoPublicId { get; set; }
         [JsonPropertyName("parcelas")]
         public int? Parcelas { get; set; }
         [JsonPropertyName("variantes")]

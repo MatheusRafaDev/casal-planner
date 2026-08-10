@@ -3,6 +3,7 @@ import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { registroPrecoService, type AnaliseFotoPreco } from "@/services/registro-preco";
+import { toTitleCase } from "@/lib/utils";
 
 interface Props {
   disabled?: boolean;
@@ -10,18 +11,7 @@ interface Props {
   onFalha: () => void;
 }
 
-type Etapa = "Capturando localização..." | "Identificando produto..." | null;
-
-function getLocation(): Promise<{ latitude?: number; longitude?: number }> {
-  return new Promise((resolve) => {
-    if (!navigator.geolocation) return resolve({});
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => resolve({ latitude: coords.latitude, longitude: coords.longitude }),
-      () => resolve({}),
-      { enableHighAccuracy: false, timeout: 8_000, maximumAge: 60_000 },
-    );
-  });
-}
+type Etapa = "Identificando produto..." | null;
 
 function toBase64(file: File): Promise<string> {
   return new Promise(async (resolve, reject) => {
@@ -68,16 +58,20 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
   const handleFile = async (file?: File) => {
     if (!file) return;
 
-    setEtapa("Capturando localização...");
+    setEtapa("Identificando produto...");
     try {
-      const [imagemBase64, location] = await Promise.all([toBase64(file), getLocation()]);
+      const imagemBase64 = await toBase64(file);
+      let resultado = await registroPrecoService.analisar(imagemBase64);
       
-      setEtapa("Identificando produto...");
-      const resultado = await registroPrecoService.analisar(
-        imagemBase64,
-        location.latitude,
-        location.longitude
-      );
+      resultado = {
+        ...resultado,
+        produtoNome: toTitleCase(resultado.produtoNome),
+        marca: toTitleCase(resultado.marca),
+        modelo: toTitleCase(resultado.modelo),
+        unidade: toTitleCase(resultado.unidade),
+        endereco: toTitleCase(resultado.endereco),
+        nomeMercado: toTitleCase(resultado.nomeMercado),
+      };
       
       onResultado(resultado);
     } catch (error) {

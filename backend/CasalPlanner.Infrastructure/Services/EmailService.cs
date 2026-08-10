@@ -59,50 +59,14 @@ namespace CasalPlanner.Infrastructure.Services
         {
             try
             {
-                var smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? _configuration["Smtp:Host"];
-                var smtpPortStr = Environment.GetEnvironmentVariable("SMTP_PORT") ?? _configuration["Smtp:Port"];
-                var smtpUser = Environment.GetEnvironmentVariable("SMTP_USERNAME") ??
-                              Environment.GetEnvironmentVariable("SMTP_USER") ??
-                              _configuration["Smtp:Username"];
-                var smtpPass = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ??
-                              Environment.GetEnvironmentVariable("SMTP_PASS") ??
-                              _configuration["Smtp:Password"];
-                var fromEmail = Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") ??
-                              _configuration["Smtp:FromEmail"] ?? smtpUser;
-                var fromName = Environment.GetEnvironmentVariable("SMTP_FROM_NAME") ??
-                              _configuration["Smtp:FromName"] ?? "CasalPlanner";
-                var enableSslStr = Environment.GetEnvironmentVariable("SMTP_ENABLE_SSL") ??
-                                 _configuration["Smtp:EnableSsl"] ?? "true";
 
-                if (string.IsNullOrEmpty(fromEmail))
-                {
-                    _logger.LogError("❌ FromEmail não configurado no SMTP");
-                    return false;
-                }
-
-                _logger.LogInformation("📧 SMTP Config - Host: {Host}, Port: {Port}, User: {User}, FromEmail: {FromEmail}",
-                    smtpHost, smtpPortStr, smtpUser, fromEmail);
-
-                if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpUser))
-                {
-                    _logger.LogWarning("⚠️ SMTP não configurado. Simulando envio de email para {Email} com código {Codigo}", email, codigo);
-                    return true;
-                }
-
-                var smtpPort = int.Parse(smtpPortStr ?? "587");
-                var enableSsl = bool.Parse(enableSslStr ?? "true");
-
-                using var client = new SmtpClient(smtpHost, smtpPort);
-                client.Credentials = new NetworkCredential(smtpUser, smtpPass);
-                client.EnableSsl = enableSsl;
-                client.Timeout = 10000;
 
                 var saudacao = string.IsNullOrEmpty(nome) ? "Olá" : $"Olá {nome}";
                 var anoAtual = DateTime.UtcNow.Year;
 
                 var mailMessage = new MailMessage
                 {
-                    From = new MailAddress(fromEmail, fromName ?? "CasalPlanner"),
+                    From = new MailAddress("noreply@casalplanner.com", "CasalPlanner"),
                     Subject = "🔐 Recuperação de senha - CasalPlanner",
                     Body = $@"
                         <!DOCTYPE html>
@@ -437,12 +401,10 @@ namespace CasalPlanner.Infrastructure.Services
 
                 mailMessage.To.Add(email);
 
-                if (await EnviarViaResendAsync(mailMessage, "recuperacao-senha"))
-                    return true;
-                await client.SendMailAsync(mailMessage);
-
-                _logger.LogInformation("✅ Email de recuperação enviado com sucesso para {Email}", email);
-                return true;
+                var enviado = await EnviarViaResendAsync(mailMessage, "recuperacao-senha");
+                if (enviado)
+                    _logger.LogInformation("✅ Email de recuperação enviado com sucesso para {Email}", email);
+                return enviado;
             }
             catch (Exception ex)
             {
@@ -455,45 +417,8 @@ namespace CasalPlanner.Infrastructure.Services
         {
             try
             {
-                var fromEmail = Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") ??
-                               _configuration["Smtp:FromEmail"] ??
-                               Environment.GetEnvironmentVariable("SMTP_USERNAME") ??
-                               _configuration["Smtp:Username"];
+var anoAtual = DateTime.UtcNow.Year;
 
-                var fromName = Environment.GetEnvironmentVariable("SMTP_FROM_NAME") ??
-                              _configuration["Smtp:FromName"] ?? "CasalPlanner";
-
-                var smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? _configuration["Smtp:Host"];
-                var smtpPortStr = Environment.GetEnvironmentVariable("SMTP_PORT") ?? _configuration["Smtp:Port"];
-                var smtpUser = Environment.GetEnvironmentVariable("SMTP_USERNAME") ??
-                              Environment.GetEnvironmentVariable("SMTP_USER") ??
-                              _configuration["Smtp:Username"];
-                var smtpPass = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ??
-                              Environment.GetEnvironmentVariable("SMTP_PASS") ??
-                              _configuration["Smtp:Password"];
-                var enableSslStr = Environment.GetEnvironmentVariable("SMTP_ENABLE_SSL") ??
-                                 _configuration["Smtp:EnableSsl"] ?? "true";
-
-                if (string.IsNullOrEmpty(fromEmail))
-                {
-                    _logger.LogError("❌ FromEmail não configurado no SMTP");
-                    return false;
-                }
-
-                if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpUser))
-                {
-                    _logger.LogWarning("⚠️ SMTP não configurado. Simulando envio de email de boas-vindas para {Email}", email);
-                    return true;
-                }
-
-                var smtpPort = int.Parse(smtpPortStr ?? "587");
-                var enableSsl = bool.Parse(enableSslStr ?? "true");
-                var anoAtual = DateTime.UtcNow.Year;
-
-                using var client = new SmtpClient(smtpHost, smtpPort);
-                client.Credentials = new NetworkCredential(smtpUser, smtpPass);
-                client.EnableSsl = enableSsl;
-                client.Timeout = 10000;
 
                 var tipoContaTexto = isCasal ? "conta de casal" : "conta individual";
                 var dicasAdicionais = isCasal
@@ -506,7 +431,7 @@ namespace CasalPlanner.Infrastructure.Services
 
                 var mailMessage = new MailMessage
                 {
-                    From = new MailAddress(fromEmail, fromName ?? "CasalPlanner"),
+                    From = new MailAddress("noreply@casalplanner.com", "CasalPlanner"),
                     Subject = "🎉 Bem-vindo(a) ao CasalPlanner!",
                     Body = $@"
                         <!DOCTYPE html>
@@ -667,12 +592,10 @@ namespace CasalPlanner.Infrastructure.Services
 
                 mailMessage.To.Add(email);
 
-                if (await EnviarViaResendAsync(mailMessage, "boas-vindas"))
-                    return true;
-                await client.SendMailAsync(mailMessage);
-
-                _logger.LogInformation("✅ Email de boas-vindas enviado para {Email}", email);
-                return true;
+                var enviado = await EnviarViaResendAsync(mailMessage, "boas-vindas");
+                if (enviado)
+                    _logger.LogInformation("✅ Email de boas-vindas enviado para {Email}", email);
+                return enviado;
             }
             catch (Exception ex)
             {
@@ -685,51 +608,14 @@ namespace CasalPlanner.Infrastructure.Services
         {
             try
             {
-                var fromEmail = Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") ??
-                               _configuration["Smtp:FromEmail"] ??
-                               Environment.GetEnvironmentVariable("SMTP_USERNAME") ??
-                               _configuration["Smtp:Username"];
+var anoAtual = DateTime.UtcNow.Year;
 
-                var fromName = Environment.GetEnvironmentVariable("SMTP_FROM_NAME") ??
-                              _configuration["Smtp:FromName"] ?? "CasalPlanner";
-
-                var smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? _configuration["Smtp:Host"];
-                var smtpPortStr = Environment.GetEnvironmentVariable("SMTP_PORT") ?? _configuration["Smtp:Port"];
-                var smtpUser = Environment.GetEnvironmentVariable("SMTP_USERNAME") ??
-                              Environment.GetEnvironmentVariable("SMTP_USER") ??
-                              _configuration["Smtp:Username"];
-                var smtpPass = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ??
-                              Environment.GetEnvironmentVariable("SMTP_PASS") ??
-                              _configuration["Smtp:Password"];
-                var enableSslStr = Environment.GetEnvironmentVariable("SMTP_ENABLE_SSL") ??
-                                 _configuration["Smtp:EnableSsl"] ?? "true";
-
-                if (string.IsNullOrEmpty(fromEmail))
-                {
-                    _logger.LogError("❌ FromEmail não configurado no SMTP");
-                    return false;
-                }
-
-                if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpUser))
-                {
-                    _logger.LogWarning("⚠️ SMTP não configurado. Simulando envio de email de exclusão para {Email}", email);
-                    return true;
-                }
-
-                var smtpPort = int.Parse(smtpPortStr ?? "587");
-                var enableSsl = bool.Parse(enableSslStr ?? "true");
-                var anoAtual = DateTime.UtcNow.Year;
-
-                using var client = new SmtpClient(smtpHost, smtpPort);
-                client.Credentials = new NetworkCredential(smtpUser, smtpPass);
-                client.EnableSsl = enableSsl;
-                client.Timeout = 10000;
 
                 var tipoContaTexto = isCasal ? "conta de casal" : "conta";
 
                 var mailMessage = new MailMessage
                 {
-                    From = new MailAddress(fromEmail, fromName ?? "CasalPlanner"),
+                    From = new MailAddress("noreply@casalplanner.com", "CasalPlanner"),
                     Subject = "📋 Confirmação de exclusão de conta - CasalPlanner",
                     Body = $@"
                         <!DOCTYPE html>
@@ -865,12 +751,10 @@ namespace CasalPlanner.Infrastructure.Services
 
                 mailMessage.To.Add(email);
 
-                if (await EnviarViaResendAsync(mailMessage, "exclusao-conta"))
-                    return true;
-                await client.SendMailAsync(mailMessage);
-
-                _logger.LogInformation("✅ Email de confirmação de exclusão enviado para {Email}", email);
-                return true;
+                var enviado = await EnviarViaResendAsync(mailMessage, "exclusao-conta");
+                if (enviado)
+                    _logger.LogInformation("✅ Email de confirmação de exclusão enviado para {Email}", email);
+                return enviado;
             }
             catch (Exception ex)
             {
@@ -884,49 +768,12 @@ namespace CasalPlanner.Infrastructure.Services
         {
             try
             {
-                var fromEmail = Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") ??
-                               _configuration["Smtp:FromEmail"] ??
-                               Environment.GetEnvironmentVariable("SMTP_USERNAME") ??
-                               _configuration["Smtp:Username"];
+var anoAtual = DateTime.UtcNow.Year;
 
-                var fromName = Environment.GetEnvironmentVariable("SMTP_FROM_NAME") ??
-                              _configuration["Smtp:FromName"] ?? "CasalPlanner";
-
-                var smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? _configuration["Smtp:Host"];
-                var smtpPortStr = Environment.GetEnvironmentVariable("SMTP_PORT") ?? _configuration["Smtp:Port"];
-                var smtpUser = Environment.GetEnvironmentVariable("SMTP_USERNAME") ??
-                              Environment.GetEnvironmentVariable("SMTP_USER") ??
-                              _configuration["Smtp:Username"];
-                var smtpPass = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ??
-                              Environment.GetEnvironmentVariable("SMTP_PASS") ??
-                              _configuration["Smtp:Password"];
-                var enableSslStr = Environment.GetEnvironmentVariable("SMTP_ENABLE_SSL") ??
-                                 _configuration["Smtp:EnableSsl"] ?? "true";
-
-                if (string.IsNullOrEmpty(fromEmail))
-                {
-                    _logger.LogError("❌ FromEmail não configurado no SMTP");
-                    return false;
-                }
-
-                if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpUser))
-                {
-                    _logger.LogWarning("⚠️ SMTP não configurado. Simulando envio de aviso de senha alterada para {Email}", email);
-                    return true;
-                }
-
-                var smtpPort = int.Parse(smtpPortStr ?? "587");
-                var enableSsl = bool.Parse(enableSslStr ?? "true");
-                var anoAtual = DateTime.UtcNow.Year;
-
-                using var client = new SmtpClient(smtpHost, smtpPort);
-                client.Credentials = new NetworkCredential(smtpUser, smtpPass);
-                client.EnableSsl = enableSsl;
-                client.Timeout = 10000;
 
                 var mailMessage = new MailMessage
                 {
-                    From = new MailAddress(fromEmail, fromName ?? "CasalPlanner"),
+                    From = new MailAddress("noreply@casalplanner.com", "CasalPlanner"),
                     Subject = "🔒 Sua senha foi alterada - CasalPlanner",
                     Body = $@"
                 <!DOCTYPE html>
@@ -1057,12 +904,10 @@ namespace CasalPlanner.Infrastructure.Services
 
                 mailMessage.To.Add(email);
 
-                if (await EnviarViaResendAsync(mailMessage, "senha-alterada"))
-                    return true;
-                await client.SendMailAsync(mailMessage);
-
-                _logger.LogInformation("✅ Aviso de senha alterada enviado para {Email}", email);
-                return true;
+                var enviado = await EnviarViaResendAsync(mailMessage, "senha-alterada");
+                if (enviado)
+                    _logger.LogInformation("✅ Aviso de senha alterada enviado para {Email}", email);
+                return enviado;
             }
             catch (Exception ex)
             {
@@ -1075,50 +920,12 @@ namespace CasalPlanner.Infrastructure.Services
         {
             try
             {
-                var fromEmail = Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") ?? 
-                               _configuration["Smtp:FromEmail"] ?? 
-                               Environment.GetEnvironmentVariable("SMTP_USERNAME") ?? 
-                               _configuration["Smtp:Username"];
-
-                var fromName = Environment.GetEnvironmentVariable("SMTP_FROM_NAME") ?? 
-                              _configuration["Smtp:FromName"] ?? "CasalPlanner";
-
-                var smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? _configuration["Smtp:Host"];
-                var smtpPortStr = Environment.GetEnvironmentVariable("SMTP_PORT") ?? _configuration["Smtp:Port"];
-                var smtpUser = Environment.GetEnvironmentVariable("SMTP_USERNAME") ?? 
-                              Environment.GetEnvironmentVariable("SMTP_USER") ?? 
-                              _configuration["Smtp:Username"];
-                var smtpPass = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? 
-                              Environment.GetEnvironmentVariable("SMTP_PASS") ?? 
-                              _configuration["Smtp:Password"];
-                var enableSslStr = Environment.GetEnvironmentVariable("SMTP_ENABLE_SSL") ?? 
-                                 _configuration["Smtp:EnableSsl"] ?? "true";
-
-                if (string.IsNullOrEmpty(fromEmail))
-                {
-                    _logger.LogError("❌ FromEmail não configurado no SMTP");
-                    return false;
-                }
-
-                if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpUser))
-                {
-                    _logger.LogWarning("⚠️ SMTP não configurado. Simulando envio de email de convite para {Email}", email);
-                    return true;
-                }
-
-                var smtpPort = int.Parse(smtpPortStr ?? "587");
-                var enableSsl = bool.Parse(enableSslStr ?? "true");
-                var anoAtual = DateTime.UtcNow.Year;
-                var dataExpiracao = expiraEm.ToString("dd/MM/yyyy");
-
-                using var client = new SmtpClient(smtpHost, smtpPort);
-                client.Credentials = new NetworkCredential(smtpUser, smtpPass);
-                client.EnableSsl = enableSsl;
-                client.Timeout = 10000;
+var anoAtual = DateTime.UtcNow.Year;
+var dataExpiracao = expiraEm.ToString("dd/MM/yyyy");
 
                 var mailMessage = new MailMessage
                 {
-                    From = new MailAddress(fromEmail, fromName ?? "CasalPlanner"),
+                    From = new MailAddress("noreply@casalplanner.com", "CasalPlanner"),
                     Subject = "💕 Convite para CasalPlanner",
                     Body = $@"
                         <!DOCTYPE html>
@@ -1248,12 +1055,10 @@ namespace CasalPlanner.Infrastructure.Services
 
                 mailMessage.To.Add(email);
 
-                if (await EnviarViaResendAsync(mailMessage, "convite-parceiro"))
-                    return true;
-                await client.SendMailAsync(mailMessage);
-
-                _logger.LogInformation("✅ Email de convite enviado para {Email}", email);
-                return true;
+                var enviado = await EnviarViaResendAsync(mailMessage, "convite-parceiro");
+                if (enviado)
+                    _logger.LogInformation("✅ Email de convite enviado para {Email}", email);
+                return enviado;
             }
             catch (Exception ex)
             {

@@ -170,7 +170,7 @@ export function ItemFormModal({
 
         <form onSubmit={submit} className="space-y-4">
           {/* Foto do produto (só no modo editar) */}
-          {isEdit && form.fotoUrl && !imageError && (
+          {isEdit && form.fotoUrl && !imageError && !form.fotoFile && (
             <div className="flex justify-center">
               <div className="relative group">
                 <img
@@ -192,7 +192,28 @@ export function ItemFormModal({
               </div>
             </div>
           )}
+          {form.fotoFile && (
+            <div className="flex justify-center">
+              <img
+                src={URL.createObjectURL(form.fotoFile)}
+                alt="Preview"
+                className="h-36 w-full max-w-xs rounded-xl object-contain border bg-white"
+              />
+            </div>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Foto do Item</Label>
+              <Input
+                type="file"
+                accept="image/jpeg, image/png, image/webp"
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    set("fotoFile", e.target.files[0]);
+                  }
+                }}
+              />
+            </div>
             <div className="space-y-2 sm:col-span-2">
               <Label>Nome</Label>
               <Input value={form.nome} onChange={(e) => set("nome", e.target.value)} autoFocus />

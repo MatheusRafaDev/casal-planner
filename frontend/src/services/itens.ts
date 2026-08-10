@@ -13,6 +13,7 @@ export interface ItemInputDTO {
   loja?: string;
   linkProduto?: string;
   fotoUrl?: string;
+  fotoFile?: File;
   parcelas?: number;
   varianteSelecionadaId?: string | null;
   clearVarianteSelecionadaId?: boolean;
@@ -33,6 +34,23 @@ export interface PagedResult<T> {
   page: number;
   pageSize: number;
   totalPages: number;
+}
+
+function objectToFormData(obj: any): FormData {
+  const formData = new FormData();
+  Object.entries(obj).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    
+    if (key === 'divisaoPagamento' && typeof value === 'object') {
+      formData.append('divisaoPagamento.valorPessoa1', (value as any).valorPessoa1.toString());
+      formData.append('divisaoPagamento.valorPessoa2', (value as any).valorPessoa2.toString());
+    } else if (value instanceof File) {
+      formData.append(key, value);
+    } else {
+      formData.append(key, value.toString());
+    }
+  });
+  return formData;
 }
 
 export const itensService = {
@@ -57,9 +75,9 @@ export const itensService = {
     return api<PagedResult<Item>>(`/api/itens/page?${qs.toString()}`);
   },
   porCategoria: (categoriaId: string) => api<Item[]>(`/api/itens/categoria/${categoriaId}`),
-  criar: (dto: ItemInputDTO) => api<Item>("/api/itens", { method: "POST", body: dto }),
+  criar: (dto: ItemInputDTO) => api<Item>("/api/itens", { method: "POST", body: objectToFormData(dto) }),
   atualizar: (id: string, dto: Partial<ItemInputDTO>) =>
-    api<Item>(`/api/itens/${id}`, { method: "PUT", body: dto }),
+    api<Item>(`/api/itens/${id}`, { method: "PUT", body: objectToFormData(dto) }),
   toggleComprado: (id: string, comprado: boolean) =>
     api<Item>(`/api/itens/${id}/comprado`, { method: "PATCH", body: { comprado } }),
   moverCategoria: (id: string, categoriaId: string) =>

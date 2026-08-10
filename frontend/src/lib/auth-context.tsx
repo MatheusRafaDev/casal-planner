@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { authService } from "@/services/auth";
 import { setToken, TOKEN_STORAGE_KEY } from "@/lib/api";
+import { clearAppData } from "@/lib/clear-app-data";
 import type { Usuario } from "@/services/types";
 
 interface AuthState {
@@ -100,6 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
+    clearAppData();
     setToken(null);
     setUsuarioState(null);
     authService.logout().catch(() => {});
