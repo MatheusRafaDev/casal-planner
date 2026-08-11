@@ -24,7 +24,6 @@ export interface Usuario {
 }
 
 export interface LoginResponse {
-  token: string;
   usuario: Usuario;
 }
 

@@ -732,3 +732,6 @@ Se o Casal Planner foi útil ou interessante, considere deixar uma estrela no re
 **Feito com ❤️ e código.**
 
 </div>
+# Segurança de autenticação
+
+A API autentica as sessões por cookies `HttpOnly`. Tokens de acesso e de renovação não são retornados nos JSONs, não são armazenados pelo frontend e não são aceitos pelo cabeçalho `Authorization`. Clientes web devem enviar requisições com credenciais incluídas.

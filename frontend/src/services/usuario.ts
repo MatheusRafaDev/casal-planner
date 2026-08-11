@@ -29,13 +29,11 @@ export const usuarioService = {
   registrarIndividual: (dto: RegistroIndividualDTO) =>
     api<LoginResponse>("/api/usuario/registrar", {
       method: "POST",
-      auth: false,
       body: dto,
     }),
   registrarCasal: (dto: RegistroCasalDTO) =>
     api<LoginResponse>("/api/usuario/registrar-casal", {
       method: "POST",
-      auth: false,
       body: {
         nomeCompletoPessoa1: dto.pessoa1.nome,
         emailPessoa1: dto.pessoa1.email,

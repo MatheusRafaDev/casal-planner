@@ -1,6 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { authService } from "@/services/auth";
-import { setToken, TOKEN_STORAGE_KEY } from "@/lib/api";
 import { clearAppData } from "@/lib/clear-app-data";
 import type { Usuario } from "@/services/types";
 
@@ -73,7 +72,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const u = await authService.me();
       setUsuarioState(normalizarUsuario(u));
     } catch {
-      setToken(null);
       setUsuarioState(null);
     } finally {
       setLoading(false);
@@ -86,7 +84,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (email: string, senha: string) => {
     const res = await authService.login(email, senha);
-    setToken(res.token);
     const u = normalizarUsuario(res.usuario);
     setUsuarioState(u);
     return u;
@@ -94,7 +91,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginComGoogle = useCallback(async (token: string) => {
     const res = await authService.loginComGoogle(token);
-    setToken(res.token);
     const u = normalizarUsuario(res.usuario);
     setUsuarioState(u);
     return u;
@@ -102,7 +98,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     clearAppData();
-    setToken(null);
     setUsuarioState(null);
     authService.logout().catch(() => {});
   }, []);

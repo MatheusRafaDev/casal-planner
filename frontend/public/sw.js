@@ -60,7 +60,7 @@ self.addEventListener("fetch", (event) => {
 
   // API → Network-first
   if (url.pathname.startsWith("/api/")) {
-    event.respondWith(networkFirst(request));
+    event.respondWith(fetch(request));
     return;
   }
 

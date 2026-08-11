@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { usuarioService } from "@/services/usuario";
-import { setToken, ApiError } from "@/lib/api";
+import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { maskDate, brToIsoDate } from "@/lib/formatters";
 
@@ -33,7 +33,6 @@ export function RegistroIndividual() {
         dataNascimento: brToIsoDate(form.dataNascimento) ?? undefined,
         metaGlobalEnxoval: form.metaGlobalEnxoval ? parseFloat(form.metaGlobalEnxoval) : undefined,
       });
-      setToken(res.token);
       await refresh();
       toast.success("Conta criada! Bem-vindo(a).");
       navigate({ to: "/inicio" });

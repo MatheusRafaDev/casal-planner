@@ -104,13 +104,13 @@ namespace CasalPlanner.Application.Services
             {
                 int currentPessoaId = (usuario.CasalInfo?.EmailPessoa2 == emailAutenticado) ? 2 : 1;
                 var itemNome = item.Nome;
-                _ = Task.Run(async () => await NotificarParceiroAsync(
+                await NotificarParceiroAsync(
                     usuario, 
                     currentPessoaId, 
                     "Novo Item Adicionado", 
                     "Um novo item foi adicionado: " + itemNome, 
                     "email_throttle", 
-                    itemNome));
+                    itemNome);
             }
 
             return item;
@@ -146,13 +146,13 @@ namespace CasalPlanner.Application.Services
                 {
                     int currentPessoaId = (usuario.CasalInfo?.EmailPessoa2 == emailAutenticado) ? 2 : 1;
                     var itemNome = item.Nome;
-                    _ = Task.Run(async () => await NotificarParceiroAsync(
+                    await NotificarParceiroAsync(
                         usuario, 
                         currentPessoaId, 
                         "Item Comprado", 
                         "O item '" + itemNome + "' foi marcado como comprado.", 
                         "email_throttle", 
-                        itemNome));
+                        itemNome);
                 }
             }
 

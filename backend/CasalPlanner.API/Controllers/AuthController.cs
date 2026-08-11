@@ -44,7 +44,7 @@ namespace CasalPlanner.API.Controllers
             {
                 HttpOnly = true,
                 Secure = !_environment.IsDevelopment(),
-                SameSite = SameSiteMode.Strict,
+                SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(7)
             };
             Response.Cookies.Append("cp_token", token, cookieOptions);
@@ -55,7 +55,8 @@ namespace CasalPlanner.API.Controllers
                 {
                     HttpOnly = true,
                     Secure = !_environment.IsDevelopment(),
-                    SameSite = SameSiteMode.Strict,
+                    SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
+                    Path = "/api/auth",
                     Expires = DateTime.UtcNow.AddDays(30)
                 };
                 Response.Cookies.Append("cp_refresh_token", refreshToken, refreshCookieOptions);
@@ -125,7 +126,6 @@ namespace CasalPlanner.API.Controllers
             {
                 success = true,
                 message = "Login realizado com sucesso",
-                token,
                 usuario = usuarioMapeado
             });
         }
@@ -205,14 +205,26 @@ namespace CasalPlanner.API.Controllers
                 ? UsuarioMapper.MapearCasal(usuario, pessoa)
                 : UsuarioMapper.MapearIndividual(usuario);
 
-            return Ok(new { success = true, message = "Login realizado com sucesso", token, usuario = usuarioMapeado });
+            return Ok(new { success = true, message = "Login realizado com sucesso", usuario = usuarioMapeado });
         }
 
+        [Authorize]
         [HttpPost("logout")]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
+            var usuarioId = GetUsuarioId();
+            var pessoa = User.FindFirst("PessoaLogada")?.Value;
+            if (!string.IsNullOrEmpty(usuarioId))
+            {
+                var update = pessoa == "pessoa1"
+                    ? Builders<Usuario>.Update.Set(u => u.CasalInfo!.RefreshTokenPessoa1, null).Set(u => u.CasalInfo!.RefreshTokenExpiraEmPessoa1, null)
+                    : pessoa == "pessoa2"
+                        ? Builders<Usuario>.Update.Set(u => u.CasalInfo!.RefreshTokenPessoa2, null).Set(u => u.CasalInfo!.RefreshTokenExpiraEmPessoa2, null)
+                        : Builders<Usuario>.Update.Set(u => u.RefreshToken, null).Set(u => u.RefreshTokenExpiraEm, null);
+                await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioId, update);
+            }
             Response.Cookies.Delete("cp_token");
-            Response.Cookies.Delete("cp_refresh_token");
+            Response.Cookies.Delete("cp_refresh_token", new CookieOptions { Path = "/api/auth", Secure = !_environment.IsDevelopment(), SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None });
             return Ok(new { message = "Logout realizado com sucesso" });
         }
 
@@ -241,7 +253,7 @@ namespace CasalPlanner.API.Controllers
 
             SetTokenCookie(token, novoRefreshToken.Token);
 
-            return Ok(new { success = true, token });
+            return Ok(new { success = true });
         }
 
         [Authorize]

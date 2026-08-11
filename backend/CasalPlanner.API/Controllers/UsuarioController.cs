@@ -20,17 +20,28 @@ public class UsuarioController : ControllerBase
     private readonly ILogger<UsuarioController> _logger;
     private readonly MongoDbContext _context;
     private readonly IEmailService _emailService;
+    private readonly IWebHostEnvironment _environment;
 
     public UsuarioController(
     IAuthService authService,
     ILogger<UsuarioController> logger,
     MongoDbContext context,
+    IWebHostEnvironment environment,
     IEmailService emailService) // ADICIONE ESTE PARÂMETRO
     {
         _authService = authService;
         _logger = logger;
         _context = context;
+        _environment = environment;
         _emailService = emailService; // ADICIONE ESTA LINHA
+    }
+
+    private void SetAuthCookies(string token, string refreshToken)
+    {
+        var sameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None;
+        var secure = !_environment.IsDevelopment();
+        Response.Cookies.Append("cp_token", token, new CookieOptions { HttpOnly = true, Secure = secure, SameSite = sameSite, Expires = DateTime.UtcNow.AddDays(7) });
+        Response.Cookies.Append("cp_refresh_token", refreshToken, new CookieOptions { HttpOnly = true, Secure = secure, SameSite = sameSite, Path = "/api/auth", Expires = DateTime.UtcNow.AddDays(30) });
     }
 
     private string GetUsuarioId()
@@ -123,13 +134,14 @@ public class UsuarioController : ControllerBase
         }
 
         var token = _authService.GerarToken(usuario);
+        var refreshToken = await _authService.GerarERegistrarRefreshToken(usuario.Id!);
+        SetAuthCookies(token, refreshToken.Token);
 
         // Retornar dados completos do usuário
         return Ok(new
         {
             success = true,
             message = "Registro realizado com sucesso",
-            token = token,
             usuario = UsuarioMapper.MapearIndividual(usuario)
         });
     }
@@ -187,13 +199,14 @@ public class UsuarioController : ControllerBase
         }
 
         var token = _authService.GerarTokenCasal(usuario, "pessoa1");
+        var refreshToken = await _authService.GerarERegistrarRefreshToken(usuario.Id!, "pessoa1");
+        SetAuthCookies(token, refreshToken.Token);
 
         // Retornar dados completos do casal
         return Ok(new
         {
             success = true,
             message = "Registro de casal realizado com sucesso",
-            token = token,
             usuario = UsuarioMapper.MapearCasal(usuario, "pessoa1")
         });
     }
@@ -473,7 +486,6 @@ public class UsuarioController : ControllerBase
             return NotFound();
 
         // ENVIAR EMAIL DE CONFIRMAÇÃO DE EXCLUSÃO (ASSÍNCRONO, NÃO BLOQUEIA A RESPOSTA)
-        _ = Task.Run(async () =>
         {
             try
             {
@@ -496,7 +508,7 @@ public class UsuarioController : ControllerBase
             {
                 _logger.LogError(ex, "Erro ao enviar email de exclusão para {Email}", email);
             }
-        });
+        }
 
         return Ok(new { message = "Conta excluída com sucesso" });
     }

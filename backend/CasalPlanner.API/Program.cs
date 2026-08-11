@@ -170,12 +170,7 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            var authHeader = context.Request.Headers["Authorization"].ToString();
-            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
-            {
-                context.Token = authHeader["Bearer ".Length..].Trim();
-            }
-            else if (context.Request.Cookies.TryGetValue("cp_token", out var token))
+            if (context.Request.Cookies.TryGetValue("cp_token", out var token))
             {
                 context.Token = token;
             }
@@ -195,7 +190,7 @@ builder.Services.AddCors(options =>
         if (builder.Environment.IsDevelopment())
         {
             // Em desenvolvimento: mais flexível
-            policy.SetIsOriginAllowed(_ => true)  // Permite qualquer origem
+            policy.WithOrigins(allowedOriginsList.ToArray())
                   .AllowAnyMethod()
                   .AllowAnyHeader()
                   .AllowCredentials();
@@ -386,6 +381,23 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseCors("CasalPlannerPolicy");
+
+app.Use(async (context, next) =>
+{
+    if (HttpMethods.IsPost(context.Request.Method) || HttpMethods.IsPut(context.Request.Method) || HttpMethods.IsPatch(context.Request.Method) || HttpMethods.IsDelete(context.Request.Method))
+    {
+        var origin = context.Request.Headers.Origin.ToString();
+        var hasSessionCookie = context.Request.Cookies.ContainsKey("cp_token") || context.Request.Cookies.ContainsKey("cp_refresh_token");
+        if (hasSessionCookie && !string.IsNullOrEmpty(origin) && !allowedOriginsList.Contains(origin, StringComparer.OrdinalIgnoreCase))
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            await context.Response.WriteAsJsonAsync(new { message = "Origem não permitida." });
+            return;
+        }
+    }
+
+    await next();
+});
 
 app.UseIpRateLimiting();
 
