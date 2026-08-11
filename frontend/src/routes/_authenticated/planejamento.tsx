@@ -1,4 +1,4 @@
-import { useState, useMemo, useDeferredValue } from "react";
+import { lazy, Suspense, useState, useMemo, useDeferredValue } from "react";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -22,8 +22,6 @@ import {
 } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -68,8 +66,11 @@ import { useAuth } from "@/lib/auth-context";
 import { iconFor } from "@/components/planejamento/icon-map";
 import { CategoriaFormModal } from "@/components/planejamento/CategoriaFormModal";
 import { ItemFormModal } from "@/components/planejamento/ItemFormModal";
-import { AddItemWizard } from "@/components/planejamento/AddItemWizard";
 import { getLogoUrl } from "@/lib/logos";
+
+const AddItemWizard = lazy(() =>
+  import("@/components/planejamento/AddItemWizard").then(({ AddItemWizard }) => ({ default: AddItemWizard })),
+);
 
 export const Route = createFileRoute("/_authenticated/planejamento")({
   head: () => ({
@@ -286,7 +287,11 @@ function PlanejamentoPage() {
     return texto;
   };
 
-  const handleExportarPDF = () => {
+  const handleExportarPDF = async () => {
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
     const itensFiltrados =
       catAtualId === "tudo" ? todosItens : todosItens.filter((it) => it.categoriaId === catAtualId);
 
@@ -977,12 +982,16 @@ function PlanejamentoPage() {
         onOpenChange={(o) => !o && setEditandoCategoria(null)}
         categoria={editandoCategoria}
       />
-      <AddItemWizard
-        open={wizardOpen}
-        onOpenChange={setWizardOpen}
-        categorias={categorias}
-        categoriaInicialId={catAtualId === "tudo" ? "" : catAtualId}
-      />
+      {wizardOpen && (
+        <Suspense fallback={null}>
+          <AddItemWizard
+            open={wizardOpen}
+            onOpenChange={setWizardOpen}
+            categorias={categorias}
+            categoriaInicialId={catAtualId === "tudo" ? "" : catAtualId}
+          />
+        </Suspense>
+      )}
       <ItemFormModal
         open={adicionandoItem}
         onOpenChange={setAdicionandoItem}

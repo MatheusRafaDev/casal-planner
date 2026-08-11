@@ -1,8 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import {
   Wallet,
   ShoppingBag,
@@ -142,7 +140,11 @@ function InicioPage() {
       : null;
 
   // ─── Gerador de Relatório PDF Financeiro ───────────────────────────────────
-  const gerarRelatorioFinanceiro = () => {
+  const gerarRelatorioFinanceiro = async () => {
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
     const doc = new jsPDF();
     const hoje = new Date();
     const dataStr = hoje.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });

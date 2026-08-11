@@ -82,8 +82,33 @@ public class RegistroPrecoController : ControllerBase
     }
 
     [HttpGet("historico")]
-    public async Task<ActionResult<List<RegistroPrecoFoto>>> Historico(CancellationToken cancellationToken) => Ok(
-        await _context.RegistrosPreco.Find(r => r.UsuarioId == GetUsuarioId()).SortByDescending(r => r.DataCompra).ToListAsync(cancellationToken));
+    public async Task<ActionResult<PagedResult<RegistroPrecoFoto>>> Historico(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        CancellationToken cancellationToken = default)
+    {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var filter = Builders<RegistroPrecoFoto>.Filter.Eq(r => r.UsuarioId, GetUsuarioId());
+        var totalCountTask = _context.RegistrosPreco.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
+        var registrosTask = _context.RegistrosPreco
+            .Find(filter)
+            .SortByDescending(r => r.DataCompra)
+            .Skip((page - 1) * pageSize)
+            .Limit(pageSize)
+            .ToListAsync(cancellationToken);
+
+        await Task.WhenAll(totalCountTask, registrosTask);
+
+        return Ok(new PagedResult<RegistroPrecoFoto>
+        {
+            Items = await registrosTask,
+            TotalCount = await totalCountTask,
+            Page = page,
+            PageSize = pageSize
+        });
+    }
 
     private static string? TrimOrNull(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }
