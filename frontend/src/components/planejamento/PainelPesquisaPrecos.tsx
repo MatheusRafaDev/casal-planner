@@ -13,6 +13,7 @@ import { getLogoUrl } from "@/lib/logos";
 import type { PesquisaPrecoResultado } from "@/services/types";
 import { PesquisaPrecosPorFoto } from "./PesquisaPrecosPorFoto";
 import { LogoBadge } from "@/components/ui/LogoBadge";
+import { toTitleCase } from "@/lib/utils";
 
 interface Props {
   initialQuery?: string;
@@ -117,7 +118,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
       {query.data?.marcaDetectada && (
         <div className="text-xs text-muted-foreground">
           Marca detectada:{" "}
-          <span className="text-foreground font-medium">{query.data.marcaDetectada}</span>
+          <span className="text-foreground font-medium">{toTitleCase(query.data.marcaDetectada)}</span>
         </div>
       )}
 
@@ -151,7 +152,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium line-clamp-2">{r.titulo}</div>
+              <div className="text-sm font-medium line-clamp-2">{toTitleCase(r.titulo)}</div>
               <div className="flex flex-wrap gap-1.5 mt-1">
                 {r.isTrusted && (
                   <Badge variant="secondary" className="gap-1">
@@ -170,7 +171,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
                     className="text-[10px] py-0 px-1.5 h-5 font-normal bg-muted/30 flex items-center gap-1.5"
                   >
                     <LogoBadge url={getLogoUrl(r.marca, null, resolvedDomains)} className="w-3.5 h-3.5 rounded-sm" />
-                    {r.marca}
+                    {toTitleCase(r.marca)}
                   </Badge>
                 )}
                 {r.loja && (
@@ -179,7 +180,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
                     className="text-[10px] py-0 px-1.5 h-5 font-normal bg-muted/30 flex items-center gap-1.5"
                   >
                     <LogoBadge url={getLogoUrl(r.loja, r.link, resolvedDomains)} className="w-3.5 h-3.5 rounded-sm" />
-                    {r.loja}
+                    {toTitleCase(r.loja)}
                   </Badge>
                 )}
               </div>
