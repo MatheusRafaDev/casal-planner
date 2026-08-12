@@ -30,4 +30,20 @@
     <ProjectReference Include="..\CasalPlanner.Infrastructure\CasalPlanner.Infrastructure.csproj" />
   </ItemGroup>
 
+  <!-- Captura o commit hash em build-time e injeta como AssemblyMetadata -->
+  <Target Name="InjectGitCommit" BeforeTargets="BeforeBuild">
+    <Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash" />
+    </Exec>
+    <PropertyGroup>
+      <GitCommitHash Condition="'$(GitCommitHash)' == ''">unknown</GitCommitHash>
+    </PropertyGroup>
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>GitCommit</_Parameter1>
+        <_Parameter2>$(GitCommitHash)</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+
 </Project>
