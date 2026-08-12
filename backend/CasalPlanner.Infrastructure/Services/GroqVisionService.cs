@@ -8,11 +8,12 @@ namespace CasalPlanner.Infrastructure.Services;
 public class GroqVisionService
 {
     // Modelos com suporte a visão (imagens) ativos no Groq.
-    // Atualizado: Llama 4 Scout e Llama 3.2 vision foram descontinuados/falhando.
+    // Importante: todos os modelos desta lista DEVEM suportar image_url no conteúdo.
     private static readonly string[] VisionModels =
     [
         "meta-llama/llama-4-maverick-17b-128e-instruct", // Llama 4 Maverick (mais preciso)
-        "qwen/qwen3.6-27b"                              // Qwen como fallback
+        "meta-llama/llama-4-scout-17b-16e-instruct",     // Llama 4 Scout (fallback visão)
+        "llama-3.2-11b-vision-preview",                  // Llama 3.2 Vision (último recurso)
     ];
 
     private readonly HttpClient _httpClient;
