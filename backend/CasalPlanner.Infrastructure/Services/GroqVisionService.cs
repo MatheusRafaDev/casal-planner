@@ -5,16 +5,16 @@ using CasalPlanner.Application.DTOs;
 
 namespace CasalPlanner.Infrastructure.Services;
 
-public class GroqVisionService
+/// <summary>
+/// Serviço de análise de imagem usando a API de visão do Groq.
+/// Atua como FALLBACK quando o GeminiVisionService falha.
+/// </summary>
+public class GroqVisionService : IVisionAnalysisService
 {
-    // Modelos com suporte a visão (imagens) ativos no Groq.
-    // Importante: todos os modelos desta lista DEVEM suportar image_url no conteúdo.
-    private static readonly string[] VisionModels =
-    [
-        "meta-llama/llama-4-maverick-17b-128e-instruct", // Llama 4 Maverick (mais preciso)
-        "meta-llama/llama-4-scout-17b-16e-instruct",     // Llama 4 Scout (fallback visão)
-        "llama-3.2-11b-vision-preview",                  // Llama 3.2 Vision (último recurso)
-    ];
+    // Modelo de visão ativo no Groq (agosto 2026).
+    // Suporta: texto + imagem (multimodal), JSON mode, tool use.
+    // Se este modelo for descontinuado, verifique: https://console.groq.com/docs/deprecations
+    private const string VisionModel = "qwen/qwen3.6-27b";
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<GroqVisionService> _logger;
@@ -30,43 +30,36 @@ public class GroqVisionService
     public async Task<AnalisarFotoPrecoResponse> AnalisarAsync(string imagemBase64, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(_apiKey))
-            throw new InvalidOperationException("A análise por foto não está configurada.");
+            throw new InvalidOperationException("GROQ_API_KEY não configurada. Análise de foto pelo Groq indisponível.");
 
         var imageUrl = imagemBase64.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase)
             ? imagemBase64
             : $"data:image/jpeg;base64,{imagemBase64}";
 
-        // Tenta cada modelo em ordem até um funcionar.
-        // Ignora modelos que retornam model_not_found (sem acesso ou descontinuados).
-        Exception? lastException = null;
-        foreach (var model in VisionModels)
+        _logger.LogInformation("[Groq Fallback] Tentando modelo de visão: {Model}", VisionModel);
+        try
         {
-            try
-            {
-                _logger.LogInformation("Tentando modelo de visão: {Model}", model);
-                return await CallGroqAsync(model, imageUrl, cancellationToken);
-            }
-            catch (InvalidOperationException ex) when (
-                ex.Message.Contains("model_not_found") ||
-                ex.Message.Contains("model_decommissioned") ||
-                ex.Message.Contains("does not exist") ||
-                ex.Message.Contains("404") ||
-                ex.Message.Contains("BadRequest") ||     // 400 = modelo deprecado
-                ex.Message.Contains("400") ||
-                ex.Message.Contains("deprecat"))         // deprecation message body
-            {
-                _logger.LogWarning("Modelo {Model} não disponível. Tentando próximo.", model);
-                lastException = ex;
-            }
+            return await CallGroqAsync(VisionModel, imageUrl, cancellationToken);
         }
-
-        // Todos os modelos falharam
-        _logger.LogError(lastException, "Nenhum modelo de visão funcionou.");
-        throw new InvalidOperationException(
-            "Não há nenhum modelo de visão disponível na sua conta Groq. " +
-            $"Modelos testados: {string.Join(", ", VisionModels)}. " +
-            "Verifique sua conta em console.groq.com.");
+        catch (InvalidOperationException ex) when (IsModelUnavailableError(ex.Message))
+        {
+            _logger.LogWarning(
+                "[Groq Fallback] Modelo {Model} não disponível ou descontinuado. " +
+                "Verifique modelos ativos em: https://console.groq.com/docs/deprecations",
+                VisionModel);
+            throw;
+        }
     }
+
+    /// <summary>
+    /// Verifica se a mensagem de erro indica que o modelo foi descontinuado ou não encontrado.
+    /// </summary>
+    private static bool IsModelUnavailableError(string message) =>
+        message.Contains("model_not_found", StringComparison.OrdinalIgnoreCase) ||
+        message.Contains("model_decommissioned", StringComparison.OrdinalIgnoreCase) ||
+        message.Contains("does not exist", StringComparison.OrdinalIgnoreCase) ||
+        message.Contains("404") ||
+        message.Contains("deprecat", StringComparison.OrdinalIgnoreCase);
 
     private async Task<AnalisarFotoPrecoResponse> CallGroqAsync(string model, string imageUrl, CancellationToken cancellationToken)
     {
@@ -104,9 +97,9 @@ public class GroqVisionService
         if (!response.IsSuccessStatusCode)
         {
             var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogWarning("Groq Vision retornou {StatusCode} com modelo {Model}. Body: {Body}",
+            _logger.LogWarning("[Groq Fallback] Retornou {StatusCode} com modelo {Model}. Body: {Body}",
                 response.StatusCode, model, errorContent);
-            throw new InvalidOperationException($"Erro da IA ({response.StatusCode}): {errorContent}");
+            throw new InvalidOperationException($"Erro do Groq ({response.StatusCode}): {errorContent}");
         }
 
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
@@ -122,9 +115,9 @@ public class GroqVisionService
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
         if (result is null || string.IsNullOrWhiteSpace(result.ProdutoNome))
-            throw new InvalidOperationException("Não consegui identificar o produto na foto.");
+            throw new InvalidOperationException("[Groq Fallback] Não consegui identificar o produto na foto.");
 
-        _logger.LogInformation("Análise concluída com modelo {Model}: {Produto}", model, result.ProdutoNome);
+        _logger.LogInformation("[Groq Fallback] Análise concluída com modelo {Model}: {Produto}", model, result.ProdutoNome);
         return result;
     }
 

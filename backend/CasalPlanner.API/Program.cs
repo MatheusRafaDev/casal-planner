@@ -221,12 +221,22 @@ builder.Services.AddHttpClient("groq", client =>
     client.Timeout = TimeSpan.FromSeconds(10);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
+// Visão: Gemini (primário) + Groq (fallback)
+builder.Services.AddHttpClient<GeminiVisionService>(client =>
+{
+    client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
+    client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
 builder.Services.AddHttpClient<GroqVisionService>(client =>
 {
     client.BaseAddress = new Uri("https://api.groq.com/");
     client.Timeout = TimeSpan.FromSeconds(30);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
+builder.Services.AddScoped<GeminiVisionService>();
+builder.Services.AddScoped<GroqVisionService>();
+builder.Services.AddScoped<IVisionAnalysisService, VisionAnalysisService>();
 builder.Services.AddHttpClient<GeocodingService>(client =>
 {
     client.BaseAddress = new Uri("https://nominatim.openstreetmap.org/");

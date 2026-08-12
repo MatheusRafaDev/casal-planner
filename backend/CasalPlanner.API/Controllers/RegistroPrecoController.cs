@@ -15,14 +15,14 @@ namespace CasalPlanner.API.Controllers;
 public class RegistroPrecoController : ControllerBase
 {
     private readonly MongoDbContext _context;
-    private readonly GroqVisionService _groqVision;
+    private readonly IVisionAnalysisService _vision;
     private readonly GeocodingService _geocoding;
     private readonly ILogger<RegistroPrecoController> _logger;
 
-    public RegistroPrecoController(MongoDbContext context, GroqVisionService groqVision, GeocodingService geocoding, ILogger<RegistroPrecoController> logger)
+    public RegistroPrecoController(MongoDbContext context, IVisionAnalysisService vision, GeocodingService geocoding, ILogger<RegistroPrecoController> logger)
     {
         _context = context;
-        _groqVision = groqVision;
+        _vision = vision;
         _geocoding = geocoding;
         _logger = logger;
     }
@@ -39,7 +39,7 @@ public class RegistroPrecoController : ControllerBase
         {
             var delayText = Environment.GetEnvironmentVariable("IA_CALL_DELAY_MS");
             if (int.TryParse(delayText, out var delay) && delay > 0) await Task.Delay(delay, cancellationToken);
-            var analiseTask = _groqVision.AnalisarAsync(request.ImagemBase64, cancellationToken);
+            var analiseTask = _vision.AnalisarAsync(request.ImagemBase64, cancellationToken);
             var geocodingTask = _geocoding.ReverseAsync(request.Latitude, request.Longitude, cancellationToken);
             await Task.WhenAll(analiseTask, geocodingTask);
             var analise = await analiseTask;
