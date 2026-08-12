@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
+using System.Text.Json.Serialization;
 
 namespace CasalPlanner.API.Controllers;
 
@@ -46,4 +47,9 @@ public class HealthController : ControllerBase
 /// <param name="Commit">Hash curto do commit Git que originou este build.</param>
 /// <param name="BuildAt">Data/hora UTC do build (baseada no timestamp do assembly).</param>
 /// <param name="Environment">Ambiente configurado (Development / Production).</param>
-public record HealthResponse(string Status, string Commit, string BuildAt, string Environment);
+public record HealthResponse(
+    [property: JsonPropertyName("Status")]      string Status,
+    [property: JsonPropertyName("Commit")]      string Commit,
+    [property: JsonPropertyName("BuildAt")]     string BuildAt,
+    [property: JsonPropertyName("Environment")] string Environment
+);
