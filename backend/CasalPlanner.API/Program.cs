@@ -234,8 +234,9 @@ builder.Services.AddHttpClient<GroqVisionService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
-builder.Services.AddScoped<GeminiVisionService>();
-builder.Services.AddScoped<GroqVisionService>();
+// NOTE: GeminiVisionService and GroqVisionService are already registered as typed
+// HttpClients by AddHttpClient<T> above — do NOT add AddScoped<T> here, as that
+// would create a second registration backed by a plain HttpClient with no BaseAddress.
 builder.Services.AddScoped<IVisionAnalysisService, VisionAnalysisService>();
 builder.Services.AddHttpClient<GeocodingService>(client =>
 {
