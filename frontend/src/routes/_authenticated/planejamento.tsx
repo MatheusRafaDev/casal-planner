@@ -859,17 +859,17 @@ function PlanejamentoPage() {
                             ].filter(Boolean).join(" · ")}
                           </span>
                           {it.origem === "ganho" && (
-                            <Badge className="ml-auto text-[10px] py-0 bg-emerald-600 hover:bg-emerald-600 text-white border-transparent">
-                              🎁 Presente
+                            <Badge className="ml-auto text-[10px] py-0 bg-transparent border border-zinc-400 text-emerald-500 hover:bg-transparent">
+                              Presente
                             </Badge>
                           )}
                           {it.prioridade === "alta" && (
-                            <Badge className="ml-auto text-[10px] py-0 bg-terracota hover:bg-terracota/90 text-terracota-foreground border-transparent">
+                            <Badge className="ml-auto text-[10px] py-0 bg-transparent border border-zinc-400 text-red-500 hover:bg-transparent">
                               Alta
                             </Badge>
                           )}
                           {it.prioridade === "baixa" && (
-                            <Badge className="ml-auto text-[10px] py-0 bg-mel text-mel-foreground border-transparent">
+                            <Badge className="ml-auto text-[10px] py-0 bg-transparent border border-zinc-400 text-emerald-500/70 hover:bg-transparent">
                               Baixa
                             </Badge>
                           )}
