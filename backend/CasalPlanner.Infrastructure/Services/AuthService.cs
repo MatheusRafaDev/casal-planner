@@ -284,7 +284,7 @@ namespace CasalPlanner.Infrastructure.Services
 
             // Busca como casal (Pessoa 1 ou Pessoa 2)
             var casal = await _context.Usuarios
-                .Find(u => u.TipoConta == TipoConta.Casal && 
+                .Find(u => u.TipoConta == TipoConta.Casal && u.CasalInfo != null &&
                            ((u.CasalInfo.RefreshTokenPessoa1 == refreshToken && u.CasalInfo.RefreshTokenExpiraEmPessoa1 > DateTime.UtcNow) ||
                             (u.CasalInfo.RefreshTokenPessoa2 == refreshToken && u.CasalInfo.RefreshTokenExpiraEmPessoa2 > DateTime.UtcNow)))
                 .FirstOrDefaultAsync();

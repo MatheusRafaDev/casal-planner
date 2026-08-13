@@ -114,18 +114,18 @@ export function ItemFormModal({
   });
 
   const mutation = useMutation({
-    mutationFn: async (dto: ItemInputDTO) => {
-      if (isEdit && item) return itensService.atualizar(item.id, dto);
-      return itensService.criar(dto);
+    mutationFn: async (vars: { id?: string; dto: ItemInputDTO }) => {
+      if (vars.id) return itensService.atualizar(vars.id, vars.dto);
+      return itensService.criar(vars.dto);
     },
-    onMutate: async (dto) => {
+    onMutate: async (vars) => {
       onOpenChange(false);
-      toast.success(isEdit ? "Salvando alterações..." : "Adicionando item...");
+      toast.success(vars.id ? "Salvando alterações..." : "Adicionando item...");
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["itens-paginado"] });
-      qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
+      toast.success(item ? "Item atualizado" : "Item adicionado");
     },
     onError: (e: Error) => {
       toast.error(e.message);
@@ -157,7 +157,7 @@ export function ItemFormModal({
       payload.clearResponsavelId = true;
     }
 
-    mutation.mutate(payload);
+    mutation.mutate({ id: isEdit && item ? item.id : undefined, dto: payload });
   };
 
   const set = <K extends keyof ItemInputDTO>(k: K, v: ItemInputDTO[K]) =>

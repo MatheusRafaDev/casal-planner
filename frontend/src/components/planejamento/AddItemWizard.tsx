@@ -383,7 +383,6 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["itens-paginado"] });
-      qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
       reset();
     },
@@ -760,7 +759,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   <Select
                     value={String(parcelas)}
                     onValueChange={(v) => setParcelas(Number(v))}
-                    disabled={pagamento === "vr"}
+                    disabled={pagamento === "vr" || origem === "ganho"}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -797,7 +796,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     <Gift className="h-3.5 w-3.5 text-muted-foreground" />
                     Origem
                   </Label>
-                  <Select value={origem} onValueChange={(v) => setOrigem(v as "comprado" | "ganho")}>
+                  <Select value={origem} onValueChange={(v) => {
+                    setOrigem(v as "comprado" | "ganho");
+                    if (v === "ganho") setParcelas(1);
+                  }}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -980,7 +982,25 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
             </Button>
           )}
           {step === 3 && (
-            <Button onClick={() => criar.mutate()} disabled={criar.isPending}>
+            <Button
+              onClick={() => {
+                if (!categoriaId) {
+                  return toast.error("Selecione um cômodo antes de adicionar.");
+                }
+                if (dividir && divisaoPagamento) {
+                  const preco = escolhido?.preco ?? precoNumerico;
+                  const total = preco * quantidade;
+                  const soma = divisaoPagamento.valorPessoa1 + divisaoPagamento.valorPessoa2;
+                  if (Math.abs(soma - total) > 0.01) {
+                    return toast.error(
+                      `A soma da divisão (${brl(soma)}) deve ser igual ao total (${brl(total)}).`,
+                    );
+                  }
+                }
+                criar.mutate();
+              }}
+              disabled={criar.isPending}
+            >
               {criar.isPending ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
               ) : (

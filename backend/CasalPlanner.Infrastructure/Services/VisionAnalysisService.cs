@@ -31,9 +31,9 @@ public class VisionAnalysisService : IVisionAnalysisService
         {
             return await _gemini.AnalisarAsync(imagemBase64, cancellationToken);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // Não faz fallback em cancelamento pelo usuário; propaga.
+            // Cancelado pelo request da API (usuário fechou, etc), não faz fallback.
             throw;
         }
         catch (Exception geminiEx)

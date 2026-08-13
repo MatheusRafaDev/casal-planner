@@ -14,7 +14,7 @@ public class GeminiVisionService : IVisionAnalysisService
 {
     // Modelo Gemini com suporte a visão. Atualizar se descontinuado:
     // https://ai.google.dev/gemini-api/docs/models
-    private const string Model = "gemini-3.6-flash";
+    private const string Model = "gemini-2.0-flash";
 
     // Instrução de sistema que define o comportamento esperado do modelo.
     private const string SystemInstruction =

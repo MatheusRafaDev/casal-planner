@@ -10,7 +10,7 @@ import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { maskDate, brToIsoDate } from "@/lib/formatters";
 
-export function RegistroIndividual() {
+export function RegistroIndividual({ returnUrl }: { returnUrl?: string }) {
   const navigate = useNavigate();
   const { refresh } = useAuth();
   const [form, setForm] = useState({
@@ -35,7 +35,11 @@ export function RegistroIndividual() {
       });
       await refresh();
       toast.success("Conta criada! Bem-vindo(a).");
-      navigate({ to: "/inicio" });
+      if (returnUrl) {
+        window.location.href = returnUrl;
+      } else {
+        navigate({ to: "/inicio" });
+      }
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Não foi possível cadastrar");
     } finally {

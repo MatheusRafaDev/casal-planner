@@ -200,7 +200,6 @@ function PlanejamentoPage() {
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["itens-paginado"] });
-      qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
     },
   });
@@ -209,7 +208,6 @@ function PlanejamentoPage() {
     mutationFn: (id: string) => itensService.excluir(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["itens-paginado"] });
-      qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
       toast.success("Item removido");
       setExcluindoItem(null);
@@ -858,21 +856,30 @@ function PlanejamentoPage() {
                               isCasal && it.responsavelId ? (it.responsavelId === 1 ? p1 : p2) : null
                             ].filter(Boolean).join(" · ")}
                           </span>
-                          {it.origem === "ganho" && (
-                            <Badge className="ml-auto text-[10px] py-0 bg-transparent border border-zinc-400 text-emerald-500 hover:bg-transparent">
-                              Presente
-                            </Badge>
-                          )}
-                          {it.prioridade === "alta" && (
-                            <Badge className="ml-auto text-[10px] py-0 bg-transparent border border-zinc-400 text-red-500 hover:bg-transparent">
-                              Alta
-                            </Badge>
-                          )}
-                          {it.prioridade === "baixa" && (
-                            <Badge className="ml-auto text-[10px] py-0 bg-transparent border border-zinc-400 text-emerald-500/70 hover:bg-transparent">
-                              Baixa
-                            </Badge>
-                          )}
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "text-[10px] py-0 px-1.5 font-medium border",
+                              it.origem === "ganho" 
+                                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400" 
+                                : "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400"
+                            )}
+                          >
+                            {it.origem === "ganho" ? "Presente" : "Será Comprado"}
+                          </Badge>
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "text-[10px] py-0 px-1.5 font-medium border capitalize",
+                              it.prioridade === "alta" 
+                                ? "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400"
+                                : it.prioridade === "baixa"
+                                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
+                                : "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400"
+                            )}
+                          >
+                            Prioridade {it.prioridade || "Média"}
+                          </Badge>
                         </div>
                       </div>
                     </div>

@@ -10,6 +10,7 @@ import { z } from "zod";
 
 const searchSchema = z.object({
   registrar: z.union([z.literal(1), z.literal("1"), z.boolean()]).optional(),
+  returnUrl: z.string().optional(),
 });
 
 export const Route = createFileRoute("/login")({
@@ -32,9 +33,17 @@ function LoginPage() {
     search.registrar ? "cadastrar" : "entrar",
   );
 
+  const returnUrl = search.returnUrl;
+
   useEffect(() => {
-    if (!loading && isAuthenticated) navigate({ to: "/inicio" });
-  }, [loading, isAuthenticated, navigate]);
+    if (!loading && isAuthenticated) {
+      if (returnUrl) {
+        window.location.href = returnUrl;
+      } else {
+        navigate({ to: "/inicio" });
+      }
+    }
+  }, [loading, isAuthenticated, navigate, returnUrl]);
 
   return (
     <div className="min-h-screen grid md:grid-cols-2 bg-background">
@@ -83,7 +92,7 @@ function LoginPage() {
 
           {modo === "entrar" ? (
             <>
-              <LoginForm />
+              <LoginForm returnUrl={returnUrl} />
               <p className="text-sm text-center text-muted-foreground">
                 Ainda não tem conta?{" "}
                 <button
@@ -106,7 +115,7 @@ function LoginPage() {
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="individual" className="pt-4">
-                  <RegistroIndividual />
+                  <RegistroIndividual returnUrl={returnUrl} />
                 </TabsContent>
                 <TabsContent value="casal" className="pt-4">
                   <RegistroCasal />

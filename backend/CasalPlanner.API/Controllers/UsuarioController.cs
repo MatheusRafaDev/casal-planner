@@ -552,20 +552,28 @@ public class UsuarioController : ControllerBase
         await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioId, update);
 
         // Gerar link de convite
-        var linkConvite = $"{Request.Scheme}://{Request.Host}/convite?token={token}";
+        var envFrontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+        var frontendUrl = !string.IsNullOrEmpty(envFrontendUrl) ? envFrontendUrl : "https://casalplanner.vercel.app";
+        var linkConvite = $"{frontendUrl.TrimEnd('/')}/convite?token={token}";
 
         // Enviar email de convite
         try
         {
-            await _emailService.EnviarEmailConviteParceiro(
+            var enviado = await _emailService.EnviarEmailConviteParceiro(
                 dto.EmailParceiro,
                 usuario.NomeCompleto ?? "Um usuário",
                 linkConvite,
                 expiraEm);
+
+            if (!enviado)
+            {
+                return BadRequest(new { message = "Falha ao enviar o email de convite (modo sandbox?). Verifique o endereço." });
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao enviar email de convite para {Email}", dto.EmailParceiro);
+            return BadRequest(new { message = "Falha ao enviar o email de convite." });
         }
 
         return Ok(new ConviteResponseDto
@@ -577,45 +585,75 @@ public class UsuarioController : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpPost("aceitar-convite")]
-    public async Task<ActionResult> AceitarConvite([FromBody] AceitarConviteDto dto)
+    [HttpGet("convite/{token}")]
+    public async Task<ActionResult> ObterInfoConvite(string token)
     {
-        // Buscar usuário com convite válido
         var usuario = await _context.Usuarios
-            .Find(u => u.ConviteParceiroToken == dto.Token)
+            .Find(u => u.ConviteParceiroToken == token)
             .FirstOrDefaultAsync();
 
         if (usuario == null)
-            return NotFound(new { message = "Convite não encontrado" });
+            return NotFound(new { message = "Convite não encontrado ou inválido" });
 
         if (usuario.ConviteParceiroExpiraEm < DateTime.UtcNow)
             return BadRequest(new { message = "Convite expirado" });
 
-        if (usuario.TipoConta == TipoConta.Casal)
+        return Ok(new { 
+            nomeConvidante = usuario.NomeCompleto ?? "Alguém",
+            emailConvidante = usuario.Email ?? string.Empty
+        });
+    }
+
+    [Authorize]
+    [HttpPost("aceitar-convite")]
+    public async Task<ActionResult> AceitarConvite([FromBody] AceitarConviteDto dto)
+    {
+        var usuarioIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(usuarioIdClaim)) return Unauthorized();
+        
+        var invitedUser = await _context.Usuarios.Find(u => u.Id == usuarioIdClaim).FirstOrDefaultAsync();
+        if (invitedUser == null) return Unauthorized();
+
+        if (invitedUser.TipoConta == TipoConta.Casal)
+            return BadRequest(new { message = "Você já está em uma conta de casal e não pode ser vinculado novamente." });
+
+        // Buscar usuário que convidou (A)
+        var inviter = await _context.Usuarios
+            .Find(u => u.ConviteParceiroToken == dto.Token)
+            .FirstOrDefaultAsync();
+
+        if (inviter == null)
+            return NotFound(new { message = "Convite não encontrado" });
+
+        if (inviter.ConviteParceiroExpiraEm < DateTime.UtcNow)
+            return BadRequest(new { message = "Convite expirado" });
+
+        if (inviter.TipoConta == TipoConta.Casal)
             return BadRequest(new { message = "Este convite já foi aceito" });
 
-        // Converter conta individual para casal
-        var emailParceiro = usuario.ConviteParceiroEmail;
+        var emailParceiro = inviter.ConviteParceiroEmail;
         if (string.IsNullOrEmpty(emailParceiro))
             return BadRequest(new { message = "Email do parceiro não encontrado no convite" });
 
-        // Criar estrutura de casal
+        // Criar estrutura de casal com os dados de B (invitedUser)
         var casalInfo = new CasalInfo
         {
-            NomeCompletoPessoa1 = usuario.NomeCompleto ?? string.Empty,
-            EmailPessoa1 = usuario.Email ?? string.Empty,
-            DataNascimentoPessoa1 = usuario.DataNascimento,
-            SenhaHashPessoa1 = usuario.SenhaHash ?? string.Empty,
-            NomeCompletoPessoa2 = string.Empty, // Será preenchido pelo parceiro
-            EmailPessoa2 = emailParceiro,
-            DataNascimentoPessoa2 = null,
-            SenhaHashPessoa2 = string.Empty, // Será definido pelo parceiro ao criar conta
+            NomeCompletoPessoa1 = inviter.NomeCompleto ?? string.Empty,
+            EmailPessoa1 = inviter.Email ?? string.Empty,
+            DataNascimentoPessoa1 = inviter.DataNascimento,
+            SenhaHashPessoa1 = inviter.SenhaHash ?? string.Empty,
+            
+            NomeCompletoPessoa2 = invitedUser.NomeCompleto ?? string.Empty,
+            EmailPessoa2 = invitedUser.Email ?? emailParceiro,
+            DataNascimentoPessoa2 = invitedUser.DataNascimento,
+            SenhaHashPessoa2 = invitedUser.SenhaHash ?? string.Empty,
+            
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
-        // Atualizar usuário para conta casal
-        var update = Builders<Usuario>.Update
+        // Atualizar inviter
+        var updateInviter = Builders<Usuario>.Update
             .Set(u => u.TipoConta, TipoConta.Casal)
             .Set(u => u.IsCasal, true)
             .Set(u => u.CasalInfo, casalInfo)
@@ -623,9 +661,32 @@ public class UsuarioController : ControllerBase
             .Set(u => u.ConviteParceiroEmail, null)
             .Set(u => u.ConviteParceiroExpiraEm, null);
 
-        await _context.Usuarios.UpdateOneAsync(u => u.Id == usuario.Id, update);
+        await _context.Usuarios.UpdateOneAsync(u => u.Id == inviter.Id, updateInviter);
 
-        return Ok(new { message = "Convite aceito com sucesso. O parceiro pode agora criar sua conta usando este email." });
+        // Migrar dados se solicitado
+        if (dto.MigrarDados)
+        {
+            var updateItems = Builders<Item>.Update.Set(i => i.UsuarioId, inviter.Id);
+            await _context.Itens.UpdateManyAsync(i => i.UsuarioId == invitedUser.Id, updateItems);
+
+            var updatePrecos = Builders<RegistroPrecoFoto>.Update.Set(rp => rp.UsuarioId, inviter.Id);
+            await _context.RegistrosPreco.UpdateManyAsync(rp => rp.UsuarioId == invitedUser.Id, updatePrecos);
+        }
+
+        // Deletar a conta antiga de B
+        await _context.Usuarios.DeleteOneAsync(u => u.Id == invitedUser.Id);
+
+        // Gerar novo token para B (agora como pessoa2 na conta de A)
+        var updatedInviter = await _context.Usuarios.Find(u => u.Id == inviter.Id).FirstOrDefaultAsync();
+        var newToken = _authService.GerarTokenCasal(updatedInviter!, "pessoa2");
+        var refreshToken = await _authService.GerarERegistrarRefreshToken(updatedInviter!.Id!, "pessoa2");
+        SetAuthCookies(newToken, refreshToken.Token);
+
+        return Ok(new { 
+            message = "Contas vinculadas com sucesso!",
+            token = newToken,
+            usuario = UsuarioMapper.MapearCasal(updatedInviter, "pessoa2")
+        });
     }
 
     // ========== PUSH NOTIFICATIONS ==========

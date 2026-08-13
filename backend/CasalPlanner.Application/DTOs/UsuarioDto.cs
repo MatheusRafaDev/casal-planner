@@ -117,6 +117,8 @@ namespace CasalPlanner.Application.DTOs
     {
         [Required]
         public string Token { get; set; } = string.Empty;
+        
+        public bool MigrarDados { get; set; } = false;
     }
 
     public class PushSubscriptionDto

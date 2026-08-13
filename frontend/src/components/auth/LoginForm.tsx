@@ -56,7 +56,7 @@ function GoogleLogo({ className, style }: { className?: string; style?: React.CS
   );
 }
 
-export function LoginForm() {
+export function LoginForm({ returnUrl }: { returnUrl?: string }) {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
@@ -131,7 +131,11 @@ export function LoginForm() {
     try {
       await loginComGoogle(response.credential);
       toast.success("Bem-vindo(a)!");
-      navigate({ to: "/inicio" });
+      if (returnUrl) {
+        window.location.href = returnUrl;
+      } else {
+        navigate({ to: "/inicio" });
+      }
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Não foi possível entrar com o Google");
     } finally {
@@ -152,7 +156,11 @@ export function LoginForm() {
     try {
       await login(email, senha);
       toast.success("Bem-vindo(a) de volta!");
-      navigate({ to: "/inicio" });
+      if (returnUrl) {
+        window.location.href = returnUrl;
+      } else {
+        navigate({ to: "/inicio" });
+      }
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Não foi possível entrar");
     } finally {

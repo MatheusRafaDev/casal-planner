@@ -15,7 +15,7 @@ namespace CasalPlanner.Application.DTOs
         [Required(ErrorMessage = "Nome do item é obrigatório")]
         public string Nome { get; set; } = string.Empty;
 
-        public string Marca { get; set; } = string.Empty;
+        public string? Marca { get; set; }
 
         [Required(ErrorMessage = "Preço é obrigatório")]
         [Range(0.01, double.MaxValue, ErrorMessage = "Preço deve ser maior que zero")]
@@ -27,13 +27,13 @@ namespace CasalPlanner.Application.DTOs
         [Required(ErrorMessage = "Categoria é obrigatória")]
         public string CategoriaId { get; set; } = string.Empty;
 
-        public string Pagamento { get; set; } = "normal";
+        public string? Pagamento { get; set; } = "normal";
 
-        public string Prioridade { get; set; } = "normal";
+        public string? Prioridade { get; set; } = "normal";
 
-        public string Loja { get; set; } = string.Empty;
-        public string LinkProduto { get; set; } = string.Empty;
-        public string FotoUrl { get; set; } = string.Empty;
+        public string? Loja { get; set; }
+        public string? LinkProduto { get; set; }
+        public string? FotoUrl { get; set; }
         public string? FotoPublicId { get; set; }
 
         [JsonPropertyName("parcelas")]

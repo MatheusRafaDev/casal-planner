@@ -55,6 +55,64 @@ namespace CasalPlanner.Infrastructure.Services
             }
         }
 
+        private async Task<bool> EnviarViaBrevoAsync(System.Net.Mail.MailMessage mailMessage, string logContexto)
+        {
+            var smtpUser = Environment.GetEnvironmentVariable("BREVO_SMTP_USER") ?? _configuration["Brevo:SmtpUser"];
+            var smtpKey = Environment.GetEnvironmentVariable("BREVO_SMTP_KEY") ?? _configuration["Brevo:SmtpKey"];
+            
+            if (string.IsNullOrEmpty(smtpUser) || string.IsNullOrEmpty(smtpKey))
+            {
+                _logger.LogWarning("Credenciais do Brevo não configuradas. Cancelando envio de {Contexto}.", logContexto);
+                return false;
+            }
+
+            using var smtpClient = new MailKit.Net.Smtp.SmtpClient();
+            try
+            {
+                var fromEmail = Environment.GetEnvironmentVariable("BREVO_FROM_EMAIL") ?? _configuration["Brevo:FromEmail"] ?? "noreply@casalplanner.com";
+                
+                var mimeMessage = new MimeKit.MimeMessage();
+                mimeMessage.From.Add(new MimeKit.MailboxAddress("CasalPlanner", fromEmail));
+                mimeMessage.To.Add(MimeKit.MailboxAddress.Parse(mailMessage.To[0].Address));
+                mimeMessage.Subject = mailMessage.Subject;
+                
+                var builder = new MimeKit.BodyBuilder { HtmlBody = mailMessage.Body };
+                mimeMessage.Body = builder.ToMessageBody();
+
+                await smtpClient.ConnectAsync("smtp-relay.brevo.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+                await smtpClient.AuthenticateAsync(smtpUser, smtpKey);
+                await smtpClient.SendAsync(mimeMessage);
+                
+                var destinatario = mailMessage.To[0].Address;
+                _logger.LogInformation("Email ({Contexto}) enviado via Brevo para {Email}.", logContexto, destinatario);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao enviar email ({Contexto}) via Brevo para {Email}", logContexto, mailMessage.To[0].Address);
+                return false;
+            }
+            finally
+            {
+                if (smtpClient.IsConnected)
+                {
+                    await smtpClient.DisconnectAsync(true);
+                }
+            }
+        }
+
+        private async Task<bool> EnviarEmailAsync(MailMessage mailMessage, string logContexto)
+        {
+            var provider = Environment.GetEnvironmentVariable("EMAIL_PROVIDER") ?? _configuration["EmailProvider"] ?? "Brevo";
+
+            if (provider.Equals("Resend", StringComparison.OrdinalIgnoreCase))
+            {
+                return await EnviarViaResendAsync(mailMessage, logContexto);
+            }
+            
+            return await EnviarViaBrevoAsync(mailMessage, logContexto);
+        }
+
         public async Task<bool> EnviarCodigoRedefinicaoSenha(string email, string codigo, string nome = "")
         {
             try
@@ -401,7 +459,7 @@ namespace CasalPlanner.Infrastructure.Services
 
                 mailMessage.To.Add(email);
 
-                var enviado = await EnviarViaResendAsync(mailMessage, "recuperacao-senha");
+                var enviado = await EnviarEmailAsync(mailMessage, "recuperacao-senha");
                 if (enviado)
                     _logger.LogInformation("✅ Email de recuperação enviado com sucesso para {Email}", email);
                 return enviado;
@@ -592,7 +650,7 @@ var anoAtual = DateTime.UtcNow.Year;
 
                 mailMessage.To.Add(email);
 
-                var enviado = await EnviarViaResendAsync(mailMessage, "boas-vindas");
+                var enviado = await EnviarEmailAsync(mailMessage, "boas-vindas");
                 if (enviado)
                     _logger.LogInformation("✅ Email de boas-vindas enviado para {Email}", email);
                 return enviado;
@@ -751,7 +809,7 @@ var anoAtual = DateTime.UtcNow.Year;
 
                 mailMessage.To.Add(email);
 
-                var enviado = await EnviarViaResendAsync(mailMessage, "exclusao-conta");
+                var enviado = await EnviarEmailAsync(mailMessage, "exclusao-conta");
                 if (enviado)
                     _logger.LogInformation("✅ Email de confirmação de exclusão enviado para {Email}", email);
                 return enviado;
@@ -904,7 +962,7 @@ var anoAtual = DateTime.UtcNow.Year;
 
                 mailMessage.To.Add(email);
 
-                var enviado = await EnviarViaResendAsync(mailMessage, "senha-alterada");
+                var enviado = await EnviarEmailAsync(mailMessage, "senha-alterada");
                 if (enviado)
                     _logger.LogInformation("✅ Aviso de senha alterada enviado para {Email}", email);
                 return enviado;
@@ -1055,7 +1113,7 @@ var dataExpiracao = expiraEm.ToString("dd/MM/yyyy");
 
                 mailMessage.To.Add(email);
 
-                var enviado = await EnviarViaResendAsync(mailMessage, "convite-parceiro");
+                var enviado = await EnviarEmailAsync(mailMessage, "convite-parceiro");
                 if (enviado)
                     _logger.LogInformation("✅ Email de convite enviado para {Email}", email);
                 return enviado;
@@ -1111,7 +1169,7 @@ var dataExpiracao = expiraEm.ToString("dd/MM/yyyy");
                 };
                 mailMessage.To.Add(emailDestino);
 
-                return await EnviarViaResendAsync(mailMessage, "NotificacaoParceiro");
+                return await EnviarEmailAsync(mailMessage, "NotificacaoParceiro");
             }
             catch (Exception ex)
             {
