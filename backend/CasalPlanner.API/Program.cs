@@ -428,19 +428,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Health check com informações de CORS
-app.MapGet("/health", () => Results.Ok(new
-{
-    status = "healthy",
-    timestamp = DateTime.UtcNow,
-    environment = app.Environment.EnvironmentName,
-    version = "1.0.0",
-    cors = new
-    {
-        mode = app.Environment.IsDevelopment() ? "development (all origins)" : "production",
-        allowedOrigins = allowedOriginsList
-    }
-}));
 
 // ===== 11. SEED E ÍNDICES =====
 try
