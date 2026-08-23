@@ -160,7 +160,7 @@ function RootComponent() {
       <AuthProvider>
         <ThemeProvider>
           <Outlet />
-          <Toaster richColors position="top-center" closeButton />
+          <Toaster richColors position="top-right" closeButton />
         </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>

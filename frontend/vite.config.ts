@@ -18,6 +18,13 @@ export default defineConfig({
   vite: {
     server: {
       port: 8080,
+      proxy: {
+        "/api": {
+          target: "http://localhost:5286",
+          changeOrigin: true,
+          secure: false,
+        }
+      }
     }
   }
 });

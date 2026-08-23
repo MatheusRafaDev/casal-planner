@@ -123,15 +123,36 @@ export function RegistroCasal() {
     }
     setLoading(true);
     try {
-      const map = (p: PessoaForm) => ({
+      let dataP1 = undefined;
+      if (p1.dataNascimento.trim() !== "") {
+        dataP1 = brToIsoDate(p1.dataNascimento);
+        if (!dataP1) {
+          toast.error(`A data de nascimento da Pessoa 1 é inválida.`);
+          setLoading(false);
+          return;
+        }
+      }
+
+      let dataP2 = undefined;
+      if (p2.dataNascimento.trim() !== "") {
+        dataP2 = brToIsoDate(p2.dataNascimento);
+        if (!dataP2) {
+          toast.error(`A data de nascimento da Pessoa 2 é inválida.`);
+          setLoading(false);
+          return;
+        }
+      }
+
+      const map = (p: PessoaForm, isoDate: string | undefined) => ({
         nome: p.nome,
         email: p.email,
         senha: p.senha,
-        dataNascimento: brToIsoDate(p.dataNascimento) ?? undefined,
+        dataNascimento: isoDate,
       });
+
       const res = await usuarioService.registrarCasal({
-        pessoa1: map(p1),
-        pessoa2: map(p2),
+        pessoa1: map(p1, dataP1),
+        pessoa2: map(p2, dataP2),
         metaGlobalEnxoval: metaGlobal ? parseFloat(metaGlobal) : undefined,
       });
       await refresh();

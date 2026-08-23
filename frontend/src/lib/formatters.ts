@@ -36,6 +36,15 @@ export const maskDate = (v: string) =>
 
 export const formatDate = (iso: string | Date | null | undefined) => {
   if (!iso) return "";
+  
+  if (typeof iso === "string") {
+    const parts = iso.substring(0, 10).split("-");
+    if (parts.length === 3) {
+      const [y, m, d] = parts;
+      return `${d}/${m}/${y}`;
+    }
+  }
+
   const d = typeof iso === "string" ? new Date(iso) : iso;
   return new Intl.DateTimeFormat("pt-BR").format(d);
 };
@@ -43,10 +52,26 @@ export const formatDate = (iso: string | Date | null | undefined) => {
 export const brToIsoDate = (v: string) => {
   const digits = v.replace(/\D/g, "");
   if (digits.length !== 8) return null;
-  const dd = digits.slice(0, 2);
-  const mm = digits.slice(2, 4);
-  const yyyy = digits.slice(4, 8);
-  return `${yyyy}-${mm}-${dd}`;
+  const dd = parseInt(digits.slice(0, 2), 10);
+  const mm = parseInt(digits.slice(2, 4), 10);
+  const yyyy = parseInt(digits.slice(4, 8), 10);
+
+  // Validação básica de limites
+  if (yyyy < 1900 || yyyy > new Date().getFullYear()) return null;
+  if (mm < 1 || mm > 12) return null;
+  if (dd < 1 || dd > 31) return null;
+
+  // Validação de data real (anos bissextos, meses com 30/31 dias)
+  const dateObj = new Date(yyyy, mm - 1, dd);
+  if (
+    dateObj.getFullYear() !== yyyy ||
+    dateObj.getMonth() + 1 !== mm ||
+    dateObj.getDate() !== dd
+  ) {
+    return null;
+  }
+
+  return `${yyyy.toString().padStart(4, "0")}-${mm.toString().padStart(2, "0")}-${dd.toString().padStart(2, "0")}`;
 };
 
 /**

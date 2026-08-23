@@ -18,6 +18,7 @@ import { useAuth } from "@/lib/auth-context";
 import { usuarioService } from "@/services/usuario";
 import { resumoService } from "@/services/resumo";
 import { conviteService } from "@/services/convite";
+import { recuperarSenhaService } from "@/services/recuperar-senha";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
@@ -280,10 +281,17 @@ function PessoaForm({
 
   const mut = useMutation({
     mutationFn: async () => {
+      let dataFormatada = undefined;
+      if (nasc.trim() !== "") {
+        dataFormatada = brToIsoDate(nasc);
+        if (!dataFormatada) {
+          throw new Error("A data de nascimento é inválida.");
+        }
+      }
       await onSave({
         nome,
         email,
-        dataNascimento: brToIsoDate(nasc),
+        dataNascimento: dataFormatada,
       });
     },
     onSuccess: () => toast.success("Dados atualizados"),
@@ -387,97 +395,54 @@ function MetaEnxovalCard({
 }
 
 function TrocarSenhaCard() {
-  const { usuario } = useAuth();
-  const [aberto, setAberto] = useState(false);
-  const [atual, setAtual] = useState("");
-  const [nova, setNova] = useState("");
-  const [conf, setConf] = useState("");
+  const { usuario, logout } = useAuth();
+  const navigate = useNavigate();
+
   const emailDaConta =
     usuario?.tipoConta === "Casal"
       ? usuario.pessoaLogada === 2
         ? (usuario.casalInfo?.pessoa2.email ?? usuario.email ?? "")
         : (usuario.casalInfo?.pessoa1.email ?? usuario.email ?? "")
       : (usuario?.email ?? "");
-  const mut = useMutation({
-    mutationFn: () => usuarioService.alterarSenha(emailDaConta, atual, nova),
-    onSuccess: () => {
-      toast.success("Senha alterada");
-      setAtual("");
-      setNova("");
-      setConf("");
-      setAberto(false);
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
-  });
-  return (
-    <section className="rounded-2xl border bg-card shadow-soft overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setAberto((v) => !v)}
-        className="w-full flex items-center justify-between p-5 text-left hover:bg-muted/40 transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          <KeyRound className="h-4 w-4 text-primary" />
-          <span className="font-display text-lg font-semibold">Trocar senha</span>
-        </div>
-        <ChevronDown
-          className="h-4 w-4 text-muted-foreground transition-transform duration-200"
-          style={{ transform: aberto ? "rotate(180deg)" : "rotate(0deg)" }}
-        />
-      </button>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateRows: aberto ? "1fr" : "0fr",
-          transition: "grid-template-rows 0.25s ease",
-        }}
-      >
-        <div style={{ overflow: "hidden" }}>
-          <form
-            className="grid md:grid-cols-3 gap-3 px-5 pb-5"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (nova.length < 6) return toast.error("Nova senha muito curta");
-              if (nova !== conf) return toast.error("Confirmação não confere");
-              mut.mutate();
-            }}
-          >
-            <div>
-              <Label>Senha atual</Label>
-              <Input
-                type="password"
-                value={atual}
-                onChange={(e) => setAtual(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label>Nova senha</Label>
-              <Input
-                type="password"
-                value={nova}
-                onChange={(e) => setNova(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label>Confirmar</Label>
-              <Input
-                type="password"
-                value={conf}
-                onChange={(e) => setConf(e.target.value)}
-                required
-              />
-            </div>
-            <div className="md:col-span-3">
-              <Button type="submit" disabled={mut.isPending} className="bg-gradient-primary">
-                {mut.isPending ? "Salvando..." : "Trocar senha"}
-              </Button>
-            </div>
-          </form>
-        </div>
+  const mut = useMutation({
+    mutationFn: () => recuperarSenhaService.esqueciSenha(emailDaConta),
+    onSuccess: () => {
+      toast.success("E-mail enviado! Verifique sua caixa de entrada.");
+      logout();
+      navigate({ to: "/recuperar-senha", search: { email: emailDaConta, step: 2 } });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro ao enviar e-mail"),
+  });
+
+  return (
+    <section className="rounded-2xl border bg-card shadow-soft overflow-hidden p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <KeyRound className="h-4 w-4 text-primary" />
+        <h2 className="font-display text-lg font-semibold">Segurança e Senha</h2>
       </div>
+
+      <p className="text-sm text-muted-foreground mb-4">
+        Para sua segurança, enviaremos um link por e-mail para você redefinir sua senha. O processo é idêntico ao "Esqueci minha senha" sem precisar informar a senha atual.
+      </p>
+
+      <div className="bg-muted/50 rounded-lg p-4 mb-4 text-sm">
+        <p className="font-semibold mb-2">Como funciona:</p>
+        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+          <li>Clique no botão abaixo</li>
+          <li>Acesse o link enviado para <strong>{emailDaConta}</strong></li>
+          <li>Escolha uma nova senha com pelo menos 8 caracteres</li>
+        </ul>
+      </div>
+
+      <Button
+        type="button"
+        onClick={() => mut.mutate()}
+        disabled={mut.isPending}
+        className="w-full sm:w-auto bg-gradient-primary"
+      >
+        {mut.isPending ? "Enviando..." : "Enviar link de redefinição"}
+      </Button>
     </section>
   );
 }

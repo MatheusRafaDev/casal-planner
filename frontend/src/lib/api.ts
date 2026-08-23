@@ -43,7 +43,11 @@ export interface ApiOptions extends Omit<RequestInit, "body" | "headers"> {
 export async function api<T = unknown>(path: string, opts: ApiOptions = {}): Promise<T> {
   const { body, headers = {}, query, ...rest } = opts;
 
-  const url = new URL(path.startsWith("http") ? path : `${API_BASE_URL}${path}`);
+  const baseURL = API_BASE_URL && API_BASE_URL !== "undefined" ? API_BASE_URL : "";
+  const url = new URL(
+    path.startsWith("http") ? path : `${baseURL}${path}`,
+    window.location.origin
+  );
   if (query) {
     for (const [k, v] of Object.entries(query)) {
       if (v !== undefined && v !== null) url.searchParams.set(k, String(v));

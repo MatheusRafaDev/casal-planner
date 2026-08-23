@@ -3,6 +3,12 @@ import { ArrowLeft } from "lucide-react";
 import { WizardRecuperarSenha } from "@/components/auth/WizardRecuperarSenha";
 
 export const Route = createFileRoute("/recuperar-senha")({
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      email: search.email as string | undefined,
+      step: search.step ? Number(search.step) as 1 | 2 | 3 : 1
+    };
+  },
   head: () => ({
     meta: [{ title: "Recuperar senha — Casal Planner" }, { name: "robots", content: "noindex" }],
   }),
@@ -10,6 +16,7 @@ export const Route = createFileRoute("/recuperar-senha")({
 });
 
 function RecuperarPage() {
+  const search = Route.useSearch();
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-6">
@@ -26,7 +33,7 @@ function RecuperarPage() {
         </div>
 
         <div className="p-6 rounded-2xl border bg-card shadow-soft">
-          <WizardRecuperarSenha />
+          <WizardRecuperarSenha initialEmail={search.email} startStep={search.step} />
         </div>
 
         <Link

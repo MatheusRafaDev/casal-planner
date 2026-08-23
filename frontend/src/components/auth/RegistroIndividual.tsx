@@ -27,11 +27,18 @@ export function RegistroIndividual({ returnUrl }: { returnUrl?: string }) {
     e.preventDefault();
     setLoading(true);
     try {
+      const dataFormatada = brToIsoDate(form.dataNascimento);
+      if (form.dataNascimento.trim() !== "" && !dataFormatada) {
+        toast.error("A data de nascimento é inválida.");
+        setLoading(false);
+        return;
+      }
+
       const res = await usuarioService.registrarIndividual({
         nomeCompleto: form.nomeCompleto,
         email: form.email,
         senha: form.senha,
-        dataNascimento: brToIsoDate(form.dataNascimento) ?? undefined,
+        dataNascimento: dataFormatada ?? undefined,
         metaGlobalEnxoval: form.metaGlobalEnxoval ? parseFloat(form.metaGlobalEnxoval) : undefined,
       });
       await refresh();

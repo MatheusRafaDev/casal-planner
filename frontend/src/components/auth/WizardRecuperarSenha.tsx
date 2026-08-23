@@ -47,6 +47,7 @@ export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: Wizar
     setLoading(true);
     try {
       const res = await recuperarSenhaService.validarCodigo(email, codigo);
+      setToken(res.token);
       setPasso(3);
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Código inválido ou expirado");
