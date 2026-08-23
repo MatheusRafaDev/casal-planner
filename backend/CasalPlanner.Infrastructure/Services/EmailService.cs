@@ -1,8 +1,7 @@
 // Services/EmailService.cs
-using System.Net;
 using System.Net.Mail;
-
-using Resend;
+using System.Text;
+using System.Text.Json;
 using CasalPlanner.Application.Interfaces;
 
 namespace CasalPlanner.Infrastructure.Services
@@ -11,107 +10,68 @@ namespace CasalPlanner.Infrastructure.Services
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<EmailService> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
         private const string SITE_URL = "https://casalplanner.vercel.app";
 
-        public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
+        public EmailService(IConfiguration configuration, ILogger<EmailService> logger, IHttpClientFactory httpClientFactory)
         {
             _configuration = configuration;
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
 
-        private async Task<bool> EnviarViaResendAsync(MailMessage mailMessage, string logContexto)
+        private async Task<bool> EnviarViaBrevoAsync(MailMessage mailMessage, string logContexto)
         {
-            var resendApiKey = Environment.GetEnvironmentVariable("RESEND_API_KEY") ?? _configuration["Resend:ApiKey"];
-            if (string.IsNullOrEmpty(resendApiKey))
+            var apiKey = Environment.GetEnvironmentVariable("BREVO_API_KEY") ?? _configuration["Brevo:ApiKey"];
+
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                _logger.LogWarning("BREVO_API_KEY não configurada. Cancelando envio de {Contexto}.", logContexto);
                 return false;
+            }
+
+            var fromEmail = Environment.GetEnvironmentVariable("BREVO_FROM_EMAIL") ?? _configuration["Brevo:FromEmail"] ?? "noreply@casalplanner.com";
+            var destinatario = mailMessage.To[0].Address;
+
+            var payload = new
+            {
+                sender = new { name = "CasalPlanner", email = fromEmail },
+                to = new[] { new { email = destinatario } },
+                subject = mailMessage.Subject,
+                htmlContent = mailMessage.Body
+            };
 
             try
             {
-                var resendFrom = Environment.GetEnvironmentVariable("RESEND_FROM_EMAIL")
-                    ?? _configuration["Resend:FromEmail"]
-                    ?? "onboarding@resend.dev";
+                var client = _httpClientFactory.CreateClient();
+                client.DefaultRequestHeaders.Add("api-key", apiKey);
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
 
-                IResend resend = ResendClient.Create(resendApiKey);
-                var destinatario = mailMessage.To[0].Address;
+                var json = JsonSerializer.Serialize(payload);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var msg = new Resend.EmailMessage
+                var response = await client.PostAsync("https://api.brevo.com/v3/smtp/email", content);
+                var body = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
                 {
-                    From = resendFrom,
-                    Subject = mailMessage.Subject,
-                    HtmlBody = mailMessage.Body,
-                };
-                msg.To.Add(destinatario);
-
-                var response = await resend.EmailSendAsync(msg);
-                _logger.LogInformation("Email ({Contexto}) enviado via Resend para {Email}. Id: {Id}",
-                    logContexto, destinatario, response.Content);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Erro ao enviar email ({Contexto}) via Resend para {Email}",
-                    logContexto, mailMessage.To[0].Address);
-                return false;
-            }
-        }
-
-        private async Task<bool> EnviarViaBrevoAsync(System.Net.Mail.MailMessage mailMessage, string logContexto)
-        {
-            var smtpUser = Environment.GetEnvironmentVariable("BREVO_SMTP_USER") ?? _configuration["Brevo:SmtpUser"];
-            var smtpKey = Environment.GetEnvironmentVariable("BREVO_SMTP_KEY") ?? _configuration["Brevo:SmtpKey"];
-            
-            if (string.IsNullOrEmpty(smtpUser) || string.IsNullOrEmpty(smtpKey))
-            {
-                _logger.LogWarning("Credenciais do Brevo não configuradas. Cancelando envio de {Contexto}.", logContexto);
-                return false;
-            }
-
-            using var smtpClient = new MailKit.Net.Smtp.SmtpClient();
-            try
-            {
-                var fromEmail = Environment.GetEnvironmentVariable("BREVO_FROM_EMAIL") ?? _configuration["Brevo:FromEmail"] ?? "noreply@casalplanner.com";
-                
-                var mimeMessage = new MimeKit.MimeMessage();
-                mimeMessage.From.Add(new MimeKit.MailboxAddress("CasalPlanner", fromEmail));
-                mimeMessage.To.Add(MimeKit.MailboxAddress.Parse(mailMessage.To[0].Address));
-                mimeMessage.Subject = mailMessage.Subject;
-                
-                var builder = new MimeKit.BodyBuilder { HtmlBody = mailMessage.Body };
-                mimeMessage.Body = builder.ToMessageBody();
-
-                await smtpClient.ConnectAsync("smtp-relay.brevo.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-                await smtpClient.AuthenticateAsync(smtpUser, smtpKey);
-                await smtpClient.SendAsync(mimeMessage);
-                
-                var destinatario = mailMessage.To[0].Address;
-                _logger.LogInformation("Email ({Contexto}) enviado via Brevo para {Email}.", logContexto, destinatario);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Erro ao enviar email ({Contexto}) via Brevo para {Email}", logContexto, mailMessage.To[0].Address);
-                return false;
-            }
-            finally
-            {
-                if (smtpClient.IsConnected)
-                {
-                    await smtpClient.DisconnectAsync(true);
+                    _logger.LogInformation("Email ({Contexto}) enviado via Brevo API para {Email}.", logContexto, destinatario);
+                    return true;
                 }
+
+                _logger.LogError("Brevo API retornou {Status} ao enviar email ({Contexto}) para {Email}: {Body}",
+                    (int)response.StatusCode, logContexto, destinatario, body);
+                return false;
             }
-        }
-
-        private async Task<bool> EnviarEmailAsync(MailMessage mailMessage, string logContexto)
-        {
-            var provider = Environment.GetEnvironmentVariable("EMAIL_PROVIDER") ?? _configuration["EmailProvider"] ?? "Brevo";
-
-            if (provider.Equals("Resend", StringComparison.OrdinalIgnoreCase))
+            catch (Exception ex)
             {
-                return await EnviarViaResendAsync(mailMessage, logContexto);
+                _logger.LogError(ex, "Erro ao enviar email ({Contexto}) via Brevo API para {Email}", logContexto, destinatario);
+                return false;
             }
-            
-            return await EnviarViaBrevoAsync(mailMessage, logContexto);
         }
+
+        private Task<bool> EnviarEmailAsync(MailMessage mailMessage, string logContexto)
+            => EnviarViaBrevoAsync(mailMessage, logContexto);
 
         public async Task<bool> EnviarCodigoRedefinicaoSenha(string email, string codigo, string nome = "")
         {
