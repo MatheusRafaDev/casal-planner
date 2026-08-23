@@ -12,6 +12,7 @@ import {
   Share2,
   Copy,
   Check,
+  MailOpen,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
@@ -48,28 +49,29 @@ function PerfilPage() {
   const { usuario, refresh, logout } = useAuth();
 
   const navigate = useNavigate();
-  const [emailParceiro, setEmailParceiro] = useState("");
-  const [linkConvite, setLinkConvite] = useState("");
-  const [copiado, setCopiado] = useState(false);
+  const convitesQuery = useQuery({
+    queryKey: ["meus-convites"],
+    queryFn: () => conviteService.buscarMeusConvites(),
+    enabled: !isCasal,
+  });
 
-  const conviteMutation = useMutation({
-    mutationFn: () => conviteService.criar({ emailParceiro }),
+  const aceitarMutation = useMutation({
+    mutationFn: (token: string) => conviteService.aceitar({ token, migrarDados: true }),
     onSuccess: (data) => {
-      setLinkConvite(data.linkConvite);
-      toast.success("Convite criado com sucesso!");
+      toast.success("Convite aceito! Contas vinculadas.");
+      window.location.href = "/";
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const copiarLink = async () => {
-    await navigator.clipboard.writeText(linkConvite);
-    setCopiado(true);
-    setTimeout(() => setCopiado(false), 2000);
-    toast.success("Link copiado!");
-  };
-
-  if (!usuario) return null;
-  const isCasal = usuario.tipoConta === "Casal";
+  const conviteMutation = useMutation({
+    mutationFn: () => conviteService.criar({ emailParceiro }),
+    onSuccess: () => {
+      toast.success("Convite enviado com sucesso!");
+      setEmailParceiro("");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
     <div className="p-4 md:p-8 w-full max-w-[1000px] space-y-6">
@@ -85,60 +87,63 @@ function PerfilPage() {
         </div>
       </div>
 
+      {!isCasal && convitesQuery.data && convitesQuery.data.length > 0 && (
+        <section className="rounded-2xl border border-primary/50 bg-primary/5 p-5 shadow-soft">
+          <div className="flex items-center gap-2 mb-4">
+            <MailOpen className="h-5 w-5 text-primary" />
+            <h2 className="font-display text-lg font-semibold text-primary">Você tem um convite!</h2>
+          </div>
+          <div className="space-y-4">
+            {convitesQuery.data.map((convite) => (
+              <div key={convite.token} className="bg-background rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between border">
+                <div>
+                  <p className="font-medium text-base">
+                    <strong>{convite.nomeConvidante}</strong> convidou você para o CasalPlanner.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Aceite para vincular suas contas. Ao aceitar, seus dados atuais serão migrados para a conta de casal.
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => aceitarMutation.mutate(convite.token)}
+                  disabled={aceitarMutation.isPending}
+                  className="w-full md:w-auto"
+                >
+                  <Check className="h-4 w-4 mr-2" /> 
+                  {aceitarMutation.isPending ? "Aceitando..." : "Aceitar Convite"}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {!isCasal && (
         <section className="rounded-2xl border bg-card p-5 shadow-soft">
           <h2 className="font-display text-lg font-semibold mb-4">Convidar parceiro</h2>
           <p className="text-sm text-muted-foreground mb-4">
-            Convide seu parceiro para transformar sua conta individual em uma conta de casal
-            compartilhada.
+            Envie um convite para o email do seu parceiro. Ele será notificado para acessar o aplicativo e aceitar.
           </p>
-          {!linkConvite ? (
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="email-parceiro">Email do parceiro</Label>
-                <Input
-                  id="email-parceiro"
-                  type="email"
-                  placeholder="parceiro@email.com"
-                  value={emailParceiro}
-                  onChange={(e) => setEmailParceiro(e.target.value)}
-                />
-              </div>
-              <Button
-                onClick={() => conviteMutation.mutate()}
-                disabled={!emailParceiro || conviteMutation.isPending}
-                className="w-full"
-              >
-                <Share2 className="h-4 w-4 mr-2" />
-                {conviteMutation.isPending ? "Criando convite..." : "Criar convite"}
-              </Button>
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="email-parceiro">Email do parceiro</Label>
+              <Input
+                id="email-parceiro"
+                type="email"
+                placeholder="parceiro@email.com"
+                value={emailParceiro}
+                onChange={(e) => setEmailParceiro(e.target.value)}
+              />
             </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="p-3 bg-muted rounded-lg">
-                <p className="text-sm font-medium mb-2">Link de convite:</p>
-                <div className="flex gap-2">
-                  <Input value={linkConvite} readOnly className="text-xs" />
-                  <Button size="icon" variant="outline" onClick={copiarLink}>
-                    {copiado ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </Button>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Compartilhe este link com seu parceiro. O convite é válido por 7 dias.
-              </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setLinkConvite("");
-                  setEmailParceiro("");
-                }}
-              >
-                Criar novo convite
-              </Button>
-            </div>
-          )}
+            <Button
+              onClick={() => conviteMutation.mutate()}
+              disabled={!emailParceiro || conviteMutation.isPending}
+              className="w-full"
+            >
+              <Share2 className="h-4 w-4 mr-2" />
+              {conviteMutation.isPending ? "Enviando..." : "Enviar convite"}
+            </Button>
+          </div>
         </section>
       )}
 

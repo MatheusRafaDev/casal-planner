@@ -27,6 +27,13 @@ export interface AceitarConviteResponse {
   usuario: Usuario;
 }
 
+export interface MeuConviteDto {
+  token: string;
+  nomeConvidante: string;
+  emailConvidante: string;
+  expiraEm: string;
+}
+
 export const conviteService = {
   criar: (dto: CriarConviteDto) =>
     api<ConviteResponseDto>("/api/usuario/convite", {
@@ -42,4 +49,7 @@ export const conviteService = {
       method: "POST",
       body: dto,
     }),
+    
+  buscarMeusConvites: () =>
+    api<MeuConviteDto[]>("/api/usuario/meus-convites"),
 };

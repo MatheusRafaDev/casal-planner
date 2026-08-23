@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as ConviteRouteImport } from './routes/convite'
+
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as TrocarSenhaRouteImport } from './routes/trocar-senha'
@@ -28,11 +28,7 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ConviteRoute = ConviteRouteImport.update({
-  id: '/convite',
-  path: '/convite',
-  getParentRoute: () => rootRouteImport,
-} as any)
+
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -67,7 +63,7 @@ const AuthenticatedPlanejamentoRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/convite': typeof ConviteRoute
+
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/trocar-senha': typeof TrocarSenhaRoute
@@ -77,7 +73,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/convite': typeof ConviteRoute
+
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/trocar-senha': typeof TrocarSenhaRoute
@@ -89,7 +85,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/convite': typeof ConviteRoute
+
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/trocar-senha': typeof TrocarSenhaRoute
@@ -101,7 +97,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/convite'
+
     | '/login'
     | '/recuperar-senha'
     | '/trocar-senha'
@@ -111,7 +107,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/convite'
+
     | '/login'
     | '/recuperar-senha'
     | '/trocar-senha'
@@ -122,7 +118,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
-    | '/convite'
+
     | '/login'
     | '/recuperar-senha'
     | '/trocar-senha'
@@ -134,7 +130,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  ConviteRoute: typeof ConviteRoute
+
   LoginRoute: typeof LoginRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
   TrocarSenhaRoute: typeof TrocarSenhaRoute
@@ -156,13 +152,7 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/convite': {
-      id: '/convite'
-      path: '/convite'
-      fullPath: '/convite'
-      preLoaderRoute: typeof ConviteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+
     '/login': {
       id: '/login'
       path: '/login'
@@ -226,7 +216,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  ConviteRoute: ConviteRoute,
+
   LoginRoute: LoginRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
   TrocarSenhaRoute: TrocarSenhaRoute,

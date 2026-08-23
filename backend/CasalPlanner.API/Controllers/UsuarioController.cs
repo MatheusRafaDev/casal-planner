@@ -551,10 +551,10 @@ public class UsuarioController : ControllerBase
 
         await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioId, update);
 
-        // Gerar link de convite
+        // Gerar link do app
         var envFrontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
         var frontendUrl = !string.IsNullOrEmpty(envFrontendUrl) ? envFrontendUrl : "https://casalplanner.vercel.app";
-        var linkConvite = $"{frontendUrl.TrimEnd('/')}/convite?token={token}";
+        var linkApp = $"{frontendUrl.TrimEnd('/')}/perfil";
 
         // Enviar email de convite
         try
@@ -562,7 +562,7 @@ public class UsuarioController : ControllerBase
             var enviado = await _emailService.EnviarEmailConviteParceiro(
                 dto.EmailParceiro,
                 usuario.NomeCompleto ?? "Um usuário",
-                linkConvite,
+                linkApp,
                 expiraEm);
 
             if (!enviado)
@@ -579,7 +579,7 @@ public class UsuarioController : ControllerBase
         return Ok(new ConviteResponseDto
         {
             Token = token,
-            LinkConvite = linkConvite,
+            LinkConvite = linkApp,
             ExpiraEm = expiraEm
         });
     }
@@ -602,6 +602,28 @@ public class UsuarioController : ControllerBase
             nomeConvidante = usuario.NomeCompleto ?? "Alguém",
             emailConvidante = usuario.Email ?? string.Empty
         });
+    }
+
+    [Authorize]
+    [HttpGet("meus-convites")]
+    public async Task<ActionResult> ObterMeusConvites()
+    {
+        var email = GetUsuarioEmailAutenticado();
+        if (string.IsNullOrEmpty(email)) return Unauthorized();
+
+        var convites = await _context.Usuarios
+            .Find(u => u.ConviteParceiroEmail == email && u.ConviteParceiroExpiraEm > DateTime.UtcNow)
+            .ToListAsync();
+
+        var result = convites.Select(u => new
+        {
+            token = u.ConviteParceiroToken,
+            nomeConvidante = u.NomeCompleto ?? "Alguém",
+            emailConvidante = u.Email ?? string.Empty,
+            expiraEm = u.ConviteParceiroExpiraEm
+        });
+
+        return Ok(result);
     }
 
     [Authorize]
