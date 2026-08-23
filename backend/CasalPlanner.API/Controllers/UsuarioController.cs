@@ -536,8 +536,8 @@ public class UsuarioController : ControllerBase
             .Find(u => u.Email == dto.EmailParceiro)
             .FirstOrDefaultAsync();
         
-        if (parceiroExistente != null)
-            return BadRequest(new { message = "Este email já está cadastrado no sistema" });
+        if (parceiroExistente != null && parceiroExistente.TipoConta == TipoConta.Casal)
+            return BadRequest(new { message = "Este email já pertence a uma conta de casal" });
 
         // Gerar token de convite
         var token = Guid.NewGuid().ToString("N");
