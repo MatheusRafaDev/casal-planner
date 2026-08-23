@@ -49,6 +49,11 @@ function PerfilPage() {
   const { usuario, refresh, logout } = useAuth();
 
   const navigate = useNavigate();
+  const [emailParceiro, setEmailParceiro] = useState("");
+
+  if (!usuario) return null;
+  const isCasal = usuario.tipoConta === "Casal";
+
   const convitesQuery = useQuery({
     queryKey: ["meus-convites"],
     queryFn: () => conviteService.buscarMeusConvites(),
