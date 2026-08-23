@@ -62,9 +62,10 @@ function PerfilPage() {
 
   const aceitarMutation = useMutation({
     mutationFn: (token: string) => conviteService.aceitar({ token, migrarDados: true }),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast.success("Convite aceito! Contas vinculadas.");
-      window.location.href = "/";
+      await refresh();
+      navigate({ to: "/" });
     },
     onError: (e: Error) => toast.error(e.message),
   });
