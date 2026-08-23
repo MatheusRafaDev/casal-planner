@@ -9,6 +9,7 @@ import { usuarioService } from "@/services/usuario";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { maskDate, brToIsoDate } from "@/lib/formatters";
+import { CurrencyInput } from "@/components/ui/currency-input";
 
 export function RegistroIndividual({ returnUrl }: { returnUrl?: string }) {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export function RegistroIndividual({ returnUrl }: { returnUrl?: string }) {
     email: "",
     senha: "",
     dataNascimento: "",
-    metaGlobalEnxoval: "",
+    metaGlobalEnxoval: "" as string | number,
   });
   const [loading, setLoading] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -38,8 +39,8 @@ export function RegistroIndividual({ returnUrl }: { returnUrl?: string }) {
         nomeCompleto: form.nomeCompleto,
         email: form.email,
         senha: form.senha,
-        dataNascimento: dataFormatada ?? undefined,
-        metaGlobalEnxoval: form.metaGlobalEnxoval ? parseFloat(form.metaGlobalEnxoval) : undefined,
+        dataNascimento: dataFormatada,
+        metaGlobalEnxoval: form.metaGlobalEnxoval ? Number(form.metaGlobalEnxoval) : undefined,
       });
       await refresh();
       toast.success("Conta criada! Bem-vindo(a).");
@@ -123,15 +124,12 @@ export function RegistroIndividual({ returnUrl }: { returnUrl?: string }) {
         <div className="space-y-2">
           <Label>Meta do Enxoval (R$)</Label>
           <div className="relative">
-            <Target className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
+            <Target className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground z-10" />
+            <CurrencyInput
               className="pl-9"
               value={form.metaGlobalEnxoval}
-              onChange={(e) => setForm({ ...form, metaGlobalEnxoval: e.target.value })}
-              placeholder="Ex: 5000"
+              onValueChange={(val) => setForm({ ...form, metaGlobalEnxoval: val })}
+              placeholder="Ex: 5.000,00"
             />
           </div>
         </div>

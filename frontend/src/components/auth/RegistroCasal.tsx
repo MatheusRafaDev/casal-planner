@@ -9,6 +9,7 @@ import { usuarioService } from "@/services/usuario";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { maskDate, brToIsoDate } from "@/lib/formatters";
+import { CurrencyInput } from "@/components/ui/currency-input";
 
 interface PessoaForm {
   nome: string;
@@ -111,7 +112,7 @@ export function RegistroCasal() {
   const { refresh } = useAuth();
   const [p1, setP1] = useState(emptyPessoa());
   const [p2, setP2] = useState(emptyPessoa());
-  const [metaGlobal, setMetaGlobal] = useState("");
+  const [metaGlobal, setMetaGlobal] = useState<number | "">("");
   const [loading, setLoading] = useState(false);
 
   async function submit(e: React.FormEvent) {
@@ -153,7 +154,7 @@ export function RegistroCasal() {
       const res = await usuarioService.registrarCasal({
         pessoa1: map(p1, dataP1),
         pessoa2: map(p2, dataP2),
-        metaGlobalEnxoval: metaGlobal ? parseFloat(metaGlobal) : undefined,
+        metaGlobalEnxoval: metaGlobal ? Number(metaGlobal) : undefined,
       });
       await refresh();
       toast.success("Conta do casal criada!");
@@ -172,15 +173,12 @@ export function RegistroCasal() {
       <div className="space-y-2 p-4 rounded-xl border bg-card">
         <Label>Meta do Enxoval (R$)</Label>
         <div className="relative">
-          <Target className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="number"
-            min="0"
-            step="0.01"
+          <Target className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground z-10" />
+          <CurrencyInput
             className="pl-9"
             value={metaGlobal}
-            onChange={(e) => setMetaGlobal(e.target.value)}
-            placeholder="Ex: 5000"
+            onValueChange={setMetaGlobal}
+            placeholder="Ex: 5.000,00"
           />
         </div>
       </div>
