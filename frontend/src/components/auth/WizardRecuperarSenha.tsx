@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Mail, KeyRound, Lock, ArrowLeft } from "lucide-react";
+import { Mail, KeyRound, Lock, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +25,8 @@ export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: Wizar
   const [novaSenha, setNovaSenha] = useState("");
   const [confirma, setConfirma] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [mostrarConfirma, setMostrarConfirma] = useState(false);
 
   async function enviarCodigo(e: React.FormEvent) {
     e.preventDefault();
@@ -136,23 +138,47 @@ export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: Wizar
           </div>
           <div className="space-y-2">
             <Label>Nova senha</Label>
-            <Input
-              type="password"
-              required
-              minLength={6}
-              value={novaSenha}
-              onChange={(e) => setNovaSenha(e.target.value)}
-            />
+            <div className="relative">
+              <Input
+                type={mostrarSenha ? "text" : "password"}
+                required
+                minLength={6}
+                className="pr-10"
+                value={novaSenha}
+                onChange={(e) => setNovaSenha(e.target.value)}
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+                onClick={() => setMostrarSenha((v) => !v)}
+                className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {mostrarSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
           <div className="space-y-2">
             <Label>Confirme a senha</Label>
-            <Input
-              type="password"
-              required
-              minLength={6}
-              value={confirma}
-              onChange={(e) => setConfirma(e.target.value)}
-            />
+            <div className="relative">
+              <Input
+                type={mostrarConfirma ? "text" : "password"}
+                required
+                minLength={6}
+                className="pr-10"
+                value={confirma}
+                onChange={(e) => setConfirma(e.target.value)}
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                aria-label={mostrarConfirma ? "Ocultar senha" : "Mostrar senha"}
+                onClick={() => setMostrarConfirma((v) => !v)}
+                className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {mostrarConfirma ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
           <Button className="w-full bg-gradient-primary" disabled={loading}>
             {loading ? "Salvando..." : "Redefinir senha"}

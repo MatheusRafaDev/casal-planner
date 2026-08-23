@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,6 +61,7 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
   const [googleError, setGoogleError] = useState(false);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const { login, loginComGoogle } = useAuth();
   const navigate = useNavigate();
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -199,13 +200,22 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
           <Input
             id="senha"
             name="password"
-            type="password"
-            className="pl-9"
+            type={mostrarSenha ? "text" : "password"}
+            className="pl-9 pr-10"
             ref={senhaInputRef}
             defaultValue=""
             required
             autoComplete="current-password"
           />
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+            onClick={() => setMostrarSenha((v) => !v)}
+            className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {mostrarSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
         </div>
       </div>
       <Button type="submit" className="w-full bg-gradient-primary shadow-warm" disabled={loading || googleLoading}>

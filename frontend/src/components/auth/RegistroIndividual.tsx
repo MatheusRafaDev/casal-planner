@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { User, Mail, Lock, Calendar, Target } from "lucide-react";
+import { User, Mail, Lock, Calendar, Target, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,7 @@ export function RegistroIndividual({ returnUrl }: { returnUrl?: string }) {
     metaGlobalEnxoval: "",
   });
   const [loading, setLoading] = useState(false);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -80,13 +81,22 @@ export function RegistroIndividual({ returnUrl }: { returnUrl?: string }) {
           <div className="relative">
             <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              type="password"
+              type={mostrarSenha ? "text" : "password"}
               required
               minLength={6}
-              className="pl-9"
+              className="pl-9 pr-10"
               value={form.senha}
               onChange={(e) => setForm({ ...form, senha: e.target.value })}
             />
+            <button
+              type="button"
+              tabIndex={-1}
+              aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+              onClick={() => setMostrarSenha((v) => !v)}
+              className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {mostrarSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
         </div>
 
