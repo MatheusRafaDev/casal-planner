@@ -197,6 +197,7 @@ function PerfilPage() {
               email: usuario.email ?? "",
               dataNascimento: usuario.dataNascimento ?? "",
             }}
+            bloquearEmailCpf
             onSave={async (dto) => {
               await usuarioService.atualizarPerfil({
                 nomeCompleto: dto.nome,
@@ -329,10 +330,11 @@ function PessoaForm({
             onChange={(e) => setEmail(e.target.value)}
             required
             disabled={bloquearEmailCpf}
+            readOnly={bloquearEmailCpf}
           />
           {bloquearEmailCpf && (
             <p className="text-xs text-muted-foreground mt-1">
-              E-mail de contas de casal não pode ser alterado por aqui ainda.
+              O e-mail não pode ser alterado no momento.
             </p>
           )}
         </div>
