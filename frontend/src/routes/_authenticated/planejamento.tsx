@@ -982,7 +982,7 @@ function PlanejamentoPage() {
                   )}
                   {!itensQ.hasNextPage && itensFiltrados.length > 0 && (
                     <p className="col-span-full text-center text-xs text-muted-foreground pt-2">
-                      {itensFiltrados.length} iten{itensFiltrados.length !== 1 ? "s" : ""} exibido{itensFiltrados.length !== 1 ? "s" : ""}
+                      {itensFiltrados.length} {itensFiltrados.length !== 1 ? "itens" : "item"} exibido{itensFiltrados.length !== 1 ? "s" : ""}
                       {itensQ.data?.pages[0]?.totalCount
                         ? ` de ${itensQ.data.pages[0].totalCount} total`
                         : ""}
