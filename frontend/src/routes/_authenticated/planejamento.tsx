@@ -383,8 +383,20 @@ function PlanejamentoPage() {
             <Button variant="secondary" size="sm" className="hidden sm:inline-flex" onClick={() => setNovaCategoria(true)}>
               <Plus className="h-4 w-4 mr-1" /> Novo cômodo
             </Button>
-            <Button size="sm" onClick={() => setWizardOpen(true)} disabled={categorias.length === 0}>
-              <Sparkles className="h-4 w-4 mr-1" /> Adicionar item
+            <Button 
+              size="sm" 
+              onClick={() => {
+                if (categorias.length === 0) {
+                  toast.info("Crie seu primeiro cômodo para organizar os itens!");
+                  setNovaCategoria(true);
+                } else {
+                  setWizardOpen(true);
+                }
+              }}
+            >
+              <Sparkles className="h-4 w-4 mr-1" /> 
+              <span className="hidden sm:inline">Adicionar item</span>
+              <span className="sm:hidden">Item</span>
             </Button>
             <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={handleCompartilhar}>
               <Share2 className="h-4 w-4 mr-1" /> Compartilhar
@@ -754,7 +766,17 @@ function PlanejamentoPage() {
                     <p className="text-sm text-muted-foreground">
                       Nenhum item por aqui ainda. Que tal adicionar o primeiro?
                     </p>
-                    <Button className="mt-4" onClick={() => setWizardOpen(true)}>
+                    <Button 
+                      className="mt-4" 
+                      onClick={() => {
+                        if (categorias.length === 0) {
+                          toast.info("Crie seu primeiro cômodo para organizar os itens!");
+                          setNovaCategoria(true);
+                        } else {
+                          setWizardOpen(true);
+                        }
+                      }}
+                    >
                       <Plus className="h-4 w-4 mr-1" /> Adicionar item
                     </Button>
                   </div>
