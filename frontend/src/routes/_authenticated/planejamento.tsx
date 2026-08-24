@@ -687,7 +687,7 @@ function PlanejamentoPage() {
               </div>
 
               {/* Filtros */}
-              <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="flex flex-col gap-3 lg:flex-row">
                 <div className="relative flex-1 min-w-0">
                   <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -697,7 +697,7 @@ function PlanejamentoPage() {
                     onChange={(e) => setBusca(e.target.value)}
                   />
                 </div>
-                <div className={cn("grid gap-2", isCasal ? "grid-cols-1 xs:grid-cols-2 lg:grid-cols-3" : "grid-cols-1 xs:grid-cols-2")}>
+                <div className={cn("grid gap-2", isCasal ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2")}>
                   <Select
                     value={filtroStatus}
                     onValueChange={(v) => setFiltroStatus(v as typeof filtroStatus)}
