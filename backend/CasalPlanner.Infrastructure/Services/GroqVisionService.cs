@@ -14,7 +14,7 @@ public class GroqVisionService : IVisionAnalysisService
     // Modelo de visão ativo no Groq (agosto 2026).
     // Suporta: texto + imagem (multimodal), JSON mode, tool use.
     // Se este modelo for descontinuado, verifique: https://console.groq.com/docs/deprecations
-    private const string VisionModel = "qwen/qwen3.6-27b";
+    private const string VisionModel = "llama-3.2-11b-vision-preview";
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<GroqVisionService> _logger;
