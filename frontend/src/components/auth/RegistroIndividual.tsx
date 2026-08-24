@@ -39,7 +39,7 @@ export function RegistroIndividual({ returnUrl }: { returnUrl?: string }) {
         nomeCompleto: form.nomeCompleto,
         email: form.email,
         senha: form.senha,
-        dataNascimento: dataFormatada,
+        dataNascimento: dataFormatada ?? undefined,
         metaGlobalEnxoval: form.metaGlobalEnxoval ? Number(form.metaGlobalEnxoval) : undefined,
       });
       await refresh();

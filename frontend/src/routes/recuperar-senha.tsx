@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { WizardRecuperarSenha } from "@/components/auth/WizardRecuperarSenha";
 
 export const Route = createFileRoute("/recuperar-senha")({
-  validateSearch: (search: Record<string, unknown>) => {
+  validateSearch: (search: Record<string, unknown>): { email?: string; step?: 1 | 2 | 3 } => {
     return {
       email: search.email as string | undefined,
       step: search.step ? Number(search.step) as 1 | 2 | 3 : 1
