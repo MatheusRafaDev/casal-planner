@@ -329,7 +329,8 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         setQueryBusca(nomeIdentificado);
         setStep(2); // Vai para a pesquisa online
       }
-    } catch {
+    } catch (err) {
+      console.error("Erro na análise da foto:", err);
       toast.error("Não consegui ler a foto. Tente preencher manualmente.");
     } finally {
       setAnalisandoFoto(false);
