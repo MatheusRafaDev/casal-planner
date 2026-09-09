@@ -50,15 +50,13 @@ interface Props {
   categoriaInicialId: string;
 }
 
-
-
 function toBase64(file: File): Promise<string> {
   return new Promise(async (resolve, reject) => {
     try {
       const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
       const maxSize = 1600;
       let { width, height } = bitmap;
-      
+
       if (width > maxSize || height > maxSize) {
         if (width > height) {
           height = Math.round((height * maxSize) / width);
@@ -74,7 +72,7 @@ function toBase64(file: File): Promise<string> {
       canvas.height = height;
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas context is null");
-      
+
       ctx.fillStyle = "white";
       ctx.fillRect(0, 0, width, height);
       ctx.drawImage(bitmap, 0, 0, width, height);
@@ -88,7 +86,7 @@ function toBase64(file: File): Promise<string> {
         img.onload = () => {
           const canvas = document.createElement("canvas");
           const ctx = canvas.getContext("2d");
-          
+
           const MAX_WIDTH = 1200;
           const MAX_HEIGHT = 1200;
           let width = img.width;
@@ -108,13 +106,13 @@ function toBase64(file: File): Promise<string> {
 
           canvas.width = width;
           canvas.height = height;
-          
+
           if (ctx) {
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0, width, height);
           }
-          
+
           resolve(canvas.toDataURL("image/jpeg", 0.8));
         };
         img.onerror = reject;
@@ -302,12 +300,12 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     try {
       const imagemBase64 = await toBase64(file);
       const analise = await registroPrecoService.analisar(imagemBase64);
-      
+
       const nomeIdentificado = analise.produtoNome.trim();
       handleNomeChange(nomeIdentificado); // Isso já vai tentar preencher o cômodo
       setMarca(analise.marca ?? "");
       setLoja(analise.nomeMercado ?? "");
-      
+
       // Store the image to be used as the item's photo
       if (fotoPreviewUrl) URL.revokeObjectURL(fotoPreviewUrl);
       setFotoFile(file);
@@ -452,13 +450,38 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
             <div className="space-y-3 pb-4 border-b">
               <Label>Identificar utilizando foto</Label>
               <div className="grid grid-cols-2 gap-3">
-                <input ref={cameraInputRef} className="hidden" type="file" accept="image/jpeg, image/png, image/webp" capture="environment" onChange={(e) => handleFile(e.target.files?.[0])} />
-                <input ref={fileInputRef} className="hidden" type="file" accept="image/jpeg, image/png, image/webp" onChange={(e) => handleFile(e.target.files?.[0])} />
-                <Button type="button" variant="outline" className="h-20 flex flex-col gap-2 bg-background/50 hover:bg-accent" disabled={analisandoFoto} onClick={() => cameraInputRef.current?.click()}>
+                <input
+                  ref={cameraInputRef}
+                  className="hidden"
+                  type="file"
+                  accept="image/jpeg, image/png, image/webp"
+                  capture="environment"
+                  onChange={(e) => handleFile(e.target.files?.[0])}
+                />
+                <input
+                  ref={fileInputRef}
+                  className="hidden"
+                  type="file"
+                  accept="image/jpeg, image/png, image/webp"
+                  onChange={(e) => handleFile(e.target.files?.[0])}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-20 flex flex-col gap-2 bg-background/50 hover:bg-accent"
+                  disabled={analisandoFoto}
+                  onClick={() => cameraInputRef.current?.click()}
+                >
                   <Camera className="h-6 w-6 text-primary" />
                   Tirar foto
                 </Button>
-                <Button type="button" variant="outline" className="h-20 flex flex-col gap-2 bg-background/50 hover:bg-accent" disabled={analisandoFoto} onClick={() => fileInputRef.current?.click()}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-20 flex flex-col gap-2 bg-background/50 hover:bg-accent"
+                  disabled={analisandoFoto}
+                  onClick={() => fileInputRef.current?.click()}
+                >
                   <Upload className="h-6 w-6 text-primary" />
                   Subir foto
                 </Button>
@@ -634,9 +657,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 {(fotoPreviewUrl || escolhido?.thumbnail) && (
                   <div className="relative mt-4 w-full h-72 rounded-2xl overflow-hidden border bg-background/50">
                     {/* Fundo Desfocado Premium */}
-                    <div 
-                      className="absolute inset-0 bg-cover bg-center opacity-30 blur-2xl scale-110" 
-                      style={{ backgroundImage: `url(${fotoPreviewUrl ?? escolhido!.thumbnail})` }} 
+                    <div
+                      className="absolute inset-0 bg-cover bg-center opacity-30 blur-2xl scale-110"
+                      style={{ backgroundImage: `url(${fotoPreviewUrl ?? escolhido!.thumbnail})` }}
                     />
                     {/* Imagem Principal */}
                     <img
@@ -790,10 +813,13 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     <Gift className="h-3.5 w-3.5 text-muted-foreground" />
                     Origem
                   </Label>
-                  <Select value={origem} onValueChange={(v) => {
-                    setOrigem(v as "comprado" | "ganho");
-                    if (v === "ganho") setParcelas(1);
-                  }}>
+                  <Select
+                    value={origem}
+                    onValueChange={(v) => {
+                      setOrigem(v as "comprado" | "ganho");
+                      if (v === "ganho") setParcelas(1);
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>

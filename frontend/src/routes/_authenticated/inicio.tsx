@@ -13,8 +13,15 @@ import {
   FileText,
 } from "lucide-react";
 import {
-  Pie, PieChart, Cell,
-  Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  Pie,
+  PieChart,
+  Cell,
+  Bar,
+  BarChart,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
 } from "recharts";
 import { resumoService } from "@/services/resumo";
 import { groqService } from "@/services/groq";
@@ -122,7 +129,20 @@ function InicioPage() {
 
   // Bar chart mensal — com nomes reais dos meses
   const hoje = new Date();
-  const MESES_PT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+  const MESES_PT = [
+    "Jan",
+    "Fev",
+    "Mar",
+    "Abr",
+    "Mai",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Set",
+    "Out",
+    "Nov",
+    "Dez",
+  ];
   const mesAtualNome = MESES_PT[hoje.getMonth()];
   const mesPassadoNome = MESES_PT[(hoje.getMonth() + 11) % 12];
   const mesRetrasadoNome = MESES_PT[(hoje.getMonth() + 10) % 12];
@@ -147,8 +167,12 @@ function InicioPage() {
     ]);
     const doc = new jsPDF();
     const hoje = new Date();
-    const dataStr = hoje.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
-    const nomesCasal = isCasal ? `${p1} & ${p2}` : usuario?.nomeCompleto ?? "CasalPlanner";
+    const dataStr = hoje.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+    const nomesCasal = isCasal ? `${p1} & ${p2}` : (usuario?.nomeCompleto ?? "CasalPlanner");
 
     // ── Cabeçalho ──
     doc.setFillColor(139, 92, 246);
@@ -172,13 +196,17 @@ function InicioPage() {
     const totalComprados = r?.itensComprados ?? 0;
     const metaVal = r?.metaGlobal ?? 0;
     const pctMeta = metaVal > 0 ? Math.min(100, (totalGeral / metaVal) * 100) : null;
-    const totalParcelado = itens.filter((i: Item) => (i.parcelas ?? 1) > 1)
+    const totalParcelado = itens
+      .filter((i: Item) => (i.parcelas ?? 1) > 1)
       .reduce((s: number, i: Item) => s + i.preco * i.quantidade, 0);
 
     const metricas = [
       ["Total Gasto", brl(totalGeral)],
       ["Total de Itens", `${totalItens} itens (${totalComprados} comprados)`],
-      ["Meta Global", metaVal > 0 ? `${brl(metaVal)} (${pctMeta?.toFixed(1)}% atingido)` : "Não definida"],
+      [
+        "Meta Global",
+        metaVal > 0 ? `${brl(metaVal)} (${pctMeta?.toFixed(1)}% atingido)` : "Não definida",
+      ],
       ["Em Parcelas", brl(totalParcelado)],
       ["Apenas Dinheiro", brl(r?.totalNormal ?? 0)],
       ["VR / VA", brl(r?.totalVr ?? 0)],
@@ -230,7 +258,7 @@ function InicioPage() {
       doc.text("Top 10 Itens por Valor", 14, afterCat + 12);
 
       const topItens = [...itens]
-        .sort((a: Item, b: Item) => (b.preco * b.quantidade) - (a.preco * a.quantidade))
+        .sort((a: Item, b: Item) => b.preco * b.quantidade - a.preco * a.quantidade)
         .slice(0, 10)
         .map((i: Item) => [
           i.nome,
@@ -260,15 +288,34 @@ function InicioPage() {
       doc.setPage(i);
       doc.text(
         `Página ${i} de ${pages}  •  CasalPlanner  •  Gerado em ${dataStr}`,
-        14, doc.internal.pageSize.height - 8
+        14,
+        doc.internal.pageSize.height - 8,
       );
     }
 
     doc.save(`relatorio-financeiro-${hoje.toISOString().slice(0, 10)}.pdf`);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+  };
+
   return (
-    <div className="p-4 md:p-8 w-full max-w-[1600px] space-y-6">
+    <motion.div
+      className="p-4 md:p-8 w-full max-w-[1600px] space-y-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+    >
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <h1 className="font-display text-3xl md:text-4xl font-semibold">Início</h1>
@@ -292,306 +339,330 @@ function InicioPage() {
       </div>
 
       {/* Progresso do Enxoval */}
-      {meta > 0 ? (
-        <div className="rounded-2xl border bg-card p-5 shadow-soft">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <div className="min-w-0 flex-1">
-              <div className="text-sm text-muted-foreground">Progresso do enxoval</div>
-              <div className="font-display text-xl font-semibold truncate">
-                {brl(r?.totalGeral)}{" "}
-                <span className="text-muted-foreground text-base">de {brl(meta)}</span>
-              </div>
-              {meta - (r?.totalGeral ?? 0) > 0 && (
-                <div className="text-xs text-muted-foreground mt-1">
-                  Faltam {brl(meta - (r?.totalGeral ?? 0))}
+      <motion.div variants={itemVariants}>
+        {meta > 0 ? (
+          <div className="rounded-2xl border bg-card p-5 shadow-soft">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="min-w-0 flex-1">
+                <div className="text-sm text-muted-foreground">Progresso do enxoval</div>
+                <div className="font-display text-xl font-semibold truncate">
+                  {brl(r?.totalGeral)}{" "}
+                  <span className="text-muted-foreground text-base">de {brl(meta)}</span>
                 </div>
-              )}
-            </div>
-            <span className="text-sm font-medium text-primary shrink-0">{pct.toFixed(0)}%</span>
-          </div>
-          <Progress value={pct} />
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-soft">
-          <div className="min-w-0 flex-1">
-            <div className="font-semibold text-primary">Progresso do enxoval</div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Defina um orçamento máximo para o seu enxoval e acompanhe o progresso aqui.
-            </p>
-          </div>
-          <Link to="/perfil" className="shrink-0">
-            <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
-              <Target className="mr-2 h-4 w-4" />
-              Definir meta
-            </Button>
-          </Link>
-        </div>
-      )}
-
-      {semDados ? (
-        <div className="rounded-2xl border bg-gradient-warm p-6 sm:p-10 text-center shadow-soft">
-          <Sparkles className="h-8 w-8 mx-auto text-primary mb-3" />
-          <h2 className="font-display text-xl font-semibold mb-2">
-            Comece adicionando itens ao seu planejamento
-          </h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            Assim que registrar suas compras, os cards e gráficos aparecem aqui.
-          </p>
-          <Button asChild className="bg-gradient-primary shadow-warm">
-            <Link to="/planejamento">Adicionar primeiro item</Link>
-          </Button>
-        </div>
-      ) : (
-        <>
-          {/* Cards principais */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <ResumoCard
-              icon={Wallet}
-              label="Total gasto"
-              valor={brl(r?.totalGeral)}
-              hint={`${r?.itensComprados ?? 0} de ${r?.totalItens ?? 0} itens comprados`}
-              delay={0}
-            />
-            <ResumoCard
-              icon={ShoppingBag}
-              label="Dinheiro / VR"
-              valor={`${brl(r?.totalNormal)}`}
-              hint={`VR: ${brl(r?.totalVr)}`}
-              delay={0.05}
-            />
-            <ResumoCard
-              icon={CreditCard}
-              label="Parcelado"
-              valor={brl(totalParcelado)}
-              hint="Soma das compras parceladas"
-              delay={0.1}
-            />
-          </div>
-
-          {/* Divisão de Gastos (Casal) */}
-          {isCasal && r && (r.totalPessoa1 > 0 || r.totalPessoa2 > 0) && (
-            <div className="rounded-2xl border bg-card p-5 shadow-soft">
-              <h3 className="font-display text-lg font-semibold mb-3">Divisão de Gastos</h3>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                <div className="flex-1 w-full">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="font-medium">{p1}</span>
-                    <span className="font-medium">{p2}</span>
+                {meta - (r?.totalGeral ?? 0) > 0 && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Faltam {brl(meta - (r?.totalGeral ?? 0))}
                   </div>
-                  <div className="flex h-3 w-full rounded-full overflow-hidden bg-muted">
-                    <div
-                      className="h-full bg-primary transition-all"
-                      style={{
-                        width: `${(r.totalPessoa1 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100}%`,
-                      }}
-                    />
-                    <div
-                      className="h-full bg-terracota transition-all"
-                      style={{
-                        width: `${(r.totalPessoa2 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100}%`,
-                        backgroundColor: "var(--terracota, #ec4899)",
-                      }}
-                    />
-                  </div>
-                  <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                    <span>
-                      {((r.totalPessoa1 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100).toFixed(0)}
-                      %
-                    </span>
-                    <span>
-                      {((r.totalPessoa2 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100).toFixed(0)}
-                      %
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex gap-6 shrink-0">
-                  <div>
-                    <div className="text-xs text-muted-foreground">{p1}</div>
-                    <div className="text-xl font-display font-semibold text-primary">
-                      {brl(r.totalPessoa1)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground">{p2}</div>
-                    <div
-                      className="text-xl font-display font-semibold"
-                      style={{ color: "var(--terracota, #ec4899)" }}
-                    >
-                      {brl(r.totalPessoa2)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Gráficos */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Pie Chart — Gasto por cômodo */}
-            <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
-              <h3 className="font-display text-lg font-semibold mb-1">Gasto por cômodo</h3>
-              <p className="text-xs text-muted-foreground mb-4">
-                Distribuição de valores por cômodo
-              </p>
-              {dadosCategoria.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-16 text-center">Sem gastos ainda.</p>
-              ) : (
-                <ChartContainer config={chartConfig} className="h-[300px] w-full max-w-full">
-                  <PieChart>
-                    <Pie
-                      data={dadosCategoria}
-                      dataKey="valor"
-                      nameKey="nomeBase"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={2}
-                    >
-                      {dadosCategoria.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.cor} />
-                      ))}
-                    </Pie>
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                  </PieChart>
-                </ChartContainer>
-              )}
-            </div>
-            {/* Bar — Gasto por categoria */}
-            <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
-              <h3 className="font-display text-lg font-semibold mb-1">Gasto por categoria</h3>
-              <p className="text-xs text-muted-foreground mb-4">
-                Distribuição de valores por cômodo
-              </p>
-              {dadosCategoria.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-16 text-center">Sem gastos ainda.</p>
-              ) : (
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={dadosCategoria} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
-                    <XAxis
-                      dataKey="nome"
-                      tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-                      axisLine={false}
-                      tickLine={false}
-                      tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
-                    />
-                    <Tooltip
-                      formatter={(v: number) => [brl(v), "Gasto"]}
-                      contentStyle={{ borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)" }}
-                    />
-                    <Bar dataKey="valor" radius={[6, 6, 0, 0]}>
-                      {dadosCategoria.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.cor} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-          </div>
-
-          {/* Comparativo mensal */}
-          {temMensais && (
-            <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
-              <div className="flex items-center gap-3 mb-1 flex-wrap">
-                <h3 className="font-display text-lg font-semibold">Comparativo mensal</h3>
-                {variacaoAtual !== null && (
-                  <span
-                    className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      variacaoAtual >= 0
-                        ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-                        : "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
-                    }`}
-                  >
-                    {variacaoAtual >= 0 ? "+" : ""}
-                    {variacaoAtual.toFixed(1)}% vs {mesPassadoNome}
-                  </span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mb-4">
-                Evolução dos gastos nos últimos 3 meses
-              </p>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={dadosMensais} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
-                  <XAxis
-                    dataKey="mes"
-                    tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
-                  />
-                  <Tooltip
-                    formatter={(v: number) => [brl(v), "Gasto"]}
-                    contentStyle={{ borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)" }}
-                  />
-                  <Bar dataKey="valor" fill="var(--primary)" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <span className="text-sm font-medium text-primary shrink-0">{pct.toFixed(0)}%</span>
             </div>
-          )}
-
-          {/* Progresso por cômodo */}
-          {r?.porCategoria && r.porCategoria.length > 0 && (
-            <div className="rounded-2xl border bg-card p-5 shadow-soft">
-              <h3 className="font-display text-lg font-semibold mb-1">Progresso por cômodo</h3>
-              <p className="text-xs text-muted-foreground mb-4">
-                Quanto já foi gasto em relação à meta de cada cômodo
+            <Progress value={pct} />
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-soft">
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold text-primary">Progresso do enxoval</div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Defina um orçamento máximo para o seu enxoval e acompanhe o progresso aqui.
               </p>
-              <div className="space-y-4">
-                {r.porCategoria.map((c) => {
-                  const metaC = c.metaOrcamento ?? 0;
-                  const pctC = metaC > 0 ? Math.min(100, (c.totalGasto / metaC) * 100) : 0;
-                  const IconComp = iconFor(c.icon);
-                  return (
-                    <div key={c.categoriaId}>
-                      <div className="flex items-center justify-between gap-2 text-sm mb-1.5">
-                        <span className="font-medium flex items-center gap-2 min-w-0">
-                          <span
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0"
-                            style={{ background: (c.cor ?? "#8b5cf6") + "33" }}
-                          >
-                            <IconComp
-                              className="w-4 h-4"
-                              style={{ color: c.cor ?? "var(--primary)" }}
-                            />
-                          </span>
-                          <span className="truncate">{c.categoriaNome}</span>
-                        </span>
-                        <span className="text-muted-foreground text-xs shrink-0">
-                          {brl(c.totalGasto)}
-                          {metaC > 0 && <span> / {brl(metaC)}</span>}
-                        </span>
-                      </div>
-                      {metaC > 0 ? (
-                        <Progress value={pctC} />
-                      ) : (
-                        <div
-                          className="h-2 rounded-full"
-                          style={{ background: c.cor ?? "var(--muted)" }}
-                        />
-                      )}
+            </div>
+            <Link to="/perfil" className="shrink-0">
+              <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                <Target className="mr-2 h-4 w-4" />
+                Definir meta
+              </Button>
+            </Link>
+          </div>
+        )}
+      </motion.div>
+
+      {/* IA */}
+      <motion.div variants={itemVariants}>
+        {semDados ? (
+          <div className="rounded-2xl border bg-gradient-warm p-6 sm:p-10 text-center shadow-soft">
+            <Sparkles className="h-8 w-8 mx-auto text-primary mb-3" />
+            <h2 className="font-display text-xl font-semibold mb-2">
+              Comece adicionando itens ao seu planejamento
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Assim que registrar suas compras, os cards e gráficos aparecem aqui.
+            </p>
+            <Button asChild className="bg-gradient-primary shadow-warm">
+              <Link to="/planejamento">Adicionar primeiro item</Link>
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* Cards principais */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <ResumoCard
+                icon={Wallet}
+                label="Total gasto"
+                valor={brl(r?.totalGeral)}
+                hint={`${r?.itensComprados ?? 0} de ${r?.totalItens ?? 0} itens comprados`}
+                delay={0}
+              />
+              <ResumoCard
+                icon={ShoppingBag}
+                label="Dinheiro / VR"
+                valor={`${brl(r?.totalNormal)}`}
+                hint={`VR: ${brl(r?.totalVr)}`}
+                delay={0.05}
+              />
+              <ResumoCard
+                icon={CreditCard}
+                label="Parcelado"
+                valor={brl(totalParcelado)}
+                hint="Soma das compras parceladas"
+                delay={0.1}
+              />
+            </div>
+
+            {/* Divisão de Gastos (Casal) */}
+            {isCasal && r && (r.totalPessoa1 > 0 || r.totalPessoa2 > 0) && (
+              <div className="rounded-2xl border bg-card p-5 shadow-soft">
+                <h3 className="font-display text-lg font-semibold mb-3">Divisão de Gastos</h3>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                  <div className="flex-1 w-full">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="font-medium">{p1}</span>
+                      <span className="font-medium">{p2}</span>
                     </div>
-                  );
-                })}
+                    <div className="flex h-3 w-full rounded-full overflow-hidden bg-muted">
+                      <div
+                        className="h-full bg-primary transition-all"
+                        style={{
+                          width: `${(r.totalPessoa1 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100}%`,
+                        }}
+                      />
+                      <div
+                        className="h-full bg-terracota transition-all"
+                        style={{
+                          width: `${(r.totalPessoa2 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100}%`,
+                          backgroundColor: "var(--terracota, #ec4899)",
+                        }}
+                      />
+                    </div>
+                    <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                      <span>
+                        {((r.totalPessoa1 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100).toFixed(
+                          0,
+                        )}
+                        %
+                      </span>
+                      <span>
+                        {((r.totalPessoa2 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100).toFixed(
+                          0,
+                        )}
+                        %
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-6 shrink-0">
+                    <div>
+                      <div className="text-xs text-muted-foreground">{p1}</div>
+                      <div className="text-xl font-display font-semibold text-primary">
+                        {brl(r.totalPessoa1)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">{p2}</div>
+                      <div
+                        className="text-xl font-display font-semibold"
+                        style={{ color: "var(--terracota, #ec4899)" }}
+                      >
+                        {brl(r.totalPessoa2)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Gráficos */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Pie Chart — Gasto por cômodo */}
+              <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
+                <h3 className="font-display text-lg font-semibold mb-1">Gasto por cômodo</h3>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Distribuição de valores por cômodo
+                </p>
+                {dadosCategoria.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-16 text-center">
+                    Sem gastos ainda.
+                  </p>
+                ) : (
+                  <ChartContainer config={chartConfig} className="h-[300px] w-full max-w-full">
+                    <PieChart>
+                      <Pie
+                        data={dadosCategoria}
+                        dataKey="valor"
+                        nameKey="nomeBase"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={2}
+                      >
+                        {dadosCategoria.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.cor} />
+                        ))}
+                      </Pie>
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                    </PieChart>
+                  </ChartContainer>
+                )}
+              </div>
+              {/* Bar — Gasto por categoria */}
+              <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
+                <h3 className="font-display text-lg font-semibold mb-1">Gasto por categoria</h3>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Distribuição de valores por cômodo
+                </p>
+                {dadosCategoria.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-16 text-center">
+                    Sem gastos ainda.
+                  </p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                      data={dadosCategoria}
+                      margin={{ top: 4, right: 8, bottom: 4, left: 0 }}
+                    >
+                      <XAxis
+                        dataKey="nome"
+                        tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                        axisLine={false}
+                        tickLine={false}
+                        tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip
+                        formatter={(v: number) => [brl(v), "Gasto"]}
+                        contentStyle={{
+                          borderRadius: 8,
+                          border: "1px solid var(--border)",
+                          background: "var(--card)",
+                        }}
+                      />
+                      <Bar dataKey="valor" radius={[6, 6, 0, 0]}>
+                        {dadosCategoria.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.cor} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </div>
-          )}
-        </>
-      )}
+          </>
+        )}
+      </motion.div>
 
+      {/* Comparativo mensal */}
+      <motion.div variants={itemVariants}>
+        {temMensais && (
+          <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
+            <div className="flex items-center gap-3 mb-1 flex-wrap">
+              <h3 className="font-display text-lg font-semibold">Comparativo mensal</h3>
+              {variacaoAtual !== null && (
+                <span
+                  className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                    variacaoAtual >= 0
+                      ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                      : "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+                  }`}
+                >
+                  {variacaoAtual >= 0 ? "+" : ""}
+                  {variacaoAtual.toFixed(1)}% vs {mesPassadoNome}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mb-4">
+              Evolução dos gastos nos últimos 3 meses
+            </p>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={dadosMensais} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
+                <XAxis
+                  dataKey="mes"
+                  tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
+                />
+                <Tooltip
+                  formatter={(v: number) => [brl(v), "Gasto"]}
+                  contentStyle={{
+                    borderRadius: 8,
+                    border: "1px solid var(--border)",
+                    background: "var(--card)",
+                  }}
+                />
+                <Bar dataKey="valor" fill="var(--primary)" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
 
-    </div>
+        {/* Progresso por cômodo */}
+        {r?.porCategoria && r.porCategoria.length > 0 && (
+          <div className="rounded-2xl border bg-card p-5 shadow-soft">
+            <h3 className="font-display text-lg font-semibold mb-1">Progresso por cômodo</h3>
+            <p className="text-xs text-muted-foreground mb-4">
+              Quanto já foi gasto em relação à meta de cada cômodo
+            </p>
+            <div className="space-y-4">
+              {r.porCategoria.map((c) => {
+                const metaC = c.metaOrcamento ?? 0;
+                const pctC = metaC > 0 ? Math.min(100, (c.totalGasto / metaC) * 100) : 0;
+                const IconComp = iconFor(c.icon);
+                return (
+                  <div key={c.categoriaId}>
+                    <div className="flex items-center justify-between gap-2 text-sm mb-1.5">
+                      <span className="font-medium flex items-center gap-2 min-w-0">
+                        <span
+                          className="inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0"
+                          style={{ background: (c.cor ?? "#8b5cf6") + "33" }}
+                        >
+                          <IconComp
+                            className="w-4 h-4"
+                            style={{ color: c.cor ?? "var(--primary)" }}
+                          />
+                        </span>
+                        <span className="truncate">{c.categoriaNome}</span>
+                      </span>
+                      <span className="text-muted-foreground text-xs shrink-0">
+                        {brl(c.totalGasto)}
+                        {metaC > 0 && <span> / {brl(metaC)}</span>}
+                      </span>
+                    </div>
+                    {metaC > 0 ? (
+                      <Progress value={pctC} />
+                    ) : (
+                      <div
+                        className="h-2 rounded-full"
+                        style={{ background: c.cor ?? "var(--muted)" }}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </motion.div>
+    </motion.div>
   );
 }
 

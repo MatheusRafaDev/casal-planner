@@ -44,10 +44,7 @@ export async function api<T = unknown>(path: string, opts: ApiOptions = {}): Pro
   const { body, headers = {}, query, ...rest } = opts;
 
   const baseURL = API_BASE_URL && API_BASE_URL !== "undefined" ? API_BASE_URL : "";
-  const url = new URL(
-    path.startsWith("http") ? path : `${baseURL}${path}`,
-    window.location.origin
-  );
+  const url = new URL(path.startsWith("http") ? path : `${baseURL}${path}`, window.location.origin);
   if (query) {
     for (const [k, v] of Object.entries(query)) {
       if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
@@ -81,13 +78,18 @@ export async function api<T = unknown>(path: string, opts: ApiOptions = {}): Pro
     throw error;
   }
 
-  if (response.status === 401 && !url.pathname.includes("/auth/refresh") && !url.pathname.includes("/auth/login")) {
+  if (
+    response.status === 401 &&
+    !url.pathname.includes("/auth/refresh") &&
+    !url.pathname.includes("/auth/login")
+  ) {
     if (await refreshSession()) {
       response = await fetch(url.toString(), {
         ...rest,
         credentials: "include",
         headers: finalHeaders,
-        body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
+        body:
+          body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
       });
     }
   }

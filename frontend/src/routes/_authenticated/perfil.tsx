@@ -97,25 +97,31 @@ function PerfilPage() {
         <section className="rounded-2xl border border-primary/50 bg-primary/5 p-5 shadow-soft">
           <div className="flex items-center gap-2 mb-4">
             <MailOpen className="h-5 w-5 text-primary" />
-            <h2 className="font-display text-lg font-semibold text-primary">Você tem um convite!</h2>
+            <h2 className="font-display text-lg font-semibold text-primary">
+              Você tem um convite!
+            </h2>
           </div>
           <div className="space-y-4">
             {convitesQuery.data.map((convite) => (
-              <div key={convite.token} className="bg-background rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between border">
+              <div
+                key={convite.token}
+                className="bg-background rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between border"
+              >
                 <div>
                   <p className="font-medium text-base">
                     <strong>{convite.nomeConvidante}</strong> convidou você para o CasalPlanner.
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Aceite para vincular suas contas. Ao aceitar, seus dados atuais serão migrados para a conta de casal.
+                    Aceite para vincular suas contas. Ao aceitar, seus dados atuais serão migrados
+                    para a conta de casal.
                   </p>
                 </div>
-                <Button 
+                <Button
                   onClick={() => aceitarMutation.mutate(convite.token)}
                   disabled={aceitarMutation.isPending}
                   className="w-full md:w-auto"
                 >
-                  <Check className="h-4 w-4 mr-2" /> 
+                  <Check className="h-4 w-4 mr-2" />
                   {aceitarMutation.isPending ? "Aceitando..." : "Aceitar Convite"}
                 </Button>
               </div>
@@ -128,7 +134,8 @@ function PerfilPage() {
         <section className="rounded-2xl border bg-card p-5 shadow-soft">
           <h2 className="font-display text-lg font-semibold mb-4">Convidar parceiro</h2>
           <p className="text-sm text-muted-foreground mb-4">
-            Envie um convite para o email do seu parceiro. Ele será notificado para acessar o aplicativo e aceitar.
+            Envie um convite para o email do seu parceiro. Ele será notificado para acessar o
+            aplicativo e aceitar.
           </p>
           <div className="space-y-3">
             <div>
@@ -216,8 +223,6 @@ function PerfilPage() {
 
       {/* Senha */}
       <TrocarSenhaCard />
-
-
 
       {/* Zona perigosa */}
       <section className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
@@ -436,14 +441,17 @@ function TrocarSenhaCard() {
       </div>
 
       <p className="text-sm text-muted-foreground mb-4">
-        Para sua segurança, enviaremos um link por e-mail para você redefinir sua senha. O processo é idêntico ao "Esqueci minha senha" sem precisar informar a senha atual.
+        Para sua segurança, enviaremos um link por e-mail para você redefinir sua senha. O processo
+        é idêntico ao "Esqueci minha senha" sem precisar informar a senha atual.
       </p>
 
       <div className="bg-muted/50 rounded-lg p-4 mb-4 text-sm">
         <p className="font-semibold mb-2">Como funciona:</p>
         <ul className="list-disc list-inside space-y-1 text-muted-foreground">
           <li>Clique no botão abaixo</li>
-          <li>Acesse o link enviado para <strong>{emailDaConta}</strong></li>
+          <li>
+            Acesse o link enviado para <strong>{emailDaConta}</strong>
+          </li>
           <li>Escolha uma nova senha com pelo menos 8 caracteres</li>
         </ul>
       </div>

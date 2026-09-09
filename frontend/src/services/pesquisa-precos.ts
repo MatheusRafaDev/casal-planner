@@ -28,9 +28,10 @@ interface PesquisaPrecoRespostaBruta {
   total?: number;
 }
 
-
-
-function mapearResposta(raw: PesquisaPrecoRespostaBruta, queryOriginal: string): PesquisaPrecoResposta {
+function mapearResposta(
+  raw: PesquisaPrecoRespostaBruta,
+  queryOriginal: string,
+): PesquisaPrecoResposta {
   return {
     query: raw.query_utilizada ?? queryOriginal,
     marcaDetectada: raw.marca_identificada,
@@ -60,6 +61,5 @@ export const pesquisaPrecosService = {
     });
 
     return mapearResposta(raw, q);
-
   },
 };

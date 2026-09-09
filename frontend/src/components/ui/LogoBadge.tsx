@@ -13,12 +13,5 @@ export function LogoBadge({ url, className = "w-3 h-3 rounded-sm", fallback }: L
     return fallback ? <>{fallback}</> : null;
   }
 
-  return (
-    <img
-      src={url}
-      alt=""
-      className={className}
-      onError={() => setError(true)}
-    />
-  );
+  return <img src={url} alt="" className={className} onError={() => setError(true)} />;
 }

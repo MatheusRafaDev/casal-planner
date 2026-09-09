@@ -13,7 +13,7 @@ export default defineConfig({
     server: { entry: "server" },
   },
   nitro: {
-    preset: "vercel"
+    preset: "vercel",
   },
   vite: {
     server: {
@@ -23,8 +23,8 @@ export default defineConfig({
           target: "http://localhost:5286",
           changeOrigin: true,
           secure: false,
-        }
-      }
-    }
-  }
+        },
+      },
+    },
+  },
 });

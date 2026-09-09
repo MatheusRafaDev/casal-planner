@@ -1,7 +1,24 @@
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronDown, ExternalLink, AlertTriangle, Camera, Upload, X, Type, Tag, Store, CircleDollarSign, Hash, CreditCard, Wallet, Zap, Gift, LayoutGrid } from "lucide-react";
+import {
+  ChevronDown,
+  ExternalLink,
+  AlertTriangle,
+  Camera,
+  Upload,
+  X,
+  Type,
+  Tag,
+  Store,
+  CircleDollarSign,
+  Hash,
+  CreditCard,
+  Wallet,
+  Zap,
+  Gift,
+  LayoutGrid,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -192,11 +209,14 @@ export function ItemFormModal({
                 }}
               />
               {form.fotoFile ? (
-                <div className="relative group cursor-pointer w-full max-w-sm mx-auto h-72 rounded-2xl overflow-hidden border bg-background/50" onClick={() => fileInputRef.current?.click()}>
+                <div
+                  className="relative group cursor-pointer w-full max-w-sm mx-auto h-72 rounded-2xl overflow-hidden border bg-background/50"
+                  onClick={() => fileInputRef.current?.click()}
+                >
                   {/* Fundo Desfocado Premium */}
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center opacity-30 blur-2xl scale-110" 
-                    style={{ backgroundImage: `url(${URL.createObjectURL(form.fotoFile)})` }} 
+                  <div
+                    className="absolute inset-0 bg-cover bg-center opacity-30 blur-2xl scale-110"
+                    style={{ backgroundImage: `url(${URL.createObjectURL(form.fotoFile)})` }}
                   />
                   {/* Imagem Principal */}
                   <img
@@ -210,7 +230,10 @@ export function ItemFormModal({
                   </div>
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); set("fotoFile", undefined as unknown as File); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      set("fotoFile", undefined as unknown as File);
+                    }}
                     className="absolute top-1.5 right-1.5 rounded-full bg-black/60 text-white p-0.5 hover:bg-black/80 transition-colors opacity-0 group-hover:opacity-100"
                     title="Remover foto"
                   >
@@ -218,11 +241,14 @@ export function ItemFormModal({
                   </button>
                 </div>
               ) : form.fotoUrl && !imageError ? (
-                <div className="relative group cursor-pointer w-full max-w-sm mx-auto h-72 rounded-2xl overflow-hidden border bg-background/50" onClick={() => fileInputRef.current?.click()}>
+                <div
+                  className="relative group cursor-pointer w-full max-w-sm mx-auto h-72 rounded-2xl overflow-hidden border bg-background/50"
+                  onClick={() => fileInputRef.current?.click()}
+                >
                   {/* Fundo Desfocado Premium */}
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center opacity-30 blur-2xl scale-110" 
-                    style={{ backgroundImage: `url(${form.fotoUrl})` }} 
+                  <div
+                    className="absolute inset-0 bg-cover bg-center opacity-30 blur-2xl scale-110"
+                    style={{ backgroundImage: `url(${form.fotoUrl})` }}
                   />
                   {/* Imagem Principal */}
                   <img

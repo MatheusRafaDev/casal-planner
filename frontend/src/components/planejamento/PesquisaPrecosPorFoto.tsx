@@ -19,7 +19,7 @@ function toBase64(file: File): Promise<string> {
       const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
       const maxSize = 1600;
       let { width, height } = bitmap;
-      
+
       if (width > maxSize || height > maxSize) {
         if (width > height) {
           height = Math.round((height * maxSize) / width);
@@ -35,7 +35,7 @@ function toBase64(file: File): Promise<string> {
       canvas.height = height;
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas context is null");
-      
+
       ctx.fillStyle = "white";
       ctx.fillRect(0, 0, width, height);
       ctx.drawImage(bitmap, 0, 0, width, height);
@@ -52,9 +52,15 @@ function toBase64(file: File): Promise<string> {
           let height = img.height;
 
           if (width > height) {
-            if (width > MAX_SIZE) { height = Math.round(height * MAX_SIZE / width); width = MAX_SIZE; }
+            if (width > MAX_SIZE) {
+              height = Math.round((height * MAX_SIZE) / width);
+              width = MAX_SIZE;
+            }
           } else {
-            if (height > MAX_SIZE) { width = Math.round(width * MAX_SIZE / height); height = MAX_SIZE; }
+            if (height > MAX_SIZE) {
+              width = Math.round((width * MAX_SIZE) / height);
+              height = MAX_SIZE;
+            }
           }
 
           const canvas = document.createElement("canvas");
@@ -92,7 +98,7 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
     try {
       const imagemBase64 = await toBase64(file);
       let resultado = await registroPrecoService.analisar(imagemBase64);
-      
+
       resultado = {
         ...resultado,
         produtoNome: toTitleCase(resultado.produtoNome),
@@ -102,7 +108,7 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
         endereco: toTitleCase(resultado.endereco),
         nomeMercado: toTitleCase(resultado.nomeMercado),
       };
-      
+
       onResultado(resultado);
     } catch (error) {
       const mensagem =

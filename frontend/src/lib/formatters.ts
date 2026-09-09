@@ -36,7 +36,7 @@ export const maskDate = (v: string) =>
 
 export const formatDate = (iso: string | Date | null | undefined) => {
   if (!iso) return "";
-  
+
   if (typeof iso === "string") {
     const parts = iso.substring(0, 10).split("-");
     if (parts.length === 3) {
@@ -63,11 +63,7 @@ export const brToIsoDate = (v: string) => {
 
   // Validação de data real (anos bissextos, meses com 30/31 dias)
   const dateObj = new Date(yyyy, mm - 1, dd);
-  if (
-    dateObj.getFullYear() !== yyyy ||
-    dateObj.getMonth() + 1 !== mm ||
-    dateObj.getDate() !== dd
-  ) {
+  if (dateObj.getFullYear() !== yyyy || dateObj.getMonth() + 1 !== mm || dateObj.getDate() !== dd) {
     return null;
   }
 
@@ -81,7 +77,5 @@ export const brToIsoDate = (v: string) => {
  */
 export const toTitleCase = (str: string | null | undefined): string => {
   if (!str) return "";
-  return str
-    .toLowerCase()
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 };

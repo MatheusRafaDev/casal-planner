@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState, useMemo, useDeferredValue } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -21,7 +22,6 @@ import {
   FileText,
 } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
-
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -69,7 +69,9 @@ import { ItemFormModal } from "@/components/planejamento/ItemFormModal";
 import { getLogoUrl } from "@/lib/logos";
 
 const AddItemWizard = lazy(() =>
-  import("@/components/planejamento/AddItemWizard").then(({ AddItemWizard }) => ({ default: AddItemWizard })),
+  import("@/components/planejamento/AddItemWizard").then(({ AddItemWizard }) => ({
+    default: AddItemWizard,
+  })),
 );
 
 export const Route = createFileRoute("/_authenticated/planejamento")({
@@ -115,14 +117,22 @@ function PlanejamentoPage() {
   const catAtual = categorias.find((c) => c.id === catAtualId) ?? null;
 
   const itensQ = useInfiniteQuery({
-    queryKey: ["itens-paginado", catAtualId, buscaDebounced, filtroStatus, filtroPagamento, filtroResponsavel],
+    queryKey: [
+      "itens-paginado",
+      catAtualId,
+      buscaDebounced,
+      filtroStatus,
+      filtroPagamento,
+      filtroResponsavel,
+    ],
     queryFn: ({ pageParam = 1 }) =>
       itensService.listarPaginado({
         categoriaId: catAtualId === "tudo" ? undefined : catAtualId,
         busca: buscaDebounced.trim() || undefined,
         status: filtroStatus !== "todos" ? filtroStatus : undefined,
         pagamento: filtroPagamento !== "todos" ? filtroPagamento : undefined,
-        responsavelId: isCasal && filtroResponsavel !== "todos" ? Number(filtroResponsavel) : undefined,
+        responsavelId:
+          isCasal && filtroResponsavel !== "todos" ? Number(filtroResponsavel) : undefined,
         page: pageParam as number,
         pageSize: 20,
       }),
@@ -169,9 +179,12 @@ function PlanejamentoPage() {
   const compradosCategoria = todosItens
     .filter((i) => catAtualId === "tudo" || i.categoriaId === catAtualId)
     .filter((i) => i.comprado).length;
-  const itensCategoria = todosItens
-    .filter((i) => catAtualId === "tudo" || i.categoriaId === catAtualId);
-  const percentComprado = itensCategoria.length ? (compradosCategoria / itensCategoria.length) * 100 : 0;
+  const itensCategoria = todosItens.filter(
+    (i) => catAtualId === "tudo" || i.categoriaId === catAtualId,
+  );
+  const percentComprado = itensCategoria.length
+    ? (compradosCategoria / itensCategoria.length) * 100
+    : 0;
   const percentMeta =
     catAtual?.metaOrcamento && catAtual.metaOrcamento > 0
       ? Math.min(100, (totalCategoria / catAtual.metaOrcamento) * 100)
@@ -378,13 +391,20 @@ function PlanejamentoPage() {
     <div className="p-4 md:p-8 w-full max-w-[1600px] space-y-6">
       <header className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <h1 className="font-display text-2xl md:text-4xl font-semibold leading-tight">Planejamento</h1>
+          <h1 className="font-display text-2xl md:text-4xl font-semibold leading-tight">
+            Planejamento
+          </h1>
           <div className="flex items-center gap-2 shrink-0">
-            <Button variant="secondary" size="sm" className="hidden sm:inline-flex" onClick={() => setNovaCategoria(true)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="hidden sm:inline-flex"
+              onClick={() => setNovaCategoria(true)}
+            >
               <Plus className="h-4 w-4 mr-1" /> Novo cômodo
             </Button>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               onClick={() => {
                 if (categorias.length === 0) {
                   toast.info("Crie seu primeiro cômodo para organizar os itens!");
@@ -394,14 +414,24 @@ function PlanejamentoPage() {
                 }
               }}
             >
-              <Sparkles className="h-4 w-4 mr-1" /> 
+              <Sparkles className="h-4 w-4 mr-1" />
               <span className="hidden sm:inline">Adicionar item</span>
               <span className="sm:hidden">Item</span>
             </Button>
-            <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={handleCompartilhar}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden sm:inline-flex"
+              onClick={handleCompartilhar}
+            >
               <Share2 className="h-4 w-4 mr-1" /> Compartilhar
             </Button>
-            <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={handleExportarPDF}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden sm:inline-flex"
+              onClick={handleExportarPDF}
+            >
               <FileText className="h-4 w-4 mr-1" /> PDF
             </Button>
             <DropdownMenu>
@@ -411,9 +441,15 @@ function PlanejamentoPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setNovaCategoria(true)}><Plus className="h-4 w-4" /> Novo cômodo</DropdownMenuItem>
-                <DropdownMenuItem onClick={handleCompartilhar}><Share2 className="h-4 w-4" /> Compartilhar</DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportarPDF}><FileText className="h-4 w-4" /> Exportar PDF</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setNovaCategoria(true)}>
+                  <Plus className="h-4 w-4" /> Novo cômodo
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCompartilhar}>
+                  <Share2 className="h-4 w-4" /> Compartilhar
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportarPDF}>
+                  <FileText className="h-4 w-4" /> Exportar PDF
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -709,7 +745,12 @@ function PlanejamentoPage() {
                     onChange={(e) => setBusca(e.target.value)}
                   />
                 </div>
-                <div className={cn("grid gap-2", isCasal ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2")}>
+                <div
+                  className={cn(
+                    "grid gap-2",
+                    isCasal ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2",
+                  )}
+                >
                   <Select
                     value={filtroStatus}
                     onValueChange={(v) => setFiltroStatus(v as typeof filtroStatus)}
@@ -756,9 +797,11 @@ function PlanejamentoPage() {
               </div>
 
               {/* Itens */}
-              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+              <motion.div layout className="grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
                 {itensQ.isLoading && (
-                  <div className="col-span-full text-sm text-center text-muted-foreground">Carregando itens...</div>
+                  <div className="col-span-full text-sm text-center text-muted-foreground">
+                    Carregando itens...
+                  </div>
                 )}
                 {!itensQ.isLoading && itensFiltrados.length === 0 && (
                   <div className="col-span-full rounded-xl border border-dashed p-10 text-center">
@@ -766,8 +809,8 @@ function PlanejamentoPage() {
                     <p className="text-sm text-muted-foreground">
                       Nenhum item por aqui ainda. Que tal adicionar o primeiro?
                     </p>
-                    <Button 
-                      className="mt-4" 
+                    <Button
+                      className="mt-4"
                       onClick={() => {
                         if (categorias.length === 0) {
                           toast.info("Crie seu primeiro cômodo para organizar os itens!");
@@ -782,213 +825,245 @@ function PlanejamentoPage() {
                   </div>
                 )}
 
-                {itensFiltrados.map((it) => (
-                  <div
-                    key={it.id}
-                    className={cn(
-                      "flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-soft hover:shadow-elegant transition-all duration-200",
-                      it.comprado && "opacity-70",
-                    )}
-                  >
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <Checkbox
-                        className="mt-1"
-                        checked={it.comprado}
-                        onCheckedChange={() =>
-                          toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
-                        }
-                      />
-                      {it.fotoUrl && !imageErrors[it.id] ? (
-                        <button
-                          type="button"
-                          onClick={() => setImagemAmpliada(it)}
-                          className="h-16 w-16 shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-white/50 dark:bg-white/10 overflow-hidden border border-border/50"
-                          aria-label={`Ampliar imagem de ${it.nome}`}
-                        >
-                          <img
-                            src={it.fotoUrl}
-                            alt={it.nome}
-                            className="h-full w-full object-cover transition-transform hover:scale-110"
-                            onError={() => setImageErrors((prev) => ({ ...prev, [it.id]: true }))}
-                          />
-                        </button>
-                      ) : (
-                        <div
-                          className="h-16 w-16 rounded-xl grid place-items-center text-white shrink-0 shadow-sm"
-                          style={{
-                            backgroundColor:
-                              categorias.find((c) => c.id === it.categoriaId)?.bg ?? "#27272a",
-                          }}
-                        >
-                          {(() => {
-                            const I = iconFor(
-                              categorias.find((c) => c.id === it.categoriaId)?.icon ?? "package",
-                            );
-                            return <I className="h-7 w-7" />;
-                          })()}
-                        </div>
+                <AnimatePresence mode="popLayout">
+                  {itensFiltrados.map((it) => (
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      key={it.id}
+                      className={cn(
+                        "flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-soft hover:shadow-elegant transition-shadow duration-200",
+                        it.comprado && "opacity-70",
                       )}
-                      <div className="flex-1 min-w-0">
-                        {/* Nome do item */}
-                        <button
-                          type="button"
-                          onClick={() => setEditandoItem(it)}
-                          title="Editar item"
-                          className={cn(
-                            "max-w-full truncate text-left font-medium hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 block",
-                            it.comprado && "line-through",
-                          )}
-                        >
-                          {toTitleCase(it.nome)}
-                        </button>
-
-                        {/* Logos + nomes de marca e loja */}
-                        {(it.marca || it.loja) && (
-                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                            {it.marca && (
-                              <Badge variant="secondary" className="gap-1 px-1.5 py-0.5 text-[11px]">
-                                <LogoBadge url={getLogoUrl(it.marca, null, resolvedDomains)} />
-                                {toTitleCase(it.marca)}
-                              </Badge>
-                            )}
-                            {it.loja &&
-                              (it.linkProduto ? (
-                                <a href={it.linkProduto} target="_blank" rel="noreferrer" className="hover:opacity-80 transition-opacity">
-                                  <Badge variant="outline" className="gap-1 px-1.5 py-0.5 text-[11px]">
-                                    <LogoBadge url={getLogoUrl(it.loja, it.linkProduto, resolvedDomains)} />
-                                    {toTitleCase(it.loja)}
-                                    <ExternalLink className="w-2.5 h-2.5 ml-0.5 opacity-60" />
-                                  </Badge>
-                                </a>
-                              ) : (
-                                <Badge variant="outline" className="gap-1 px-1.5 py-0.5 text-[11px]">
-                                  <LogoBadge url={getLogoUrl(it.loja, null, resolvedDomains)} />
-                                  {toTitleCase(it.loja)}
-                                </Badge>
-                              ))}
+                    >
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <Checkbox
+                          className="mt-1"
+                          checked={it.comprado}
+                          onCheckedChange={() =>
+                            toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
+                          }
+                        />
+                        {it.fotoUrl && !imageErrors[it.id] ? (
+                          <button
+                            type="button"
+                            onClick={() => setImagemAmpliada(it)}
+                            className="h-16 w-16 shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-white/50 dark:bg-white/10 overflow-hidden border border-border/50"
+                            aria-label={`Ampliar imagem de ${it.nome}`}
+                          >
+                            <img
+                              src={it.fotoUrl}
+                              alt={it.nome}
+                              className="h-full w-full object-cover transition-transform hover:scale-110"
+                              onError={() => setImageErrors((prev) => ({ ...prev, [it.id]: true }))}
+                            />
+                          </button>
+                        ) : (
+                          <div
+                            className="h-16 w-16 rounded-xl grid place-items-center text-white shrink-0 shadow-sm"
+                            style={{
+                              backgroundColor:
+                                categorias.find((c) => c.id === it.categoriaId)?.bg ?? "#27272a",
+                            }}
+                          >
+                            {(() => {
+                              const I = iconFor(
+                                categorias.find((c) => c.id === it.categoriaId)?.icon ?? "package",
+                              );
+                              return <I className="h-7 w-7" />;
+                            })()}
                           </div>
                         )}
-
-                        {/* Metadados secundários */}
-                        <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground mt-1">
-                          <span className="truncate">
-                            {[
-                              toTitleCase(categorias.find(c => c.id === it.categoriaId)?.nome),
-                              it.pagamento === "vr" ? "VR / VA" : "Dinheiro",
-                              isCasal && it.responsavelId ? (it.responsavelId === 1 ? p1 : p2) : null
-                            ].filter(Boolean).join(" · ")}
-                          </span>
-                          <Badge 
-                            variant="outline" 
+                        <div className="flex-1 min-w-0">
+                          {/* Nome do item */}
+                          <button
+                            type="button"
+                            onClick={() => setEditandoItem(it)}
+                            title="Editar item"
                             className={cn(
-                              "text-[10px] py-0 px-1.5 font-medium border",
-                              it.origem === "ganho" 
-                                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400" 
-                                : "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400"
+                              "max-w-full truncate text-left font-medium hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 block",
+                              it.comprado && "line-through",
                             )}
                           >
-                            {it.origem === "ganho" ? "Presente" : "Será Comprado"}
-                          </Badge>
-                          <Badge 
-                            variant="outline" 
-                            className={cn(
-                              "text-[10px] py-0 px-1.5 font-medium border capitalize",
-                              it.prioridade === "alta" 
-                                ? "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400"
-                                : it.prioridade === "baixa"
-                                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
-                                : "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400"
-                            )}
-                          >
-                            Prioridade {it.prioridade || "Média"}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
+                            {toTitleCase(it.nome)}
+                          </button>
 
-                    <div className="flex items-center justify-between gap-3 pt-2 border-t">
-                      <div className="text-left min-w-0">
-                        <div className="font-display font-semibold truncate">
-                          {brl(it.preco * it.quantidade)}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          <span>
-                            {it.quantidade}× {brl(it.preco)}
-                          </span>
-                          {(it.parcelas ?? 1) > 1 && (
-                            <span className="text-[10px] text-muted-foreground/70 ml-2">
-                              {it.parcelas}x de {brl(it.preco / (it.parcelas ?? 1))}
+                          {/* Logos + nomes de marca e loja */}
+                          {(it.marca || it.loja) && (
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                              {it.marca && (
+                                <Badge
+                                  variant="secondary"
+                                  className="gap-1 px-1.5 py-0.5 text-[11px]"
+                                >
+                                  <LogoBadge url={getLogoUrl(it.marca, null, resolvedDomains)} />
+                                  {toTitleCase(it.marca)}
+                                </Badge>
+                              )}
+                              {it.loja &&
+                                (it.linkProduto ? (
+                                  <a
+                                    href={it.linkProduto}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="hover:opacity-80 transition-opacity"
+                                  >
+                                    <Badge
+                                      variant="outline"
+                                      className="gap-1 px-1.5 py-0.5 text-[11px]"
+                                    >
+                                      <LogoBadge
+                                        url={getLogoUrl(it.loja, it.linkProduto, resolvedDomains)}
+                                      />
+                                      {toTitleCase(it.loja)}
+                                      <ExternalLink className="w-2.5 h-2.5 ml-0.5 opacity-60" />
+                                    </Badge>
+                                  </a>
+                                ) : (
+                                  <Badge
+                                    variant="outline"
+                                    className="gap-1 px-1.5 py-0.5 text-[11px]"
+                                  >
+                                    <LogoBadge url={getLogoUrl(it.loja, null, resolvedDomains)} />
+                                    {toTitleCase(it.loja)}
+                                  </Badge>
+                                ))}
+                            </div>
+                          )}
+
+                          {/* Metadados secundários */}
+                          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                            <span className="truncate">
+                              {[
+                                toTitleCase(categorias.find((c) => c.id === it.categoriaId)?.nome),
+                                it.pagamento === "vr" ? "VR / VA" : "Dinheiro",
+                                isCasal && it.responsavelId
+                                  ? it.responsavelId === 1
+                                    ? p1
+                                    : p2
+                                  : null,
+                              ]
+                                .filter(Boolean)
+                                .join(" · ")}
                             </span>
-                          )}
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "text-[10px] py-0 px-1.5 font-medium border",
+                                it.origem === "ganho"
+                                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
+                                  : "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400",
+                              )}
+                            >
+                              {it.origem === "ganho" ? "Presente" : "Será Comprado"}
+                            </Badge>
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "text-[10px] py-0 px-1.5 font-medium border capitalize",
+                                it.prioridade === "alta"
+                                  ? "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400"
+                                  : it.prioridade === "baixa"
+                                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
+                                    : "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
+                              )}
+                            >
+                              Prioridade {it.prioridade || "Média"}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="sm" variant="ghost">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setEditandoItem(it)}>
-                            <Pencil className="h-4 w-4 mr-2" /> Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() =>
-                              toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
-                            }
-                          >
-                            <Check className="h-4 w-4 mr-2" />
-                            {it.comprado ? "Marcar como faltando" : "Marcar comprado"}
-                          </DropdownMenuItem>
-                          {it.linkProduto && (
-                            <DropdownMenuItem asChild>
-                              <a href={it.linkProduto} target="_blank" rel="noreferrer">
-                                <ExternalLink className="h-4 w-4 mr-2" /> Abrir link
-                              </a>
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => setExcluindoItem(it)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" /> Remover
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      </div>
-                    </div>
-                  </div>
-                  ))}
 
-                  {/* Carregar mais / paginação */}
-                  {itensQ.hasNextPage && (
-                    <div className="col-span-full pt-2 flex justify-center">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => itensQ.fetchNextPage()}
-                        disabled={itensQ.isFetchingNextPage}
-                        className="w-full sm:w-auto"
-                      >
-                        {itensQ.isFetchingNextPage ? (
-                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Carregando...</>
-                        ) : (
-                          "Carregar mais itens"
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                  {!itensQ.hasNextPage && itensFiltrados.length > 0 && (
-                    <p className="col-span-full text-center text-xs text-muted-foreground pt-2">
-                      {itensFiltrados.length} {itensFiltrados.length !== 1 ? "itens" : "item"} exibido{itensFiltrados.length !== 1 ? "s" : ""}
-                      {itensQ.data?.pages[0]?.totalCount
-                        ? ` de ${itensQ.data.pages[0].totalCount} total`
-                        : ""}
-                    </p>
-                  )}
-                </div>
+                      <div className="flex items-center justify-between gap-3 pt-2 border-t">
+                        <div className="text-left min-w-0">
+                          <div className="font-display font-semibold truncate">
+                            {brl(it.preco * it.quantidade)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            <span>
+                              {it.quantidade}× {brl(it.preco)}
+                            </span>
+                            {(it.parcelas ?? 1) > 1 && (
+                              <span className="text-[10px] text-muted-foreground/70 ml-2">
+                                {it.parcelas}x de {brl(it.preco / (it.parcelas ?? 1))}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button size="sm" variant="ghost">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setEditandoItem(it)}>
+                                <Pencil className="h-4 w-4 mr-2" /> Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
+                                }
+                              >
+                                <Check className="h-4 w-4 mr-2" />
+                                {it.comprado ? "Marcar como faltando" : "Marcar comprado"}
+                              </DropdownMenuItem>
+                              {it.linkProduto && (
+                                <DropdownMenuItem asChild>
+                                  <a href={it.linkProduto} target="_blank" rel="noreferrer">
+                                    <ExternalLink className="h-4 w-4 mr-2" /> Abrir link
+                                  </a>
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => setExcluindoItem(it)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" /> Remover
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                {/* Carregar mais / paginação */}
+                {itensQ.hasNextPage && (
+                  <div className="col-span-full pt-2 flex justify-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => itensQ.fetchNextPage()}
+                      disabled={itensQ.isFetchingNextPage}
+                      className="w-full sm:w-auto"
+                    >
+                      {itensQ.isFetchingNextPage ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Carregando...
+                        </>
+                      ) : (
+                        "Carregar mais itens"
+                      )}
+                    </Button>
+                  </div>
+                )}
+                {!itensQ.hasNextPage && itensFiltrados.length > 0 && (
+                  <p className="col-span-full text-center text-xs text-muted-foreground pt-2">
+                    {itensFiltrados.length} {itensFiltrados.length !== 1 ? "itens" : "item"} exibido
+                    {itensFiltrados.length !== 1 ? "s" : ""}
+                    {itensQ.data?.pages[0]?.totalCount
+                      ? ` de ${itensQ.data.pages[0].totalCount} total`
+                      : ""}
+                  </p>
+                )}
+              </motion.div>
             </>
           ) : (
             <div className="rounded-2xl border border-dashed p-16 text-center bg-gradient-warm">
@@ -1025,7 +1100,9 @@ function PlanejamentoPage() {
         open={adicionandoItem}
         onOpenChange={setAdicionandoItem}
         categorias={categorias}
-        categoriaId={catAtualId === "tudo" && categorias.length > 0 ? categorias[0].id : (catAtualId || "")}
+        categoriaId={
+          catAtualId === "tudo" && categorias.length > 0 ? categorias[0].id : catAtualId || ""
+        }
         item={null}
       />
       {catAtualId && (

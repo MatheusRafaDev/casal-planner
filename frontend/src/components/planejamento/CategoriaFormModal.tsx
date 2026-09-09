@@ -145,7 +145,6 @@ export function CategoriaFormModal({ open, onOpenChange, categoria }: Props) {
             />
           </div>
 
-
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancelar

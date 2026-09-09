@@ -118,7 +118,9 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
       {query.data?.marcaDetectada && (
         <div className="text-xs text-muted-foreground">
           Marca detectada:{" "}
-          <span className="text-foreground font-medium">{toTitleCase(query.data.marcaDetectada)}</span>
+          <span className="text-foreground font-medium">
+            {toTitleCase(query.data.marcaDetectada)}
+          </span>
         </div>
       )}
 
@@ -170,7 +172,10 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
                     variant="outline"
                     className="text-[10px] py-0 px-1.5 h-5 font-normal bg-muted/30 flex items-center gap-1.5"
                   >
-                    <LogoBadge url={getLogoUrl(r.marca, null, resolvedDomains)} className="w-3.5 h-3.5 rounded-sm" />
+                    <LogoBadge
+                      url={getLogoUrl(r.marca, null, resolvedDomains)}
+                      className="w-3.5 h-3.5 rounded-sm"
+                    />
                     {toTitleCase(r.marca)}
                   </Badge>
                 )}
@@ -179,7 +184,10 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
                     variant="outline"
                     className="text-[10px] py-0 px-1.5 h-5 font-normal bg-muted/30 flex items-center gap-1.5"
                   >
-                    <LogoBadge url={getLogoUrl(r.loja, r.link, resolvedDomains)} className="w-3.5 h-3.5 rounded-sm" />
+                    <LogoBadge
+                      url={getLogoUrl(r.loja, r.link, resolvedDomains)}
+                      className="w-3.5 h-3.5 rounded-sm"
+                    />
                     {toTitleCase(r.loja)}
                   </Badge>
                 )}

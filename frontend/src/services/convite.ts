@@ -41,15 +41,13 @@ export const conviteService = {
       body: dto,
     }),
 
-  obterInfo: (token: string) =>
-    api<InfoConviteDto>(`/api/usuario/convite/${token}`),
+  obterInfo: (token: string) => api<InfoConviteDto>(`/api/usuario/convite/${token}`),
 
   aceitar: (dto: AceitarConviteDto) =>
     api<AceitarConviteResponse>("/api/usuario/aceitar-convite", {
       method: "POST",
       body: dto,
     }),
-    
-  buscarMeusConvites: () =>
-    api<MeuConviteDto[]>("/api/usuario/meus-convites"),
+
+  buscarMeusConvites: () => api<MeuConviteDto[]>("/api/usuario/meus-convites"),
 };

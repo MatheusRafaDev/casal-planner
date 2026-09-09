@@ -102,9 +102,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authService.logout().catch(() => {});
   }, []);
 
-  const setUsuario = useCallback((u: Usuario | null | ((prev: Usuario | null) => Usuario | null)) => {
-    setUsuarioState(u);
-  }, []);
+  const setUsuario = useCallback(
+    (u: Usuario | null | ((prev: Usuario | null) => Usuario | null)) => {
+      setUsuarioState(u);
+    },
+    [],
+  );
 
   return (
     <AuthContext.Provider

@@ -40,10 +40,10 @@ function objectToFormData(obj: any): FormData {
   const formData = new FormData();
   Object.entries(obj).forEach(([key, value]) => {
     if (value === undefined || value === null) return;
-    
-    if (key === 'divisaoPagamento' && typeof value === 'object') {
-      formData.append('divisaoPagamento.valorPessoa1', (value as any).valorPessoa1.toString());
-      formData.append('divisaoPagamento.valorPessoa2', (value as any).valorPessoa2.toString());
+
+    if (key === "divisaoPagamento" && typeof value === "object") {
+      formData.append("divisaoPagamento.valorPessoa1", (value as any).valorPessoa1.toString());
+      formData.append("divisaoPagamento.valorPessoa2", (value as any).valorPessoa2.toString());
     } else if (value instanceof File) {
       formData.append(key, value);
     } else {
@@ -75,7 +75,8 @@ export const itensService = {
     return api<PagedResult<Item>>(`/api/itens/page?${qs.toString()}`);
   },
   porCategoria: (categoriaId: string) => api<Item[]>(`/api/itens/categoria/${categoriaId}`),
-  criar: (dto: ItemInputDTO) => api<Item>("/api/itens", { method: "POST", body: objectToFormData(dto) }),
+  criar: (dto: ItemInputDTO) =>
+    api<Item>("/api/itens", { method: "POST", body: objectToFormData(dto) }),
   atualizar: (id: string, dto: Partial<ItemInputDTO>) =>
     api<Item>(`/api/itens/${id}`, { method: "PUT", body: objectToFormData(dto) }),
   toggleComprado: (id: string, comprado: boolean) =>

@@ -107,7 +107,9 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
     };
 
     if (!window.google) {
-      const existingScript = document.getElementById("google-client-script") as HTMLScriptElement | null;
+      const existingScript = document.getElementById(
+        "google-client-script",
+      ) as HTMLScriptElement | null;
       if (!existingScript) {
         const scriptElement = document.createElement("script");
         scriptElement.id = "google-client-script";
@@ -219,7 +221,11 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
           </button>
         </div>
       </div>
-      <Button type="submit" className="w-full bg-gradient-primary shadow-warm" disabled={loading || googleLoading}>
+      <Button
+        type="submit"
+        className="w-full bg-gradient-primary shadow-warm"
+        disabled={loading || googleLoading}
+      >
         {loading ? "Entrando..." : "Entrar"}
       </Button>
 
@@ -251,8 +257,8 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
               fontSize: "0.9rem",
               fontWeight: 500,
               letterSpacing: "0.01em",
-              cursor: (!googleReady || googleLoading || loading) ? "not-allowed" : "pointer",
-              opacity: (!googleReady || googleLoading || loading) ? 0.6 : 1,
+              cursor: !googleReady || googleLoading || loading ? "not-allowed" : "pointer",
+              opacity: !googleReady || googleLoading || loading ? 0.6 : 1,
               boxShadow: "0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.05)",
               transition: "box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease",
               outline: "none",
@@ -260,12 +266,14 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
             }}
             onMouseEnter={(e) => {
               if (googleReady && !googleLoading && !loading) {
-                e.currentTarget.style.boxShadow = "0 4px 12px 0 rgb(0 0 0 / 0.12), 0 2px 4px -1px rgb(0 0 0 / 0.08)";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 12px 0 rgb(0 0 0 / 0.12), 0 2px 4px -1px rgb(0 0 0 / 0.08)";
                 e.currentTarget.style.transform = "translateY(-1px)";
               }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.05)";
+              e.currentTarget.style.boxShadow =
+                "0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.05)";
               e.currentTarget.style.transform = "translateY(0)";
             }}
             onMouseDown={(e) => {
@@ -282,8 +290,19 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
                 viewBox="0 0 24 24"
                 aria-hidden="true"
               >
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
               </svg>
             ) : (
               <GoogleLogo style={{ width: "1.125rem", height: "1.125rem", flexShrink: 0 }} />
