@@ -173,15 +173,17 @@ function PlanejamentoPage() {
 
   const resolvedDomains = dominiosQuery.data ?? {};
 
-  const totalCategoria = todosItens
-    .filter((i) => catAtualId === "tudo" || i.categoriaId === catAtualId)
-    .reduce((s, i) => s + i.preco * i.quantidade, 0);
-  const compradosCategoria = todosItens
-    .filter((i) => catAtualId === "tudo" || i.categoriaId === catAtualId)
-    .filter((i) => i.comprado).length;
   const itensCategoria = todosItens.filter(
     (i) => catAtualId === "tudo" || i.categoriaId === catAtualId,
   );
+  const totalCategoria = itensCategoria
+    .filter((i) => i.origem !== "ganho")
+    .reduce((s, i) => s + i.preco * i.quantidade, 0);
+  const economiaCategoria = itensCategoria
+    .filter((i) => i.origem === "ganho")
+    .reduce((s, i) => s + i.preco * i.quantidade, 0);
+  const compradosCategoria = itensCategoria.filter((i) => i.comprado).length;
+
   const percentComprado = itensCategoria.length
     ? (compradosCategoria / itensCategoria.length) * 100
     : 0;
@@ -213,6 +215,7 @@ function PlanejamentoPage() {
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["itens-paginado"] });
+      qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
     },
   });
@@ -221,6 +224,7 @@ function PlanejamentoPage() {
     mutationFn: (id: string) => itensService.excluir(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["itens-paginado"] });
+      qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
       toast.success("Item removido");
       setExcluindoItem(null);
@@ -307,8 +311,9 @@ function PlanejamentoPage() {
       catAtualId === "tudo" ? todosItens : todosItens.filter((it) => it.categoriaId === catAtualId);
 
     const itensNaoComprados = itensFiltrados.filter((it) => !it.comprado);
-    const totalGasto = itensFiltrados.reduce((s, it) => s + it.preco * it.quantidade, 0);
-    const totalRestante = itensNaoComprados.reduce((s, it) => s + it.preco * it.quantidade, 0);
+    const totalGasto = itensFiltrados.filter((it) => it.origem !== "ganho").reduce((s, it) => s + it.preco * it.quantidade, 0);
+    const totalRestante = itensNaoComprados.filter((it) => it.origem !== "ganho").reduce((s, it) => s + it.preco * it.quantidade, 0);
+    const totalEconomia = itensFiltrados.filter((it) => it.origem === "ganho").reduce((s, it) => s + it.preco * it.quantidade, 0);
 
     const doc = new jsPDF();
 
@@ -333,10 +338,11 @@ function PlanejamentoPage() {
     doc.setFontSize(11);
     doc.text(`Total gasto: ${brl(totalGasto)}`, 14, 55);
     doc.text(`Pendente: ${brl(totalRestante)}`, 14, 62);
+    if (totalEconomia > 0) doc.text(`Economia (ganhos): ${brl(totalEconomia)}`, 14, 69);
     doc.text(
       `Itens comprados: ${itensFiltrados.filter((it) => it.comprado).length}/${itensFiltrados.length}`,
       14,
-      69,
+      totalEconomia > 0 ? 76 : 69,
     );
 
     // Table data
@@ -505,7 +511,7 @@ function PlanejamentoPage() {
                     {todosItens.filter((i) => i.comprado).length}/{todosItens.length} itens
                   </span>
                   <span className="font-medium text-foreground">
-                    {brl(todosItens.reduce((s, i) => s + i.preco * i.quantidade, 0))}
+                    {brl(todosItens.filter(i => i.origem !== "ganho").reduce((s, i) => s + i.preco * i.quantidade, 0))}
                   </span>
                 </div>
               </div>
@@ -516,7 +522,7 @@ function PlanejamentoPage() {
             const ativo = c.id === catAtualId;
             const cItens = todosItens.filter((it) => it.categoriaId === c.id);
             const cComprados = cItens.filter((it) => it.comprado).length;
-            const cGasto = cItens.reduce((s, it) => s + it.preco * it.quantidade, 0);
+            const cGasto = cItens.filter(it => it.origem !== "ganho").reduce((s, it) => s + it.preco * it.quantidade, 0);
 
             return (
               <div
@@ -687,6 +693,11 @@ function PlanejamentoPage() {
                         )}
                       </div>
                     ) : null}
+                    {economiaCategoria > 0 && (
+                      <div className="mt-2 text-xs text-emerald-500 font-medium">
+                        Economia (ganhos/presentes): {brl(economiaCategoria)}
+                      </div>
+                    )}
                   </div>
                 </div>
 

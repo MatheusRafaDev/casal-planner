@@ -140,10 +140,11 @@ export function ItemFormModal({
     onMutate: async (vars) => {
       onOpenChange(false);
     },
-    onSuccess: () => {
+    onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["itens-paginado"] });
+      qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
-      toast.success(item ? "Item atualizado" : "Item adicionado");
+      toast.success(vars.id ? "Item atualizado" : "Item adicionado");
     },
     onError: (e: Error) => {
       toast.error(e.message);
