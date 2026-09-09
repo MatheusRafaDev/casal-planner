@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, LayoutGrid, User, LogOut, Download } from "lucide-react";
+import { Home, LayoutGrid, User, LogOut, Download, PieChart } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
 import { usePwa } from "@/hooks/use-pwa";
@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 const nav = [
   { to: "/inicio", label: "Início", icon: Home },
-  { to: "/planejamento", label: "Planejamento", icon: LayoutGrid },
+  { to: "/planejamento", label: "Planejar", icon: LayoutGrid },
   { to: "/perfil", label: "Perfil", icon: User },
 ] as const;
 
@@ -91,7 +91,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         className="md:hidden fixed bottom-0 inset-x-0 border-t bg-sidebar/95 backdrop-blur z-40"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
-        <div className="grid grid-cols-3 h-16">
+        <div className="grid grid-cols-4 h-16">
           {nav.map((n) => {
             const active = pathname.startsWith(n.to);
             return (

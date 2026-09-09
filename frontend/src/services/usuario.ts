@@ -82,4 +82,9 @@ export const usuarioService = {
       method: "PUT",
       body: { metaGlobalEnxoval: meta },
     }),
+  atualizarNotificacoes: (receberNotificacoes: boolean) =>
+    api("/api/usuario/notificacoes", {
+      method: "PUT",
+      body: { receberNotificacoes },
+    }),
 };

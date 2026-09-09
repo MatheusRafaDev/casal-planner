@@ -444,26 +444,24 @@ export function ItemFormModal({
                 </div>
                 <Switch
                   checked={form.comprado}
-                  onCheckedChange={(c) => {
-                    set("comprado", c);
-                    if (!c) set("dataCompra", null);
-                  }}
+                  onCheckedChange={(c) => set("comprado", c)}
                 />
               </div>
-              
-              {form.comprado && (
-                <div className="space-y-2 pt-2 border-t">
-                  <Label className="flex items-center gap-1.5">
-                    <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
-                    Data da Compra
-                  </Label>
-                  <Input 
-                    type="date" 
-                    value={form.dataCompra ?? ""} 
-                    onChange={(e) => set("dataCompra", e.target.value)}
-                  />
-                </div>
-              )}
+
+              <div className="space-y-2 pt-2 border-t">
+                <Label className="flex items-center gap-1.5">
+                  <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
+                  {form.comprado ? "Data da Compra" : "Data prevista de compra"}
+                </Label>
+                <Input
+                  type="date"
+                  value={form.dataCompra ?? ""}
+                  onChange={(e) => set("dataCompra", e.target.value || null)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Usado para calcular a projeção de parcelamentos no painel.
+                </p>
+              </div>
             </div>
 
             {isCasal && form.origem !== "ganho" && (

@@ -152,7 +152,11 @@ namespace CasalPlanner.Infrastructure.Repositories
 
             var pipeline = new[]
             {
-                new BsonDocument("$match", new BsonDocument("UsuarioId", new ObjectId(usuarioId))),
+                new BsonDocument("$match", new BsonDocument
+                {
+                    { "UsuarioId", new ObjectId(usuarioId) },
+                    { "Origem", new BsonDocument("$ne", "ganho") }
+                }),
                 new BsonDocument("$project", new BsonDocument
                 {
                     { "CategoriaId", 1 },

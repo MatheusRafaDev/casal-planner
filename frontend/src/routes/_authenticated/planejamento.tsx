@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   Share2,
   FileText,
+  Download,
 } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -302,6 +303,34 @@ function PlanejamentoPage() {
     return texto;
   };
 
+  const handleExportarCSV = () => {
+    const itensFiltrados =
+      catAtualId === "tudo" ? todosItens : todosItens.filter((it) => it.categoriaId === catAtualId);
+
+    const cabecalho = ["Item", "Marca", "Loja", "Quantidade", "Preço Unitário", "Total", "Comprado", "Data Compra", "Origem"];
+    const linhas = itensFiltrados.map((it) => [
+      `"${it.nome.replace(/"/g, '""')}"`,
+      `"${(it.marca || "").replace(/"/g, '""')}"`,
+      `"${(it.loja || "").replace(/"/g, '""')}"`,
+      it.quantidade,
+      it.preco.toString().replace(".", ","),
+      (it.preco * it.quantidade).toString().replace(".", ","),
+      it.comprado ? "Sim" : "Não",
+      it.dataCompra ? new Date(it.dataCompra).toLocaleDateString("pt-BR") : "",
+      it.origem
+    ]);
+
+    const conteudoCSV = [cabecalho.join(";"), ...linhas.map((l) => l.join(";"))].join("\n");
+    const blob = new Blob(["\uFEFF" + conteudoCSV], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Planejamento_CasalPlanner_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleExportarPDF = async () => {
     const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
       import("jspdf"),
@@ -401,6 +430,24 @@ function PlanejamentoPage() {
             Planejamento
           </h1>
           <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={handleExportarCSV}
+                className="flex-1 sm:flex-none border-primary/20 text-primary hover:bg-primary/5"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Exportar CSV
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleExportarPDF}
+                className="flex-1 sm:flex-none border-primary/20 text-primary hover:bg-primary/5"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Exportar PDF
+              </Button>
+            </div>
             <Button
               variant="secondary"
               size="sm"

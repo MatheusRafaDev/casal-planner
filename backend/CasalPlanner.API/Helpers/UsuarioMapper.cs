@@ -17,6 +17,7 @@ namespace CasalPlanner.API.Helpers
                 tipoConta = "Individual",
                 isCasal = false,
                 modoEscuro = usuario.ModoEscuro,
+                receberNotificacoes = usuario.ReceberNotificacoes,
                 metaGlobalEnxoval = usuario.MetaGlobalEnxoval,
                 createdAt = usuario.CreatedAt,
                 lastLoginAt = usuario.LastLoginAt
@@ -46,13 +47,15 @@ namespace CasalPlanner.API.Helpers
                     {
                         nomeCompleto = usuario.CasalInfo?.NomeCompletoPessoa1,
                         email = usuario.CasalInfo?.EmailPessoa1,
-                        dataNascimento = dataNascimentoPessoa1
+                        dataNascimento = dataNascimentoPessoa1,
+                        receberNotificacoes = usuario.CasalInfo?.ReceberNotificacoesPessoa1 ?? true
                     },
                     pessoa2 = new
                     {
                         nomeCompleto = usuario.CasalInfo?.NomeCompletoPessoa2,
                         email = usuario.CasalInfo?.EmailPessoa2,
-                        dataNascimento = dataNascimentoPessoa2
+                        dataNascimento = dataNascimentoPessoa2,
+                        receberNotificacoes = usuario.CasalInfo?.ReceberNotificacoesPessoa2 ?? true
                     }
                 };
             }
@@ -76,13 +79,15 @@ namespace CasalPlanner.API.Helpers
                         {
                             nomeCompleto = usuario.CasalInfo?.NomeCompletoPessoa1,
                             email = usuario.CasalInfo?.EmailPessoa1,
-                            dataNascimento = dataNascimentoPessoa1
+                            dataNascimento = dataNascimentoPessoa1,
+                            receberNotificacoes = usuario.CasalInfo?.ReceberNotificacoesPessoa1 ?? true
                         },
                         pessoa2 = new
                         {
                             nomeCompleto = usuario.CasalInfo?.NomeCompletoPessoa2,
                             email = usuario.CasalInfo?.EmailPessoa2,
-                            dataNascimento = dataNascimentoPessoa2
+                            dataNascimento = dataNascimentoPessoa2,
+                            receberNotificacoes = usuario.CasalInfo?.ReceberNotificacoesPessoa2 ?? true
                         }
                     }
                 };

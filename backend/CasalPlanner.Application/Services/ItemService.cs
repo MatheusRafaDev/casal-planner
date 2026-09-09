@@ -202,6 +202,13 @@ namespace CasalPlanner.Application.Services
         {
             if (usuario == null || !usuario.IsCasal) return;
 
+            // Verificar se o parceiro deseja receber notificações
+            bool receberNotificacoesParceiro = currentPessoaId == 1 
+                ? (usuario.CasalInfo?.ReceberNotificacoesPessoa2 ?? true) 
+                : (usuario.CasalInfo?.ReceberNotificacoesPessoa1 ?? true);
+
+            if (!receberNotificacoesParceiro) return;
+
             try
             {
                 await _pushService.SendPushToPartnerAsync(usuario, currentPessoaId,

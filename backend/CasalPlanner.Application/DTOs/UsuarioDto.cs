@@ -11,6 +11,7 @@ namespace CasalPlanner.Application.DTOs
         public string TipoConta { get; set; } = "Individual";
         public bool IsCasal { get; set; }
         public bool ModoEscuro { get; set; }
+        public bool ReceberNotificacoes { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLoginAt { get; set; }
 
@@ -57,7 +58,6 @@ namespace CasalPlanner.Application.DTOs
         public string? EnderecoNovaCasa { get; set; }
 
     }
-  
 
 
     public class AtualizarCasalDto
@@ -129,5 +129,10 @@ namespace CasalPlanner.Application.DTOs
         public string P256dh { get; set; } = string.Empty;
         [Required]
         public string Auth { get; set; } = string.Empty;
+    }
+
+    public class NotificacoesDto
+    {
+        public bool ReceberNotificacoes { get; set; }
     }
 }

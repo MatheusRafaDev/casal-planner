@@ -15,6 +15,8 @@ import {
   MailOpen,
   LogOut,
   Download,
+  Bell,
+  BellOff
 } from "lucide-react";
 import { usePwa } from "@/hooks/use-pwa";
 import { useAuth } from "@/lib/auth-context";
@@ -24,6 +26,7 @@ import { resumoService } from "@/services/resumo";
 import { conviteService } from "@/services/convite";
 import { recuperarSenhaService } from "@/services/recuperar-senha";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
@@ -208,13 +211,18 @@ function PerfilPage() {
             <TabsContent value="p1">
               <PessoaForm
                 key="p1"
-                dados={usuario.casalInfo?.pessoa1 ?? { nome: "", email: "" }}
+                dados={{ 
+                  nome: usuario.casalInfo?.pessoa1.nome ?? "", 
+                  email: usuario.casalInfo?.pessoa1.email ?? "",
+                  receberNotificacoes: usuario.casalInfo?.pessoa1.receberNotificacoes ?? true
+                }}
                 bloquearEmailCpf
                 onSave={async (dto) => {
                   await usuarioService.atualizarPerfilCasal(usuario.id, 1, {
                     nome: dto.nome,
                     dataNascimento: dto.dataNascimento ?? null,
                   });
+                  await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true);
                   await refresh();
                 }}
               />
@@ -222,13 +230,18 @@ function PerfilPage() {
             <TabsContent value="p2">
               <PessoaForm
                 key="p2"
-                dados={usuario.casalInfo?.pessoa2 ?? { nome: "", email: "" }}
+                dados={{ 
+                  nome: usuario.casalInfo?.pessoa2.nome ?? "", 
+                  email: usuario.casalInfo?.pessoa2.email ?? "",
+                  receberNotificacoes: usuario.casalInfo?.pessoa2.receberNotificacoes ?? true
+                }}
                 bloquearEmailCpf
                 onSave={async (dto) => {
                   await usuarioService.atualizarPerfilCasal(usuario.id, 2, {
                     nome: dto.nome,
                     dataNascimento: dto.dataNascimento ?? null,
                   });
+                  await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true);
                   await refresh();
                 }}
               />
@@ -240,6 +253,7 @@ function PerfilPage() {
               nome: usuario.nomeCompleto ?? "",
               email: usuario.email ?? "",
               dataNascimento: usuario.dataNascimento ?? "",
+              receberNotificacoes: usuario.receberNotificacoes ?? true
             }}
             bloquearEmailCpf
             onSave={async (dto) => {
@@ -248,6 +262,7 @@ function PerfilPage() {
                 email: dto.email,
                 dataNascimento: dto.dataNascimento ?? undefined,
               });
+              await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true);
               await refresh();
             }}
           />
@@ -311,6 +326,7 @@ interface PessoaDados {
   nome: string;
   email: string;
   dataNascimento?: string | null;
+  receberNotificacoes?: boolean;
 }
 
 function PessoaForm({
@@ -325,11 +341,13 @@ function PessoaForm({
   const [nome, setNome] = useState(dados.nome ?? "");
   const [email, setEmail] = useState(dados.email ?? "");
   const [nasc, setNasc] = useState(dados.dataNascimento ? formatDate(dados.dataNascimento) : "");
+  const [notif, setNotif] = useState(dados.receberNotificacoes ?? true);
 
   useEffect(() => {
     setNome(dados.nome ?? "");
     setEmail(dados.email ?? "");
     setNasc(dados.dataNascimento ? formatDate(dados.dataNascimento) : "");
+    setNotif(dados.receberNotificacoes ?? true);
   }, [dados]);
 
   const mut = useMutation({
@@ -345,6 +363,7 @@ function PessoaForm({
         nome,
         email,
         dataNascimento: dataFormatada,
+        receberNotificacoes: notif,
       });
     },
     onSuccess: () => toast.success("Dados atualizados"),
@@ -388,6 +407,19 @@ function PessoaForm({
             onChange={(e) => setNasc(maskDate(e.target.value))}
             placeholder="dd/mm/aaaa"
           />
+        </div>
+
+        <div className="flex items-center justify-between col-span-full pt-2">
+          <div className="flex flex-col space-y-0.5">
+            <Label className="flex items-center gap-2">
+              {notif ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4 text-muted-foreground" />}
+              Receber Notificações
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Avisos sobre itens marcados como comprados pelo parceiro.
+            </p>
+          </div>
+          <Switch checked={notif} onCheckedChange={setNotif} />
         </div>
       </div>
       <Button type="submit" disabled={mut.isPending} className="bg-gradient-primary">

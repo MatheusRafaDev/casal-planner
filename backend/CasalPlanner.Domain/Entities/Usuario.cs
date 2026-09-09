@@ -39,6 +39,7 @@ namespace CasalPlanner.Domain.Entities
         public decimal? MetaGlobalEnxoval { get; set; }
 
         public bool ModoEscuro { get; set; } = true;
+        public bool ReceberNotificacoes { get; set; } = true;
 
         // Convite de parceiro
         public string? ConviteParceiroToken { get; set; }
@@ -69,6 +70,7 @@ namespace CasalPlanner.Domain.Entities
         public DateTime? DataNascimentoPessoa1 { get; set; }
 
         public string? AvatarPessoa1 { get; set; }
+        public bool ReceberNotificacoesPessoa1 { get; set; } = true;
 
         // Campos para redefinição - Pessoa 1
         public string? ResetCodePessoa1 { get; set; }
@@ -89,6 +91,7 @@ namespace CasalPlanner.Domain.Entities
         public DateTime? DataNascimentoPessoa2 { get; set; }
 
         public string? AvatarPessoa2 { get; set; }
+        public bool ReceberNotificacoesPessoa2 { get; set; } = true;
 
         // Campos para redefinição - Pessoa 2
         public string? ResetCodePessoa2 { get; set; }

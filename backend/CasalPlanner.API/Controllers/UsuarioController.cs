@@ -455,6 +455,39 @@ public class UsuarioController : ControllerBase
         return Ok(usuarioMapeado);
     }
 
+    [Authorize]
+    [HttpPut("notificacoes")]
+    public async Task<IActionResult> AtualizarNotificacoes([FromBody] NotificacoesDto dto)
+    {
+        var usuarioId = GetUsuarioId();
+        if (string.IsNullOrEmpty(usuarioId))
+            return Unauthorized();
+
+        var usuario = await _context.Usuarios.Find(u => u.Id == usuarioId).FirstOrDefaultAsync();
+        if (usuario == null)
+            return NotFound();
+
+        if (usuario.TipoConta == TipoConta.Individual)
+        {
+            var update = Builders<Usuario>.Update.Set(u => u.ReceberNotificacoes, dto.ReceberNotificacoes);
+            await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioId, update);
+        }
+        else if (usuario.TipoConta == TipoConta.Casal && usuario.CasalInfo != null)
+        {
+            var pessoaLogada = User.FindFirst("PessoaLogada")?.Value;
+            UpdateDefinition<Usuario> update;
+
+            if (pessoaLogada == "pessoa2")
+                update = Builders<Usuario>.Update.Set(u => u.CasalInfo!.ReceberNotificacoesPessoa2, dto.ReceberNotificacoes);
+            else
+                update = Builders<Usuario>.Update.Set(u => u.CasalInfo!.ReceberNotificacoesPessoa1, dto.ReceberNotificacoes);
+
+            await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioId, update);
+        }
+
+        return Ok(new { receberNotificacoes = dto.ReceberNotificacoes });
+    }
+
 
     [Authorize]
     [HttpDelete("usuario/{id}")]

@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Bot,
   FileText,
+  Gift,
 } from "lucide-react";
 import {
   Pie,
@@ -30,7 +31,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { iconFor } from "@/components/planejamento/icon-map";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import type { Item } from "@/services/types";
 
@@ -78,6 +79,47 @@ function InicioPage() {
     mutationFn: () => groqService.resumoEnxoval(),
   });
 
+  const faturasMensais = useMemo(() => {
+    if (!itens || itens.length === 0) return [];
+
+    const mesesMap = new Map<string, number>();
+    // Inclui itens comprados E itens com data prevista de compra (para projeção futura)
+    const itensRelevantes = itens.filter(
+      (i) => i.origem !== "ganho" && (i.comprado || i.dataCompra)
+    );
+
+    itensRelevantes.forEach((item) => {
+      // Se não tem data, pula (não projeta sem data)
+      if (!item.dataCompra && !item.comprado) return;
+      const dataStr = item.dataCompra || new Date().toISOString();
+      const dataBase = new Date(dataStr);
+
+      const valorTotal = item.preco * item.quantidade;
+      const parcelas = Math.max(1, item.parcelas ?? 1);
+      const valorParcela = valorTotal / parcelas;
+
+      for (let i = 0; i < parcelas; i++) {
+        const dataParcela = new Date(dataBase);
+        dataParcela.setMonth(dataParcela.getMonth() + i);
+
+        const mesAnoKey = `${dataParcela.getFullYear()}-${String(dataParcela.getMonth() + 1).padStart(2, "0")}`;
+        mesesMap.set(mesAnoKey, (mesesMap.get(mesAnoKey) ?? 0) + valorParcela);
+      }
+    });
+
+    return Array.from(mesesMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([key, valor]) => {
+        const [ano, mes] = key.split("-");
+        const data = new Date(parseInt(ano), parseInt(mes) - 1, 1);
+        const mesStr = data.toLocaleDateString("pt-BR", { month: "short" });
+        return {
+          name: `${mesStr.charAt(0).toUpperCase() + mesStr.slice(1)}/${ano}`,
+          valor: valor,
+        };
+      });
+  }, [itens]);
+
   if (isLoading) {
     return (
       <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-4">
@@ -124,8 +166,17 @@ function InicioPage() {
 
   const totalParcelado =
     itens.length > 0
-      ? itens.filter((i) => (i.parcelas ?? 1) > 1).reduce((s, i) => s + i.preco * i.quantidade, 0)
+      ? itens
+          .filter((i) => (i.parcelas ?? 1) > 1 && i.origem !== "ganho")
+          .reduce((s, i) => s + i.preco * i.quantidade, 0)
       : 0;
+
+  // Total economizado com presentes/ganhos
+  const totalEconomizadoGanhos =
+    itens.length > 0
+      ? itens.filter((i) => i.origem === "ganho").reduce((s, i) => s + i.preco * i.quantidade, 0)
+      : 0;
+  const qtdGanhos = itens.filter((i) => i.origem === "ganho").length;
 
   // Bar chart mensal — com nomes reais dos meses
   const hoje = new Date();
@@ -158,6 +209,8 @@ function InicioPage() {
     (r?.mesPassado ?? 0) > 0
       ? (((r?.mesAtual ?? 0) - (r?.mesPassado ?? 0)) / (r?.mesPassado ?? 0)) * 100
       : null;
+
+
 
   // ─── Gerador de Relatório PDF Financeiro ───────────────────────────────────
   const gerarRelatorioFinanceiro = async () => {
@@ -395,7 +448,7 @@ function InicioPage() {
         ) : (
           <div className="space-y-6">
             {/* Cards principais */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <ResumoCard
                 icon={Wallet}
                 label="Total gasto"
@@ -416,6 +469,13 @@ function InicioPage() {
                 valor={brl(totalParcelado)}
                 hint="Soma das compras parceladas"
                 delay={0.1}
+              />
+              <ResumoCard
+                icon={Gift}
+                label="Economizado com presentes"
+                valor={brl(totalEconomizadoGanhos)}
+                hint={`${qtdGanhos} ${qtdGanhos === 1 ? "item ganho" : "itens ganhos"} no enxoval`}
+                delay={0.15}
               />
             </div>
 
@@ -544,12 +604,13 @@ function InicioPage() {
                         tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
                       />
                       <Tooltip
-                        formatter={(v: number) => [brl(v), "Gasto"]}
+                        formatter={(v: number) => [<span style={{ color: "white" }}>{brl(v)}</span>, <span style={{ color: "white" }}>Gasto</span>]}
                         contentStyle={{
                           borderRadius: 8,
                           border: "1px solid var(--border)",
                           background: "var(--card)",
                         }}
+                        labelStyle={{ color: "white" }}
                       />
                       <Bar dataKey="valor" radius={[6, 6, 0, 0]}>
                         {dadosCategoria.map((entry, index) => (
@@ -602,18 +663,68 @@ function InicioPage() {
                   tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
                 />
                 <Tooltip
-                  formatter={(v: number) => [brl(v), "Gasto"]}
+                  formatter={(v: number) => [<span style={{ color: "white" }}>{brl(v)}</span>, <span style={{ color: "white" }}>Gasto</span>]}
                   contentStyle={{
                     borderRadius: 8,
                     border: "1px solid var(--border)",
                     background: "var(--card)",
                   }}
+                  labelStyle={{ color: "white" }}
                 />
                 <Bar dataKey="valor" fill="var(--primary)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         )}
+
+        {/* Faturas Mensais — sempre visível */}
+        <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
+          <div className="flex items-center gap-3 mb-1 flex-wrap">
+            <h3 className="font-display text-lg font-semibold">Projeção de Faturas</h3>
+          </div>
+          <p className="text-xs text-muted-foreground mb-4">
+            Previsão de parcelamentos por mês — inclui itens comprados e com data prevista
+          </p>
+          {faturasMensais.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-muted-foreground gap-2">
+              <span className="text-3xl">📅</span>
+              <p className="text-sm text-center">
+                Nenhum parcelamento registrado ainda.<br />
+                <span className="text-xs">Adicione uma data de compra nos itens do planejamento para ver a projeção aqui.</span>
+              </p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={faturasMensais} margin={{ top: 4, right: 8, bottom: 25, left: 0 }}>
+                <XAxis
+                  dataKey="name"
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
+                />
+                <Tooltip
+                  formatter={(v: number) => [<span style={{ color: "white" }}>{brl(v)}</span>, <span style={{ color: "white" }}>Fatura</span>]}
+                  contentStyle={{
+                    borderRadius: 8,
+                    border: "1px solid var(--border)",
+                    background: "var(--card)",
+                  }}
+                  labelStyle={{ color: "white" }}
+                />
+                <Bar dataKey="valor" fill="#7c3aed" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
 
         {/* Progresso por cômodo */}
         {r?.porCategoria && r.porCategoria.length > 0 && (
