@@ -214,6 +214,7 @@ function PerfilPage() {
                 dados={{ 
                   nome: usuario.casalInfo?.pessoa1.nome ?? "", 
                   email: usuario.casalInfo?.pessoa1.email ?? "",
+                  dataNascimento: usuario.casalInfo?.pessoa1.dataNascimento ?? "",
                   receberNotificacoes: usuario.casalInfo?.pessoa1.receberNotificacoes ?? true
                 }}
                 bloquearEmailCpf
@@ -233,6 +234,7 @@ function PerfilPage() {
                 dados={{ 
                   nome: usuario.casalInfo?.pessoa2.nome ?? "", 
                   email: usuario.casalInfo?.pessoa2.email ?? "",
+                  dataNascimento: usuario.casalInfo?.pessoa2.dataNascimento ?? "",
                   receberNotificacoes: usuario.casalInfo?.pessoa2.receberNotificacoes ?? true
                 }}
                 bloquearEmailCpf
