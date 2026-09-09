@@ -204,6 +204,7 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
             className="pl-9 pr-10"
             ref={senhaInputRef}
             defaultValue=""
+            placeholder="Mínimo 6 caracteres"
             required
             autoComplete="current-password"
           />

@@ -51,11 +51,10 @@ public class VisionAnalysisService : IVisionAnalysisService
         catch (Exception groqEx)
         {
             _logger.LogError(groqEx,
-                "[Vision Orchestrator] Groq (fallback) também falhou. Ambos os provedores estão indisponíveis. " +
-                "Verifique: Gemini → https://ai.google.dev | Groq → https://console.groq.com/docs/deprecations");
+                "[Vision Orchestrator] Groq (fallback) também falhou. Ambos os provedores estão indisponíveis.");
             throw new InvalidOperationException(
                 "A análise de foto falhou em ambos os provedores (Gemini e Groq). " +
-                "Verifique as chaves GEMINI_API_KEY e GROQ_API_KEY e se os modelos estão ativos.",
+                "Verifique se as chaves da API estão corretas e se os serviços não estão fora do ar.",
                 groqEx);
         }
     }

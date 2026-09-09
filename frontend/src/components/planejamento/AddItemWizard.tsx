@@ -50,16 +50,7 @@ interface Props {
   categoriaInicialId: string;
 }
 
-function getLocation(): Promise<{ latitude?: number; longitude?: number }> {
-  return new Promise((resolve) => {
-    if (!navigator.geolocation) return resolve({});
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => resolve({ latitude: coords.latitude, longitude: coords.longitude }),
-      () => resolve({}),
-      { enableHighAccuracy: false, timeout: 8_000, maximumAge: 60_000 },
-    );
-  });
-}
+
 
 function toBase64(file: File): Promise<string> {
   return new Promise(async (resolve, reject) => {
@@ -309,8 +300,8 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     if (!file) return;
     setAnalisandoFoto(true);
     try {
-      const [imagemBase64, location] = await Promise.all([toBase64(file), getLocation()]);
-      const analise = await registroPrecoService.analisar(imagemBase64, location.latitude, location.longitude);
+      const imagemBase64 = await toBase64(file);
+      const analise = await registroPrecoService.analisar(imagemBase64);
       
       const nomeIdentificado = analise.produtoNome.trim();
       handleNomeChange(nomeIdentificado); // Isso já vai tentar preencher o cômodo
@@ -745,37 +736,39 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-3 mt-2">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label className="flex items-center gap-1.5">
-                      <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
-                      Parcelas
-                    </Label>
-                    {parcelas > 1 && (
-                      <span className="text-xs text-muted-foreground">
-                        {brl((escolhido?.preco ?? precoNumerico) / parcelas)}/parcela
-                      </span>
-                    )}
+                {origem !== "ganho" && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label className="flex items-center gap-1.5">
+                        <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
+                        Parcelas
+                      </Label>
+                      {parcelas > 1 && (
+                        <span className="text-xs text-muted-foreground">
+                          {brl((escolhido?.preco ?? precoNumerico) / parcelas)}/parcela
+                        </span>
+                      )}
+                    </div>
+                    <Select
+                      value={String(parcelas)}
+                      onValueChange={(v) => setParcelas(Number(v))}
+                      disabled={pagamento === "vr"}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((p) => (
+                          <SelectItem key={p} value={String(p)}>
+                            {p === 1
+                              ? "À vista (1x)"
+                              : `${p}x • ${brl((escolhido?.preco ?? precoNumerico) / p)}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <Select
-                    value={String(parcelas)}
-                    onValueChange={(v) => setParcelas(Number(v))}
-                    disabled={pagamento === "vr" || origem === "ganho"}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((p) => (
-                        <SelectItem key={p} value={String(p)}>
-                          {p === 1
-                            ? "À vista (1x)"
-                            : `${p}x • ${brl((escolhido?.preco ?? precoNumerico) / p)}`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                )}
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1.5">
                     <Zap className="h-3.5 w-3.5 text-muted-foreground" />
@@ -810,28 +803,30 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-1.5">
-                    <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
-                    Pagamento
-                  </Label>
-                  <Select
-                    value={pagamento}
-                    onValueChange={(v) => {
-                      setPagamento(v as "normal" | "vr");
-                      if (v === "vr") setParcelas(1);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="normal">Dinheiro</SelectItem>
-                      <SelectItem value="vr">VR / VA</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {isCasal && (
+                {origem !== "ganho" && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5">
+                      <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
+                      Pagamento
+                    </Label>
+                    <Select
+                      value={pagamento}
+                      onValueChange={(v) => {
+                        setPagamento(v as "normal" | "vr");
+                        if (v === "vr") setParcelas(1);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="normal">Dinheiro</SelectItem>
+                        <SelectItem value="vr">VR / VA</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {isCasal && origem !== "ganho" && (
                   <div className="space-y-4 sm:col-span-3 border rounded-xl p-4 bg-card mt-2">
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">

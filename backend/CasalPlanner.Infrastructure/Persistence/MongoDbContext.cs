@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using CasalPlanner.Domain.Entities;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 
 namespace CasalPlanner.Infrastructure.Persistence;
 
@@ -15,7 +17,17 @@ public class MongoDbContext
 
     public MongoDbContext(IOptions<MongoDBSettings> settings)
     {
-        var client = new MongoClient(settings.Value.ConnectionString);
+        var mongoSettings = MongoClientSettings.FromConnectionString(settings.Value.ConnectionString);
+
+        // Fix for Windows Schannel SSL error (0x80090304): A autoridade de segurança local não pode ser contatada
+        // This bypasses certificate validation issues caused by Windows LSASS/Schannel in development environments
+        mongoSettings.SslSettings = new SslSettings
+        {
+            EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12,
+            ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true
+        };
+
+        var client = new MongoClient(mongoSettings);
         _database = client.GetDatabase(settings.Value.DatabaseName);
 
         _usuarios = _database.GetCollection<Usuario>("Usuarios");

@@ -217,7 +217,7 @@ Regras:
 
                 var requestBody = new
                 {
-                    model = "llama-3.1-8b-instant",
+                    model = "qwen/qwen3.6-27b",
                     temperature = 0.3,
                     response_format = new { type = "json_object" },
                     messages = new[]
@@ -287,7 +287,7 @@ Responda APENAS em JSON válido, sem texto adicional, no formato:
 
                 var requestBody = new
                 {
-                    model = "llama-3.1-8b-instant",
+                    model = "qwen/qwen3.6-27b",
                     temperature = 0.1,
                     response_format = new { type = "json_object" },
                     messages = new[]
@@ -355,7 +355,7 @@ Responda APENAS em JSON válido:
 
                 var requestBody = new
                 {
-                    model = "llama-3.1-8b-instant",
+                    model = "qwen/qwen3.6-27b",
                     temperature = 0.3,
                     response_format = new { type = "json_object" },
                     messages = new[]
@@ -426,7 +426,7 @@ Responda APENAS em JSON válido:
 
                 var requestBody = new
                 {
-                    model = "llama-3.1-8b-instant",
+                    model = "qwen/qwen3.6-27b",
                     temperature = 0.7,
                     messages = new[]
                     {
@@ -498,7 +498,7 @@ Lembre-se: máximo 4 frases, use o nome do casal, mencione valores reais em reai
 
                 var requestBody = new
                 {
-                    model = "llama-3.1-8b-instant",
+                    model = "qwen/qwen3.6-27b",
                     temperature = 0.75,
                     max_tokens = 300,
                     messages = new[]
@@ -552,7 +552,7 @@ Lembre-se: máximo 4 frases, use o nome do casal, mencione valores reais em reai
 
                 var requestBody = new
                 {
-                    model = "llama-3.1-8b-instant",
+                    model = "qwen/qwen3.6-27b",
                     temperature = 0.1,
                     response_format = new { type = "json_object" },
                     messages = new[]

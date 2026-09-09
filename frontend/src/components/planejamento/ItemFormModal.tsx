@@ -313,56 +313,60 @@ export function ItemFormModal({
                 className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Label className="flex items-center gap-1.5">
-                  <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
-                  Parcelas
-                </Label>
-                {(form.parcelas ?? 1) > 1 && (
-                  <span className="text-xs text-muted-foreground">
-                    {brl(form.preco / (form.parcelas ?? 1))}/parcela
-                  </span>
-                )}
-              </div>
-              <Select
-                value={String(form.parcelas ?? 1)}
-                onValueChange={(v) => set("parcelas", Number(v))}
-                disabled={form.pagamento === "vr"}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((p) => (
-                    <SelectItem key={p} value={String(p)}>
-                      {p === 1 ? "À vista (1x)" : `${p}x • ${brl(form.preco / p)}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1.5">
-                <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
-                Pagamento
-              </Label>
-              <Select
-                value={form.pagamento}
-                onValueChange={(v) => {
-                  set("pagamento", v as "normal" | "vr");
-                  if (v === "vr") set("parcelas", 1);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="normal">Dinheiro</SelectItem>
-                  <SelectItem value="vr">VR / VA</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {form.origem !== "ganho" && (
+              <>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <Label className="flex items-center gap-1.5">
+                      <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
+                      Parcelas
+                    </Label>
+                    {(form.parcelas ?? 1) > 1 && (
+                      <span className="text-xs text-muted-foreground">
+                        {brl(form.preco / (form.parcelas ?? 1))}/parcela
+                      </span>
+                    )}
+                  </div>
+                  <Select
+                    value={String(form.parcelas ?? 1)}
+                    onValueChange={(v) => set("parcelas", Number(v))}
+                    disabled={form.pagamento === "vr"}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((p) => (
+                        <SelectItem key={p} value={String(p)}>
+                          {p === 1 ? "À vista (1x)" : `${p}x • ${brl(form.preco / p)}`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1.5">
+                    <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
+                    Pagamento
+                  </Label>
+                  <Select
+                    value={form.pagamento}
+                    onValueChange={(v) => {
+                      set("pagamento", v as "normal" | "vr");
+                      if (v === "vr") set("parcelas", 1);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="normal">Dinheiro</SelectItem>
+                      <SelectItem value="vr">VR / VA</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
             <div className="space-y-2">
               <Label className="flex items-center gap-1.5">
                 <Zap className="h-3.5 w-3.5 text-muted-foreground" />
@@ -394,7 +398,7 @@ export function ItemFormModal({
                 </SelectContent>
               </Select>
             </div>
-            {isCasal && (
+            {isCasal && form.origem !== "ganho" && (
               <div className="space-y-4 sm:col-span-2 border rounded-xl p-4 bg-card mt-2">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">

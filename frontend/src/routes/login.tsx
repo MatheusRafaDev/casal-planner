@@ -48,7 +48,7 @@ function LoginPage() {
   return (
     <div className="min-h-screen grid md:grid-cols-2 bg-background">
       {/* Lado ilustrativo */}
-      <div className="hidden md:flex relative overflow-hidden">
+      <div className="hidden md:flex relative overflow-hidden md:order-last">
         <div className="absolute inset-0 bg-gradient-hero" />
         <div className="relative z-10 p-12 flex flex-col justify-between w-full">
           <Link to="/" className="flex items-center gap-2">
@@ -72,7 +72,7 @@ function LoginPage() {
       </div>
 
       {/* Lado do formulário */}
-      <div className="flex items-center justify-center p-6 md:p-12">
+      <div className="flex items-center justify-center p-6 md:p-12 md:order-first">
         <div className="w-full max-w-md space-y-6">
           <div className="md:hidden flex items-center gap-2">
             <img src="/logo.png" alt="Casal Planner" className="h-9 w-9 rounded-lg" />
