@@ -18,6 +18,7 @@ public class ItemServiceTests
     private readonly Mock<IPushService> _pushServiceMock;
     private readonly Mock<ILogger<ItemService>> _loggerMock;
     private readonly Mock<IEmailService> _emailServiceMock;
+    private readonly Mock<IScrapeDoService> _scrapeDoServiceMock;
     private readonly IMemoryCache _cache;
     private readonly ItemService _service;
 
@@ -28,6 +29,7 @@ public class ItemServiceTests
         _pushServiceMock = new Mock<IPushService>();
         _loggerMock = new Mock<ILogger<ItemService>>();
         _emailServiceMock = new Mock<IEmailService>();
+        _scrapeDoServiceMock = new Mock<IScrapeDoService>();
         _cache = new MemoryCache(new MemoryCacheOptions());
 
         _service = new ItemService(
@@ -36,7 +38,8 @@ public class ItemServiceTests
             _pushServiceMock.Object,
             _loggerMock.Object,
             _emailServiceMock.Object,
-            _cache
+            _cache,
+            _scrapeDoServiceMock.Object
         );
     }
 

@@ -58,6 +58,7 @@ export interface Item {
   categoriaId: string;
   usuarioId?: string;
   comprado: boolean;
+  dataCompra?: string | null;
   pagamento: "normal" | "vr";
   prioridade?: string | null;
   loja?: string | null;

@@ -119,10 +119,18 @@ const DOMINIOS_CONHECIDOS: Record<string, string> = {
   gillette: "gillette.com",
 };
 
-export const getFaviconUrl = (domain: string) =>
-  domain === "mercadolivre.com.br"
-    ? `https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.73/mercadolibre/favicon.svg`
-    : `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+export const getFaviconUrls = (domain: string, name?: string | null) => {
+  const brandName = name || domain.split('.')[0];
+  return domain === "mercadolivre.com.br"
+    ? [`https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.73/mercadolibre/favicon.svg`]
+    : [
+        `https://logo.clearbit.com/${domain}`,
+        `https://icon.horse/icon/${domain}`,
+        `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
+        `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(brandName)}&background=random&color=fff&size=128&bold=true`
+      ];
+};
 
 /** Normaliza um nome para lookup no mapa local */
 const normalizar = (s: string) => s.toLowerCase().trim();
@@ -136,34 +144,34 @@ const domainFromUrl = (url: string) => {
   }
 };
 
-/** Retorna a URL do favicon para um nome/loja/marca, usando IA + mapa local inteligente + fallbacks. */
-export const getLogoUrl = (
+/** Retorna as URLs do favicon para um nome/loja/marca, usando IA + mapa local inteligente + fallbacks. */
+export const getLogoUrls = (
   name?: string | null,
   fallbackUrl?: string | null,
   resolvedDomains: Record<string, string> = {},
-) => {
+): string[] => {
   // 1. Domínio resolvido pela IA (mais específico, sempre em 1º lugar se existir)
   if (name && resolvedDomains[name]) {
-    return getFaviconUrl(resolvedDomains[name]);
+    return getFaviconUrls(resolvedDomains[name], name);
   }
 
   // 2. Mapa local (rápido e confiável para grandes marcas/lojas brasileiras)
   if (name) {
     const key = normalizar(name);
     if (DOMINIOS_CONHECIDOS[key]) {
-      return getFaviconUrl(DOMINIOS_CONHECIDOS[key]);
+      return getFaviconUrls(DOMINIOS_CONHECIDOS[key], name);
     }
     // Busca parcial (ex: "Magazine Luiza ML" → "magazine luiza")
     const partial = Object.keys(DOMINIOS_CONHECIDOS).find(
       (k) => key.includes(k) || k.includes(key),
     );
-    if (partial) return getFaviconUrl(DOMINIOS_CONHECIDOS[partial]);
+    if (partial) return getFaviconUrls(DOMINIOS_CONHECIDOS[partial], name);
   }
 
   // 3. Extrai o domínio da URL do produto (se existir)
   if (fallbackUrl) {
     const d = domainFromUrl(fallbackUrl);
-    if (d) return getFaviconUrl(d);
+    if (d) return getFaviconUrls(d, name);
   }
 
   // 4. Tentativa ingênua: nome.com.br
@@ -171,8 +179,8 @@ export const getLogoUrl = (
     const slug = normalizar(name)
       .replace(/\s+/g, "")
       .replace(/[^a-z0-9]/g, "");
-    return getFaviconUrl(`${slug}.com.br`);
+    return getFaviconUrls(`${slug}.com.br`, name);
   }
 
-  return null;
+  return [];
 };

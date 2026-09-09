@@ -17,6 +17,7 @@ namespace CasalPlanner.Application.Services
         private readonly ILogger<ItemService> _logger;
         private readonly IEmailService _emailService;
         private readonly IMemoryCache _cache;
+        private readonly IScrapeDoService _scrapeDoService;
 
         public ItemService(
             IItemRepository itemRepository,
@@ -24,7 +25,8 @@ namespace CasalPlanner.Application.Services
             IPushService pushService, 
             ILogger<ItemService> logger,
             IEmailService emailService,
-            IMemoryCache cache)
+            IMemoryCache cache,
+            IScrapeDoService scrapeDoService)
         {
             _itemRepository = itemRepository;
             _usuarioRepository = usuarioRepository;
@@ -32,6 +34,7 @@ namespace CasalPlanner.Application.Services
             _logger = logger;
             _emailService = emailService;
             _cache = cache;
+            _scrapeDoService = scrapeDoService;
         }
 
         public async Task<List<Item>> GetItensByUsuarioId(string usuarioId)
@@ -68,6 +71,25 @@ namespace CasalPlanner.Application.Services
                 }
             }
 
+            var linkProdutoFinal = dto.LinkProduto ?? string.Empty;
+            if (!string.IsNullOrEmpty(linkProdutoFinal) && (linkProdutoFinal.Contains("google.com") || linkProdutoFinal.Contains("serpapi")))
+            {
+                try
+                {
+                    _logger.LogInformation("Resolvendo link direto com Scrape.do antes de salvar: {Produto} / {Loja}", dto.Nome, dto.Loja);
+                    var resolvedLink = await _scrapeDoService.GetDirectStoreLinkAsync(dto.Nome, dto.Loja ?? "", linkProdutoFinal);
+                    if (!string.IsNullOrEmpty(resolvedLink) && resolvedLink != linkProdutoFinal)
+                    {
+                        linkProdutoFinal = resolvedLink;
+                        _logger.LogInformation("Link direto salvo: {Link}", linkProdutoFinal);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Falha ao resolver link com Scrape.do para {Produto}", dto.Nome);
+                }
+            }
+
             var item = new Item
             {
                 Nome = dto.Nome,
@@ -81,7 +103,7 @@ namespace CasalPlanner.Application.Services
                 Comprado = false,
                 CreatedAt = DateTime.UtcNow,
                 Loja = dto.Loja ?? string.Empty,
-                LinkProduto = dto.LinkProduto ?? string.Empty,
+                LinkProduto = linkProdutoFinal,
                 FotoUrl = dto.FotoUrl ?? string.Empty,
                 FotoPublicId = dto.FotoPublicId,
                 Origem = dto.Origem ?? "comprado",
@@ -94,7 +116,8 @@ namespace CasalPlanner.Application.Services
                 {
                     ValorPessoa1 = dto.DivisaoPagamento.ValorPessoa1,
                     ValorPessoa2 = dto.DivisaoPagamento.ValorPessoa2
-                } : null
+                } : null,
+                DataCompra = dto.DataCompra
             };
 
             await _itemRepository.CreateAsync(item);

@@ -8,6 +8,8 @@ export interface ItemInputDTO {
   quantidade: number;
   categoriaId: string;
   comprado?: boolean;
+  dataCompra?: string | null;
+  clearDataCompra?: boolean;
   pagamento?: "normal" | "vr";
   prioridade?: string;
   loja?: string;

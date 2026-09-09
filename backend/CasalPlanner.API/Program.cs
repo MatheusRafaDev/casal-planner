@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using Serilog;
 using CasalPlanner.API.Middlewares;
@@ -19,6 +20,11 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Http;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Force Invariant Culture to correctly parse decimals from JS form-data globally
+var cultureInfo = CultureInfo.InvariantCulture;
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration)
@@ -244,6 +250,11 @@ builder.Services.AddHttpClient<GeocodingService>(client =>
     client.Timeout = TimeSpan.FromSeconds(10);
     client.DefaultRequestHeaders.UserAgent.ParseAdd("CasalPlanner/1.0 (price-photo-geocoding)");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
+builder.Services.AddHttpClient<IScrapeDoService, ScrapeDoService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
 });
 
 // ===== 7.1. PRICE SEARCH - HttpClients com Resilience =====

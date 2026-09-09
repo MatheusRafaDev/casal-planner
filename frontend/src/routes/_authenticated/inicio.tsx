@@ -393,7 +393,7 @@ function InicioPage() {
             </Button>
           </div>
         ) : (
-          <>
+          <div className="space-y-6">
             {/* Cards principais */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <ResumoCard
@@ -561,12 +561,12 @@ function InicioPage() {
                 )}
               </div>
             </div>
-          </>
+          </div>
         )}
       </motion.div>
 
       {/* Comparativo mensal */}
-      <motion.div variants={itemVariants}>
+      <motion.div variants={itemVariants} className="space-y-6">
         {temMensais && (
           <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
             <div className="flex items-center gap-3 mb-1 flex-wrap">

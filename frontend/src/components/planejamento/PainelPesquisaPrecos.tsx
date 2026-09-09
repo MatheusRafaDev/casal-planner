@@ -9,7 +9,7 @@ import type { AnaliseFotoPreco } from "@/services/registro-preco";
 import { brl } from "@/lib/formatters";
 import { groqService } from "@/services/groq";
 import { pesquisaPrecosService } from "@/services/pesquisa-precos";
-import { getLogoUrl } from "@/lib/logos";
+import { getLogoUrls } from "@/lib/logos";
 import type { PesquisaPrecoResultado } from "@/services/types";
 import { PesquisaPrecosPorFoto } from "./PesquisaPrecosPorFoto";
 import { LogoBadge } from "@/components/ui/LogoBadge";
@@ -173,7 +173,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
                     className="text-[10px] py-0 px-1.5 h-5 font-normal bg-muted/30 flex items-center gap-1.5"
                   >
                     <LogoBadge
-                      url={getLogoUrl(r.marca, null, resolvedDomains)}
+                      urls={getLogoUrls(r.marca, null, resolvedDomains)}
                       className="w-3.5 h-3.5 rounded-sm"
                     />
                     {toTitleCase(r.marca)}
@@ -185,7 +185,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
                     className="text-[10px] py-0 px-1.5 h-5 font-normal bg-muted/30 flex items-center gap-1.5"
                   >
                     <LogoBadge
-                      url={getLogoUrl(r.loja, r.link, resolvedDomains)}
+                      urls={getLogoUrls(r.loja, r.link, resolvedDomains)}
                       className="w-3.5 h-3.5 rounded-sm"
                     />
                     {toTitleCase(r.loja)}

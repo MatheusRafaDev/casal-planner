@@ -13,7 +13,10 @@ import {
   Copy,
   Check,
   MailOpen,
+  LogOut,
+  Download,
 } from "lucide-react";
+import { usePwa } from "@/hooks/use-pwa";
 import { useAuth } from "@/lib/auth-context";
 
 import { usuarioService } from "@/services/usuario";
@@ -47,6 +50,7 @@ export const Route = createFileRoute("/_authenticated/perfil")({
 
 function PerfilPage() {
   const { usuario, refresh, logout } = useAuth();
+  const { installPrompt, triggerInstall } = usePwa();
 
   const navigate = useNavigate();
   const [emailParceiro, setEmailParceiro] = useState("");
@@ -81,15 +85,47 @@ function PerfilPage() {
 
   return (
     <div className="p-4 md:p-8 w-full max-w-[1000px] space-y-6">
-      <div className="flex items-center gap-3">
-        <span className="grid place-items-center h-12 w-12 rounded-full bg-gradient-primary text-primary-foreground shadow-warm">
-          <User className="h-5 w-5" />
-        </span>
-        <div>
-          <h1 className="font-display text-2xl md:text-3xl font-semibold">Perfil</h1>
-          <p className="text-sm text-muted-foreground">
-            Conta {isCasal ? "de casal" : "individual"}
-          </p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="grid place-items-center h-12 w-12 rounded-full bg-gradient-primary text-primary-foreground shadow-warm">
+            <User className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="font-display text-2xl md:text-3xl font-semibold">Perfil</h1>
+            <p className="text-sm text-muted-foreground">
+              Conta {isCasal ? "de casal" : "individual"}
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          {installPrompt && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={triggerInstall}
+              className="text-primary hidden sm:flex"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Instalar App
+            </Button>
+          )}
+          {installPrompt && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={triggerInstall}
+              className="text-primary sm:hidden"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={logout} className="hidden sm:flex">
+            <LogOut className="h-4 w-4 mr-2" />
+            Sair
+          </Button>
+          <Button variant="outline" size="icon" onClick={logout} className="sm:hidden">
+            <LogOut className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
@@ -425,10 +461,10 @@ function TrocarSenhaCard() {
 
   const mut = useMutation({
     mutationFn: () => recuperarSenhaService.esqueciSenha(emailDaConta),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("E-mail enviado! Verifique sua caixa de entrada.");
+      await navigate({ to: "/recuperar-senha", search: { email: emailDaConta, step: 2 } });
       logout();
-      navigate({ to: "/recuperar-senha", search: { email: emailDaConta, step: 2 } });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro ao enviar e-mail"),
   });

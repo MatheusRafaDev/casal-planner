@@ -66,7 +66,7 @@ import { useAuth } from "@/lib/auth-context";
 import { iconFor } from "@/components/planejamento/icon-map";
 import { CategoriaFormModal } from "@/components/planejamento/CategoriaFormModal";
 import { ItemFormModal } from "@/components/planejamento/ItemFormModal";
-import { getLogoUrl } from "@/lib/logos";
+import { getLogoUrls } from "@/lib/logos";
 
 const AddItemWizard = lazy(() =>
   import("@/components/planejamento/AddItemWizard").then(({ AddItemWizard }) => ({
@@ -735,8 +735,8 @@ function PlanejamentoPage() {
               </div>
 
               {/* Filtros */}
-              <div className="flex flex-col gap-3 lg:flex-row">
-                <div className="relative flex-1 min-w-0">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                <div className="relative w-full lg:flex-1">
                   <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     className="pl-9"
@@ -747,7 +747,7 @@ function PlanejamentoPage() {
                 </div>
                 <div
                   className={cn(
-                    "grid gap-2",
+                    "grid gap-2 w-full lg:w-auto",
                     isCasal ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2",
                   )}
                 >
@@ -884,7 +884,7 @@ function PlanejamentoPage() {
                             onClick={() => setEditandoItem(it)}
                             title="Editar item"
                             className={cn(
-                              "max-w-full truncate text-left font-medium hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 block",
+                              "max-w-full line-clamp-2 text-left font-medium hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 block leading-tight",
                               it.comprado && "line-through",
                             )}
                           >
@@ -899,7 +899,7 @@ function PlanejamentoPage() {
                                   variant="secondary"
                                   className="gap-1 px-1.5 py-0.5 text-[11px]"
                                 >
-                                  <LogoBadge url={getLogoUrl(it.marca, null, resolvedDomains)} />
+                                  <LogoBadge urls={getLogoUrls(it.marca, null, resolvedDomains)} />
                                   {toTitleCase(it.marca)}
                                 </Badge>
                               )}
@@ -916,7 +916,7 @@ function PlanejamentoPage() {
                                       className="gap-1 px-1.5 py-0.5 text-[11px]"
                                     >
                                       <LogoBadge
-                                        url={getLogoUrl(it.loja, it.linkProduto, resolvedDomains)}
+                                        urls={getLogoUrls(it.loja, it.linkProduto, resolvedDomains)}
                                       />
                                       {toTitleCase(it.loja)}
                                       <ExternalLink className="w-2.5 h-2.5 ml-0.5 opacity-60" />
@@ -927,7 +927,7 @@ function PlanejamentoPage() {
                                     variant="outline"
                                     className="gap-1 px-1.5 py-0.5 text-[11px]"
                                   >
-                                    <LogoBadge url={getLogoUrl(it.loja, null, resolvedDomains)} />
+                                    <LogoBadge urls={getLogoUrls(it.loja, null, resolvedDomains)} />
                                     {toTitleCase(it.loja)}
                                   </Badge>
                                 ))}
@@ -936,7 +936,7 @@ function PlanejamentoPage() {
 
                           {/* Metadados secundários */}
                           <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground mt-1">
-                            <span className="truncate">
+                            <span className="break-words">
                               {[
                                 toTitleCase(categorias.find((c) => c.id === it.categoriaId)?.nome),
                                 it.pagamento === "vr" ? "VR / VA" : "Dinheiro",

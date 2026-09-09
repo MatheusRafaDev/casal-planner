@@ -79,34 +79,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Mobile top bar — padding-top respeita o safe-area do iPhone (notch) */}
-      <header
-        className="md:hidden flex flex-col border-b bg-sidebar shrink-0"
-        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
-      >
-        <div className="flex items-center justify-between px-4 h-14">
-          <Link to="/inicio" className="flex items-center gap-2">
-            <img src="/logo.png" alt="Casal Planner" className="h-8 w-8 rounded-lg" />
-            <span className="font-display font-semibold">Casal Planner</span>
-          </Link>
-          <div className="flex gap-1">
-            {installPrompt && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={triggerInstall}
-                aria-label="Instalar app"
-                className="text-primary"
-              >
-                <Download className="h-4 w-4" />
-              </Button>
-            )}
-            <Button variant="ghost" size="sm" onClick={logout} aria-label="Sair">
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
+
 
       {/* Conteúdo principal — padding-bottom compensa a bottom nav + safe-area */}
       <main className="flex-1 min-w-0 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0">

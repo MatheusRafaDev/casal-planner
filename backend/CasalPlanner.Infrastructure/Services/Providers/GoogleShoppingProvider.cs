@@ -1,6 +1,7 @@
 using System.Text.Json;
 using CasalPlanner.Application.DTOs;
 using CasalPlanner.Application.Interfaces;
+using Microsoft.Extensions.Logging;
 using CasalPlanner.Application.Helpers;
 
 namespace CasalPlanner.Infrastructure.Services.Providers;
@@ -8,11 +9,15 @@ namespace CasalPlanner.Infrastructure.Services.Providers;
 public class GoogleShoppingProvider : IPriceProvider
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IScrapeDoService _scrapeDoService;
+    private readonly ILogger<GoogleShoppingProvider> _logger;
     public string ProviderName => "Google Shopping";
 
-    public GoogleShoppingProvider(IHttpClientFactory httpClientFactory)
+    public GoogleShoppingProvider(IHttpClientFactory httpClientFactory, IScrapeDoService scrapeDoService, ILogger<GoogleShoppingProvider> logger)
     {
         _httpClientFactory = httpClientFactory;
+        _scrapeDoService = scrapeDoService;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<ProdutoDto>> SearchAsync(string query, CancellationToken cancellationToken)
@@ -32,10 +37,10 @@ public class GoogleShoppingProvider : IPriceProvider
         if (string.IsNullOrEmpty(content))
             return Enumerable.Empty<ProdutoDto>();
 
-        return ProcessResults(content, query);
+        return await ProcessResultsAsync(content, query);
     }
 
-    private IEnumerable<ProdutoDto> ProcessResults(string jsonContent, string originalQuery)
+    private async Task<IEnumerable<ProdutoDto>> ProcessResultsAsync(string jsonContent, string originalQuery)
     {
         var produtos = new List<ProdutoDto>();
         try
@@ -113,8 +118,7 @@ public class GoogleShoppingProvider : IPriceProvider
 
     private static string ExtractLink(JsonElement item)
     {
-        if (item.TryGetProperty("link", out var link) &&
-            link.GetString()?.Contains("google.com/shopping") == false)
+        if (item.TryGetProperty("link", out var link) && !string.IsNullOrEmpty(link.GetString()))
             return link.GetString() ?? "";
 
         if (item.TryGetProperty("product_link", out var productLink))
@@ -131,11 +135,9 @@ public class GoogleShoppingProvider : IPriceProvider
 
     private static decimal ExtractPrice(JsonElement item)
     {
-        if (item.TryGetProperty("extracted_price", out var extracted))
-        {
-            if (extracted.ValueKind == JsonValueKind.Number)
-                return extracted.GetDecimal();
-        }
+        // Ignoramos o 'extracted_price' do SerpApi pois ele falha grosseiramente
+        // com decimais no Brasil (ex: R$ 596,70 vira 59670).
+        // Sempre usamos o campo 'price' (string) para fazer nosso próprio parse.
 
         if (!item.TryGetProperty("price", out var priceElem))
             return 0;

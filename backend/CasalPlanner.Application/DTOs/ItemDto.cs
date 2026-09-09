@@ -48,6 +48,7 @@ namespace CasalPlanner.Application.DTOs
 
         public int? ResponsavelId { get; set; }
         public DivisaoPagamentoDto? DivisaoPagamento { get; set; }
+        public DateTime? DataCompra { get; set; }
     }
 
     public class UpdateCompradoDto
@@ -92,6 +93,8 @@ namespace CasalPlanner.Application.DTOs
 
         public DivisaoPagamentoDto? DivisaoPagamento { get; set; }
         public bool ClearDivisaoPagamento { get; set; }
+        public DateTime? DataCompra { get; set; }
+        public bool ClearDataCompra { get; set; }
     }
 
 
@@ -125,6 +128,7 @@ namespace CasalPlanner.Application.DTOs
         public string? OrigemDescricao { get; set; }
         public int? ResponsavelId { get; set; }
         public DivisaoPagamentoDto? DivisaoPagamento { get; set; }
+        public DateTime? DataCompra { get; set; }
     }
 
     public class UpdateCategoriaDto

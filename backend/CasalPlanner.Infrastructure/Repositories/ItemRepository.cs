@@ -110,6 +110,9 @@ namespace CasalPlanner.Infrastructure.Repositories
             if (dto.ClearDivisaoPagamento) updates.Add(update.Set(i => i.DivisaoPagamento, null));
             else if (dto.DivisaoPagamento != null) updates.Add(update.Set(i => i.DivisaoPagamento, new DivisaoPagamento { ValorPessoa1 = dto.DivisaoPagamento.ValorPessoa1, ValorPessoa2 = dto.DivisaoPagamento.ValorPessoa2 }));
 
+            if (dto.ClearDataCompra) updates.Add(update.Set(i => i.DataCompra, null));
+            else if (dto.DataCompra.HasValue) updates.Add(update.Set(i => i.DataCompra, dto.DataCompra.Value));
+
             if (updates.Count == 0) return itemAtual;
 
             updates.Add(update.Set(i => i.UpdatedAt, DateTime.UtcNow));

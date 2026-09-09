@@ -18,6 +18,7 @@ import {
   Zap,
   Gift,
   LayoutGrid,
+  Check,
 } from "lucide-react";
 import {
   Dialog,
@@ -105,6 +106,7 @@ export function ItemFormModal({
           origem: item.origem ?? "comprado",
           responsavelId: item.responsavelId ?? null,
           divisaoPagamento: item.divisaoPagamento ? { ...item.divisaoPagamento } : null,
+          dataCompra: item.dataCompra ? item.dataCompra.split("T")[0] : null,
         });
         setDividir(!!item.divisaoPagamento);
       } else {
@@ -137,7 +139,6 @@ export function ItemFormModal({
     },
     onMutate: async (vars) => {
       onOpenChange(false);
-      toast.success(vars.id ? "Salvando alterações..." : "Adicionando item...");
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["itens-paginado"] });
@@ -172,6 +173,12 @@ export function ItemFormModal({
 
     if (payload.responsavelId === null) {
       payload.clearResponsavelId = true;
+    }
+
+    if (!payload.dataCompra) {
+      payload.clearDataCompra = true;
+    } else {
+      payload.dataCompra = new Date(payload.dataCompra + "T12:00:00Z").toISOString();
     }
 
     mutation.mutate({ id: isEdit && item ? item.id : undefined, dto: payload });
@@ -424,6 +431,40 @@ export function ItemFormModal({
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-4 sm:col-span-2 border rounded-xl p-4 bg-card mt-2">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base flex items-center gap-1.5">
+                    <Check className="h-4 w-4" /> Item já comprado?
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Marque se você já comprou este item.
+                  </p>
+                </div>
+                <Switch
+                  checked={form.comprado}
+                  onCheckedChange={(c) => {
+                    set("comprado", c);
+                    if (!c) set("dataCompra", null);
+                  }}
+                />
+              </div>
+              
+              {form.comprado && (
+                <div className="space-y-2 pt-2 border-t">
+                  <Label className="flex items-center gap-1.5">
+                    <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
+                    Data da Compra
+                  </Label>
+                  <Input 
+                    type="date" 
+                    value={form.dataCompra ?? ""} 
+                    onChange={(e) => set("dataCompra", e.target.value)}
+                  />
+                </div>
+              )}
+            </div>
+
             {isCasal && form.origem !== "ganho" && (
               <div className="space-y-4 sm:col-span-2 border rounded-xl p-4 bg-card mt-2">
                 <div className="flex items-center justify-between">

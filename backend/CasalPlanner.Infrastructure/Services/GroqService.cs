@@ -264,6 +264,8 @@ Responda APENAS em JSON válido, sem texto adicional, no formato:
                 if (string.IsNullOrWhiteSpace(resultContent))
                     return null;
 
+                resultContent = CleanJsonResponse(resultContent);
+
                 return JsonSerializer.Deserialize<SugestaoItensDto>(resultContent, LlmJsonOptions);
             }
             catch (Exception ex)
@@ -289,7 +291,7 @@ Responda APENAS em JSON válido, sem texto adicional, no formato:
                 {
                     model = "qwen/qwen3.6-27b",
                     temperature = 0.1,
-                    response_format = new { type = "json_object" },
+                    max_tokens = 500,
                     messages = new[]
                     {
                         new
@@ -333,6 +335,8 @@ Responda APENAS em JSON válido:
 
                 if (string.IsNullOrWhiteSpace(resultContent))
                     return null;
+
+                resultContent = CleanJsonResponse(resultContent);
 
                 return JsonSerializer.Deserialize<DuplicataDto>(resultContent, LlmJsonOptions);
             }
@@ -554,7 +558,7 @@ Lembre-se: máximo 4 frases, use o nome do casal, mencione valores reais em reai
                 {
                     model = "qwen/qwen3.6-27b",
                     temperature = 0.1,
-                    response_format = new { type = "json_object" },
+                    max_tokens = 500,
                     messages = new[]
                     {
                         new
@@ -599,6 +603,8 @@ Se não souber o domínio oficial de um nome, omita-o do JSON. Exemplo:
                 if (string.IsNullOrWhiteSpace(resultContent))
                     return null;
 
+                resultContent = CleanJsonResponse(resultContent);
+
                 return JsonSerializer.Deserialize<Dictionary<string, string>>(resultContent, LlmJsonOptions);
             }
             catch (Exception ex)
@@ -606,6 +612,51 @@ Se não souber o domínio oficial de um nome, omita-o do JSON. Exemplo:
                 _logger.LogError(ex, "Erro ao descobrir domínios");
                 return null;
             }
+        }
+
+        private static string CleanJsonResponse(string content)
+        {
+            if (string.IsNullOrWhiteSpace(content)) return "";
+
+            // Tenta remover bloco <think> caso o modelo tenha retornado pensamento
+            int thinkStart = content.IndexOf("<think>", StringComparison.OrdinalIgnoreCase);
+            if (thinkStart >= 0)
+            {
+                int thinkEnd = content.IndexOf("</think>", thinkStart, StringComparison.OrdinalIgnoreCase);
+                if (thinkEnd > thinkStart)
+                {
+                    content = content.Remove(thinkStart, thinkEnd - thinkStart + 8);
+                }
+            }
+
+            content = content.Trim();
+
+            // Extrai rigorosamente apenas o objeto ou array JSON para ignorar lixo antes/depois
+            int firstBrace = content.IndexOf('{');
+            int lastBrace = content.LastIndexOf('}');
+            int firstBracket = content.IndexOf('[');
+            int lastBracket = content.LastIndexOf(']');
+
+            int start = -1;
+            int end = -1;
+
+            if (firstBrace >= 0 && lastBrace >= 0 && (firstBracket < 0 || firstBrace < firstBracket))
+            {
+                start = firstBrace;
+                end = lastBrace;
+            }
+            else if (firstBracket >= 0 && lastBracket >= 0)
+            {
+                start = firstBracket;
+                end = lastBracket;
+            }
+
+            if (start >= 0 && end > start)
+            {
+                content = content.Substring(start, end - start + 1);
+            }
+
+            return content.Trim();
         }
     }
 
