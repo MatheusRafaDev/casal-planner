@@ -85,7 +85,7 @@ function InicioPage() {
     const mesesMap = new Map<string, number>();
     // Inclui itens comprados E itens com data prevista de compra (para projeção futura)
     const itensRelevantes = itens.filter(
-      (i) => i.origem !== "ganho" && (i.comprado || i.dataCompra)
+      (i) => i.origem !== "ganho" && i.pagamento !== "vr" && (i.comprado || i.dataCompra)
     );
 
     itensRelevantes.forEach((item) => {
@@ -167,7 +167,7 @@ function InicioPage() {
   const totalParcelado =
     itens.length > 0
       ? itens
-          .filter((i) => (i.parcelas ?? 1) > 1 && i.origem !== "ganho")
+          .filter((i) => (i.parcelas ?? 1) > 1 && i.origem !== "ganho" && i.comprado)
           .reduce((s, i) => s + i.preco * i.quantidade, 0)
       : 0;
 
