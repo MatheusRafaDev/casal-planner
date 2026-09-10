@@ -24,7 +24,6 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
   const queryClient = useQueryClient();
   const [q, setQ] = useState(initialQuery);
   const [ativa, setAtiva] = useState(initialQuery);
-  const [registroFoto, setRegistroFoto] = useState<AnaliseFotoPreco | null>(null);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -58,22 +57,6 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
 
   const resolvedDomains = dominiosQuery.data ?? {};
 
-  const handleResultadoFoto = (resultado: AnaliseFotoPreco) => {
-    const nomeIdentificado = resultado.produtoNome.trim();
-    // Inicia a pesquisa online
-    setQ(nomeIdentificado);
-    setAtiva(nomeIdentificado);
-    // Se achou preço, abre o modal de registrar
-    if (resultado.preco && resultado.preco > 0) {
-      setRegistroFoto(resultado);
-    }
-  };
-
-  const handleFalhaFoto = () => {
-    setQ("");
-    setAtiva("");
-  };
-
   return (
     <div className="space-y-4">
       <form
@@ -98,11 +81,6 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
             }}
           />
         </div>
-        <PesquisaPrecosPorFoto
-          disabled={query.isFetching}
-          onResultado={handleResultadoFoto}
-          onFalha={handleFalhaFoto}
-        />
         <Button type="submit" disabled={query.isFetching}>
           {query.isFetching ? (
             <>
@@ -222,14 +200,6 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
           </div>
         )}
       </div>
-
-      <ConfirmarRegistroPreco
-        open={!!registroFoto}
-        onOpenChange={(open) => !open && setRegistroFoto(null)}
-        itemId={null}
-        dados={registroFoto}
-        onSalvo={() => setRegistroFoto(null)}
-      />
     </div>
   );
 }

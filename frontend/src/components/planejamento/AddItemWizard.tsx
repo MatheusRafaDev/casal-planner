@@ -592,28 +592,35 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   />
                 </div>
               </div>
-              <div className="border-t pt-3 mt-4 space-y-3 shrink-0 flex flex-col items-center">
-                <Label className="text-center w-full">Ou informe o preço manualmente</Label>
-                <div className="flex gap-2 items-center justify-center">
-                  <CurrencyInput
-                    className="w-32 text-center"
-                    value={precoNumerico}
-                    onValueChange={(v) => {
-                      setPrecoNumerico(v);
-                      setEscolhido(null);
-                    }}
-                    placeholder="R$ 0,00"
-                  />
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => {
-                      setEscolhido(null);
-                      setStep(3);
-                    }}
-                  >
-                    Usar preço manual
-                  </Button>
+              <div className="mt-4 shrink-0">
+                <div className="rounded-2xl border bg-card p-4 flex flex-col sm:flex-row items-center gap-4 justify-between shadow-soft">
+                  <div className="space-y-1 text-center sm:text-left w-full sm:w-auto">
+                    <Label className="text-base font-semibold">Preço manual</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Não encontrou online? Digite o valor.
+                    </p>
+                  </div>
+                  <div className="flex w-full sm:w-auto gap-2 items-center">
+                    <CurrencyInput
+                      className="w-full sm:w-32 text-center text-base font-display h-9 rounded-lg"
+                      value={precoNumerico}
+                      onValueChange={(v) => {
+                        setPrecoNumerico(v);
+                        setEscolhido(null);
+                      }}
+                      placeholder="R$ 0,00"
+                    />
+                    <Button
+                      type="button"
+                      className="h-9 px-4 rounded-lg bg-gradient-primary text-primary-foreground shadow-md hover:shadow-lg transition-all shrink-0 text-sm"
+                      onClick={() => {
+                        setEscolhido(null);
+                        setStep(3);
+                      }}
+                    >
+                      Avançar
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

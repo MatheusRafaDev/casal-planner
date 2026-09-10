@@ -845,7 +845,7 @@ function PlanejamentoPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="todos">Qualquer resp.</SelectItem>
+                        <SelectItem value="todos">Qualquer responsável</SelectItem>
                         <SelectItem value="1">{p1}</SelectItem>
                         <SelectItem value="2">{p2}</SelectItem>
                       </SelectContent>

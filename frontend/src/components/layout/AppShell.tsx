@@ -58,28 +58,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="p-4 border-t space-y-2">
-          <div className="text-xs text-muted-foreground truncate">Olá, {nome ?? "usuário"}</div>
-          <div className="flex gap-2">
-            {installPrompt && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex-1 text-primary"
-                onClick={triggerInstall}
-                title="Instalar app"
+        <div className="p-4 border-t mt-auto">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span className="truncate font-medium pr-2">
+              Olá, {nome?.split(" ")[0] ?? "usuário"}
+            </span>
+            <div className="flex items-center gap-2 shrink-0">
+              {installPrompt && (
+                <button
+                  onClick={triggerInstall}
+                  className="text-primary hover:text-primary/80 transition-colors flex items-center"
+                  title="Instalar App"
+                >
+                  <Download className="h-4 w-4" />
+                </button>
+              )}
+              <span className="text-border/60">|</span>
+              <button
+                onClick={logout}
+                className="hover:text-foreground transition-colors flex items-center gap-1.5"
               >
-                <Download className="h-4 w-4" />
-              </Button>
-            )}
-            <Button variant="ghost" size="sm" className="flex-1" onClick={logout}>
-              <LogOut className="h-4 w-4" />
-            </Button>
+                <LogOut className="h-3.5 w-3.5" />
+                Sair
+              </button>
+            </div>
           </div>
         </div>
       </aside>
-
-
 
       {/* Conteúdo principal — padding-bottom compensa a bottom nav + safe-area */}
       <main className="flex-1 min-w-0 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0">
@@ -91,7 +96,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         className="md:hidden fixed bottom-0 inset-x-0 border-t bg-sidebar/95 backdrop-blur z-40"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
-        <div className="grid grid-cols-4 h-16">
+        <div className="grid grid-cols-3 h-16">
           {nav.map((n) => {
             const active = pathname.startsWith(n.to);
             return (

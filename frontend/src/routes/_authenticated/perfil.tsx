@@ -16,7 +16,7 @@ import {
   LogOut,
   Download,
   Bell,
-  BellOff
+  BellOff,
 } from "lucide-react";
 import { usePwa } from "@/hooks/use-pwa";
 import { useAuth } from "@/lib/auth-context";
@@ -58,8 +58,7 @@ function PerfilPage() {
   const navigate = useNavigate();
   const [emailParceiro, setEmailParceiro] = useState("");
 
-  if (!usuario) return null;
-  const isCasal = usuario.tipoConta === "Casal";
+  const isCasal = usuario?.tipoConta === "Casal";
 
   const convitesQuery = useQuery({
     queryKey: ["meus-convites"],
@@ -86,240 +85,235 @@ function PerfilPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  if (!usuario) return null;
+
   return (
-    <div className="p-4 md:p-8 w-full max-w-[1000px] space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="grid place-items-center h-12 w-12 rounded-full bg-gradient-primary text-primary-foreground shadow-warm">
-            <User className="h-5 w-5" />
-          </span>
-          <div>
-            <h1 className="font-display text-2xl md:text-3xl font-semibold">Perfil</h1>
-            <p className="text-sm text-muted-foreground">
-              Conta {isCasal ? "de casal" : "individual"}
-            </p>
-          </div>
+    <div className="p-4 md:p-8 w-full max-w-[1600px] space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl md:text-4xl font-display font-bold tracking-tight">
+            Meu Perfil
+          </h1>
+          <p className="text-sm md:text-base text-muted-foreground font-medium mt-1">
+            Conta {isCasal ? "de Casal" : "Individual"}
+          </p>
         </div>
-        <div className="flex gap-2">
-          {installPrompt && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={triggerInstall}
-              className="text-primary hidden sm:flex"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Instalar App
-            </Button>
-          )}
-          {installPrompt && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={triggerInstall}
-              className="text-primary sm:hidden"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
-          )}
-          <Button variant="outline" size="sm" onClick={logout} className="hidden sm:flex">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sair
+        {installPrompt && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={triggerInstall}
+            className="font-medium rounded-full shadow-sm"
+          >
+            <Download className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Instalar App</span>
           </Button>
-          <Button variant="outline" size="icon" onClick={logout} className="sm:hidden">
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </div>
+        )}
       </div>
 
-      {!isCasal && convitesQuery.data && convitesQuery.data.length > 0 && (
-        <section className="rounded-2xl border border-primary/50 bg-primary/5 p-5 shadow-soft">
-          <div className="flex items-center gap-2 mb-4">
-            <MailOpen className="h-5 w-5 text-primary" />
-            <h2 className="font-display text-lg font-semibold text-primary">
-              Você tem um convite!
-            </h2>
-          </div>
-          <div className="space-y-4">
-            {convitesQuery.data.map((convite) => (
-              <div
-                key={convite.token}
-                className="bg-background rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between border"
-              >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="space-y-8 lg:col-span-2">
+          {!isCasal && convitesQuery.data && convitesQuery.data.length > 0 && (
+            <section className="rounded-2xl border border-primary/50 bg-primary/5 p-5 shadow-soft">
+              <div className="flex items-center gap-2 mb-4">
+                <MailOpen className="h-5 w-5 text-primary" />
+                <h2 className="font-display text-lg font-semibold text-primary">
+                  Você tem um convite!
+                </h2>
+              </div>
+              <div className="space-y-4">
+                {convitesQuery.data.map((convite) => (
+                  <div
+                    key={convite.token}
+                    className="bg-background rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between border"
+                  >
+                    <div>
+                      <p className="font-medium text-base">
+                        <strong>{convite.nomeConvidante}</strong> convidou você para o CasalPlanner.
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Aceite para vincular suas contas. Ao aceitar, seus dados atuais serão
+                        migrados para a conta de casal.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => aceitarMutation.mutate(convite.token)}
+                      disabled={aceitarMutation.isPending}
+                      className="w-full md:w-auto"
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      {aceitarMutation.isPending ? "Aceitando..." : "Aceitar Convite"}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {!isCasal && (
+            <section className="rounded-2xl border bg-card p-5 shadow-soft">
+              <h2 className="font-display text-lg font-semibold mb-4">Convidar parceiro</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Envie um convite para o email do seu parceiro. Ele será notificado para acessar o
+                aplicativo e aceitar.
+              </p>
+              <div className="space-y-3">
                 <div>
-                  <p className="font-medium text-base">
-                    <strong>{convite.nomeConvidante}</strong> convidou você para o CasalPlanner.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Aceite para vincular suas contas. Ao aceitar, seus dados atuais serão migrados
-                    para a conta de casal.
-                  </p>
+                  <Label htmlFor="email-parceiro">Email do parceiro</Label>
+                  <Input
+                    id="email-parceiro"
+                    type="email"
+                    placeholder="parceiro@email.com"
+                    value={emailParceiro}
+                    onChange={(e) => setEmailParceiro(e.target.value)}
+                  />
                 </div>
                 <Button
-                  onClick={() => aceitarMutation.mutate(convite.token)}
-                  disabled={aceitarMutation.isPending}
-                  className="w-full md:w-auto"
+                  onClick={() => conviteMutation.mutate()}
+                  disabled={!emailParceiro || conviteMutation.isPending}
+                  className="w-full"
                 >
-                  <Check className="h-4 w-4 mr-2" />
-                  {aceitarMutation.isPending ? "Aceitando..." : "Aceitar Convite"}
+                  <Share2 className="h-4 w-4 mr-2" />
+                  {conviteMutation.isPending ? "Enviando..." : "Enviar convite"}
                 </Button>
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+            </section>
+          )}
 
-      {!isCasal && (
-        <section className="rounded-2xl border bg-card p-5 shadow-soft">
-          <h2 className="font-display text-lg font-semibold mb-4">Convidar parceiro</h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            Envie um convite para o email do seu parceiro. Ele será notificado para acessar o
-            aplicativo e aceitar.
-          </p>
-          <div className="space-y-3">
-            <div>
-              <Label htmlFor="email-parceiro">Email do parceiro</Label>
-              <Input
-                id="email-parceiro"
-                type="email"
-                placeholder="parceiro@email.com"
-                value={emailParceiro}
-                onChange={(e) => setEmailParceiro(e.target.value)}
-              />
-            </div>
-            <Button
-              onClick={() => conviteMutation.mutate()}
-              disabled={!emailParceiro || conviteMutation.isPending}
-              className="w-full"
-            >
-              <Share2 className="h-4 w-4 mr-2" />
-              {conviteMutation.isPending ? "Enviando..." : "Enviar convite"}
-            </Button>
-          </div>
-        </section>
-      )}
-
-      {/* Dados */}
-      <section className="rounded-2xl border bg-card p-5 shadow-soft">
-        <h2 className="font-display text-lg font-semibold mb-4">Dados pessoais</h2>
-        {isCasal ? (
-          <Tabs defaultValue="p1">
-            <TabsList className="grid grid-cols-2 mb-4">
-              <TabsTrigger value="p1">{usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}</TabsTrigger>
-              <TabsTrigger value="p2">{usuario.casalInfo?.pessoa2.nome ?? "Pessoa 2"}</TabsTrigger>
-            </TabsList>
-            <TabsContent value="p1">
+          {/* Dados */}
+          <section className="rounded-2xl border bg-card p-5 md:p-6 shadow-soft">
+            <h2 className="font-display text-lg font-semibold mb-4">Dados pessoais</h2>
+            {isCasal ? (
+              <Tabs defaultValue="p1">
+                <TabsList className="grid grid-cols-2 mb-4">
+                  <TabsTrigger value="p1">
+                    {usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}
+                  </TabsTrigger>
+                  <TabsTrigger value="p2">
+                    {usuario.casalInfo?.pessoa2.nome ?? "Pessoa 2"}
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="p1">
+                  <PessoaForm
+                    key="p1"
+                    dados={{
+                      nome: usuario.casalInfo?.pessoa1.nome ?? "",
+                      email: usuario.casalInfo?.pessoa1.email ?? "",
+                      dataNascimento: usuario.casalInfo?.pessoa1.dataNascimento ?? "",
+                      receberNotificacoes: usuario.casalInfo?.pessoa1.receberNotificacoes ?? true,
+                    }}
+                    bloquearEmailCpf
+                    onSave={async (dto) => {
+                      await usuarioService.atualizarPerfilCasal(usuario.id, 1, {
+                        nome: dto.nome,
+                        dataNascimento: dto.dataNascimento ?? null,
+                      });
+                      await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true);
+                      await refresh();
+                    }}
+                  />
+                </TabsContent>
+                <TabsContent value="p2">
+                  <PessoaForm
+                    key="p2"
+                    dados={{
+                      nome: usuario.casalInfo?.pessoa2.nome ?? "",
+                      email: usuario.casalInfo?.pessoa2.email ?? "",
+                      dataNascimento: usuario.casalInfo?.pessoa2.dataNascimento ?? "",
+                      receberNotificacoes: usuario.casalInfo?.pessoa2.receberNotificacoes ?? true,
+                    }}
+                    bloquearEmailCpf
+                    onSave={async (dto) => {
+                      await usuarioService.atualizarPerfilCasal(usuario.id, 2, {
+                        nome: dto.nome,
+                        dataNascimento: dto.dataNascimento ?? null,
+                      });
+                      await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true);
+                      await refresh();
+                    }}
+                  />
+                </TabsContent>
+              </Tabs>
+            ) : (
               <PessoaForm
-                key="p1"
-                dados={{ 
-                  nome: usuario.casalInfo?.pessoa1.nome ?? "", 
-                  email: usuario.casalInfo?.pessoa1.email ?? "",
-                  dataNascimento: usuario.casalInfo?.pessoa1.dataNascimento ?? "",
-                  receberNotificacoes: usuario.casalInfo?.pessoa1.receberNotificacoes ?? true
+                dados={{
+                  nome: usuario.nomeCompleto ?? "",
+                  email: usuario.email ?? "",
+                  dataNascimento: usuario.dataNascimento ?? "",
+                  receberNotificacoes: usuario.receberNotificacoes ?? true,
                 }}
                 bloquearEmailCpf
                 onSave={async (dto) => {
-                  await usuarioService.atualizarPerfilCasal(usuario.id, 1, {
-                    nome: dto.nome,
-                    dataNascimento: dto.dataNascimento ?? null,
+                  await usuarioService.atualizarPerfil({
+                    nomeCompleto: dto.nome,
+                    email: dto.email,
+                    dataNascimento: dto.dataNascimento ?? undefined,
                   });
                   await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true);
                   await refresh();
                 }}
               />
-            </TabsContent>
-            <TabsContent value="p2">
-              <PessoaForm
-                key="p2"
-                dados={{ 
-                  nome: usuario.casalInfo?.pessoa2.nome ?? "", 
-                  email: usuario.casalInfo?.pessoa2.email ?? "",
-                  dataNascimento: usuario.casalInfo?.pessoa2.dataNascimento ?? "",
-                  receberNotificacoes: usuario.casalInfo?.pessoa2.receberNotificacoes ?? true
-                }}
-                bloquearEmailCpf
-                onSave={async (dto) => {
-                  await usuarioService.atualizarPerfilCasal(usuario.id, 2, {
-                    nome: dto.nome,
-                    dataNascimento: dto.dataNascimento ?? null,
-                  });
-                  await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true);
-                  await refresh();
-                }}
-              />
-            </TabsContent>
-          </Tabs>
-        ) : (
-          <PessoaForm
-            dados={{
-              nome: usuario.nomeCompleto ?? "",
-              email: usuario.email ?? "",
-              dataNascimento: usuario.dataNascimento ?? "",
-              receberNotificacoes: usuario.receberNotificacoes ?? true
-            }}
-            bloquearEmailCpf
-            onSave={async (dto) => {
-              await usuarioService.atualizarPerfil({
-                nomeCompleto: dto.nome,
-                email: dto.email,
-                dataNascimento: dto.dataNascimento ?? undefined,
-              });
-              await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true);
-              await refresh();
-            }}
-          />
-        )}
-      </section>
-
-      {/* Meta */}
-      <MetaEnxovalCard metaUsuario={usuario.metaGlobalEnxoval ?? null} onSaved={refresh} />
-
-      {/* Senha */}
-      <TrocarSenhaCard />
-
-      {/* Zona perigosa */}
-      <section className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
-        <h2 className="font-display text-lg font-semibold text-destructive mb-3">Zona sensível</h2>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={logout}>
-            Sair da conta
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive">
-                <Trash2 className="h-4 w-4 mr-2" /> Excluir conta
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Excluir conta permanentemente?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Todos os cômodos, itens, metas e pesquisas serão apagados. Essa ação não pode ser
-                  desfeita.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={async () => {
-                    try {
-                      await usuarioService.excluirConta(usuario.id);
-                      toast.success("Conta excluída");
-                      logout();
-                      navigate({ to: "/" });
-                    } catch (e) {
-                      toast.error(e instanceof Error ? e.message : "Erro ao excluir");
-                    }
-                  }}
-                >
-                  Excluir agora
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+            )}
+          </section>
         </div>
-      </section>
+
+        <div className="space-y-6 lg:col-span-1">
+          {/* Meta */}
+          <MetaEnxovalCard metaUsuario={usuario.metaGlobalEnxoval ?? null} onSaved={refresh} />
+
+          {/* Senha */}
+          <TrocarSenhaCard />
+
+          {/* Zona perigosa */}
+          <section className="rounded-3xl border border-destructive/20 bg-destructive/5 p-6 hover:bg-destructive/10 transition-colors duration-300">
+            <div className="flex flex-col gap-4">
+              <div>
+                <h2 className="font-display text-lg font-semibold text-destructive mb-1">
+                  Zona sensível
+                </h2>
+                <p className="text-sm text-destructive/80">Ações destrutivas. Tenha cuidado.</p>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">
+                    <Trash2 className="h-4 w-4 mr-2" /> Excluir conta
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir conta permanentemente?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Todos os cômodos, itens, metas e pesquisas serão apagados. Essa ação não pode
+                      ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={async () => {
+                        try {
+                          await usuarioService.excluirConta(usuario.id);
+                          toast.success("Conta excluída");
+                          logout();
+                          navigate({ to: "/" });
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : "Erro ao excluir");
+                        }
+                      }}
+                    >
+                      Excluir agora
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button variant="outline" onClick={logout} className="w-full">
+                <LogOut className="h-4 w-4 mr-2" /> Sair da conta
+              </Button>
+            </div>
+          </section>
+        </div>
+      </div>
     </div>
   );
 }
@@ -374,19 +368,24 @@ function PessoaForm({
 
   return (
     <form
-      className="space-y-3"
+      className="space-y-5"
       onSubmit={(e) => {
         e.preventDefault();
         mut.mutate();
       }}
     >
-      <div className="grid md:grid-cols-2 gap-3">
-        <div>
-          <Label>Nome</Label>
-          <Input value={nome} onChange={(e) => setNome(e.target.value)} required />
+      <div className="grid md:grid-cols-2 gap-5">
+        <div className="space-y-1.5">
+          <Label className="text-muted-foreground font-medium">Nome</Label>
+          <Input
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            required
+            className="h-11 rounded-xl"
+          />
         </div>
-        <div>
-          <Label>E-mail</Label>
+        <div className="space-y-1.5">
+          <Label className="text-muted-foreground font-medium">E-mail</Label>
           <Input
             type="email"
             value={email}
@@ -394,40 +393,52 @@ function PessoaForm({
             required
             disabled={bloquearEmailCpf}
             readOnly={bloquearEmailCpf}
+            className="h-11 rounded-xl"
           />
           {bloquearEmailCpf && (
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground">
               O e-mail não pode ser alterado no momento.
             </p>
           )}
         </div>
 
-        <div>
-          <Label>Data de nascimento</Label>
+        <div className="space-y-1.5">
+          <Label className="text-muted-foreground font-medium">Data de nascimento</Label>
           <Input
             value={nasc}
             onChange={(e) => setNasc(maskDate(e.target.value))}
             placeholder="dd/mm/aaaa"
+            className="h-11 rounded-xl"
           />
         </div>
 
-        <div className="flex items-center justify-between col-span-full pt-2">
-          <div className="flex flex-col space-y-0.5">
-            <Label className="flex items-center gap-2">
-              {notif ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4 text-muted-foreground" />}
+        <div className="flex items-center justify-between col-span-full pt-4 border-t border-border/50">
+          <div className="flex flex-col space-y-1">
+            <Label className="flex items-center gap-2 text-base">
+              {notif ? (
+                <Bell className="h-5 w-5 text-primary" />
+              ) : (
+                <BellOff className="h-5 w-5 text-muted-foreground" />
+              )}
               Receber Notificações
             </Label>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Avisos sobre itens marcados como comprados pelo parceiro.
             </p>
           </div>
-          <Switch checked={notif} onCheckedChange={setNotif} />
+          <Switch checked={notif} onCheckedChange={setNotif} className="scale-110" />
         </div>
       </div>
-      <Button type="submit" disabled={mut.isPending} className="bg-gradient-primary">
-        <Save className="h-4 w-4 mr-2" />
-        {mut.isPending ? "Salvando..." : "Salvar alterações"}
-      </Button>
+      <div className="pt-2">
+        <Button
+          type="submit"
+          disabled={mut.isPending}
+          className="w-full sm:w-auto h-11 px-8 rounded-full bg-gradient-primary shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
+        >
+          <Save className="h-4 w-4 mr-2" />
+          {mut.isPending ? "Salvando..." : "Salvar alterações"}
+        </Button>
+      </div>
     </form>
   );
 }
