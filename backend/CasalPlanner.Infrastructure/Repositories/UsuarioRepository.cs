@@ -19,5 +19,17 @@ namespace CasalPlanner.Infrastructure.Repositories
         {
             return await _context.Usuarios.Find(u => u.Id == id).FirstOrDefaultAsync();
         }
+
+        public async Task<Usuario?> GetByEmailAsync(string email)
+        {
+            var filter = Builders<Usuario>.Filter.Eq(u => u.Email, email);
+            return await _context.Usuarios.Find(filter).FirstOrDefaultAsync();
+        }
+
+        public async Task<Usuario?> GetBySlugListaPublicaAsync(string slug)
+        {
+            var filter = Builders<Usuario>.Filter.Eq(u => u.SlugListaPublica, slug);
+            return await _context.Usuarios.Find(filter).FirstOrDefaultAsync();
+        }
     }
 }

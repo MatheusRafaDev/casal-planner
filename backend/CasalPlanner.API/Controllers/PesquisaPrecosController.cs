@@ -16,14 +16,16 @@ namespace CasalPlanner.API.Controllers;
 public class PesquisaPrecosController : ControllerBase
 {
     private readonly IPesquisaPrecosService _pesquisaPrecosService;
-
+    private readonly IExtratorLinkService _extratorLinkService;
     private readonly ILogger<PesquisaPrecosController> _logger;
 
     public PesquisaPrecosController(
         IPesquisaPrecosService pesquisaPrecosService,
+        IExtratorLinkService extratorLinkService,
         ILogger<PesquisaPrecosController> logger)
     {
         _pesquisaPrecosService = pesquisaPrecosService;
+        _extratorLinkService = extratorLinkService;
         _logger = logger;
     }
 
@@ -64,4 +66,34 @@ public class PesquisaPrecosController : ControllerBase
     }
 
 
+    public class ExtrairLinkRequest
+    {
+        public string Url { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Extrai dados de um produto a partir de um link de e-commerce.
+    /// </summary>
+    [HttpPost("extrair-link")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ExtrairDeLink(
+        [FromBody] ExtrairLinkRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Url) || !Uri.TryCreate(request.Url, UriKind.Absolute, out _))
+        {
+            return BadRequest(new { error = "URL inválida." });
+        }
+
+        var produto = await _extratorLinkService.ExtrairAsync(request.Url, cancellationToken);
+        
+        if (produto == null)
+        {
+            return NotFound(new { error = "Não foi possível extrair dados deste link. Tente preencher manualmente." });
+        }
+
+        return Ok(produto);
+    }
 }

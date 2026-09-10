@@ -142,6 +142,18 @@ namespace CasalPlanner.Infrastructure.Repositories
             return await _context.Itens.Find(i => i.CategoriaId == categoriaId && i.UsuarioId == usuarioId).ToListAsync();
         }
 
+        public async Task<List<Item>> GetAllAsync()
+        {
+            return await _context.Itens.Find(_ => true).ToListAsync();
+        }
+
+        public async Task<Item?> UpdateRawAsync(Item item)
+        {
+            var filter = Builders<Item>.Filter.Eq(i => i.Id, item.Id);
+            var options = new FindOneAndReplaceOptions<Item> { ReturnDocument = ReturnDocument.After };
+            return await _context.Itens.FindOneAndReplaceAsync(filter, item, options);
+        }
+
         public async Task<(ResumoDto Resumo, ComparativoDto Comparativo)> ObterResumoAgregadoAsync(string usuarioId)
         {
             var hoje = DateTime.UtcNow;

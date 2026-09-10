@@ -24,6 +24,9 @@ namespace CasalPlanner.Application.DTOs
         public string? EmailPessoa2 { get; set; }
         public DateTime? DataNascimentoPessoa2 { get; set; }
         public string? Token { get; set; }
+
+        public string? SlugListaPublica { get; set; }
+        public bool ListaPublicaAtiva { get; set; }
     }
 
     public class CasalInfoDto
@@ -134,5 +137,11 @@ namespace CasalPlanner.Application.DTOs
     public class NotificacoesDto
     {
         public bool ReceberNotificacoes { get; set; }
+    }
+
+    public class ConfigurarListaPublicaDto
+    {
+        public bool Ativa { get; set; }
+        public string? Slug { get; set; }
     }
 }

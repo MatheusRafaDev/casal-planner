@@ -307,7 +307,17 @@ function PlanejamentoPage() {
     const itensFiltrados =
       catAtualId === "tudo" ? todosItens : todosItens.filter((it) => it.categoriaId === catAtualId);
 
-    const cabecalho = ["Item", "Marca", "Loja", "Quantidade", "Preço Unitário", "Total", "Comprado", "Data Compra", "Origem"];
+    const cabecalho = [
+      "Item",
+      "Marca",
+      "Loja",
+      "Quantidade",
+      "Preço Unitário",
+      "Total",
+      "Comprado",
+      "Data Compra",
+      "Origem",
+    ];
     const linhas = itensFiltrados.map((it) => [
       `"${it.nome.replace(/"/g, '""')}"`,
       `"${(it.marca || "").replace(/"/g, '""')}"`,
@@ -317,7 +327,7 @@ function PlanejamentoPage() {
       (it.preco * it.quantidade).toString().replace(".", ","),
       it.comprado ? "Sim" : "Não",
       it.dataCompra ? new Date(it.dataCompra).toLocaleDateString("pt-BR") : "",
-      it.origem
+      it.origem,
     ]);
 
     const conteudoCSV = [cabecalho.join(";"), ...linhas.map((l) => l.join(";"))].join("\n");
@@ -325,7 +335,10 @@ function PlanejamentoPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", `Planejamento_CasalPlanner_${new Date().toISOString().split("T")[0]}.csv`);
+    link.setAttribute(
+      "download",
+      `Planejamento_CasalPlanner_${new Date().toISOString().split("T")[0]}.csv`,
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -340,9 +353,15 @@ function PlanejamentoPage() {
       catAtualId === "tudo" ? todosItens : todosItens.filter((it) => it.categoriaId === catAtualId);
 
     const itensNaoComprados = itensFiltrados.filter((it) => !it.comprado);
-    const totalGasto = itensFiltrados.filter((it) => it.origem !== "ganho").reduce((s, it) => s + it.preco * it.quantidade, 0);
-    const totalRestante = itensNaoComprados.filter((it) => it.origem !== "ganho").reduce((s, it) => s + it.preco * it.quantidade, 0);
-    const totalEconomia = itensFiltrados.filter((it) => it.origem === "ganho").reduce((s, it) => s + it.preco * it.quantidade, 0);
+    const totalGasto = itensFiltrados
+      .filter((it) => it.origem !== "ganho")
+      .reduce((s, it) => s + it.preco * it.quantidade, 0);
+    const totalRestante = itensNaoComprados
+      .filter((it) => it.origem !== "ganho")
+      .reduce((s, it) => s + it.preco * it.quantidade, 0);
+    const totalEconomia = itensFiltrados
+      .filter((it) => it.origem === "ganho")
+      .reduce((s, it) => s + it.preco * it.quantidade, 0);
 
     const doc = new jsPDF();
 
@@ -471,22 +490,6 @@ function PlanejamentoPage() {
               <span className="hidden sm:inline">Adicionar item</span>
               <span className="sm:hidden">Item</span>
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden sm:inline-flex"
-              onClick={handleCompartilhar}
-            >
-              <Share2 className="h-4 w-4 mr-1" /> Compartilhar
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden sm:inline-flex"
-              onClick={handleExportarPDF}
-            >
-              <FileText className="h-4 w-4 mr-1" /> PDF
-            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon" className="sm:hidden" aria-label="Mais ações">
@@ -496,12 +499,6 @@ function PlanejamentoPage() {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setNovaCategoria(true)}>
                   <Plus className="h-4 w-4" /> Novo cômodo
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleCompartilhar}>
-                  <Share2 className="h-4 w-4" /> Compartilhar
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportarPDF}>
-                  <FileText className="h-4 w-4" /> Exportar PDF
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -558,7 +555,11 @@ function PlanejamentoPage() {
                     {todosItens.filter((i) => i.comprado).length}/{todosItens.length} itens
                   </span>
                   <span className="font-medium text-foreground">
-                    {brl(todosItens.filter(i => i.origem !== "ganho").reduce((s, i) => s + i.preco * i.quantidade, 0))}
+                    {brl(
+                      todosItens
+                        .filter((i) => i.origem !== "ganho")
+                        .reduce((s, i) => s + i.preco * i.quantidade, 0),
+                    )}
                   </span>
                 </div>
               </div>
@@ -569,7 +570,9 @@ function PlanejamentoPage() {
             const ativo = c.id === catAtualId;
             const cItens = todosItens.filter((it) => it.categoriaId === c.id);
             const cComprados = cItens.filter((it) => it.comprado).length;
-            const cGasto = cItens.filter(it => it.origem !== "ganho").reduce((s, it) => s + it.preco * it.quantidade, 0);
+            const cGasto = cItens
+              .filter((it) => it.origem !== "ganho")
+              .reduce((s, it) => s + it.preco * it.quantidade, 0);
 
             return (
               <div

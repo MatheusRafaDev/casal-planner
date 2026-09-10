@@ -20,5 +20,7 @@ namespace CasalPlanner.Application.Interfaces
         Task<List<Item>> GetByCategoriaAsync(string categoriaId, string usuarioId);
         
         Task<(ResumoDto Resumo, ComparativoDto Comparativo)> ObterResumoAgregadoAsync(string usuarioId);
+        Task<List<Item>> GetAllAsync();
+        Task<Item?> UpdateRawAsync(Item item);
     }
 }

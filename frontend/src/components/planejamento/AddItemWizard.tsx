@@ -17,6 +17,7 @@ import {
   Zap,
   Gift,
   Wallet,
+  Pencil,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,7 @@ import { useAuth } from "@/lib/auth-context";
 import { PainelPesquisaPrecos } from "./PainelPesquisaPrecos";
 import type { Categoria, PesquisaPrecoResultado } from "@/services/types";
 import { itensService } from "@/services/itens";
+import { pesquisaPrecosService } from "@/services/pesquisa-precos";
 import { registroPrecoService } from "@/services/registro-preco";
 import { groqService } from "@/services/groq";
 import { brl } from "@/lib/formatters";
@@ -51,80 +53,82 @@ interface Props {
 }
 
 function toBase64(file: File): Promise<string> {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-      const maxSize = 1600;
-      let { width, height } = bitmap;
+  return new Promise((resolve, reject) => {
+    (async () => {
+      try {
+        const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+        const maxSize = 1600;
+        let { width, height } = bitmap;
 
-      if (width > maxSize || height > maxSize) {
-        if (width > height) {
-          height = Math.round((height * maxSize) / width);
-          width = maxSize;
-        } else {
-          width = Math.round((width * maxSize) / height);
-          height = maxSize;
-        }
-      }
-
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Canvas context is null");
-
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, width, height);
-      ctx.drawImage(bitmap, 0, 0, width, height);
-
-      resolve(canvas.toDataURL("image/jpeg", 0.85));
-    } catch (error) {
-      // Fallback em caso de erro no createImageBitmap
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-
-          const MAX_WIDTH = 1200;
-          const MAX_HEIGHT = 1200;
-          let width = img.width;
-          let height = img.height;
-
+        if (width > maxSize || height > maxSize) {
           if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
+            height = Math.round((height * maxSize) / width);
+            width = maxSize;
           } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
+            width = Math.round((width * maxSize) / height);
+            height = maxSize;
           }
-
-          canvas.width = width;
-          canvas.height = height;
-
-          if (ctx) {
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0, width, height);
-          }
-
-          resolve(canvas.toDataURL("image/jpeg", 0.8));
-        };
-        img.onerror = reject;
-        if (e.target?.result) {
-          img.src = e.target.result as string;
-        } else {
-          reject(new Error("Failed to load image"));
         }
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas context is null");
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(bitmap, 0, 0, width, height);
+
+        resolve(canvas.toDataURL("image/jpeg", 0.8));
+      } catch (error) {
+        // Fallback em caso de erro no createImageBitmap
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            const MAX_WIDTH = 1200;
+            const MAX_HEIGHT = 1200;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            if (ctx) {
+              ctx.fillStyle = "white";
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              ctx.drawImage(img, 0, 0, width, height);
+            }
+
+            resolve(canvas.toDataURL("image/jpeg", 0.8));
+          };
+          img.onerror = reject;
+          if (e.target?.result) {
+            img.src = e.target.result as string;
+          } else {
+            reject(new Error("Failed to load image"));
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      }
+    })();
   });
 }
 
@@ -337,7 +341,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   const criar = useMutation({
     mutationFn: async () => {
       if (!categoriaId) throw new Error("Selecione um cômodo");
-      const preco = escolhido?.preco ?? precoNumerico;
+      const preco = precoNumerico;
       const total = preco * quantidade;
 
       if (dividir && divisaoPagamento) {
@@ -382,8 +386,37 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     },
   });
 
+  const extrairLink = useMutation({
+    mutationFn: (url: string) => pesquisaPrecosService.extrairDeLink(url),
+    onSuccess: (r) => {
+      setEscolhido(r);
+      setPrecoNumerico(r.preco);
+      setMarca(r.marca ?? "");
+      setLoja(r.loja ?? "");
+      setNome(r.titulo);
+      
+      // Tenta achar categoria pelo nome retornado
+      const lower = r.titulo.toLowerCase();
+      let cat = categorias.find(c => lower.includes(c.nome.toLowerCase()));
+      if (cat) setCategoriaId(cat.id);
+      else if (!categoriaId) setCategoriaId(categorias[0]?.id);
+
+      setStep(3);
+    },
+    onError: (e: Error) => {
+      toast.error(e.message || "Erro ao extrair dados do link");
+    }
+  });
+
   const avancarDoNome = async () => {
-    if (!nome.trim()) return toast.error("Informe o nome");
+    const nomeTrim = nome.trim();
+    if (!nomeTrim) return toast.error("Informe o nome ou cole um link");
+
+    if (nomeTrim.startsWith("http://") || nomeTrim.startsWith("https://")) {
+      extrairLink.mutate(nomeTrim);
+      return;
+    }
+
     if (!categoriaId) return toast.error("Selecione um cômodo");
     // checa duplicata (não bloqueia se falhar)
     try {
@@ -507,9 +540,15 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     if (e.key === "Escape") setShowSuggestions(false);
                     if (e.key === "Enter" && !showSuggestions) avancarDoNome();
                   }}
-                  placeholder="Ex.: Geladeira Frost Free 400L"
+                  placeholder="Ex.: Geladeira ou link da loja..."
                   autoComplete="off"
+                  disabled={extrairLink.isPending}
                 />
+                {extrairLink.isPending && (
+                  <div className="absolute right-3 top-2.5">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                )}
                 {showSuggestions && suggestions.length > 0 && (
                   <div className="absolute z-50 w-full mt-1 rounded-xl border bg-popover shadow-lg overflow-hidden">
                     {suggestions.map((s, i) => (
@@ -628,16 +667,25 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
 
           {step === 3 && (
             <div className="py-2 space-y-4 overflow-y-auto flex-1 min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              <div className="rounded-xl border p-4 bg-gradient-warm">
-                <div className="font-display text-lg font-semibold">{nome}</div>
-                <div className="flex flex-wrap gap-2 mt-2 text-sm text-muted-foreground items-center">
+              <div className="rounded-xl border p-4 bg-gradient-warm relative group/header">
+                <div className="relative">
+                  <textarea
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    rows={2}
+                    className="font-display text-xl font-bold py-2 px-3 border border-border/40 bg-background/40 hover:bg-background/60 hover:border-primary/50 focus-visible:border-primary focus-visible:bg-background transition-all w-full pr-8 resize-none rounded-lg outline-none shadow-sm"
+                    placeholder="Nome do produto"
+                  />
+                  <Pencil className="h-4 w-4 absolute right-3 top-3 text-muted-foreground opacity-50 transition-opacity pointer-events-none" />
+                </div>
+                <div className="flex flex-wrap gap-2 mt-3 px-3 text-sm text-muted-foreground items-center">
                   <Select value={categoriaId} onValueChange={setCategoriaId}>
-                    <SelectTrigger className="h-6 text-xs min-w-[160px] w-auto px-2 py-0">
+                    <SelectTrigger className="h-8 text-sm min-w-[180px] w-auto bg-background/50 hover:bg-background transition-colors">
                       <SelectValue placeholder="Selecione um cômodo" />
                     </SelectTrigger>
                     <SelectContent>
                       {categorias.map((c) => (
-                        <SelectItem key={c.id} value={c.id} className="text-xs">
+                        <SelectItem key={c.id} value={c.id}>
                           {c.nome}
                         </SelectItem>
                       ))}
@@ -648,15 +696,20 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 </div>
                 <div className="mt-4 flex items-end justify-between">
                   <div>
-                    <div className="text-xs text-muted-foreground">Preço unitário</div>
-                    <div className="font-display text-2xl font-semibold text-primary">
-                      {brl(escolhido?.preco ?? precoNumerico)}
+                    <div className="text-xs text-muted-foreground mb-1">Preço unitário</div>
+                    <div className="relative group/price">
+                      <CurrencyInput
+                        value={precoNumerico}
+                        onValueChange={(v) => setPrecoNumerico(v)}
+                        className="font-display text-2xl font-semibold text-primary h-auto py-1.5 px-3 border border-border/40 bg-background/40 hover:bg-background/60 hover:border-primary/50 focus-visible:border-primary focus-visible:bg-background transition-all text-left w-40 rounded-lg shadow-sm outline-none pr-8"
+                      />
+                      <Pencil className="h-3 w-3 absolute right-3 top-1/2 -translate-y-1/2 text-primary opacity-50 transition-opacity pointer-events-none" />
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-muted-foreground">Total</div>
-                    <div className="font-display text-xl font-semibold">
-                      {brl((escolhido?.preco ?? precoNumerico) * quantidade)}
+                    <div className="text-xs text-muted-foreground mb-1">Total</div>
+                    <div className="font-display text-xl font-semibold py-1.5">
+                      {brl(precoNumerico * quantidade)}
                     </div>
                   </div>
                 </div>
@@ -775,7 +828,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                       </Label>
                       {parcelas > 1 && (
                         <span className="text-xs text-muted-foreground">
-                          {brl((escolhido?.preco ?? precoNumerico) / parcelas)}/parcela
+                          {brl(precoNumerico / parcelas)}/parcela
                         </span>
                       )}
                     </div>

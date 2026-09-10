@@ -85,7 +85,7 @@ function InicioPage() {
     const mesesMap = new Map<string, number>();
     // Inclui itens comprados E itens com data prevista de compra (para projeção futura)
     const itensRelevantes = itens.filter(
-      (i) => i.origem !== "ganho" && i.pagamento !== "vr" && (i.comprado || i.dataCompra)
+      (i) => i.origem !== "ganho" && i.pagamento !== "vr" && (i.comprado || i.dataCompra),
     );
 
     itensRelevantes.forEach((item) => {
@@ -209,8 +209,6 @@ function InicioPage() {
     (r?.mesPassado ?? 0) > 0
       ? (((r?.mesAtual ?? 0) - (r?.mesPassado ?? 0)) / (r?.mesPassado ?? 0)) * 100
       : null;
-
-
 
   // ─── Gerador de Relatório PDF Financeiro ───────────────────────────────────
   const gerarRelatorioFinanceiro = async () => {
@@ -604,7 +602,10 @@ function InicioPage() {
                         tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
                       />
                       <Tooltip
-                        formatter={(v: number) => [<span style={{ color: "white" }}>{brl(v)}</span>, <span style={{ color: "white" }}>Gasto</span>]}
+                        formatter={(v: number) => [
+                          <span style={{ color: "white" }}>{brl(v)}</span>,
+                          <span style={{ color: "white" }}>Gasto</span>,
+                        ]}
                         contentStyle={{
                           borderRadius: 8,
                           border: "1px solid var(--border)",
@@ -663,7 +664,10 @@ function InicioPage() {
                   tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
                 />
                 <Tooltip
-                  formatter={(v: number) => [<span style={{ color: "white" }}>{brl(v)}</span>, <span style={{ color: "white" }}>Gasto</span>]}
+                  formatter={(v: number) => [
+                    <span style={{ color: "white" }}>{brl(v)}</span>,
+                    <span style={{ color: "white" }}>Gasto</span>,
+                  ]}
                   contentStyle={{
                     borderRadius: 8,
                     border: "1px solid var(--border)",
@@ -689,8 +693,11 @@ function InicioPage() {
             <div className="flex flex-col items-center justify-center py-10 text-muted-foreground gap-2">
               <span className="text-3xl">📅</span>
               <p className="text-sm text-center">
-                Nenhum parcelamento registrado ainda.<br />
-                <span className="text-xs">Adicione uma data de compra nos itens do planejamento para ver a projeção aqui.</span>
+                Nenhum parcelamento registrado ainda.
+                <br />
+                <span className="text-xs">
+                  Adicione uma data de compra nos itens do planejamento para ver a projeção aqui.
+                </span>
               </p>
             </div>
           ) : (
@@ -712,7 +719,10 @@ function InicioPage() {
                   tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
                 />
                 <Tooltip
-                  formatter={(v: number) => [<span style={{ color: "white" }}>{brl(v)}</span>, <span style={{ color: "white" }}>Fatura</span>]}
+                  formatter={(v: number) => [
+                    <span style={{ color: "white" }}>{brl(v)}</span>,
+                    <span style={{ color: "white" }}>Fatura</span>,
+                  ]}
                   contentStyle={{
                     borderRadius: 8,
                     border: "1px solid var(--border)",

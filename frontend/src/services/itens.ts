@@ -38,14 +38,15 @@ export interface PagedResult<T> {
   totalPages: number;
 }
 
-function objectToFormData(obj: any): FormData {
+function objectToFormData<T extends object>(obj: T): FormData {
   const formData = new FormData();
   Object.entries(obj).forEach(([key, value]) => {
     if (value === undefined || value === null) return;
 
     if (key === "divisaoPagamento" && typeof value === "object") {
-      formData.append("divisaoPagamento.valorPessoa1", (value as any).valorPessoa1.toString());
-      formData.append("divisaoPagamento.valorPessoa2", (value as any).valorPessoa2.toString());
+      const divisao = value as { valorPessoa1: number; valorPessoa2: number };
+      formData.append("divisaoPagamento.valorPessoa1", divisao.valorPessoa1.toString());
+      formData.append("divisaoPagamento.valorPessoa2", divisao.valorPessoa2.toString());
     } else if (value instanceof File) {
       formData.append(key, value);
     } else {

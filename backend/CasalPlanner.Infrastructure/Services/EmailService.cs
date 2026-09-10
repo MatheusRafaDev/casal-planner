@@ -248,14 +248,47 @@ namespace CasalPlanner.Infrastructure.Services
             }
         }
 
-        public async Task<bool> EnviarNotificacaoParceiroAsync(string emailDestino, string nomeParceiro, string assunto, string mensagem)
+        public async Task<bool> EnviarNotificacaoParceiroAsync(string emailDestino, string nomeParceiro, string assunto, string mensagem, CasalPlanner.Domain.Entities.Item? item = null)
         {
             try
             {
-                var content = $@"<p>Olá.</p>
+                var contentBuilder = new StringBuilder();
+                contentBuilder.Append($@"<p>Olá.</p>
 <p>Seu parceiro(a) <strong>{nomeParceiro}</strong> atualizou a lista:</p>
-<p><em>{mensagem}</em></p>
-<p>Acesse o <a href='{SITE_URL}'>CasalPlanner</a> para conferir.</p>";
+<p><em>{mensagem}</em></p>");
+
+                if (item != null)
+                {
+                    contentBuilder.Append(@"<div style='margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff;'>");
+                    
+                    if (!string.IsNullOrEmpty(item.FotoUrl))
+                    {
+                        contentBuilder.Append($"<div style='text-align: center;'><img src='{item.FotoUrl}' alt='{item.Nome}' style='max-width: 100%; height: auto; max-height: 200px; border-radius: 4px; margin-bottom: 10px;' /></div>");
+                    }
+                    
+                    contentBuilder.Append($"<h3 style='margin: 0 0 10px 0; font-size: 16px; color: #111827;'>{item.Nome}</h3>");
+                    
+                    if (item.Preco > 0)
+                    {
+                        contentBuilder.Append($"<p style='margin: 0 0 5px 0; font-weight: bold; color: #111827;'>Preço: R$ {item.Preco:N2}</p>");
+                    }
+                    
+                    if (!string.IsNullOrEmpty(item.Loja))
+                    {
+                        contentBuilder.Append($"<p style='margin: 0 0 5px 0; font-size: 14px; color: #374151;'>Loja: {item.Loja}</p>");
+                    }
+
+                    if (!string.IsNullOrEmpty(item.LinkProduto))
+                    {
+                        contentBuilder.Append($"<div style='margin-top: 15px;'><a href='{item.LinkProduto}' class='button' style='margin-bottom: 0;'>Ver Produto na Loja</a></div>");
+                    }
+                    
+                    contentBuilder.Append("</div>");
+                }
+
+                contentBuilder.Append($"<p style='margin-top: 20px;'>Acesse o <a href='{SITE_URL}'>CasalPlanner</a> para conferir os detalhes completos.</p>");
+
+                var content = contentBuilder.ToString();
 
                 var mailMessage = new MailMessage
                 {
@@ -271,6 +304,94 @@ namespace CasalPlanner.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao enviar notificação de parceiro para {Email}", emailDestino);
+                return false;
+            }
+        }
+
+        public async Task<bool> EnviarAlertaPrecoBaixoAsync(string emailDestino, string nomeUsuario, CasalPlanner.Domain.Entities.Item item, decimal novoPreco, string urlNovoPreco, string loja)
+        {
+            try
+            {
+                var subject = $"🔥 Queda de preço: {item.Nome}";
+                var economia = item.Preco - novoPreco;
+                var percentual = (economia / item.Preco) * 100;
+                
+                var contentBuilder = new StringBuilder();
+                contentBuilder.Append($@"<p>Olá, {nomeUsuario}!</p>
+<p>O preço de um dos itens da sua lista caiu <strong>{percentual:N0}%</strong>!</p>");
+
+                contentBuilder.Append(@"<div style='margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff;'>");
+                
+                if (!string.IsNullOrEmpty(item.FotoUrl))
+                {
+                    contentBuilder.Append($"<div style='text-align: center;'><img src='{item.FotoUrl}' alt='{item.Nome}' style='max-width: 100%; height: auto; max-height: 200px; border-radius: 4px; margin-bottom: 10px;' /></div>");
+                }
+                
+                contentBuilder.Append($"<h3 style='margin: 0 0 10px 0; font-size: 16px; color: #111827;'>{item.Nome}</h3>");
+                contentBuilder.Append($"<p style='margin: 0 0 5px 0; text-decoration: line-through; color: #9ca3af;'>Preço alvo: R$ {item.Preco:N2}</p>");
+                contentBuilder.Append($"<p style='margin: 0 0 5px 0; font-weight: bold; color: #10b981; font-size: 18px;'>Novo preço: R$ {novoPreco:N2}</p>");
+                contentBuilder.Append($"<p style='margin: 0 0 15px 0; font-size: 14px; color: #374151;'>Loja: {loja}</p>");
+
+                if (!string.IsNullOrEmpty(urlNovoPreco))
+                {
+                    contentBuilder.Append($"<a href='{urlNovoPreco}' class='button'>Aproveitar Oferta</a>");
+                }
+                
+                contentBuilder.Append("</div>");
+                
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress("noreply@casalplanner.com", "CasalPlanner"),
+                    Subject = subject,
+                    Body = GetMinimalistTemplate(subject, contentBuilder.ToString()),
+                    IsBodyHtml = true
+                };
+
+                mailMessage.To.Add(emailDestino);
+                return await EnviarEmailAsync(mailMessage, "alerta-preco");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao enviar alerta de preço para {Email}", emailDestino);
+                return false;
+            }
+        }
+
+        public async Task<bool> EnviarEmailPresenteRecebidoAsync(string emailDestino, string nomeUsuario, string nomeConvidado, CasalPlanner.Domain.Entities.Item item)
+        {
+            try
+            {
+                var subject = "🎁 Você ganhou um presente!";
+                var contentBuilder = new StringBuilder();
+                contentBuilder.Append($@"<p>Olá, {nomeUsuario}!</p>
+<p>Boas notícias! <strong>{nomeConvidado}</strong> acabou de prometer dar o seguinte item da sua lista de presentes:</p>");
+
+                contentBuilder.Append(@"<div style='margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fdfbf7;'>");
+                
+                if (!string.IsNullOrEmpty(item.FotoUrl))
+                {
+                    contentBuilder.Append($"<div style='text-align: center;'><img src='{item.FotoUrl}' alt='{item.Nome}' style='max-width: 100%; height: auto; max-height: 200px; border-radius: 4px; margin-bottom: 10px;' /></div>");
+                }
+                
+                contentBuilder.Append($"<h3 style='margin: 0 0 10px 0; font-size: 16px; color: #111827;'>{item.Nome}</h3>");
+                contentBuilder.Append("</div>");
+                contentBuilder.Append($"<p>O item já foi marcado como 'comprado' no seu enxoval para evitar presentes duplicados.</p>");
+                contentBuilder.Append($"<p>Acesse o <a href='{SITE_URL}'>CasalPlanner</a> para ver como está ficando a sua lista!</p>");
+                
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress("noreply@casalplanner.com", "CasalPlanner"),
+                    Subject = subject,
+                    Body = GetMinimalistTemplate(subject, contentBuilder.ToString()),
+                    IsBodyHtml = true
+                };
+
+                mailMessage.To.Add(emailDestino);
+                return await EnviarEmailAsync(mailMessage, "presente-recebido");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao enviar email de presente para {Email}", emailDestino);
                 return false;
             }
         }

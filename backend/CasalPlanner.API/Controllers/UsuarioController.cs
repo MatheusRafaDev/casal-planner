@@ -407,6 +407,50 @@ public class UsuarioController : ControllerBase
     }
 
     [Authorize]
+    [HttpPut("lista-publica")]
+    public async Task<ActionResult<object>> ConfigurarListaPublica([FromBody] ConfigurarListaPublicaDto dto)
+    {
+        var usuarioId = GetUsuarioId();
+        if (string.IsNullOrEmpty(usuarioId))
+            return Unauthorized();
+
+        var usuario = await _context.Usuarios.Find(u => u.Id == usuarioId).FirstOrDefaultAsync();
+        if (usuario == null)
+            return NotFound(new { message = "Usuário não encontrado" });
+
+        var update = Builders<Usuario>.Update
+            .Set(u => u.ListaPublicaAtiva, dto.Ativa);
+            
+        if (dto.Slug != null)
+        {
+            // Checar se slug já está em uso por outro usuário
+            var slugExiste = await _context.Usuarios.Find(u => u.SlugListaPublica == dto.Slug && u.Id != usuarioId).AnyAsync();
+            if (slugExiste)
+            {
+                return BadRequest(new { message = "Este endereço já está em uso por outro casal. Escolha outro." });
+            }
+            update = update.Set(u => u.SlugListaPublica, dto.Slug);
+        }
+
+        await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioId, update);
+
+        // Retorna o usuário atualizado
+        usuario = await _context.Usuarios.Find(u => u.Id == usuarioId).FirstOrDefaultAsync();
+        
+        string? emailAutenticado = GetUsuarioEmailAutenticado();
+        var usuarioMapeado = usuario!.IsCasal
+            ? UsuarioMapper.MapearCasal(usuario, emailAutenticado)
+            : UsuarioMapper.MapearIndividual(usuario);
+
+        return Ok(new
+        {
+            success = true,
+            message = "Configuração de lista pública atualizada",
+            usuario = usuarioMapeado
+        });
+    }
+
+    [Authorize]
     [HttpPut("perfil")]
     public async Task<ActionResult<object>> AtualizarPerfil([FromBody] AtualizarPerfilDto dto)
     {

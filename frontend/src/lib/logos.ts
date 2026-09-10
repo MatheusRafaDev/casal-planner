@@ -120,15 +120,17 @@ const DOMINIOS_CONHECIDOS: Record<string, string> = {
 };
 
 export const getFaviconUrls = (domain: string, name?: string | null) => {
-  const brandName = name || domain.split('.')[0];
+  const brandName = name || domain.split(".")[0];
   return domain === "mercadolivre.com.br"
-    ? [`https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.73/mercadolibre/favicon.svg`]
+    ? [
+        `https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.73/mercadolibre/favicon.svg`,
+      ]
     : [
         `https://logo.clearbit.com/${domain}`,
         `https://icon.horse/icon/${domain}`,
         `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
         `https://icons.duckduckgo.com/ip3/${domain}.ico`,
-        `https://ui-avatars.com/api/?name=${encodeURIComponent(brandName)}&background=random&color=fff&size=128&bold=true`
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(brandName)}&background=random&color=fff&size=128&bold=true`,
       ];
 };
 

@@ -258,19 +258,26 @@ builder.Services.AddHttpClient<IScrapeDoService, ScrapeDoService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
+builder.Services.AddHttpClient<IExtratorLinkService, ExtratorLinkService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
+
 // ===== 7.1. PRICE SEARCH - HttpClients com Resilience =====
 builder.Services.AddHttpClient("MercadoLivreClient", client =>
 {
     client.BaseAddress = new Uri("https://api.mercadolibre.com/");
     client.Timeout = TimeSpan.FromSeconds(20);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("CasalPlanner/1.0");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 })
 .AddStandardResilienceHandler(options =>
 {
     options.Retry.MaxRetryAttempts = 2;
     options.Retry.Delay = TimeSpan.FromSeconds(1);
-    options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(30);
-    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(18);
+    options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(18);
+    options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(40);
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(20);
 });
 
 builder.Services.AddHttpClient("GoogleShoppingClient", client =>
@@ -283,8 +290,9 @@ builder.Services.AddHttpClient("GoogleShoppingClient", client =>
 {
     options.Retry.MaxRetryAttempts = 2;
     options.Retry.Delay = TimeSpan.FromSeconds(1);
-    options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(30);
-    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(18);
+    options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(18);
+    options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(40);
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(20);
 });
 
 // ===== 7.2. PRICE SEARCH - Options e Providers =====
@@ -320,6 +328,8 @@ builder.Services.AddSingleton<CloudinaryService>();
 
 // Serviço de KeepAlive para evitar que a API durma no Render
 builder.Services.AddHostedService<KeepAliveService>();
+// Serviço de Background para Alertas de Preço
+builder.Services.AddHostedService<CasalPlanner.API.Services.PriceAlertBackgroundService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

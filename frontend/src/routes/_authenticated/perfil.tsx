@@ -91,9 +91,7 @@ function PerfilPage() {
     <div className="p-4 md:p-8 w-full max-w-[1600px] space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl md:text-4xl font-display font-bold tracking-tight">
-            Meu Perfil
-          </h1>
+          <h1 className="text-2xl md:text-4xl font-display font-bold tracking-tight">Meu Perfil</h1>
           <p className="text-sm md:text-base text-muted-foreground font-medium mt-1">
             Conta {isCasal ? "de Casal" : "Individual"}
           </p>
@@ -258,6 +256,9 @@ function PerfilPage() {
         </div>
 
         <div className="space-y-6 lg:col-span-1">
+          {/* Lista Pública */}
+          <ListaPublicaCard />
+
           {/* Meta */}
           <MetaEnxovalCard metaUsuario={usuario.metaGlobalEnxoval ?? null} onSaved={refresh} />
 
@@ -545,6 +546,112 @@ function TrocarSenhaCard() {
       >
         {mut.isPending ? "Enviando..." : "Enviar link de redefinição"}
       </Button>
+    </section>
+  );
+}
+
+function ListaPublicaCard() {
+  const { usuario, refresh } = useAuth();
+  const [ativa, setAtiva] = useState(usuario?.listaPublicaAtiva ?? false);
+  const [slug, setSlug] = useState(usuario?.slugListaPublica ?? "");
+  const [editando, setEditando] = useState(!usuario?.slugListaPublica);
+
+  useEffect(() => {
+    setAtiva(usuario?.listaPublicaAtiva ?? false);
+    setSlug(usuario?.slugListaPublica ?? "");
+  }, [usuario]);
+
+  const mut = useMutation({
+    mutationFn: () => usuarioService.configurarListaPublica(ativa, slug),
+    onSuccess: async () => {
+      toast.success("Configuração da lista pública atualizada!");
+      setEditando(false);
+      await refresh();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
+  });
+
+  const link = `${window.location.origin}/lista/${usuario?.slugListaPublica || "seu-link"}`;
+
+  return (
+    <section className="rounded-2xl border bg-card shadow-soft overflow-hidden p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <Share2 className="h-4 w-4 text-primary" />
+        <h2 className="font-display text-lg font-semibold">Sua Lista Pública</h2>
+      </div>
+
+      <p className="text-sm text-muted-foreground mb-4">
+        Crie uma página pública com os presentes que você ainda não comprou para compartilhar com
+        convidados.
+      </p>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between border-b pb-4">
+          <Label className="font-medium cursor-pointer" htmlFor="lista-ativa">
+            Ativar Lista Pública
+          </Label>
+          <Switch
+            id="lista-ativa"
+            checked={ativa}
+            onCheckedChange={(val) => {
+              setAtiva(val);
+            }}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Seu link personalizado</Label>
+          {editando ? (
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                  /lista/
+                </span>
+                <Input
+                  className="pl-[3.5rem] bg-muted/50"
+                  placeholder="meu-casamento"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-xl border">
+              <p className="text-sm font-medium truncate flex-1">{link}</p>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="shrink-0 h-8 w-8"
+                onClick={() => {
+                  navigator.clipboard.writeText(link);
+                  toast.success("Link copiado!");
+                }}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="shrink-0 h-8 w-8"
+                onClick={() => setEditando(true)}
+              >
+                <KeyRound className="h-4 w-4" />{" "}
+                {/* Use edit icon if available, or anything else */}
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {(editando || ativa !== (usuario?.listaPublicaAtiva ?? false)) && (
+          <Button
+            onClick={() => mut.mutate()}
+            disabled={mut.isPending || (editando && slug.length < 3)}
+            className="w-full bg-gradient-primary"
+          >
+            {mut.isPending ? "Salvando..." : "Salvar Configurações"}
+          </Button>
+        )}
+      </div>
     </section>
   );
 }

@@ -43,6 +43,7 @@ public class Item
     public int? ResponsavelId { get; set; }
     public DivisaoPagamento? DivisaoPagamento { get; set; }
     public DateTime? DataCompra { get; set; }
+    public DateTime? UltimoAlertaPrecoAt { get; set; }
 }
 
 [BsonIgnoreExtraElements]

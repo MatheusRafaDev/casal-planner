@@ -133,7 +133,8 @@ namespace CasalPlanner.Application.Services
                     "Novo Item Adicionado", 
                     "Um novo item foi adicionado: " + itemNome, 
                     "email_throttle", 
-                    itemNome);
+                    itemNome,
+                    item);
             }
 
             return item;
@@ -175,7 +176,8 @@ namespace CasalPlanner.Application.Services
                         "Item Comprado", 
                         "O item '" + itemNome + "' foi marcado como comprado.", 
                         "email_throttle", 
-                        itemNome);
+                        itemNome,
+                        item);
                 }
             }
 
@@ -198,7 +200,8 @@ namespace CasalPlanner.Application.Services
             string tituloPush,
             string mensagem,
             string cacheKeyPrefix,
-            string itemNome)
+            string itemNome,
+            Item? item = null)
         {
             if (usuario == null || !usuario.IsCasal) return;
 
@@ -227,7 +230,8 @@ namespace CasalPlanner.Application.Services
                             emailParceiro,
                             nomeParceiro,
                             tituloPush,
-                            mensagem);
+                            mensagem,
+                            item);
                         
                         _cache.Set(cacheKey, true, TimeSpan.FromMinutes(30));
                     }

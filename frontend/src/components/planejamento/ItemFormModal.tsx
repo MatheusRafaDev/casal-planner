@@ -442,10 +442,7 @@ export function ItemFormModal({
                     Marque se você já comprou este item.
                   </p>
                 </div>
-                <Switch
-                  checked={form.comprado}
-                  onCheckedChange={(c) => set("comprado", c)}
-                />
+                <Switch checked={form.comprado} onCheckedChange={(c) => set("comprado", c)} />
               </div>
 
               <div className="space-y-2 pt-2 border-t">

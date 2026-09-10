@@ -298,7 +298,7 @@ Responda APENAS em JSON válido, sem texto adicional, no formato:
                         {
                             role = "system",
                             content = @"Analise se um item é duplicado ou incompatível com itens existentes.
-Responda APENAS em JSON válido:
+Responda APENAS em JSON válido. NUNCA utilize tags <think> ou demonstre seu raciocínio. Apenas retorne o JSON diretamente:
 {
     ""detectado"": false,
     ""itemSimilar"": null,
@@ -566,6 +566,7 @@ Lembre-se: máximo 4 frases, use o nome do casal, mencione valores reais em reai
                             role = "system",
                             content = @"Você é um assistente que descobre domínios oficiais de lojas e marcas do Brasil e do mundo.
 Responda APENAS em JSON válido, com um dicionário mapeando o nome exato solicitado para o seu domínio oficial principal (apenas o domínio base, sem https, sem www, ex: 'apple.com', 'magazineluiza.com.br').
+NUNCA utilize tags <think> ou demonstre seu raciocínio. Apenas retorne o JSON diretamente.
 Se não souber o domínio oficial de um nome, omita-o do JSON. Exemplo:
 {
     ""Magazine Luiza"": ""magazineluiza.com.br"",
@@ -627,6 +628,15 @@ Se não souber o domínio oficial de um nome, omita-o do JSON. Exemplo:
                 {
                     content = content.Remove(thinkStart, thinkEnd - thinkStart + 8);
                 }
+                else
+                {
+                    // Se não fechou a tag, remove tudo até a primeira chave
+                    int firstBraceAfterThink = content.IndexOf('{', thinkStart);
+                    if (firstBraceAfterThink > thinkStart)
+                    {
+                        content = content.Substring(firstBraceAfterThink);
+                    }
+                }
             }
 
             content = content.Trim();
@@ -654,6 +664,12 @@ Se não souber o domínio oficial de um nome, omita-o do JSON. Exemplo:
             if (start >= 0 && end > start)
             {
                 content = content.Substring(start, end - start + 1);
+            }
+            else
+            {
+                // Se não achou JSON válido e ainda tem texto inválido
+                if (content.StartsWith("<") || string.IsNullOrWhiteSpace(content))
+                    return "{}";
             }
 
             return content.Trim();

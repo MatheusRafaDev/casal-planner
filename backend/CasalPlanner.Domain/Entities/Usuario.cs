@@ -46,6 +46,10 @@ namespace CasalPlanner.Domain.Entities
         public string? ConviteParceiroEmail { get; set; }
         public DateTime? ConviteParceiroExpiraEm { get; set; }
 
+        // Lista de Presentes Pública
+        public string? SlugListaPublica { get; set; }
+        public bool ListaPublicaAtiva { get; set; } = false;
+
         // Refresh Token - Individual
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiraEm { get; set; }

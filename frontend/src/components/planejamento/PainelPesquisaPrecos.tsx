@@ -14,6 +14,13 @@ import type { PesquisaPrecoResultado } from "@/services/types";
 import { PesquisaPrecosPorFoto } from "./PesquisaPrecosPorFoto";
 import { LogoBadge } from "@/components/ui/LogoBadge";
 import { toTitleCase } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Props {
   initialQuery?: string;
@@ -25,6 +32,9 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
   const [q, setQ] = useState(initialQuery);
   const [ativa, setAtiva] = useState(initialQuery);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const [sort, setSort] = useState<"relevancia" | "menor_preco" | "maior_preco" | "melhor_escolha">(
+    "relevancia",
+  );
 
   useEffect(() => {
     setQ(initialQuery);
@@ -56,6 +66,27 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
   });
 
   const resolvedDomains = dominiosQuery.data ?? {};
+
+  const resultadosOrdenados = useMemo(() => {
+    if (!query.data?.resultados) return [];
+    const resultados = [...query.data.resultados];
+
+    switch (sort) {
+      case "menor_preco":
+        return resultados.sort((a, b) => a.preco - b.preco);
+      case "maior_preco":
+        return resultados.sort((a, b) => b.preco - a.preco);
+      case "melhor_escolha":
+        return resultados.sort((a, b) => {
+          const scoreA = (a.isTrusted ? 100 : 0) + (!a.isUsed ? 50 : 0) - a.preco * 0.01;
+          const scoreB = (b.isTrusted ? 100 : 0) + (!b.isUsed ? 50 : 0) - b.preco * 0.01;
+          return scoreB - scoreA;
+        });
+      case "relevancia":
+      default:
+        return resultados;
+    }
+  }, [query.data?.resultados, sort]);
 
   return (
     <div className="space-y-4">
@@ -112,8 +143,32 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
         </div>
       )}
 
+      {resultadosOrdenados.length > 0 && (
+        <div className="flex items-center justify-between py-1">
+          <div className="text-sm text-muted-foreground font-medium">
+            {resultadosOrdenados.length} opções
+          </div>
+          <Select
+            value={sort}
+            onValueChange={(v: "relevancia" | "menor_preco" | "maior_preco" | "melhor_escolha") =>
+              setSort(v)
+            }
+          >
+            <SelectTrigger className="w-[160px] h-8 text-xs bg-muted/50 border-0">
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="relevancia">Mais Relevantes</SelectItem>
+              <SelectItem value="melhor_escolha">Melhor Escolha</SelectItem>
+              <SelectItem value="menor_preco">Menor Preço</SelectItem>
+              <SelectItem value="maior_preco">Maior Preço</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <div className="space-y-2 max-h-[50dvh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {query.data?.resultados?.map((r, i) => (
+        {resultadosOrdenados.map((r, i) => (
           <div
             key={`${r.link}-${i}`}
             className="p-3 rounded-xl border bg-card hover:shadow-soft transition-shadow flex gap-3"

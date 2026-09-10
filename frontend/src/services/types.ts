@@ -5,6 +5,7 @@ export interface Pessoa {
   email: string;
   dataNascimento?: string | null;
   avatar?: string | null;
+  receberNotificacoes?: boolean;
 }
 
 export interface Usuario {
@@ -21,6 +22,9 @@ export interface Usuario {
     pessoa2: Pessoa;
   } | null;
   pessoaLogada?: 1 | 2;
+  slugListaPublica?: string | null;
+  listaPublicaAtiva?: boolean;
+  receberNotificacoes?: boolean;
 }
 
 export interface LoginResponse {

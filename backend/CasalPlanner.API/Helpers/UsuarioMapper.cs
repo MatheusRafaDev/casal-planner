@@ -20,7 +20,9 @@ namespace CasalPlanner.API.Helpers
                 receberNotificacoes = usuario.ReceberNotificacoes,
                 metaGlobalEnxoval = usuario.MetaGlobalEnxoval,
                 createdAt = usuario.CreatedAt,
-                lastLoginAt = usuario.LastLoginAt
+                lastLoginAt = usuario.LastLoginAt,
+                slugListaPublica = usuario.SlugListaPublica,
+                listaPublicaAtiva = usuario.ListaPublicaAtiva
             };
         }
 
@@ -42,6 +44,8 @@ namespace CasalPlanner.API.Helpers
                     metaGlobalEnxoval = usuario.MetaGlobalEnxoval,
                     createdAt = usuario.CreatedAt,
                     lastLoginAt = usuario.LastLoginAt,
+                    slugListaPublica = usuario.SlugListaPublica,
+                    listaPublicaAtiva = usuario.ListaPublicaAtiva,
                     pessoaLogada = pessoaQueLogou,
                     pessoa1 = new
                     {
@@ -73,6 +77,8 @@ namespace CasalPlanner.API.Helpers
                     metaGlobalEnxoval = usuario.MetaGlobalEnxoval,
                     createdAt = usuario.CreatedAt,
                     lastLoginAt = usuario.LastLoginAt,
+                    slugListaPublica = usuario.SlugListaPublica,
+                    listaPublicaAtiva = usuario.ListaPublicaAtiva,
                     casalInfo = new
                     {
                         pessoa1 = new

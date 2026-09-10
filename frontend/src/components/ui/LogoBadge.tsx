@@ -18,11 +18,11 @@ export function LogoBadge({ urls, className = "w-3 h-3 rounded-sm", fallback }: 
   }
 
   return (
-    <img 
-      src={urls[errorIndex]} 
-      alt="" 
-      className={className} 
-      onError={() => setErrorIndex(i => i + 1)} 
+    <img
+      src={urls[errorIndex]}
+      alt=""
+      className={className}
+      onError={() => setErrorIndex((i) => i + 1)}
     />
   );
 }

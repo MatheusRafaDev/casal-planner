@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import { brl } from "@/lib/formatters";
-import type { PesquisaPrecoResposta } from "./types";
+import type { PesquisaPrecoResposta, PesquisaPrecoResultado } from "./types";
 
 interface PesquisaPrecoRespostaBruta {
   produtos?: Array<{
@@ -61,5 +61,24 @@ export const pesquisaPrecosService = {
     });
 
     return mapearResposta(raw, q);
+  },
+
+  extrairDeLink: async (url: string): Promise<PesquisaPrecoResultado> => {
+    const produto = await api<any>("/api/pesquisaprecos/extrair-link", {
+      method: "POST",
+      body: { url },
+    });
+
+    return {
+      titulo: produto.nome ?? "",
+      loja: produto.loja ?? "Link Direto",
+      preco: Number(produto.preco ?? 0),
+      precoFormatado: brl(Number(produto.preco ?? 0)),
+      link: produto.url ?? url,
+      thumbnail: produto.imagem,
+      isTrusted: true,
+      isMarketplace: false,
+      isUsed: false,
+    };
   },
 };

@@ -68,6 +68,22 @@ public class GoogleShoppingProvider : IPriceProvider
 
                 if (string.IsNullOrEmpty(link)) continue;
 
+                // Ignora links que na verdade são apenas páginas de busca da loja (Ads)
+                if (link.Contains("lista.mercadolivre.com.br") || 
+                    link.Contains("amazon.com.br/s?k=") || 
+                    link.Contains("busca.magazineluiza.com.br"))
+                {
+                    // Tenta usar o link do próprio Google Shopping se for um Ad disfarçado
+                    if (item.TryGetProperty("product_link", out var pLink) && !string.IsNullOrEmpty(pLink.GetString()))
+                    {
+                        link = pLink.GetString() ?? "";
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+
                 var isUsed = StoreAndBrandHelper.IsUsedProduct(title);
                 var isMarketplace = StoreAndBrandHelper.IsMarketplaceStore(source, title, isUsed);
                 var isTrusted = StoreAndBrandHelper.IsTrustedStore(source) && !isMarketplace && !isUsed;
@@ -118,19 +134,41 @@ public class GoogleShoppingProvider : IPriceProvider
 
     private static string ExtractLink(JsonElement item)
     {
+        string rawLink = "";
+
         if (item.TryGetProperty("link", out var link) && !string.IsNullOrEmpty(link.GetString()))
-            return link.GetString() ?? "";
+            rawLink = link.GetString() ?? "";
+        else if (item.TryGetProperty("product_link", out var productLink))
+            rawLink = productLink.GetString() ?? "";
+        else if (item.TryGetProperty("serpapi_product_api", out var serpLink))
+            rawLink = serpLink.GetString() ?? "";
+        else if (item.TryGetProperty("serpapi_link", out var serp))
+            rawLink = serp.GetString() ?? "";
 
-        if (item.TryGetProperty("product_link", out var productLink))
-            return productLink.GetString() ?? "";
+        if (string.IsNullOrEmpty(rawLink))
+            return "";
 
-        if (item.TryGetProperty("serpapi_product_api", out var serpLink))
-            return serpLink.GetString() ?? "";
+        // Tenta limpar redirecionamentos do Google Shopping (google.com/url?q=...)
+        try
+        {
+            if (rawLink.Contains("google.com/url") || rawLink.Contains("google.com.br/url"))
+            {
+                var uri = new Uri(rawLink);
+                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                var directUrl = query["q"] ?? query["url"];
+                
+                if (!string.IsNullOrEmpty(directUrl))
+                {
+                    return directUrl;
+                }
+            }
+        }
+        catch
+        {
+            // fallback para o rawLink
+        }
 
-        if (item.TryGetProperty("serpapi_link", out var serp))
-            return serp.GetString() ?? "";
-
-        return "";
+        return rawLink;
     }
 
     private static decimal ExtractPrice(JsonElement item)
