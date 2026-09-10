@@ -10,6 +10,7 @@ using CasalPlanner.Infrastructure.Persistence;
 using CasalPlanner.Application.Interfaces;
 using CasalPlanner.Infrastructure.Services;
 using CasalPlanner.Application.Services;
+using CasalPlanner.API.Services;
 using CasalPlanner.Infrastructure.Repositories;
 using CasalPlanner.Infrastructure.Services.Providers;
 using CasalPlanner.Application.DTOs;
@@ -317,6 +318,9 @@ builder.Services.AddScoped<IRecuperarSenhaService, RecuperarSenhaService>();
 builder.Services.AddScoped<IPushService, PushService>();
 builder.Services.AddSingleton<CloudinaryService>();
 
+// Serviço de KeepAlive para evitar que a API durma no Render
+builder.Services.AddHostedService<KeepAliveService>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -427,6 +431,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapGet("/api/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
 
 // ===== 10. SWAGGER =====
 if (app.Environment.IsDevelopment())
