@@ -25,6 +25,7 @@ import { usuarioService } from "@/services/usuario";
 import { resumoService } from "@/services/resumo";
 import { conviteService } from "@/services/convite";
 import { recuperarSenhaService } from "@/services/recuperar-senha";
+import { itensService } from "@/services/itens";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -42,7 +43,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { maskDate, brToIsoDate, formatDate } from "@/lib/formatters";
+import { maskDate, brToIsoDate, formatDate, brl } from "@/lib/formatters";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
@@ -109,75 +110,9 @@ function PerfilPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-        <div className="space-y-8 lg:col-span-2">
-          {!isCasal && convitesQuery.data && convitesQuery.data.length > 0 && (
-            <section className="rounded-2xl border border-primary/50 bg-primary/5 p-5 shadow-soft">
-              <div className="flex items-center gap-2 mb-4">
-                <MailOpen className="h-5 w-5 text-primary" />
-                <h2 className="font-display text-lg font-semibold text-primary">
-                  Você tem um convite!
-                </h2>
-              </div>
-              <div className="space-y-4">
-                {convitesQuery.data.map((convite) => (
-                  <div
-                    key={convite.token}
-                    className="bg-background rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between border"
-                  >
-                    <div>
-                      <p className="font-medium text-base">
-                        <strong>{convite.nomeConvidante}</strong> convidou você para o CasalPlanner.
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Aceite para vincular suas contas. Ao aceitar, seus dados atuais serão
-                        migrados para a conta de casal.
-                      </p>
-                    </div>
-                    <Button
-                      onClick={() => aceitarMutation.mutate(convite.token)}
-                      disabled={aceitarMutation.isPending}
-                      className="w-full md:w-auto"
-                    >
-                      <Check className="h-4 w-4 mr-2" />
-                      {aceitarMutation.isPending ? "Aceitando..." : "Aceitar Convite"}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {!isCasal && (
-            <section className="rounded-2xl border bg-card p-5 shadow-soft">
-              <h2 className="font-display text-lg font-semibold mb-4">Convidar parceiro</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Envie um convite para o email do seu parceiro. Ele será notificado para acessar o
-                aplicativo e aceitar.
-              </p>
-              <div className="space-y-3">
-                <div>
-                  <Label htmlFor="email-parceiro">Email do parceiro</Label>
-                  <Input
-                    id="email-parceiro"
-                    type="email"
-                    placeholder="parceiro@email.com"
-                    value={emailParceiro}
-                    onChange={(e) => setEmailParceiro(e.target.value)}
-                  />
-                </div>
-                <Button
-                  onClick={() => conviteMutation.mutate()}
-                  disabled={!emailParceiro || conviteMutation.isPending}
-                  className="w-full"
-                >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  {conviteMutation.isPending ? "Enviando..." : "Enviar convite"}
-                </Button>
-              </div>
-            </section>
-          )}
-
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
+        {/* COLUNA ESQUERDA: Minha Conta & Segurança */}
+        <div className="space-y-6 lg:space-y-8">
           {/* Dados */}
           <section className="rounded-2xl border bg-card p-5 md:p-6 shadow-soft">
             <h2 className="font-display text-lg font-semibold mb-4">Dados pessoais</h2>
@@ -253,66 +188,145 @@ function PerfilPage() {
               />
             )}
           </section>
+
+          {/* Senha */}
+          <TrocarSenhaCard />
+
+          {/* Zona perigosa & Logout */}
+          <section className="rounded-3xl border border-destructive/20 bg-destructive/5 p-6 hover:bg-destructive/10 transition-colors duration-300">
+            <div className="flex flex-col gap-4">
+              <div>
+                <h2 className="font-display text-lg font-semibold text-destructive mb-1">
+                  Acesso & Segurança
+                </h2>
+                <p className="text-sm text-destructive/80">
+                  Encerre sua sessão ou exclua sua conta permanentemente.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Button variant="outline" onClick={logout} className="w-full">
+                  <LogOut className="h-4 w-4 mr-2" /> Sair da conta
+                </Button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="w-full">
+                      <Trash2 className="h-4 w-4 mr-2" /> Excluir conta
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir conta permanentemente?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Todos os cômodos, itens, metas e pesquisas serão apagados. Essa ação não pode
+                        ser desfeita.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        onClick={async () => {
+                          try {
+                            await usuarioService.excluirConta(usuario.id);
+                            toast.success("Conta excluída");
+                            logout();
+                            navigate({ to: "/" });
+                          } catch (e) {
+                            toast.error(e instanceof Error ? e.message : "Erro ao excluir");
+                          }
+                        }}
+                      >
+                        Excluir agora
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          </section>
         </div>
 
-        <div className="space-y-6 lg:col-span-1">
+        {/* COLUNA DIREITA: Planejamento & Recursos */}
+        <div className="space-y-6 lg:space-y-8">
+          {/* Convites Recebidos */}
+          {!isCasal && convitesQuery.data && convitesQuery.data.length > 0 && (
+            <section className="rounded-2xl border border-primary/50 bg-primary/5 p-5 shadow-soft">
+              <div className="flex items-center gap-2 mb-4">
+                <MailOpen className="h-5 w-5 text-primary" />
+                <h2 className="font-display text-lg font-semibold text-primary">
+                  Você tem um convite!
+                </h2>
+              </div>
+              <div className="space-y-4">
+                {convitesQuery.data.map((convite) => (
+                  <div
+                    key={convite.token}
+                    className="bg-background rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between border"
+                  >
+                    <div>
+                      <p className="font-medium text-base">
+                        <strong>{convite.nomeConvidante}</strong> convidou você para o CasalPlanner.
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Aceite para vincular suas contas. Ao aceitar, seus dados atuais serão
+                        migrados para a conta de casal.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => aceitarMutation.mutate(convite.token)}
+                      disabled={aceitarMutation.isPending}
+                      className="w-full md:w-auto shrink-0"
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      {aceitarMutation.isPending ? "Aceitando..." : "Aceitar Convite"}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Enviar Convite */}
+          {!isCasal && (
+            <section className="rounded-2xl border bg-card p-5 shadow-soft">
+              <h2 className="font-display text-lg font-semibold mb-4">Convidar parceiro</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Envie um convite para o email do seu parceiro. Ele será notificado para acessar o
+                aplicativo e aceitar.
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="email-parceiro">Email do parceiro</Label>
+                  <Input
+                    id="email-parceiro"
+                    type="email"
+                    placeholder="parceiro@email.com"
+                    value={emailParceiro}
+                    onChange={(e) => setEmailParceiro(e.target.value)}
+                  />
+                </div>
+                <Button
+                  onClick={() => conviteMutation.mutate()}
+                  disabled={!emailParceiro || conviteMutation.isPending}
+                  className="w-full"
+                >
+                  <Share2 className="h-4 w-4 mr-2" />
+                  {conviteMutation.isPending ? "Enviando..." : "Enviar convite"}
+                </Button>
+              </div>
+            </section>
+          )}
+
           {/* Lista Pública */}
           <ListaPublicaCard />
 
           {/* Meta */}
           <MetaEnxovalCard metaUsuario={usuario.metaGlobalEnxoval ?? null} onSaved={refresh} />
 
-          {/* Senha */}
-          <TrocarSenhaCard />
-
-          {/* Zona perigosa */}
-          <section className="rounded-3xl border border-destructive/20 bg-destructive/5 p-6 hover:bg-destructive/10 transition-colors duration-300">
-            <div className="flex flex-col gap-4">
-              <div>
-                <h2 className="font-display text-lg font-semibold text-destructive mb-1">
-                  Zona sensível
-                </h2>
-                <p className="text-sm text-destructive/80">Ações destrutivas. Tenha cuidado.</p>
-              </div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive">
-                    <Trash2 className="h-4 w-4 mr-2" /> Excluir conta
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Excluir conta permanentemente?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Todos os cômodos, itens, metas e pesquisas serão apagados. Essa ação não pode
-                      ser desfeita.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      onClick={async () => {
-                        try {
-                          await usuarioService.excluirConta(usuario.id);
-                          toast.success("Conta excluída");
-                          logout();
-                          navigate({ to: "/" });
-                        } catch (e) {
-                          toast.error(e instanceof Error ? e.message : "Erro ao excluir");
-                        }
-                      }}
-                    >
-                      Excluir agora
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-              <Button variant="outline" onClick={logout} className="w-full">
-                <LogOut className="h-4 w-4 mr-2" /> Sair da conta
-              </Button>
-            </div>
-          </section>
+          {/* Exportar */}
+          <ExportarCard />
         </div>
       </div>
     </div>
@@ -553,31 +567,27 @@ function TrocarSenhaCard() {
 function ListaPublicaCard() {
   const { usuario, refresh } = useAuth();
   const [ativa, setAtiva] = useState(usuario?.listaPublicaAtiva ?? false);
-  const [slug, setSlug] = useState(usuario?.slugListaPublica ?? "");
-  const [editando, setEditando] = useState(!usuario?.slugListaPublica);
 
   useEffect(() => {
     setAtiva(usuario?.listaPublicaAtiva ?? false);
-    setSlug(usuario?.slugListaPublica ?? "");
   }, [usuario]);
 
   const mut = useMutation({
-    mutationFn: () => usuarioService.configurarListaPublica(ativa, slug),
+    mutationFn: () => usuarioService.configurarListaPublica(ativa),
     onSuccess: async () => {
       toast.success("Configuração da lista pública atualizada!");
-      setEditando(false);
       await refresh();
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
   });
 
-  const link = `${window.location.origin}/lista/${usuario?.slugListaPublica || "seu-link"}`;
+  const link = `${window.location.origin}/lista/${usuario?.slugListaPublica || ""}`;
 
   const shareLink = () => {
     if (navigator.share) {
       navigator.share({
-        title: "Nossa Lista de Presentes",
-        text: "Confira nossa lista de presentes!",
+        title: "Nossa Lista de Desejos",
+        text: "Confira nossa lista de desejos!",
         url: link,
       }).catch((e) => console.log(e));
     } else {
@@ -587,7 +597,7 @@ function ListaPublicaCard() {
   };
 
   const shareWhatsApp = () => {
-    const text = encodeURIComponent(`Confira nossa lista de presentes: ${link}`);
+    const text = encodeURIComponent(`Confira nossa lista de desejos: ${link}`);
     window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
   };
 
@@ -599,8 +609,8 @@ function ListaPublicaCard() {
       </div>
 
       <p className="text-sm text-muted-foreground mb-4">
-        Crie uma página pública com os presentes que você ainda não comprou para compartilhar com
-        convidados.
+        Crie uma página pública com os itens que você deseja adquirir para compartilhar com
+        seus amigos e familiares. O link é gerado automaticamente pelo sistema.
       </p>
 
       <div className="space-y-4">
@@ -611,37 +621,13 @@ function ListaPublicaCard() {
           <Switch
             id="lista-ativa"
             checked={ativa}
-            onCheckedChange={(val) => {
-              setAtiva(val);
-            }}
+            onCheckedChange={(val) => setAtiva(val)}
           />
         </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label>Seu link personalizado</Label>
-            {!editando && ativa && (
-              <Button variant="link" size="sm" className="h-auto p-0 text-primary" onClick={() => setEditando(true)}>
-                Mudar link
-              </Button>
-            )}
-          </div>
-          
-          {editando ? (
-            <div className="flex gap-2">
-              <div className="flex-1 relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                  /lista/
-                </span>
-                <Input
-                  className="pl-[3.5rem] bg-muted/50"
-                  placeholder="meu-casamento"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                />
-              </div>
-            </div>
-          ) : (
+        {usuario?.slugListaPublica && (
+          <div className="space-y-2">
+            <Label>Seu link exclusivo</Label>
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-xl border opacity-70">
                 <p className="text-sm font-medium truncate flex-1">{link}</p>
@@ -673,18 +659,186 @@ function ListaPublicaCard() {
                 </div>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {(editando || ativa !== (usuario?.listaPublicaAtiva ?? false)) && (
+        {ativa !== (usuario?.listaPublicaAtiva ?? false) && (
           <Button
             onClick={() => mut.mutate()}
-            disabled={mut.isPending || (editando && slug.length < 3)}
+            disabled={mut.isPending}
             className="w-full bg-gradient-primary rounded-xl"
           >
             {mut.isPending ? "Salvando..." : "Salvar Configurações"}
           </Button>
         )}
+      </div>
+    </section>
+  );
+}
+
+function ExportarCard() {
+  const [exportando, setExportando] = useState(false);
+
+  const handleExportarCSV = async () => {
+    setExportando(true);
+    try {
+      const todosItens = await itensService.listar();
+
+      const cabecalho = [
+        "Item",
+        "Marca",
+        "Loja",
+        "Quantidade",
+        "Preço Unitário",
+        "Total",
+        "Comprado",
+        "Data Compra",
+        "Origem",
+      ];
+      const linhas = todosItens.map((it) => [
+        `"${it.nome.replace(/"/g, '""')}"`,
+        `"${(it.marca || "").replace(/"/g, '""')}"`,
+        `"${(it.loja || "").replace(/"/g, '""')}"`,
+        it.quantidade,
+        it.preco.toString().replace(".", ","),
+        (it.preco * it.quantidade).toString().replace(".", ","),
+        it.comprado ? "Sim" : "Não",
+        it.dataCompra ? new Date(it.dataCompra).toLocaleDateString("pt-BR") : "",
+        it.origem,
+      ]);
+
+      const conteudoCSV = [cabecalho.join(";"), ...linhas.map((l) => l.join(";"))].join("\n");
+      const blob = new Blob(["\uFEFF" + conteudoCSV], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `Planejamento_CasalPlanner_${new Date().toISOString().split("T")[0]}.csv`,
+      );
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      toast.error("Erro ao exportar CSV");
+    } finally {
+      setExportando(false);
+    }
+  };
+
+  const handleExportarPDF = async () => {
+    setExportando(true);
+    try {
+      const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+        import("jspdf"),
+        import("jspdf-autotable"),
+      ]);
+      const todosItens = await itensService.listar();
+
+      const itensNaoComprados = todosItens.filter((it) => !it.comprado);
+      const totalGasto = todosItens
+        .filter((it) => it.origem !== "ganho")
+        .reduce((s, it) => s + it.preco * it.quantidade, 0);
+      const totalRestante = itensNaoComprados
+        .filter((it) => it.origem !== "ganho")
+        .reduce((s, it) => s + it.preco * it.quantidade, 0);
+      const totalEconomia = todosItens
+        .filter((it) => it.origem === "ganho")
+        .reduce((s, it) => s + it.preco * it.quantidade, 0);
+
+      const doc = new jsPDF();
+
+      // Header
+      doc.setFontSize(20);
+      doc.setTextColor(139, 92, 246);
+      doc.text("Lista de Casamento", 14, 20);
+
+      doc.setFontSize(12);
+      doc.setTextColor(100);
+      doc.text("CasalPlanner", 14, 28);
+
+      // Info section
+      doc.setFontSize(14);
+      doc.setTextColor(0);
+      doc.text("Todos os cômodos", 14, 45);
+
+      doc.setFontSize(11);
+      doc.text(`Total gasto: ${brl(totalGasto)}`, 14, 55);
+      doc.text(`Pendente: ${brl(totalRestante)}`, 14, 62);
+      if (totalEconomia > 0) doc.text(`Economia (ganhos): ${brl(totalEconomia)}`, 14, 69);
+      doc.text(
+        `Itens comprados: ${todosItens.filter((it) => it.comprado).length}/${todosItens.length}`,
+        14,
+        totalEconomia > 0 ? 76 : 69,
+      );
+
+      // Table data
+      const tableData = itensNaoComprados.map((it, i) => [
+        i + 1,
+        it.nome,
+        it.marca || "-",
+        it.loja || "-",
+        it.quantidade,
+        brl(it.preco),
+        brl(it.preco * it.quantidade),
+      ]);
+
+      // Generate table
+      autoTable(doc, {
+        startY: 80,
+        head: [["#", "Item", "Marca", "Loja", "Qtd", "Preço", "Total"]],
+        body: tableData,
+        theme: "grid",
+        headStyles: {
+          fillColor: [139, 92, 246],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 250],
+        },
+      });
+
+      // Footer
+      const pageCount = doc.getNumberOfPages();
+      doc.setFontSize(10);
+      doc.setTextColor(150);
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.text(
+          `Página ${i} de ${pageCount} - Gerado em ${new Date().toLocaleDateString("pt-BR")}`,
+          14,
+          doc.internal.pageSize.height - 10,
+        );
+      }
+
+      doc.save(`lista-casamento-todos.pdf`);
+      toast.success("PDF gerado com sucesso!");
+    } catch (e) {
+      toast.error("Erro ao gerar PDF");
+    } finally {
+      setExportando(false);
+    }
+  };
+
+  return (
+    <section className="rounded-2xl border bg-card shadow-soft overflow-hidden p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <Download className="h-4 w-4 text-primary" />
+        <h2 className="font-display text-lg font-semibold">Exportar Planejamento</h2>
+      </div>
+      <p className="text-sm text-muted-foreground mb-4">
+        Baixe um arquivo contendo toda a sua lista de enxoval. Ideal para enviar para as lojas ou arquivar.
+      </p>
+      <div className="flex flex-col gap-2">
+        <Button variant="outline" className="w-full rounded-xl" onClick={handleExportarCSV} disabled={exportando}>
+          <Download className="h-4 w-4 mr-2" />
+          Exportar para CSV (Excel)
+        </Button>
+        <Button variant="outline" className="w-full rounded-xl" onClick={handleExportarPDF} disabled={exportando}>
+          <Download className="h-4 w-4 mr-2" />
+          Exportar para PDF
+        </Button>
       </div>
     </section>
   );

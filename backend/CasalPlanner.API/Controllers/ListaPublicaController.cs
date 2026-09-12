@@ -36,14 +36,13 @@ namespace CasalPlanner.API.Controllers
             
             // Retorna apenas itens permitidos e remove dados sensíveis
             var itensPublicos = itens
-                .Where(i => i.Origem != "ganho")
                 .Select(i => new {
                     i.Id,
                     i.Nome,
                     i.Marca,
                     i.Preco,
                     i.Quantidade,
-                    i.Comprado,
+                    Comprado = i.Comprado || i.Origem == "prometido" || i.Origem == "presente",
                     i.Loja,
                     i.LinkProduto,
                     i.FotoUrl,
@@ -72,13 +71,14 @@ namespace CasalPlanner.API.Controllers
             if (item == null)
                 return NotFound(new { message = "Item não encontrado." });
 
-            if (item.Comprado)
-                return BadRequest(new { message = "Este item já foi presenteado ou comprado." });
+            if (item.Comprado || item.Origem == "prometido" || item.Origem == "presente")
+                return BadRequest(new { message = "Este item já foi presenteado ou prometido." });
 
             // Atualiza o item
-            item.Comprado = true;
-            item.Origem = "presente";
-            item.OrigemDescricao = $"Presente de {dto.NomeConvidado}";
+            // Atualiza o item (mantém como não comprado na lista do casal para eles confirmarem)
+            item.Comprado = false;
+            item.Origem = "prometido";
+            item.OrigemDescricao = $"Presente prometido por {dto.NomeConvidado}";
             item.UpdatedAt = DateTime.UtcNow;
 
             await _itemRepository.UpdateRawAsync(item);

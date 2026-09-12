@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useMotionProps } from "@/hooks/use-reduced-motion";
-import { Sparkles, Heart, Home, Wallet, Search, ShieldCheck, ArrowRight } from "lucide-react";
+import { Sparkles, Heart, Home, Wallet, Search, ShieldCheck, ArrowRight, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -162,6 +163,47 @@ function Home_() {
               </div>
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Busca de Lista Pública */}
+      <section className="max-w-6xl mx-auto px-4 pt-16 md:pt-24">
+        <div className="rounded-3xl bg-muted/40 border p-8 md:p-12 text-center max-w-3xl mx-auto shadow-sm">
+          <div className="inline-flex items-center justify-center h-14 w-14 rounded-full bg-primary/10 text-primary mb-4">
+            <Gift className="h-7 w-7" />
+          </div>
+          <h2 className="font-display text-2xl md:text-3xl font-semibold mb-2">
+            Procurando uma lista de presentes?
+          </h2>
+          <p className="text-muted-foreground mb-8">
+            É convidado de um evento? Digite o link ou o código do casal para acessar a lista.
+          </p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const codigo = formData.get("codigo")?.toString().trim();
+              if (codigo) {
+                // Remove a parte do dominio se o usuario colar o link inteiro
+                const slug = codigo.split("/").filter(Boolean).pop() || codigo;
+                window.location.href = `/lista/${slug}`;
+              }
+            }}
+            className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+          >
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                name="codigo"
+                placeholder="Ex: matheus-e-rayane" 
+                className="pl-10 h-12 rounded-xl bg-background"
+                required
+              />
+            </div>
+            <Button type="submit" size="lg" className="rounded-xl h-12 w-full sm:w-auto">
+              Buscar Lista
+            </Button>
+          </form>
         </div>
       </section>
 

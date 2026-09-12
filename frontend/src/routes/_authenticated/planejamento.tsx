@@ -1,4 +1,5 @@
-import { lazy, Suspense, useState, useMemo, useDeferredValue } from "react";
+import { lazy, Suspense, useState, useMemo, useDeferredValue, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -107,6 +108,11 @@ function PlanejamentoPage() {
   const [imagemAmpliada, setImagemAmpliada] = useState<Item | null>(null);
   const [excluindoItem, setExcluindoItem] = useState<Item | null>(null);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setPortalTarget(document.getElementById("sidebar-categories-portal"));
+  }, []);
 
   const categoriasQ = useQuery({
     queryKey: ["categorias"],
@@ -178,6 +184,13 @@ function PlanejamentoPage() {
     .reduce((s, i) => s + i.preco * i.quantidade, 0);
   const compradosCategoria = itensCategoria.filter((i) => i.comprado).length;
 
+  const totalP1 = itensCategoria
+    .filter((i) => i.origem !== "ganho" && i.responsavelId === 1)
+    .reduce((s, i) => s + i.preco * i.quantidade, 0);
+  const totalP2 = itensCategoria
+    .filter((i) => i.origem !== "ganho" && i.responsavelId === 2)
+    .reduce((s, i) => s + i.preco * i.quantidade, 0);
+
   const percentComprado = itensCategoria.length
     ? (compradosCategoria / itensCategoria.length) * 100
     : 0;
@@ -237,195 +250,6 @@ function PlanejamentoPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const handleCompartilhar = async () => {
-    const texto = gerarTextoCompartilhamento();
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Minha Lista de Casamento - CasalPlanner",
-          text: texto,
-        });
-        toast.success("Lista compartilhada com sucesso!");
-      } catch (err) {
-        if ((err as Error).name !== "AbortError") {
-          toast.error("Erro ao compartilhar");
-        }
-      }
-    } else {
-      // Fallback: copiar para clipboard
-      await navigator.clipboard.writeText(texto);
-      toast.success("Lista copiada para a área de transferência!");
-    }
-  };
-
-  const gerarTextoCompartilhamento = () => {
-    const itensFiltrados =
-      catAtualId === "tudo" ? todosItens : todosItens.filter((it) => it.categoriaId === catAtualId);
-
-    const itensNaoComprados = itensFiltrados.filter((it) => !it.comprado);
-    const totalGasto = itensFiltrados.reduce((s, it) => s + it.preco * it.quantidade, 0);
-    const totalRestante = itensNaoComprados.reduce((s, it) => s + it.preco * it.quantidade, 0);
-
-    let texto = `📋 Lista de Casamento - CasalPlanner\n\n`;
-
-    if (catAtualId !== "tudo" && catAtual) {
-      texto += `🏠 ${catAtual.nome}\n\n`;
-    }
-
-    texto += `💰 Total gasto: ${brl(totalGasto)}\n`;
-    texto += `📦 Faltam ${itensNaoComprados.length} itens (${brl(totalRestante)})\n\n`;
-
-    if (itensNaoComprados.length > 0) {
-      texto += `📝 Itens pendentes:\n`;
-      itensNaoComprados.forEach((it, i) => {
-        texto += `${i + 1}. ${it.nome} - ${brl(it.preco)} x${it.quantidade} = ${brl(it.preco * it.quantidade)}\n`;
-        if (it.marca) texto += `   Marca: ${it.marca}\n`;
-        if (it.loja) texto += `   Loja: ${it.loja}\n`;
-      });
-    }
-
-    texto += `\n✅ ${itensFiltrados.filter((it) => it.comprado).length} itens já comprados!`;
-
-    return texto;
-  };
-
-  const handleExportarCSV = () => {
-    const itensFiltrados =
-      catAtualId === "tudo" ? todosItens : todosItens.filter((it) => it.categoriaId === catAtualId);
-
-    const cabecalho = [
-      "Item",
-      "Marca",
-      "Loja",
-      "Quantidade",
-      "Preço Unitário",
-      "Total",
-      "Comprado",
-      "Data Compra",
-      "Origem",
-    ];
-    const linhas = itensFiltrados.map((it) => [
-      `"${it.nome.replace(/"/g, '""')}"`,
-      `"${(it.marca || "").replace(/"/g, '""')}"`,
-      `"${(it.loja || "").replace(/"/g, '""')}"`,
-      it.quantidade,
-      it.preco.toString().replace(".", ","),
-      (it.preco * it.quantidade).toString().replace(".", ","),
-      it.comprado ? "Sim" : "Não",
-      it.dataCompra ? new Date(it.dataCompra).toLocaleDateString("pt-BR") : "",
-      it.origem,
-    ]);
-
-    const conteudoCSV = [cabecalho.join(";"), ...linhas.map((l) => l.join(";"))].join("\n");
-    const blob = new Blob(["\uFEFF" + conteudoCSV], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute(
-      "download",
-      `Planejamento_CasalPlanner_${new Date().toISOString().split("T")[0]}.csv`,
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const handleExportarPDF = async () => {
-    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
-      import("jspdf"),
-      import("jspdf-autotable"),
-    ]);
-    const itensFiltrados =
-      catAtualId === "tudo" ? todosItens : todosItens.filter((it) => it.categoriaId === catAtualId);
-
-    const itensNaoComprados = itensFiltrados.filter((it) => !it.comprado);
-    const totalGasto = itensFiltrados
-      .filter((it) => it.origem !== "ganho")
-      .reduce((s, it) => s + it.preco * it.quantidade, 0);
-    const totalRestante = itensNaoComprados
-      .filter((it) => it.origem !== "ganho")
-      .reduce((s, it) => s + it.preco * it.quantidade, 0);
-    const totalEconomia = itensFiltrados
-      .filter((it) => it.origem === "ganho")
-      .reduce((s, it) => s + it.preco * it.quantidade, 0);
-
-    const doc = new jsPDF();
-
-    // Header
-    doc.setFontSize(20);
-    doc.setTextColor(139, 92, 246);
-    doc.text("Lista de Casamento", 14, 20);
-
-    doc.setFontSize(12);
-    doc.setTextColor(100);
-    doc.text("CasalPlanner", 14, 28);
-
-    // Info section
-    doc.setFontSize(14);
-    doc.setTextColor(0);
-    doc.text(
-      catAtualId !== "tudo" && catAtual ? `Cômodo: ${catAtual.nome}` : "Todos os cômodos",
-      14,
-      45,
-    );
-
-    doc.setFontSize(11);
-    doc.text(`Total gasto: ${brl(totalGasto)}`, 14, 55);
-    doc.text(`Pendente: ${brl(totalRestante)}`, 14, 62);
-    if (totalEconomia > 0) doc.text(`Economia (ganhos): ${brl(totalEconomia)}`, 14, 69);
-    doc.text(
-      `Itens comprados: ${itensFiltrados.filter((it) => it.comprado).length}/${itensFiltrados.length}`,
-      14,
-      totalEconomia > 0 ? 76 : 69,
-    );
-
-    // Table data
-    const tableData = itensNaoComprados.map((it, i) => [
-      i + 1,
-      it.nome,
-      it.marca || "-",
-      it.loja || "-",
-      it.quantidade,
-      brl(it.preco),
-      brl(it.preco * it.quantidade),
-    ]);
-
-    // Generate table
-    autoTable(doc, {
-      startY: 80,
-      head: [["#", "Item", "Marca", "Loja", "Qtd", "Preço", "Total"]],
-      body: tableData,
-      theme: "grid",
-      headStyles: {
-        fillColor: [139, 92, 246],
-        textColor: 255,
-        fontStyle: "bold",
-      },
-      alternateRowStyles: {
-        fillColor: [245, 245, 250],
-      },
-    });
-
-    // Footer
-    const pageCount = doc.getNumberOfPages();
-    doc.setFontSize(10);
-    doc.setTextColor(150);
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.text(
-        `Página ${i} de ${pageCount} - Gerado em ${new Date().toLocaleDateString("pt-BR")}`,
-        14,
-        doc.internal.pageSize.height - 10,
-      );
-    }
-
-    doc.save(
-      `lista-casamento-${catAtualId === "tudo" ? "todos" : (catAtual?.nome ?? "comodo")}.pdf`,
-    );
-    toast.success("PDF gerado com sucesso!");
-  };
-
   // Estimativa de comodo não disponível nessa versão do backend
 
   return (
@@ -437,30 +261,6 @@ function PlanejamentoPage() {
           </h1>
           <div className="flex items-center gap-2 shrink-0">
             <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setModalCompartilharOpen(true)}
-                className="flex-1 sm:flex-none border-primary/20 text-primary hover:bg-primary/5 bg-primary/5"
-              >
-                <Share2 className="h-4 w-4 mr-2" />
-                Compartilhar
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleExportarCSV}
-                className="flex-1 sm:flex-none border-primary/20 text-primary hover:bg-primary/5 hidden md:flex"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Exportar CSV
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleExportarPDF}
-                className="flex-1 sm:flex-none border-primary/20 text-primary hover:bg-primary/5 hidden md:flex"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Exportar PDF
-              </Button>
             </div>
             <Button
               variant="secondary"
@@ -481,7 +281,7 @@ function PlanejamentoPage() {
                 }
               }}
             >
-              <Sparkles className="h-4 w-4 mr-1" />
+              <Plus className="h-4 w-4 mr-1" />
               <span className="hidden sm:inline">Adicionar item</span>
               <span className="sm:hidden">Item</span>
             </Button>
@@ -500,7 +300,7 @@ function PlanejamentoPage() {
           </div>
         </div>
         <p className="text-muted-foreground text-sm max-w-xl">
-          Organize os itens por cômodo, controle o orçamento e pesquise preços com IA.
+          Organize os itens por cômodo e controle o orçamento.
         </p>
       </header>
 
@@ -526,268 +326,300 @@ function PlanejamentoPage() {
 
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Desktop: Sidebar with rooms */}
-        <aside className="hidden lg:flex flex-col gap-3 w-[250px] shrink-0">
-          {categoriasQ.isLoading && (
-            <div className="text-sm text-muted-foreground">Carregando...</div>
-          )}
-          <div
-            className={cn(
-              "group flex items-center gap-3 rounded-xl border p-3 transition-all cursor-pointer",
-              catAtualId === "tudo"
-                ? "border-primary bg-primary/5 shadow-soft"
-                : "hover:bg-accent/40 hover:border-accent",
+        {portalTarget && createPortal(
+          <aside className="hidden lg:flex flex-col gap-1.5 w-full shrink-0">
+            <hr className="border-border/50 mb-2 -mx-3" />
+            {categoriasQ.isLoading && (
+              <div className="text-sm text-muted-foreground px-3">Carregando...</div>
             )}
-            onClick={() => setCategoriaSelecionada("tudo")}
-          >
-            <span className="grid place-items-center h-10 w-10 rounded-lg text-white shrink-0 shadow-soft bg-zinc-800">
-              <Package className="h-5 w-5" />
-            </span>
-            <div className="flex-1 min-w-0">
-              <div className="font-medium truncate">Todos os Itens</div>
-              <div className="text-xs text-muted-foreground mt-0.5">
-                <div className="flex justify-between items-center">
-                  <span>
-                    {todosItens.filter((i) => i.comprado).length}/{todosItens.length} itens
-                  </span>
-                  <span className="font-medium text-foreground">
-                    {brl(
-                      todosItens
-                        .filter((i) => i.origem !== "ganho")
-                        .reduce((s, i) => s + i.preco * i.quantidade, 0),
-                    )}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          {categorias.map((c) => {
-            const I = iconFor(c.icon);
-            const ativo = c.id === catAtualId;
-            const cItens = todosItens.filter((it) => it.categoriaId === c.id);
-            const cComprados = cItens.filter((it) => it.comprado).length;
-            const cGasto = cItens
-              .filter((it) => it.origem !== "ganho")
-              .reduce((s, it) => s + it.preco * it.quantidade, 0);
-
-            return (
-              <div
-                key={c.id}
-                className={cn(
-                  "group flex items-center gap-3 rounded-xl border p-3 transition-all cursor-pointer",
-                  ativo
-                    ? "border-primary bg-primary/5 shadow-soft"
-                    : "hover:bg-accent/40 hover:border-accent",
-                  c.metaOrcamento &&
-                    cGasto > c.metaOrcamento &&
-                    !ativo &&
-                    "border-destructive/50 bg-destructive/5",
-                )}
-                onClick={() => setCategoriaSelecionada(c.id)}
-              >
-                <span
-                  className="grid place-items-center h-10 w-10 rounded-lg text-white shrink-0 shadow-soft"
-                  style={{ backgroundColor: c.bg }}
-                >
-                  <I className="h-5 w-5" />
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate flex items-center gap-2 capitalize">
-                    {c.nome}
-                    {c.metaOrcamento && cGasto > c.metaOrcamento && (
-                      <span className="text-destructive" title="Orçamento estourado">
-                        <AlertTriangle className="h-4 w-4" />
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-0.5">
-                    <div className="flex justify-between items-center">
-                      <span>
-                        {cComprados}/{cItens.length} itens
-                      </span>
-                      <span
-                        className={cn(
-                          "font-medium",
-                          c.metaOrcamento && cGasto > c.metaOrcamento && "text-destructive",
+            <div
+              className={cn(
+                "group flex items-center gap-3 rounded-lg p-2.5 transition-all cursor-pointer",
+                catAtualId === "tudo"
+                  ? "border border-primary/20 bg-primary/5 shadow-soft"
+                  : "border border-transparent hover:bg-accent/40",
+              )}
+              onClick={() => setCategoriaSelecionada("tudo")}
+            >
+              <span className="grid place-items-center h-8 w-8 rounded-md text-white shrink-0 shadow-soft bg-zinc-800">
+                <Package className="h-4 w-4" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm truncate">Todos os Itens</div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  <div className="flex justify-between items-center">
+                    <span>
+                      {todosItens.filter((i) => i.comprado).length}/{todosItens.length} -{" "}
+                      <span className={cn(catAtualId === "tudo" ? "text-foreground font-medium" : "")}>
+                        {brl(
+                          todosItens
+                            .filter((i) => i.origem !== "ganho")
+                            .reduce((s, i) => s + i.preco * i.quantidade, 0),
                         )}
-                      >
-                        {brl(cGasto)}
                       </span>
-                    </div>
-                    {c.metaOrcamento ? (
-                      <div className="mt-1.5 space-y-1">
-                        <div className="flex justify-between text-[10px] text-muted-foreground/80">
-                          <span>
-                            {brl(cGasto)} de {brl(c.metaOrcamento)}
-                          </span>
-                        </div>
-                        <div className="h-1 w-full bg-border rounded-full overflow-hidden">
-                          <div
-                            className={cn(
-                              "h-full rounded-full transition-all",
-                              cGasto / c.metaOrcamento < 0.8
-                                ? "bg-emerald-500"
-                                : cGasto / c.metaOrcamento <= 1
-                                  ? "bg-amber-500"
-                                  : "bg-destructive",
-                            )}
-                            style={{ width: `${Math.min(100, (cGasto / c.metaOrcamento) * 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    ) : null}
+                    </span>
                   </div>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="md:opacity-0 md:group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenuItem onClick={() => setEditandoCategoria(c)}>
-                      <Pencil className="h-4 w-4 mr-2" /> Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={() => setExcluindoCategoria(c)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" /> Remover
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
-            );
-          })}
-
-          {!categoriasQ.isLoading && categorias.length === 0 && (
-            <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-              Nenhum cômodo ainda. Crie o primeiro para começar.
             </div>
-          )}
-        </aside>
+            {categorias.map((c) => {
+              const I = iconFor(c.icon);
+              const ativo = c.id === catAtualId;
+              const cItens = todosItens.filter((it) => it.categoriaId === c.id);
+              const cComprados = cItens.filter((it) => it.comprado).length;
+              const cGasto = cItens
+                .filter((it) => it.origem !== "ganho")
+                .reduce((s, it) => s + it.preco * it.quantidade, 0);
+
+              return (
+                <div
+                  key={c.id}
+                  className={cn(
+                    "group flex items-center gap-3 rounded-lg p-2.5 transition-all cursor-pointer",
+                    ativo
+                      ? "border border-primary/20 bg-primary/5 shadow-soft"
+                      : "border border-transparent hover:bg-accent/40",
+                    c.metaOrcamento &&
+                      cGasto > c.metaOrcamento &&
+                      !ativo &&
+                      "bg-destructive/5",
+                  )}
+                  onClick={() => setCategoriaSelecionada(c.id)}
+                >
+                  <span
+                    className="grid place-items-center h-8 w-8 rounded-md text-white shrink-0 shadow-soft"
+                    style={{ backgroundColor: c.bg }}
+                  >
+                    <I className="h-4 w-4" />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate flex items-center gap-2 capitalize">
+                      {c.nome}
+                      {c.metaOrcamento && cGasto > c.metaOrcamento && (
+                        <span className="text-destructive" title="Orçamento estourado">
+                          <AlertTriangle className="h-3.5 w-3.5" />
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      <div className="flex justify-between items-center">
+                        <span>
+                          {cComprados}/{cItens.length} -{" "}
+                          <span
+                            className={cn(
+                              ativo && "text-foreground font-medium",
+                              c.metaOrcamento && cGasto > c.metaOrcamento && "text-destructive",
+                            )}
+                          >
+                            {brl(cGasto)}
+                          </span>
+                        </span>
+                      </div>
+                      {c.metaOrcamento ? (
+                        <div className="mt-1 space-y-1">
+                          <div className="h-0.5 w-full bg-border rounded-full overflow-hidden">
+                            <div
+                              className={cn(
+                                "h-full rounded-full transition-all",
+                                cGasto / c.metaOrcamento < 0.8
+                                  ? "bg-emerald-500"
+                                  : cGasto / c.metaOrcamento <= 1
+                                    ? "bg-amber-500"
+                                    : "bg-destructive",
+                              )}
+                              style={{ width: `${Math.min(100, (cGasto / c.metaOrcamento) * 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0 md:opacity-0 md:group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+                      >
+                        <MoreVertical className="h-3 w-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem onClick={() => setEditandoCategoria(c)}>
+                        <Pencil className="h-4 w-4 mr-2" /> Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => setExcluindoCategoria(c)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" /> Remover
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              );
+            })}
+
+            {!categoriasQ.isLoading && categorias.length === 0 && (
+              <div className="rounded-xl border border-dashed p-4 mx-3 mt-2 text-center text-xs text-muted-foreground">
+                Nenhum cômodo ainda. Crie o primeiro para começar.
+              </div>
+            )}
+          </aside>,
+          portalTarget
+        )}
 
         {/* Painel principal */}
         <section className="flex-1 space-y-4 min-w-0">
           {catAtualId === "tudo" || catAtual ? (
             <>
-              <div className="rounded-2xl bg-gradient-warm p-5 border shadow-soft">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <span
-                        className="grid place-items-center h-12 w-12 rounded-xl text-white shadow-soft"
-                        style={{ backgroundColor: catAtual ? catAtual.bg : "#27272a" }}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className={cn("rounded-2xl bg-gradient-warm p-3 border shadow-soft flex flex-col justify-between", isCasal ? "md:col-span-2" : "md:col-span-3")}>
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="grid place-items-center h-8 w-8 rounded-md text-white shadow-soft"
+                          style={{ backgroundColor: catAtual ? catAtual.bg : "#27272a" }}
+                        >
+                          {(() => {
+                            const I = catAtual ? iconFor(catAtual.icon) : Package;
+                            return <I className="h-4 w-4" />;
+                          })()}
+                        </span>
+                        <div>
+                          <div className="font-display text-base font-semibold flex items-center gap-2 capitalize">
+                            {catAtual ? catAtual.nome : "Todos os itens"}
+                            {catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento && (
+                              <span className="text-destructive" title="Orçamento estourado">
+                                <AlertTriangle className="h-3 w-3" />
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground leading-none">
+                            {itensCategoria.length} itens · {compradosCategoria} comprados
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-left sm:text-right">
+                      <div className="text-[10px] text-muted-foreground font-medium mb-0.5">Total gasto</div>
+                      <div
+                        className={cn(
+                          "font-display text-base font-bold leading-none",
+                          (catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento) ||
+                            (!catAtual &&
+                              usuario?.metaGlobalEnxoval &&
+                              totalCategoria > usuario.metaGlobalEnxoval)
+                            ? "text-destructive"
+                            : "text-primary",
+                        )}
                       >
-                        {(() => {
-                          const I = catAtual ? iconFor(catAtual.icon) : Package;
-                          return <I className="h-6 w-6" />;
-                        })()}
-                      </span>
-                      <div>
-                        <div className="font-display text-xl sm:text-2xl font-semibold flex items-center gap-2 capitalize">
-                          {catAtual ? catAtual.nome : "Todos os itens"}
-                          {catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento && (
-                            <span className="text-destructive" title="Orçamento estourado">
-                              <AlertTriangle className="h-5 w-5" />
+                        {brl(totalCategoria)}
+                      </div>
+                      {catAtual?.metaOrcamento ? (
+                        <div className="text-[10px] text-muted-foreground mt-0.5">
+                          de {brl(catAtual.metaOrcamento)}
+                          {totalCategoria > catAtual.metaOrcamento && (
+                            <span className="text-destructive ml-1">
+                              ({brl(totalCategoria - catAtual.metaOrcamento)} acima)
                             </span>
                           )}
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          {itensCategoria.length} itens · {compradosCategoria} comprados
+                      ) : !catAtual && usuario?.metaGlobalEnxoval ? (
+                        <div className="text-[10px] text-muted-foreground mt-0.5">
+                          de {brl(usuario.metaGlobalEnxoval)}
+                          {totalCategoria > usuario.metaGlobalEnxoval && (
+                            <span className="text-destructive ml-1">
+                              ({brl(totalCategoria - usuario.metaGlobalEnxoval)} acima)
+                            </span>
+                          )}
                         </div>
-                      </div>
+                      ) : null}
                     </div>
                   </div>
 
-                  <div className="text-left sm:text-right">
-                    <div className="text-xs text-muted-foreground">Total gasto</div>
-                    <div
-                      className={cn(
-                        "font-display text-xl sm:text-2xl font-semibold",
-                        (catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento) ||
-                          (!catAtual &&
-                            usuario?.metaGlobalEnxoval &&
-                            totalCategoria > usuario.metaGlobalEnxoval)
-                          ? "text-destructive"
-                          : "text-primary",
-                      )}
-                    >
-                      {brl(totalCategoria)}
+                  <div className="mt-4 flex flex-col gap-3">
+                    <div>
+                      <div className="flex justify-between text-[10px] mb-1">
+                        <span className="text-muted-foreground font-medium">
+                          Progresso da compra <span className="opacity-70 font-normal">({compradosCategoria} de {itensCategoria.length} itens)</span>
+                        </span>
+                        <span className="font-medium">{percentComprado.toFixed(0)}%</span>
+                      </div>
+                      <Progress value={percentComprado} className="h-2" />
                     </div>
-                    {catAtual?.metaOrcamento ? (
-                      <div className="text-xs text-muted-foreground">
-                        de {brl(catAtual.metaOrcamento)}
-                        {totalCategoria > catAtual.metaOrcamento && (
-                          <span className="text-destructive ml-2">
-                            ({brl(totalCategoria - catAtual.metaOrcamento)} acima)
+                    {(percentMeta !== null || (!catAtual && usuario?.metaGlobalEnxoval)) && (
+                      <div>
+                        <div className="flex justify-between text-[10px] mb-1">
+                          <span className="text-muted-foreground font-medium">
+                            Meta de orçamento <span className="opacity-70 font-normal">
+                              ({brl(totalCategoria)} / {brl(catAtual?.metaOrcamento || usuario?.metaGlobalEnxoval || 0)})
+                            </span>
                           </span>
-                        )}
-                      </div>
-                    ) : !catAtual && usuario?.metaGlobalEnxoval ? (
-                      <div className="text-xs text-muted-foreground">
-                        de {brl(usuario.metaGlobalEnxoval)}
-                        {totalCategoria > usuario.metaGlobalEnxoval && (
-                          <span className="text-destructive ml-2">
-                            ({brl(totalCategoria - usuario.metaGlobalEnxoval)} acima)
+                          <span
+                            className={cn(
+                              "font-medium",
+                              (percentMeta !== null
+                                ? percentMeta
+                                : (totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100) > 100
+                                ? "text-destructive font-bold"
+                                : "",
+                            )}
+                          >
+                            {percentMeta !== null
+                              ? percentMeta.toFixed(0)
+                              : ((totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100).toFixed(
+                                  0,
+                                )}
+                            %
                           </span>
-                        )}
-                      </div>
-                    ) : null}
-                    {economiaCategoria > 0 && (
-                      <div className="mt-2 text-xs text-emerald-500 font-medium">
-                        Economia (ganhos/presentes): {brl(economiaCategoria)}
+                        </div>
+                        <Progress
+                          value={
+                            percentMeta !== null
+                              ? percentMeta
+                              : (totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100
+                          }
+                          className="h-2"
+                        />
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">Progresso da compra</span>
-                      <span className="font-medium">{percentComprado.toFixed(0)}%</span>
-                    </div>
-                    <Progress value={percentComprado} />
+                <div className="rounded-2xl bg-card p-3 border shadow-soft flex flex-col justify-center gap-2">
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold text-center mb-1">
+                    {isCasal ? "Divisão de Custos" : "Resumo Financeiro"}
                   </div>
-                  {(percentMeta !== null || (!catAtual && usuario?.metaGlobalEnxoval)) && (
-                    <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-muted-foreground">Meta de orçamento</span>
-                        <span
-                          className={cn(
-                            "font-medium",
-                            (percentMeta !== null
-                              ? percentMeta
-                              : (totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100) > 100
-                              ? "text-destructive"
-                              : "",
-                          )}
-                        >
-                          {percentMeta !== null
-                            ? percentMeta.toFixed(0)
-                            : ((totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100).toFixed(
-                                0,
-                              )}
-                          %
-                        </span>
+                  <div className="space-y-2">
+                    {isCasal ? (
+                      <>
+                        <div className="flex justify-between items-center bg-accent/40 rounded-lg px-2.5 py-1.5">
+                          <span className="text-xs font-medium truncate pr-2 text-muted-foreground">{p1}</span>
+                          <span className="font-display font-semibold text-sm">{brl(totalP1)}</span>
+                        </div>
+                        <div className="flex justify-between items-center bg-accent/40 rounded-lg px-2.5 py-1.5">
+                          <span className="text-xs font-medium truncate pr-2 text-muted-foreground">{p2}</span>
+                          <span className="font-display font-semibold text-sm">{brl(totalP2)}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex justify-between items-center bg-accent/40 rounded-lg px-2.5 py-1.5">
+                        <span className="text-xs font-medium truncate pr-2 text-muted-foreground">Você pagou</span>
+                        <span className="font-display font-semibold text-sm">{brl(totalCategoria)}</span>
                       </div>
-                      <Progress
-                        value={
-                          percentMeta !== null
-                            ? percentMeta
-                            : (totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100
-                        }
-                      />
-                    </div>
-                  )}
+                    )}
+                    {economiaCategoria > 0 && (
+                      <div className="flex justify-between items-center bg-emerald-500/10 rounded-lg px-2.5 py-1.5">
+                        <span className="text-xs font-medium truncate pr-2 text-emerald-600 dark:text-emerald-500">Presentes / Ganhos</span>
+                        <span className="font-display font-semibold text-sm text-emerald-600 dark:text-emerald-500">{brl(economiaCategoria)}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-
-                {/* Estimativa de comodo removida - funcionalidade não disponível no backend */}
               </div>
 
               {/* Filtros */}
@@ -829,7 +661,7 @@ function PlanejamentoPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="todos">Qualquer pagamento</SelectItem>
+                      <SelectItem value="todos">Pagamento</SelectItem>
                       <SelectItem value="normal">Dinheiro</SelectItem>
                       <SelectItem value="vr">VR / VA</SelectItem>
                     </SelectContent>
@@ -843,7 +675,7 @@ function PlanejamentoPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="todos">Qualquer responsável</SelectItem>
+                        <SelectItem value="todos">Responsável</SelectItem>
                         <SelectItem value="1">{p1}</SelectItem>
                         <SelectItem value="2">{p2}</SelectItem>
                       </SelectContent>
@@ -861,7 +693,7 @@ function PlanejamentoPage() {
                 )}
                 {!itensQ.isLoading && itensFiltrados.length === 0 && (
                   <div className="col-span-full rounded-xl border border-dashed p-10 text-center">
-                    <Sparkles className="h-6 w-6 mx-auto text-primary mb-2" />
+                    <Plus className="h-6 w-6 mx-auto text-primary mb-2" />
                     <p className="text-sm text-muted-foreground">
                       Nenhum item por aqui ainda. Que tal adicionar o primeiro?
                     </p>
@@ -885,19 +717,25 @@ function PlanejamentoPage() {
                   {itensFiltrados.map((it) => (
                     <motion.div
                       layout
-                      initial={{ opacity: 0, scale: 0.95 }}
+                      initial={{ opacity: 0, scale: 0.96 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
+                      exit={{ opacity: 0, scale: 0.96 }}
+                      transition={{
+                        opacity: { duration: 0.2 },
+                        layout: { type: "spring", bounce: 0, duration: 0.4 },
+                        scale: { type: "spring", bounce: 0, duration: 0.4 }
+                      }}
                       key={it.id}
                       className={cn(
-                        "flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-soft hover:shadow-elegant transition-shadow duration-200",
-                        it.comprado && "opacity-70",
+                        "flex flex-col gap-3 rounded-2xl border p-4 transition-shadow duration-200",
+                        it.comprado 
+                          ? "bg-card/40 border-transparent shadow-none" 
+                          : "bg-card shadow-soft hover:shadow-elegant"
                       )}
                     >
                       <div className="flex items-start gap-3 flex-1 min-w-0">
                         <Checkbox
-                          className="mt-1"
+                          className={cn("mt-1", it.comprado && "rounded-full")}
                           checked={it.comprado}
                           onCheckedChange={() =>
                             toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
@@ -907,7 +745,10 @@ function PlanejamentoPage() {
                           <button
                             type="button"
                             onClick={() => setImagemAmpliada(it)}
-                            className="h-16 w-16 shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-white/50 dark:bg-white/10 overflow-hidden border border-border/50"
+                            className={cn(
+                              "h-16 w-16 shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-white/50 dark:bg-white/10 overflow-hidden border border-border/50 transition-all",
+                              it.comprado && "opacity-50 grayscale"
+                            )}
                             aria-label={`Ampliar imagem de ${it.nome}`}
                           >
                             <img
@@ -919,7 +760,10 @@ function PlanejamentoPage() {
                           </button>
                         ) : (
                           <div
-                            className="h-16 w-16 rounded-xl grid place-items-center text-white shrink-0 shadow-sm"
+                            className={cn(
+                              "h-16 w-16 rounded-xl grid place-items-center text-white shrink-0 shadow-sm transition-all",
+                              it.comprado && "opacity-50 grayscale"
+                            )}
                             style={{
                               backgroundColor:
                                 categorias.find((c) => c.id === it.categoriaId)?.bg ?? "#27272a",
@@ -940,20 +784,21 @@ function PlanejamentoPage() {
                             onClick={() => setEditandoItem(it)}
                             title="Editar item"
                             className={cn(
-                              "max-w-full line-clamp-2 text-left font-medium hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 block leading-tight",
-                              it.comprado && "line-through",
+                              "max-w-full line-clamp-2 text-left font-semibold text-base md:text-lg hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 block leading-tight",
+                              it.comprado ? "line-through text-muted-foreground" : "text-foreground",
                             )}
                           >
                             {toTitleCase(it.nome)}
                           </button>
 
                           {/* Logos + nomes de marca e loja */}
-                          {(it.marca || it.loja) && (
-                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                          <div className={cn("transition-opacity", it.comprado && "opacity-50 grayscale")}>
+                            {(it.marca || it.loja) && (
+                            <div className="flex flex-wrap items-center gap-1.5 mt-2">
                               {it.marca && (
                                 <Badge
                                   variant="secondary"
-                                  className="gap-1 px-1.5 py-0.5 text-[11px]"
+                                  className="gap-1 px-2 py-0.5 text-xs bg-muted/60"
                                 >
                                   <LogoBadge urls={getLogoUrls(it.marca, null, resolvedDomains)} />
                                   {toTitleCase(it.marca)}
@@ -969,19 +814,19 @@ function PlanejamentoPage() {
                                   >
                                     <Badge
                                       variant="outline"
-                                      className="gap-1 px-1.5 py-0.5 text-[11px]"
+                                      className="gap-1 px-2 py-0.5 text-xs bg-card hover:bg-muted/50"
                                     >
                                       <LogoBadge
                                         urls={getLogoUrls(it.loja, it.linkProduto, resolvedDomains)}
                                       />
                                       {toTitleCase(it.loja)}
-                                      <ExternalLink className="w-2.5 h-2.5 ml-0.5 opacity-60" />
+                                      <ExternalLink className="w-3 h-3 ml-1 opacity-60" />
                                     </Badge>
                                   </a>
                                 ) : (
                                   <Badge
                                     variant="outline"
-                                    className="gap-1 px-1.5 py-0.5 text-[11px]"
+                                    className="gap-1 px-2 py-0.5 text-xs bg-card"
                                   >
                                     <LogoBadge urls={getLogoUrls(it.loja, null, resolvedDomains)} />
                                     {toTitleCase(it.loja)}
@@ -990,63 +835,67 @@ function PlanejamentoPage() {
                             </div>
                           )}
 
-                          {/* Metadados secundários */}
-                          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground mt-1">
-                            <span className="break-words">
-                              {[
-                                toTitleCase(categorias.find((c) => c.id === it.categoriaId)?.nome),
-                                it.pagamento === "vr" ? "VR / VA" : "Dinheiro",
-                                isCasal && it.responsavelId
-                                  ? it.responsavelId === 1
-                                    ? p1
-                                    : p2
-                                  : null,
-                              ]
-                                .filter(Boolean)
-                                .join(" · ")}
+                          {/* Metadados secundários: Categoria/Pagamento + Badges */}
+                          <div className="flex flex-wrap items-center gap-2 mt-2">
+                            <span className="text-xs text-muted-foreground">
+                              {toTitleCase(categorias.find((c) => c.id === it.categoriaId)?.nome || "")} 
+                              {' · '}
+                              {it.pagamento === "vr" ? "VR / VA" : "Dinheiro"}
                             </span>
                             <Badge
                               variant="outline"
                               className={cn(
-                                "text-[10px] py-0 px-1.5 font-medium border",
-                                it.origem === "ganho"
+                                "text-[11px] py-0 px-2 font-medium border",
+                                it.origem === "ganho" || it.origem === "presente"
                                   ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
-                                  : "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400",
+                                  : it.origem === "prometido"
+                                    ? "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400"
+                                    : "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400",
                               )}
                             >
-                              {it.origem === "ganho" ? "Presente" : "Será Comprado"}
+                              {it.origem === "ganho" || it.origem === "presente"
+                                ? "Presente"
+                                : it.origem === "prometido"
+                                  ? "Prometido"
+                                  : "Será comprado"}
                             </Badge>
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                "text-[10px] py-0 px-1.5 font-medium border capitalize",
-                                it.prioridade === "alta"
-                                  ? "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400"
-                                  : it.prioridade === "baixa"
-                                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
-                                    : "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
-                              )}
-                            >
-                              Prioridade {it.prioridade || "Média"}
-                            </Badge>
+                            {it.prioridade && (
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "text-[11px] py-0 px-2 font-medium border capitalize",
+                                  it.prioridade === "alta"
+                                    ? "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400"
+                                    : it.prioridade === "baixa"
+                                      ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
+                                      : "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
+                                )}
+                              >
+                                Prioridade {it.prioridade}
+                              </Badge>
+                            )}
+                          </div>
+                          {it.origem === "prometido" && it.origemDescricao && (
+                            <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1.5 font-medium">
+                              🎁 {it.origemDescricao} — aguardando confirmação
+                            </p>
+                          )}
                           </div>
                         </div>
                       </div>
+                      
+                      <hr className="border-border/60 my-1" />
 
-                      <div className="flex items-center justify-between gap-3 pt-2 border-t">
+                      <div className="flex items-end justify-between gap-3 mt-auto">
                         <div className="text-left min-w-0">
-                          <div className="font-display font-semibold truncate">
+                          <div className={cn(
+                            "font-display font-bold text-lg md:text-xl truncate tracking-tight",
+                            it.comprado ? "text-muted-foreground" : "text-foreground"
+                          )}>
                             {brl(it.preco * it.quantidade)}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            <span>
-                              {it.quantidade}× {brl(it.preco)}
-                            </span>
-                            {(it.parcelas ?? 1) > 1 && (
-                              <span className="text-[10px] text-muted-foreground/70 ml-2">
-                                {it.parcelas}x de {brl(it.preco / (it.parcelas ?? 1))}
-                              </span>
-                            )}
+                            {it.quantidade}x {brl(it.preco)}
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
@@ -1066,7 +915,11 @@ function PlanejamentoPage() {
                                 }
                               >
                                 <Check className="h-4 w-4 mr-2" />
-                                {it.comprado ? "Marcar como faltando" : "Marcar comprado"}
+                                {it.comprado
+                                  ? "Marcar como faltando"
+                                  : it.origem === "prometido"
+                                    ? "Confirmar recebimento"
+                                    : "Marcar comprado"}
                               </DropdownMenuItem>
                               {it.linkProduto && (
                                 <DropdownMenuItem asChild>
@@ -1123,7 +976,7 @@ function PlanejamentoPage() {
             </>
           ) : (
             <div className="rounded-2xl border border-dashed p-16 text-center bg-gradient-warm">
-              <Sparkles className="h-8 w-8 mx-auto text-primary mb-3" />
+              <Plus className="h-8 w-8 mx-auto text-primary mb-3" />
               <p className="text-muted-foreground">
                 Crie seu primeiro cômodo para começar o planejamento.
               </p>
@@ -1171,81 +1024,6 @@ function PlanejamentoPage() {
         />
       )}
 
-      {/* Modal Compartilhar */}
-      <Dialog open={modalCompartilharOpen} onOpenChange={setModalCompartilharOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Compartilhar Lista de Presentes</DialogTitle>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            {usuario?.listaPublicaAtiva ? (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  Sua lista pública está ativa! Envie o link abaixo para seus convidados escolherem os presentes.
-                </p>
-                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-xl border">
-                  <p className="text-sm font-medium truncate flex-1">
-                    {window.location.origin}/lista/{usuario.slugListaPublica}
-                  </p>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}/lista/${usuario.slugListaPublica}`);
-                      toast.success("Link copiado!");
-                    }}
-                  >
-                    <Check className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      const text = encodeURIComponent(`Confira nossa lista de presentes: ${window.location.origin}/lista/${usuario.slugListaPublica}`);
-                      window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
-                    }}
-                  >
-                    WhatsApp
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      const link = `${window.location.origin}/lista/${usuario.slugListaPublica}`;
-                      if (navigator.share) {
-                        navigator.share({ title: "Lista de Presentes", url: link }).catch(() => {});
-                      } else {
-                        navigator.clipboard.writeText(link);
-                        toast.success("Link copiado!");
-                      }
-                    }}
-                  >
-                    Compartilhar
-                  </Button>
-                </div>
-                <Button variant="link" className="w-full mt-2" onClick={() => window.location.href = '/perfil'}>
-                  Alterar meu link (Perfil)
-                </Button>
-              </>
-            ) : (
-              <>
-                <div className="rounded-xl border bg-primary/5 p-4 text-center space-y-3">
-                  <Share2 className="h-8 w-8 text-primary mx-auto mb-2" />
-                  <h3 className="font-semibold">Lista Pública Desativada</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Para que seus convidados possam ver sua lista e escolher presentes, você precisa ativar a Lista Pública e escolher um link.
-                  </p>
-                  <Button className="w-full mt-2" onClick={() => window.location.href = '/perfil'}>
-                    Ativar no Meu Perfil
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={!!imagemAmpliada} onOpenChange={(open) => !open && setImagemAmpliada(null)}>
         <DialogContent className="max-w-4xl p-4">

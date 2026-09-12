@@ -87,9 +87,9 @@ export const usuarioService = {
       method: "PUT",
       body: { receberNotificacoes },
     }),
-  configurarListaPublica: (ativa: boolean, slug?: string) =>
+  configurarListaPublica: (ativa: boolean) =>
     api<{ success: boolean; message: string; usuario: Usuario }>("/api/usuario/lista-publica", {
       method: "PUT",
-      body: { ativa, slug },
+      body: { ativa },
     }),
 };

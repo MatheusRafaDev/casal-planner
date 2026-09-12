@@ -38,7 +38,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </Link>
         </div>
-        <nav className="flex-1 px-3 space-y-1">
+        <div className="px-3 space-y-1">
           {nav.map((n) => {
             const active = pathname.startsWith(n.to);
             return (
@@ -57,7 +57,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
-        </nav>
+        </div>
+        <div className="flex-1 overflow-y-auto mt-4 px-3">
+          <div id="sidebar-categories-portal" className="flex flex-col gap-2" />
+        </div>
         <div className="p-4 border-t mt-auto">
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span className="truncate font-medium pr-2">

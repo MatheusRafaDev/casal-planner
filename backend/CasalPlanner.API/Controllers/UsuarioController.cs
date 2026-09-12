@@ -405,15 +405,19 @@ public class UsuarioController : ControllerBase
         var update = Builders<Usuario>.Update
             .Set(u => u.ListaPublicaAtiva, dto.Ativa);
             
-        if (dto.Slug != null)
+        // Se ativou e não tem slug ou se o slug antigo não for numérico, gera um aleatório numérico fixo
+        bool needsNewSlug = string.IsNullOrEmpty(usuario.SlugListaPublica) || !int.TryParse(usuario.SlugListaPublica, out _);
+        if (dto.Ativa && needsNewSlug)
         {
-            // Checar se slug já está em uso por outro usuário
-            var slugExiste = await _context.Usuarios.Find(u => u.SlugListaPublica == dto.Slug && u.Id != usuarioId).AnyAsync();
-            if (slugExiste)
+            var random = new Random();
+            var newSlug = random.Next(10000, 99999).ToString();
+            
+            // Garante unicidade
+            while (await _context.Usuarios.Find(u => u.SlugListaPublica == newSlug && u.Id != usuarioId).AnyAsync())
             {
-                return BadRequest(new { message = "Este endereço já está em uso por outro casal. Escolha outro." });
+                newSlug = random.Next(10000, 99999).ToString();
             }
-            update = update.Set(u => u.SlugListaPublica, dto.Slug);
+            update = update.Set(u => u.SlugListaPublica, newSlug);
         }
 
         await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioId, update);

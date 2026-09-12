@@ -970,8 +970,8 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
           </Button>
 
           {step === 1 && (
-            <Button onClick={avancarDoNome} disabled={dupQuery.isFetching}>
-              {dupQuery.isFetching ? (
+            <Button onClick={avancarDoNome} disabled={extrairLink.isPending}>
+              {extrairLink.isPending ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
               ) : (
                 <ArrowRight className="h-4 w-4 mr-1" />

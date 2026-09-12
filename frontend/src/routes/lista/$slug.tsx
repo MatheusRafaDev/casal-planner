@@ -19,7 +19,7 @@ import { listaPublicaService, ItemPublico } from "@/services/lista-publica";
 
 export const Route = createFileRoute("/lista/$slug")({
   head: () => ({
-    meta: [{ title: "Lista de Presentes — Casal Planner" }],
+    meta: [{ title: "Lista de Desejos — Planner" }],
   }),
   component: ListaPublicaPage,
 });
@@ -86,7 +86,7 @@ function ListaPublicaPage() {
             <Gift className="h-8 w-8" />
           </div>
           <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground">
-            Lista de Presentes
+            Lista de Desejos
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground font-medium">{casal}</p>
         </div>
@@ -100,7 +100,7 @@ function ListaPublicaPage() {
           <Input
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar presentes..."
+            placeholder="Buscar itens..."
             className="pl-10 h-12 rounded-full bg-muted/50 border-muted focus-visible:ring-primary shadow-sm"
           />
         </div>
@@ -190,7 +190,7 @@ function ListaPublicaPage() {
 
           {itensFiltrados.length === 0 && (
             <div className="col-span-full py-12 text-center text-muted-foreground">
-              Nenhum presente encontrado com esse nome.
+              Nenhum item encontrado com esse nome.
             </div>
           )}
         </div>
@@ -236,7 +236,7 @@ function ListaPublicaPage() {
               {itemSelecionado.linkProduto && (
                 <div className="text-sm">
                   <p className="text-muted-foreground mb-2">
-                    Você pode comprar este presente na loja sugerida:
+                    Você pode adquirir este item na loja sugerida:
                   </p>
                   <Button variant="outline" className="w-full justify-between" asChild>
                     <a href={itemSelecionado.linkProduto} target="_blank" rel="noopener noreferrer">

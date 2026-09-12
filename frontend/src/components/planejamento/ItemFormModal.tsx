@@ -103,6 +103,7 @@ export function ItemFormModal({
           fotoUrl: item.fotoUrl ?? "",
           parcelas: item.parcelas ?? 1,
           origem: item.origem ?? "comprado",
+          origemDescricao: item.origemDescricao ?? undefined,
           responsavelId: item.responsavelId ?? null,
           divisaoPagamento: item.divisaoPagamento ? { ...item.divisaoPagamento } : null,
           dataCompra: item.dataCompra ? item.dataCompra.split("T")[0] : null,
@@ -416,8 +417,19 @@ export function ItemFormModal({
                 <SelectContent>
                   <SelectItem value="comprado">Será comprado</SelectItem>
                   <SelectItem value="ganho">Ganho / Presente</SelectItem>
+                  {form.origem === "prometido" && (
+                    <SelectItem value="prometido">Prometido por convidado</SelectItem>
+                  )}
+                  {form.origem === "presente" && (
+                    <SelectItem value="presente">Presente recebido</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
+              {(form.origem === "prometido" || form.origem === "presente") && form.origemDescricao && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                  🎁 {form.origemDescricao}
+                </p>
+              )}
             </div>
             <div className="space-y-4 sm:col-span-2 border rounded-xl p-4 bg-card mt-2">
               <div className="flex items-center justify-between">
