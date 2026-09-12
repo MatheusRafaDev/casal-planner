@@ -102,6 +102,7 @@ function PlanejamentoPage() {
   const [excluindoCategoria, setExcluindoCategoria] = useState<Categoria | null>(null);
   const [adicionandoItem, setAdicionandoItem] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [modalCompartilharOpen, setModalCompartilharOpen] = useState(false);
   const [editandoItem, setEditandoItem] = useState<Item | null>(null);
   const [imagemAmpliada, setImagemAmpliada] = useState<Item | null>(null);
   const [excluindoItem, setExcluindoItem] = useState<Item | null>(null);
@@ -438,8 +439,16 @@ function PlanejamentoPage() {
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="outline"
+                onClick={() => setModalCompartilharOpen(true)}
+                className="flex-1 sm:flex-none border-primary/20 text-primary hover:bg-primary/5 bg-primary/5"
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                Compartilhar
+              </Button>
+              <Button
+                variant="outline"
                 onClick={handleExportarCSV}
-                className="flex-1 sm:flex-none border-primary/20 text-primary hover:bg-primary/5"
+                className="flex-1 sm:flex-none border-primary/20 text-primary hover:bg-primary/5 hidden md:flex"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Exportar CSV
@@ -447,7 +456,7 @@ function PlanejamentoPage() {
               <Button
                 variant="outline"
                 onClick={handleExportarPDF}
-                className="flex-1 sm:flex-none border-primary/20 text-primary hover:bg-primary/5"
+                className="flex-1 sm:flex-none border-primary/20 text-primary hover:bg-primary/5 hidden md:flex"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Exportar PDF
@@ -1161,6 +1170,83 @@ function PlanejamentoPage() {
           item={editandoItem}
         />
       )}
+
+      {/* Modal Compartilhar */}
+      <Dialog open={modalCompartilharOpen} onOpenChange={setModalCompartilharOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Compartilhar Lista de Presentes</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            {usuario?.listaPublicaAtiva ? (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Sua lista pública está ativa! Envie o link abaixo para seus convidados escolherem os presentes.
+                </p>
+                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-xl border">
+                  <p className="text-sm font-medium truncate flex-1">
+                    {window.location.origin}/lista/{usuario.slugListaPublica}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/lista/${usuario.slugListaPublica}`);
+                      toast.success("Link copiado!");
+                    }}
+                  >
+                    <Check className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      const text = encodeURIComponent(`Confira nossa lista de presentes: ${window.location.origin}/lista/${usuario.slugListaPublica}`);
+                      window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
+                    }}
+                  >
+                    WhatsApp
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      const link = `${window.location.origin}/lista/${usuario.slugListaPublica}`;
+                      if (navigator.share) {
+                        navigator.share({ title: "Lista de Presentes", url: link }).catch(() => {});
+                      } else {
+                        navigator.clipboard.writeText(link);
+                        toast.success("Link copiado!");
+                      }
+                    }}
+                  >
+                    Compartilhar
+                  </Button>
+                </div>
+                <Button variant="link" className="w-full mt-2" onClick={() => window.location.href = '/perfil'}>
+                  Alterar meu link (Perfil)
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="rounded-xl border bg-primary/5 p-4 text-center space-y-3">
+                  <Share2 className="h-8 w-8 text-primary mx-auto mb-2" />
+                  <h3 className="font-semibold">Lista Pública Desativada</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Para que seus convidados possam ver sua lista e escolher presentes, você precisa ativar a Lista Pública e escolher um link.
+                  </p>
+                  <Button className="w-full mt-2" onClick={() => window.location.href = '/perfil'}>
+                    Ativar no Meu Perfil
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!imagemAmpliada} onOpenChange={(open) => !open && setImagemAmpliada(null)}>
         <DialogContent className="max-w-4xl p-4">
           <DialogHeader>
