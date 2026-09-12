@@ -222,13 +222,13 @@ namespace CasalPlanner.Application.Services
                 if (!_cache.TryGetValue(cacheKey, out _))
                 {
                     string emailParceiro = currentPessoaId == 1 ? usuario.CasalInfo?.EmailPessoa2 ?? "" : usuario.CasalInfo?.EmailPessoa1 ?? "";
-                    string nomeParceiro = currentPessoaId == 1 ? usuario.CasalInfo?.NomeCompletoPessoa2 ?? "" : usuario.CasalInfo?.NomeCompletoPessoa1 ?? "";
+                    string nomeLogado = currentPessoaId == 1 ? usuario.CasalInfo?.NomeCompletoPessoa1 ?? "" : usuario.CasalInfo?.NomeCompletoPessoa2 ?? "";
                     
                     if (!string.IsNullOrEmpty(emailParceiro))
                     {
                         await _emailService.EnviarNotificacaoParceiroAsync(
                             emailParceiro,
-                            nomeParceiro,
+                            nomeLogado, // O nome de quem fez a ação
                             tituloPush,
                             mensagem,
                             item);

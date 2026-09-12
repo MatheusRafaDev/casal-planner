@@ -161,26 +161,26 @@ function ListaPublicaPage() {
                   )}
 
                   {!item.comprado && (
-                    <div className="flex gap-2">
-                      <Button
-                        className="flex-1 rounded-xl"
-                        onClick={() => setItemSelecionado(item)}
-                      >
-                        Presentear
-                      </Button>
+                    <div className="flex flex-col gap-2">
                       {item.linkProduto && (
                         <Button
-                          variant="outline"
-                          size="icon"
-                          className="rounded-xl shrink-0"
+                          variant="default"
+                          className="w-full rounded-xl"
                           asChild
-                          title="Ver na loja"
                         >
                           <a href={item.linkProduto} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4" />
+                            <ExternalLink className="h-4 w-4 mr-2" /> Comprar na Loja
                           </a>
                         </Button>
                       )}
+                      <Button
+                        variant={item.linkProduto ? "outline" : "default"}
+                        className="w-full rounded-xl"
+                        onClick={() => setItemSelecionado(item)}
+                      >
+                        <Gift className="h-4 w-4 mr-2" /> 
+                        {item.linkProduto ? "Já comprei / Prometer" : "Presentear"}
+                      </Button>
                     </div>
                   )}
                 </div>

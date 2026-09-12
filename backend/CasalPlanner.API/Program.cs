@@ -283,16 +283,16 @@ builder.Services.AddHttpClient("MercadoLivreClient", client =>
 builder.Services.AddHttpClient("GoogleShoppingClient", client =>
 {
     client.BaseAddress = new Uri("https://serpapi.com/");
-    client.Timeout = TimeSpan.FromSeconds(20);
+    client.Timeout = TimeSpan.FromSeconds(35);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 })
 .AddStandardResilienceHandler(options =>
 {
     options.Retry.MaxRetryAttempts = 2;
     options.Retry.Delay = TimeSpan.FromSeconds(1);
-    options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(18);
-    options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(40);
-    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(20);
+    options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(30);
+    options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(65);
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(35);
 });
 
 // ===== 7.2. PRICE SEARCH - Options e Providers =====

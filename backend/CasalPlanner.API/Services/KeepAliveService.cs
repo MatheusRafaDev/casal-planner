@@ -13,7 +13,7 @@ namespace CasalPlanner.API.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<KeepAliveService> _logger;
         private readonly string? _keepAliveUrl;
-        private readonly TimeSpan _interval = TimeSpan.FromMinutes(14); // Render dorme em 15 min de inatividade
+        private readonly TimeSpan _interval = TimeSpan.FromMinutes(1); // Render dorme em 15 min de inatividade
 
         public KeepAliveService(IHttpClientFactory httpClientFactory, ILogger<KeepAliveService> logger, IConfiguration configuration)
         {
@@ -37,11 +37,6 @@ namespace CasalPlanner.API.Services
             {
                 try
                 {
-                    // Espera 14 minutos antes do próximo ping
-                    await Task.Delay(_interval, stoppingToken);
-
-                    if (stoppingToken.IsCancellationRequested) break;
-
                     _logger.LogInformation($"Executando ping em {_keepAliveUrl} às {DateTime.UtcNow} UTC");
                     
                     var client = _httpClientFactory.CreateClient("KeepAlive");
@@ -66,6 +61,16 @@ namespace CasalPlanner.API.Services
                 catch (Exception ex)
                 {
                     _logger.LogError($"Erro ao executar ping: {ex.Message}");
+                }
+
+                try
+                {
+                    // Espera 10 minutos antes do próximo ping
+                    await Task.Delay(_interval, stoppingToken);
+                }
+                catch (TaskCanceledException)
+                {
+                    break;
                 }
             }
         }

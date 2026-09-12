@@ -64,7 +64,7 @@ namespace CasalPlanner.Infrastructure.Services
 
             var requestBody = new
             {
-                model = "llama-3.3-70b-versatile",
+                model = "llama3-70b-8192",
                 temperature = 0.05,
                 max_tokens = 120,
                 response_format = new { type = "json_object" },
@@ -217,7 +217,7 @@ Regras:
 
                 var requestBody = new
                 {
-                    model = "qwen/qwen3.6-27b",
+                    model = "llama3-8b-8192",
                     temperature = 0.3,
                     response_format = new { type = "json_object" },
                     messages = new[]
@@ -289,7 +289,7 @@ Responda APENAS em JSON válido, sem texto adicional, no formato:
 
                 var requestBody = new
                 {
-                    model = "qwen/qwen3.6-27b",
+                    model = "llama3-8b-8192",
                     temperature = 0.1,
                     max_tokens = 500,
                     messages = new[]
@@ -359,7 +359,7 @@ Responda APENAS em JSON válido. NUNCA utilize tags <think> ou demonstre seu rac
 
                 var requestBody = new
                 {
-                    model = "qwen/qwen3.6-27b",
+                    model = "llama3-8b-8192",
                     temperature = 0.3,
                     response_format = new { type = "json_object" },
                     messages = new[]
@@ -430,7 +430,7 @@ Responda APENAS em JSON válido:
 
                 var requestBody = new
                 {
-                    model = "qwen/qwen3.6-27b",
+                    model = "llama3-8b-8192",
                     temperature = 0.7,
                     messages = new[]
                     {
@@ -502,7 +502,7 @@ Lembre-se: máximo 4 frases, use o nome do casal, mencione valores reais em reai
 
                 var requestBody = new
                 {
-                    model = "qwen/qwen3.6-27b",
+                    model = "llama3-8b-8192",
                     temperature = 0.75,
                     max_tokens = 300,
                     messages = new[]
@@ -556,7 +556,7 @@ Lembre-se: máximo 4 frases, use o nome do casal, mencione valores reais em reai
 
                 var requestBody = new
                 {
-                    model = "qwen/qwen3.6-27b",
+                    model = "llama3-8b-8192",
                     temperature = 0.1,
                     max_tokens = 500,
                     messages = new[]
@@ -617,7 +617,7 @@ Se não souber o domínio oficial de um nome, omita-o do JSON. Exemplo:
 
         private static string CleanJsonResponse(string content)
         {
-            if (string.IsNullOrWhiteSpace(content)) return "";
+            if (string.IsNullOrWhiteSpace(content)) return "{}";
 
             // Tenta remover bloco <think> caso o modelo tenha retornado pensamento
             int thinkStart = content.IndexOf("<think>", StringComparison.OrdinalIgnoreCase);
@@ -639,9 +639,23 @@ Se não souber o domínio oficial de um nome, omita-o do JSON. Exemplo:
                 }
             }
 
+            // Extrair bloco markdown se existir
+            int markdownStart = content.IndexOf("```json", StringComparison.OrdinalIgnoreCase);
+            if (markdownStart < 0) markdownStart = content.IndexOf("```");
+            
+            if (markdownStart >= 0)
+            {
+                int contentStart = markdownStart + (content.Substring(markdownStart).StartsWith("```json", StringComparison.OrdinalIgnoreCase) ? 7 : 3);
+                int markdownEnd = content.IndexOf("```", contentStart);
+                if (markdownEnd > contentStart)
+                {
+                    content = content.Substring(contentStart, markdownEnd - contentStart);
+                }
+            }
+
             content = content.Trim();
 
-            // Extrai rigorosamente apenas o objeto ou array JSON para ignorar lixo antes/depois
+            // Extrai rigorosamente apenas o objeto ou array JSON
             int firstBrace = content.IndexOf('{');
             int lastBrace = content.LastIndexOf('}');
             int firstBracket = content.IndexOf('[');
@@ -663,16 +677,10 @@ Se não souber o domínio oficial de um nome, omita-o do JSON. Exemplo:
 
             if (start >= 0 && end > start)
             {
-                content = content.Substring(start, end - start + 1);
-            }
-            else
-            {
-                // Se não achou JSON válido e ainda tem texto inválido
-                if (content.StartsWith("<") || string.IsNullOrWhiteSpace(content))
-                    return "{}";
+                return content.Substring(start, end - start + 1).Trim();
             }
 
-            return content.Trim();
+            return "{}";
         }
     }
 

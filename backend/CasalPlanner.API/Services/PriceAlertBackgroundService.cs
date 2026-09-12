@@ -23,18 +23,25 @@ namespace CasalPlanner.API.Services
         {
             _logger.LogInformation("PriceAlertBackgroundService iniciado.");
 
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                try
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    await VerificarPrecosAsync(stoppingToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Erro no ciclo do PriceAlertBackgroundService.");
-                }
+                    try
+                    {
+                        await VerificarPrecosAsync(stoppingToken);
+                    }
+                    catch (Exception ex) when (!(ex is OperationCanceledException))
+                    {
+                        _logger.LogError(ex, "Erro no ciclo do PriceAlertBackgroundService.");
+                    }
 
-                await Task.Delay(_checkInterval, stoppingToken);
+                    await Task.Delay(_checkInterval, stoppingToken);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Background service is shutting down
             }
         }
 

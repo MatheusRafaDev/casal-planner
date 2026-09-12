@@ -369,14 +369,6 @@ public class UsuarioController : ControllerBase
 
             // Enviar email de aviso para a pessoa que alterou
             await _emailService.EnviarAvisoSenhaAlterada(usuarioCasal.CasalInfo.EmailPessoa1, usuarioCasal.CasalInfo.NomeCompletoPessoa1 ?? "Usuário");
-
-            // Enviar email de aviso para o parceiro
-            if (!string.IsNullOrEmpty(usuarioCasal.CasalInfo.EmailPessoa2))
-            {
-                await _emailService.EnviarAvisoSenhaAlterada(
-                    usuarioCasal.CasalInfo.EmailPessoa2,
-                    usuarioCasal.CasalInfo.NomeCompletoPessoa2 ?? "Usuário");
-            }
         }
         else if (usuarioCasal.CasalInfo.EmailPessoa2 == emailAutenticado)
         {
@@ -389,14 +381,6 @@ public class UsuarioController : ControllerBase
 
             // Enviar email de aviso para a pessoa que alterou
             await _emailService.EnviarAvisoSenhaAlterada(usuarioCasal.CasalInfo.EmailPessoa2, usuarioCasal.CasalInfo.NomeCompletoPessoa2 ?? "Usuário");
-
-            // Enviar email de aviso para o parceiro
-            if (!string.IsNullOrEmpty(usuarioCasal.CasalInfo.EmailPessoa1))
-            {
-                await _emailService.EnviarAvisoSenhaAlterada(
-                    usuarioCasal.CasalInfo.EmailPessoa1,
-                    usuarioCasal.CasalInfo.NomeCompletoPessoa1 ?? "Usuário");
-            }
         }
         else
         {
