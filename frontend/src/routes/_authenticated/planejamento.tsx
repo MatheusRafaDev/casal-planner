@@ -431,7 +431,7 @@ function PlanejamentoPage() {
     <div className="p-4 md:p-8 w-full max-w-[1600px] space-y-6">
       <header className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <h1 className="font-display text-3xl md:text-5xl font-bold tracking-tight leading-tight">
+          <h1 className="font-display text-2xl md:text-4xl font-semibold leading-tight">
             Planejamento
           </h1>
           <div className="flex items-center gap-2 shrink-0">
@@ -680,11 +680,11 @@ function PlanejamentoPage() {
                         })()}
                       </span>
                       <div>
-                        <div className="font-display text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2 capitalize">
+                        <div className="font-display text-xl sm:text-2xl font-semibold flex items-center gap-2 capitalize">
                           {catAtual ? catAtual.nome : "Todos os itens"}
                           {catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento && (
                             <span className="text-destructive" title="Orçamento estourado">
-                              <AlertTriangle className="h-6 w-6" />
+                              <AlertTriangle className="h-5 w-5" />
                             </span>
                           )}
                         </div>
@@ -696,10 +696,10 @@ function PlanejamentoPage() {
                   </div>
 
                   <div className="text-left sm:text-right">
-                    <div className="text-xs font-medium text-muted-foreground mb-1">Total gasto</div>
+                    <div className="text-xs text-muted-foreground">Total gasto</div>
                     <div
                       className={cn(
-                        "font-display text-3xl font-bold tracking-tight",
+                        "font-display text-xl sm:text-2xl font-semibold",
                         (catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento) ||
                           (!catAtual &&
                             usuario?.metaGlobalEnxoval &&
