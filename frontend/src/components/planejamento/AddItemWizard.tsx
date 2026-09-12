@@ -34,12 +34,10 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/lib/auth-context";
-import { PainelPesquisaPrecos } from "./PainelPesquisaPrecos";
 import type { Categoria, PesquisaPrecoResultado } from "@/services/types";
 import { itensService } from "@/services/itens";
 import { pesquisaPrecosService } from "@/services/pesquisa-precos";
 import { registroPrecoService } from "@/services/registro-preco";
-import { groqService } from "@/services/groq";
 import { brl } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { getSuggestions } from "@/lib/suggestions";
@@ -132,7 +130,7 @@ function toBase64(file: File): Promise<string> {
   });
 }
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2;
 
 export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicialId }: Props) {
   const qc = useQueryClient();
@@ -317,10 +315,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
 
       if (analise.preco && analise.preco > 0) {
         setPrecoNumerico(analise.preco);
-        setStep(3); // Pula direto para a confirmação
+        setStep(2); // Vai direto para a confirmação
       } else {
         setQueryBusca(nomeIdentificado);
-        setStep(2); // Vai para a pesquisa online
+        setStep(2); // Confirmação manual
       }
     } catch (err) {
       console.error("Erro na análise da foto:", err);
@@ -331,12 +329,6 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
       if (cameraInputRef.current) cameraInputRef.current.value = "";
     }
   };
-
-  const dupQuery = useQuery({
-    queryKey: ["duplicata", nome, categoriaId],
-    queryFn: () => groqService.detectarDuplicata(nome, categoriaId),
-    enabled: false,
-  });
 
   const criar = useMutation({
     mutationFn: async () => {
@@ -401,7 +393,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
       if (cat) setCategoriaId(cat.id);
       else if (!categoriaId) setCategoriaId(categorias[0]?.id);
 
-      setStep(3);
+      setStep(2);
     },
     onError: (e: Error) => {
       toast.error(e.message || "Erro ao extrair dados do link");
@@ -417,16 +409,6 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
       return;
     }
 
-    if (!categoriaId) return toast.error("Selecione um cômodo");
-    // checa duplicata (não bloqueia se falhar)
-    try {
-      const res = await dupQuery.refetch();
-      if (res.data?.duplicata) {
-        toast.warning(`Parece que já existe: ${res.data.itemSimilar ?? "item similar"}`);
-      }
-    } catch {
-      /* ignore */
-    }
     setQueryBusca(nome);
     setStep(2);
   };
@@ -467,9 +449,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
           <div className="flex items-center gap-4 pt-2">
             {stepper(1, "Item")}
             <div className="h-px flex-1 bg-border" />
-            {stepper(2, "Preço")}
-            <div className="h-px flex-1 bg-border" />
-            {stepper(3, "Confirmar")}
+            {stepper(2, "Confirmar")}
           </div>
         </DialogHeader>
 
@@ -603,69 +583,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
               </div>
             </div>
 
-            {dupQuery.data?.duplicata && (
-              <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 flex gap-2 text-sm">
-                <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                <div>
-                  Parece que você já tem <b>{dupQuery.data.itemSimilar}</b> neste cômodo. Confirme
-                  se é mesmo um novo item.
-                </div>
-              </div>
-            )}
           </div>
 
-          {step === 2 && (
-            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-              <div className="flex-1 overflow-hidden flex flex-col min-h-0 bg-background/50 rounded-xl border">
-                <div className="p-4 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                  <PainelPesquisaPrecos
-                    initialQuery={queryBusca}
-                    onEscolher={(r) => {
-                      setEscolhido(r);
-                      setPrecoNumerico(r.preco);
-                      setMarca(r.marca ?? "");
-                      setLoja(r.loja ?? "");
-                      setNome(r.titulo);
-                      setStep(3);
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="mt-4 shrink-0">
-                <div className="rounded-2xl border bg-card p-4 flex flex-col sm:flex-row items-center gap-4 justify-between shadow-soft">
-                  <div className="space-y-1 text-center sm:text-left w-full sm:w-auto">
-                    <Label className="text-base font-semibold">Preço manual</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Não encontrou online? Digite o valor.
-                    </p>
-                  </div>
-                  <div className="flex w-full sm:w-auto gap-2 items-center">
-                    <CurrencyInput
-                      className="w-full sm:w-32 text-center text-base font-display h-9 rounded-lg"
-                      value={precoNumerico}
-                      onValueChange={(v) => {
-                        setPrecoNumerico(v);
-                        setEscolhido(null);
-                      }}
-                      placeholder="R$ 0,00"
-                    />
-                    <Button
-                      type="button"
-                      className="h-9 px-4 rounded-lg bg-gradient-primary text-primary-foreground shadow-md hover:shadow-lg transition-all shrink-0 text-sm"
-                      onClick={() => {
-                        setEscolhido(null);
-                        setStep(3);
-                      }}
-                    >
-                      Avançar
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
-          {step === 3 && (
+          {step === 2 && (
             <div className="py-2 space-y-4 overflow-y-auto flex-1 min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               <div className="rounded-xl border p-4 bg-gradient-warm relative group/header">
                 <div className="relative">
@@ -1059,11 +980,6 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
             </Button>
           )}
           {step === 2 && (
-            <Button variant="secondary" onClick={() => setStep(3)}>
-              Pular <ArrowRight className="h-4 w-4 ml-1" />
-            </Button>
-          )}
-          {step === 3 && (
             <Button
               onClick={() => {
                 if (!categoriaId) {

@@ -11,16 +11,13 @@ namespace CasalPlanner.Infrastructure.Services;
 public class VisionAnalysisService : IVisionAnalysisService
 {
     private readonly GeminiVisionService _gemini;
-    private readonly GroqVisionService _groq;
     private readonly ILogger<VisionAnalysisService> _logger;
 
     public VisionAnalysisService(
         GeminiVisionService gemini,
-        GroqVisionService groq,
         ILogger<VisionAnalysisService> logger)
     {
         _gemini = gemini;
-        _groq = groq;
         _logger = logger;
     }
 
@@ -38,24 +35,9 @@ public class VisionAnalysisService : IVisionAnalysisService
         }
         catch (Exception geminiEx)
         {
-            _logger.LogWarning(geminiEx,
-                "[Vision Orchestrator] Gemini falhou. Acionando Groq como fallback. Motivo: {Message}",
-                geminiEx.Message);
-        }
-
-        // ── FALLBACK: Groq ────────────────────────────────────────────────────
-        try
-        {
-            return await _groq.AnalisarAsync(imagemBase64, cancellationToken);
-        }
-        catch (Exception groqEx)
-        {
-            _logger.LogError(groqEx,
-                "[Vision Orchestrator] Groq (fallback) também falhou. Ambos os provedores estão indisponíveis.");
-            throw new InvalidOperationException(
-                "A análise de foto falhou em ambos os provedores (Gemini e Groq). " +
-                "Verifique se as chaves da API estão corretas e se os serviços não estão fora do ar.",
-                groqEx);
+            _logger.LogError(geminiEx,
+                "[Vision Orchestrator] Gemini falhou.");
+            throw;
         }
     }
 }

@@ -43,7 +43,6 @@ import { useAuth } from "@/lib/auth-context";
 import { itensService, type ItemInputDTO } from "@/services/itens";
 import type { Categoria, Item } from "@/services/types";
 import { brl } from "@/lib/formatters";
-import { groqService } from "@/services/groq";
 import { useQuery } from "@tanstack/react-query";
 
 interface Props {
@@ -126,11 +125,7 @@ export function ItemFormModal({
     return () => clearTimeout(t);
   }, [form.nome]);
 
-  const dupQuery = useQuery({
-    queryKey: ["duplicata", debouncedNome, form.categoriaId],
-    queryFn: () => groqService.detectarDuplicata(debouncedNome, form.categoriaId),
-    enabled: !isEdit && debouncedNome.trim().length >= 3 && !!form.categoriaId,
-  });
+
 
   const mutation = useMutation({
     mutationFn: async (vars: { id?: string; dto: ItemInputDTO }) => {
@@ -300,14 +295,6 @@ export function ItemFormModal({
                 Nome
               </Label>
               <Input value={form.nome} onChange={(e) => set("nome", e.target.value)} autoFocus />
-              {!isEdit && dupQuery.data?.duplicata && (
-                <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 flex gap-2 text-sm mt-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                  <div className="text-amber-800 dark:text-amber-200">
-                    Já existe um item similar neste cômodo: <b>{dupQuery.data.itemSimilar}</b>
-                  </div>
-                </div>
-              )}
             </div>
             <div className="space-y-2">
               <Label className="flex items-center gap-1.5">

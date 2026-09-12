@@ -124,17 +124,12 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
     // que é preenchido corretamente pelo UseForwardedHeaders
     options.ClientIdHeader = "X-ClientId";
     var authLimit = builder.Environment.IsDevelopment() ? 100 : 10;
-    // Limite agressivo para pesquisa de preços: chama Groq + SerpAPI (APIs pagas com quota)
-    var pesquisaLimit = builder.Environment.IsDevelopment() ? 50 : 10;
     options.GeneralRules = new List<RateLimitRule>
     {
         new() { Endpoint = "*",                          Period = "1m",  Limit = 100 },
         new() { Endpoint = "POST:/api/auth/*",           Period = "10m", Limit = authLimit },
         new() { Endpoint = "POST:/api/recuperarsenha/*", Period = "10m", Limit = authLimit },
-        // Pesquisa de preços: limite por IP (10 req/hora em prod) — protege Groq + SerpAPI
-        new() { Endpoint = "GET:/api/pesquisaprecos",    Period = "1h",  Limit = pesquisaLimit },
-        new() { Endpoint = "POST:/api/pesquisaprecos/analisar-foto", Period = "1h", Limit = pesquisaLimit },
-        new() { Endpoint = "POST:/api/registropreco/analisar", Period = "1h", Limit = pesquisaLimit },
+        new() { Endpoint = "POST:/api/registropreco/analisar", Period = "1h", Limit = 50 },
     };
 });
 builder.Services.AddInMemoryRateLimiting();
@@ -222,28 +217,14 @@ builder.Services.AddCors(options =>
 
 // ===== 7. SERVICES =====
 builder.Services.AddHttpClient();
-builder.Services.AddHttpClient("groq", client =>
-{
-    client.BaseAddress = new Uri("https://api.groq.com/");
-    client.Timeout = TimeSpan.FromSeconds(10);
-    client.DefaultRequestHeaders.Add("Accept", "application/json");
-});
-// Visão: Gemini (primário) + Groq (fallback)
+// Visão: Gemini (primário)
 builder.Services.AddHttpClient<GeminiVisionService>(client =>
 {
     client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
     client.Timeout = TimeSpan.FromSeconds(60);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
-builder.Services.AddHttpClient<GroqVisionService>(client =>
-{
-    client.BaseAddress = new Uri("https://api.groq.com/");
-    client.Timeout = TimeSpan.FromSeconds(30);
-    client.DefaultRequestHeaders.Add("Accept", "application/json");
-});
-// NOTE: GeminiVisionService and GroqVisionService are already registered as typed
-// HttpClients by AddHttpClient<T> above — do NOT add AddScoped<T> here, as that
-// would create a second registration backed by a plain HttpClient with no BaseAddress.
+// NOTE: GeminiVisionService is already registered as typed
 builder.Services.AddScoped<IVisionAnalysisService, VisionAnalysisService>();
 builder.Services.AddHttpClient<GeocodingService>(client =>
 {
@@ -295,26 +276,7 @@ builder.Services.AddHttpClient("GoogleShoppingClient", client =>
     options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(35);
 });
 
-// ===== 7.2. PRICE SEARCH - Options e Providers =====
-builder.Services.Configure<PriceSearchOptions>(builder.Configuration.GetSection("PriceSearch"));
-
-// Registra todos os providers (condicional baseado nas options e chaves disponíveis)
-var priceSearchConfig = builder.Configuration.GetSection("PriceSearch").Get<PriceSearchOptions>() ?? new PriceSearchOptions();
-
-if (priceSearchConfig.EnableMercadoLivre)
-    builder.Services.AddScoped<IPriceProvider, MercadoLivreProvider>();
-
-if (priceSearchConfig.EnableGoogleShopping)
-    builder.Services.AddScoped<IPriceProvider, GoogleShoppingProvider>();
-
-if (priceSearchConfig.EnableAmazon)
-    builder.Services.AddScoped<IPriceProvider, AmazonProvider>();
-
-builder.Services.AddScoped<IPesquisaPrecosService, PesquisaPrecosService>();
-
 // ===== 7.3. DEMAIS SERVICES =====
-builder.Services.AddSingleton<IGroqService, GroqService>();
-builder.Services.AddSingleton<GroqService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IItemRepository, ItemRepository>();
@@ -328,8 +290,6 @@ builder.Services.AddSingleton<CloudinaryService>();
 
 // Serviço de KeepAlive para evitar que a API durma no Render
 builder.Services.AddHostedService<KeepAliveService>();
-// Serviço de Background para Alertas de Preço
-builder.Services.AddHostedService<CasalPlanner.API.Services.PriceAlertBackgroundService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

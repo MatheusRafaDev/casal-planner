@@ -45,7 +45,7 @@
   --radius-sm: calc(var(--radius) - 4px);
 
   --font-sans: "Inter", sans-serif;
-  --font-display: "Fraunces", serif;
+  --font-display: "Inter", sans-serif;
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -53,138 +53,132 @@
 @custom-variant xs (@media (width >= 360px));
 
 /*
- * Casal Planner — Design System
- * Paleta: creme, sálvia, terracota, mel. Tudo em oklch.
- * Fonts: Fraunces (display) + Inter (body), carregadas via <link> em __root.
+ * Casal Planner — Design System (Estrutura Airbnb + Cores Originais)
  */
 
 :root {
-  --radius: 0.875rem;
+  --radius: 0.75rem; /* Airbnb usa algo entre 12px e 16px */
 
-  /* Casal Planner — paleta roxa moderna e acolhedora */
-  --background: oklch(0.982 0.012 85);
-  --foreground: oklch(0.27 0.035 145);
+  /* Airbnb Style - Clean Light Mode */
+  --background: oklch(1 0 0); /* Pure white */
+  --foreground: oklch(0.2 0 0); /* Dark gray/black */
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.27 0.035 145);
+  --card-foreground: oklch(0.2 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.04 300);
+  --popover-foreground: oklch(0.2 0 0);
 
-  --primary: oklch(0.47 0.1 150);
-  --primary-foreground: oklch(0.99 0.01 85);
-  --primary-glow: oklch(0.64 0.12 150);
+  /* Primary color maintained (Coral/Terracota if it was, keeping original variable value) */
+  --primary: oklch(0.65 0.16 20); 
+  --primary-foreground: oklch(1 0 0);
+  --primary-glow: oklch(0.70 0.16 20);
 
-  --secondary: oklch(0.95 0.02 300);
-  --secondary-foreground: oklch(0.3 0.05 300);
+  --secondary: oklch(0.96 0 0); /* Soft gray */
+  --secondary-foreground: oklch(0.2 0 0);
 
-  --muted: oklch(0.96 0.012 300);
-  --muted-foreground: oklch(0.5 0.03 300);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.45 0 0);
 
-  --accent: oklch(0.92 0.045 75);
-  --accent-foreground: oklch(0.31 0.06 70);
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.2 0 0);
 
   --terracota: oklch(0.65 0.16 20);
-  --terracota-foreground: oklch(0.985 0.006 300);
+  --terracota-foreground: oklch(1 0 0);
 
-  --mel: oklch(0.78 0.14 75);
-  --mel-foreground: oklch(0.25 0.04 60);
+  --mel: oklch(0.85 0.14 75);
+  --mel-foreground: oklch(0.2 0 0);
 
   --destructive: oklch(0.58 0.22 27);
-  --destructive-foreground: oklch(0.985 0.006 300);
+  --destructive-foreground: oklch(1 0 0);
 
-  --border: oklch(0.9 0.02 300);
-  --input: oklch(0.9 0.02 300);
-  --ring: oklch(0.47 0.1 150);
+  --border: oklch(0.9 0 0);
+  --input: oklch(0.7 0 0);
+  --ring: var(--primary);
 
-  --chart-1: oklch(0.47 0.1 150);
-  --chart-2: oklch(0.65 0.16 20);
-  --chart-3: oklch(0.65 0.16 20);
-  --chart-4: oklch(0.6 0.14 260);
-  --chart-5: oklch(0.78 0.14 75);
+  --chart-1: var(--primary);
+  --chart-2: var(--terracota);
+  --chart-3: oklch(0.6 0.14 260);
+  --chart-4: var(--mel);
+  --chart-5: oklch(0.7 0.1 180);
 
-  --sidebar: oklch(0.97 0.015 300);
-  --sidebar-foreground: oklch(0.3 0.05 300);
-  --sidebar-primary: oklch(0.47 0.1 150);
-  --sidebar-primary-foreground: oklch(0.99 0.01 85);
-  --sidebar-accent: oklch(0.93 0.03 305);
-  --sidebar-accent-foreground: oklch(0.32 0.08 300);
-  --sidebar-border: oklch(0.9 0.02 300);
-  --sidebar-ring: oklch(0.47 0.1 150);
+  --sidebar: oklch(0.98 0 0);
+  --sidebar-foreground: oklch(0.2 0 0);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.94 0 0);
+  --sidebar-accent-foreground: oklch(0.2 0 0);
+  --sidebar-border: oklch(0.9 0 0);
+  --sidebar-ring: var(--primary);
 
-  --gradient-hero: linear-gradient(
-    135deg,
-    oklch(0.94 0.05 300) 0%,
-    oklch(0.88 0.09 295) 55%,
-    oklch(0.78 0.14 285) 100%
-  );
+  /* Airbnb gradients are usually non-existent or very subtle */
+  --gradient-hero: linear-gradient(135deg, oklch(0.98 0 0) 0%, oklch(0.96 0 0) 100%);
   --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--primary-glow) 100%);
-  --gradient-warm: linear-gradient(160deg, oklch(0.97 0.02 300) 0%, oklch(0.93 0.05 305) 100%);
-  --shadow-warm: 0 20px 40px -20px oklch(0.4 0.15 300 / 0.28);
-  --shadow-elegant: 0 10px 30px -12px oklch(0.3 0.1 300 / 0.22);
-  --shadow-soft: 0 4px 14px -6px oklch(0.3 0.08 300 / 0.18);
+  --gradient-warm: linear-gradient(160deg, oklch(0.99 0 0) 0%, oklch(0.97 0 0) 100%);
+  
+  /* Sombras Airbnb: mais focadas no eixo Y e blur macio, pouca opacidade */
+  --shadow-warm: 0 12px 24px -6px rgba(0,0,0,0.08);
+  --shadow-elegant: 0 8px 16px -4px rgba(0,0,0,0.06);
+  --shadow-soft: 0 4px 6px -2px rgba(0,0,0,0.04);
 }
 
 .dark {
-  --background: oklch(0.24 0.02 300);
-  --foreground: oklch(0.95 0.015 300);
+  /* Airbnb Style - Clean Dark Mode */
+  --background: oklch(0.15 0 0); /* Very dark gray, not pure black */
+  --foreground: oklch(0.98 0 0);
 
-  --card: oklch(0.28 0.02 300);
-  --card-foreground: oklch(0.95 0.015 300);
-  --popover: oklch(0.28 0.02 300);
-  --popover-foreground: oklch(0.95 0.015 300);
+  --card: oklch(0.20 0 0);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.20 0 0);
+  --popover-foreground: oklch(0.98 0 0);
 
-  --primary: oklch(0.72 0.18 300);
-  --primary-foreground: oklch(0.18 0.03 300);
-  --primary-glow: oklch(0.82 0.14 305);
+  --primary: oklch(0.65 0.16 20);
+  --primary-foreground: oklch(1 0 0);
+  --primary-glow: oklch(0.70 0.16 20);
 
-  --secondary: oklch(0.33 0.025 300);
-  --secondary-foreground: oklch(0.95 0.015 300);
+  --secondary: oklch(0.25 0 0);
+  --secondary-foreground: oklch(0.98 0 0);
 
-  --muted: oklch(0.32 0.022 300);
-  --muted-foreground: oklch(0.72 0.03 300);
+  --muted: oklch(0.22 0 0);
+  --muted-foreground: oklch(0.65 0 0);
 
-  --accent: oklch(0.36 0.05 305);
-  --accent-foreground: oklch(0.94 0.03 300);
+  --accent: oklch(0.25 0 0);
+  --accent-foreground: oklch(0.98 0 0);
 
   --terracota: oklch(0.72 0.16 25);
-  --terracota-foreground: oklch(0.18 0.03 300);
+  --terracota-foreground: oklch(1 0 0);
 
   --mel: oklch(0.8 0.14 75);
-  --mel-foreground: oklch(0.2 0.03 60);
+  --mel-foreground: oklch(0.2 0 0);
 
   --destructive: oklch(0.65 0.2 27);
-  --destructive-foreground: oklch(0.98 0.01 300);
+  --destructive-foreground: oklch(1 0 0);
 
-  --border: oklch(1 0 0 / 0.11);
-  --input: oklch(1 0 0 / 0.15);
-  --ring: oklch(0.72 0.18 300);
+  --border: oklch(0.25 0 0);
+  --input: oklch(0.35 0 0);
+  --ring: var(--primary);
 
-  --chart-1: oklch(0.72 0.18 300);
-  --chart-2: oklch(0.82 0.14 305);
-  --chart-3: oklch(0.72 0.16 25);
-  --chart-4: oklch(0.7 0.14 260);
-  --chart-5: oklch(0.8 0.14 75);
+  --chart-1: var(--primary);
+  --chart-2: var(--terracota);
+  --chart-3: oklch(0.7 0.14 260);
+  --chart-4: var(--mel);
+  --chart-5: oklch(0.8 0.1 180);
 
-  --sidebar: oklch(0.26 0.02 300);
-  --sidebar-foreground: oklch(0.92 0.015 300);
-  --sidebar-primary: oklch(0.72 0.18 300);
-  --sidebar-primary-foreground: oklch(0.18 0.03 300);
-  --sidebar-accent: oklch(0.28 0.05 305);
-  --sidebar-accent-foreground: oklch(0.94 0.03 300);
-  --sidebar-border: oklch(1 0 0 / 0.09);
-  --sidebar-ring: oklch(0.72 0.18 300);
+  --sidebar: oklch(0.18 0 0);
+  --sidebar-foreground: oklch(0.98 0 0);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.25 0 0);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.25 0 0);
+  --sidebar-ring: var(--primary);
 
-  --gradient-hero: linear-gradient(
-    135deg,
-    oklch(0.3 0.05 300) 0%,
-    oklch(0.28 0.09 295) 55%,
-    oklch(0.33 0.12 285) 100%
-  );
+  --gradient-hero: linear-gradient(135deg, oklch(0.18 0 0) 0%, oklch(0.15 0 0) 100%);
   --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--primary-glow) 100%);
-  --gradient-warm: linear-gradient(160deg, oklch(0.29 0.03 300) 0%, oklch(0.33 0.06 305) 100%);
-  --shadow-warm: 0 20px 40px -20px oklch(0 0 0 / 0.55);
-  --shadow-elegant: 0 10px 30px -12px oklch(0 0 0 / 0.45);
-  --shadow-soft: 0 4px 14px -6px oklch(0 0 0 / 0.35);
+  --gradient-warm: linear-gradient(160deg, oklch(0.20 0 0) 0%, oklch(0.18 0 0) 100%);
+  
+  --shadow-warm: 0 12px 24px -6px rgba(0,0,0,0.4);
+  --shadow-elegant: 0 8px 16px -4px rgba(0,0,0,0.3);
+  --shadow-soft: 0 4px 6px -2px rgba(0,0,0,0.2);
 }
 
 @layer base {
@@ -257,19 +251,4 @@
     black 95%,
     transparent 100%
   );
-}
-@utility bg-glass {
-  background: oklch(1 0 0 / 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid oklch(0 0 0 / 0.05);
-}
-@utility bg-glass-dark {
-  background: oklch(0 0 0 / 0.35);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid oklch(1 0 0 / 0.1);
-}
-@utility shadow-glass {
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
 }

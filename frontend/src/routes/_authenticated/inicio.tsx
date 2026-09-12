@@ -25,7 +25,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { resumoService } from "@/services/resumo";
-import { groqService } from "@/services/groq";
 import { brl } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -75,17 +74,14 @@ function InicioPage() {
     retry: false,
   });
 
-  const iaMutation = useMutation({
-    mutationFn: () => groqService.resumoEnxoval(),
-  });
-
   const faturasMensais = useMemo(() => {
     if (!itens || itens.length === 0) return [];
 
     const mesesMap = new Map<string, number>();
     // Inclui itens comprados E itens com data prevista de compra (para projeção futura)
+    // Ignora itens que já foram comprados e não estão parcelados (pagamento à vista já liquidado)
     const itensRelevantes = itens.filter(
-      (i) => i.origem !== "ganho" && i.pagamento !== "vr" && (i.comprado || i.dataCompra),
+      (i) => i.origem !== "ganho" && i.pagamento !== "vr" && (i.comprado || i.dataCompra) && !(i.comprado && (i.parcelas ?? 1) <= 1),
     );
 
     itensRelevantes.forEach((item) => {
@@ -369,8 +365,8 @@ function InicioPage() {
     >
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="font-display text-3xl md:text-4xl font-semibold">Início</h1>
-          <p className="text-muted-foreground">Seu enxoval em números.</p>
+          <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight">Início</h1>
+          <p className="text-muted-foreground mt-1 text-base">Seu enxoval em números.</p>
         </div>
         <div className="flex flex-wrap gap-2 shrink-0">
           <Button
@@ -393,12 +389,12 @@ function InicioPage() {
       <motion.div variants={itemVariants}>
         {meta > 0 ? (
           <div className="rounded-2xl border bg-card p-5 shadow-soft">
-            <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="flex items-center justify-between gap-3 mb-4">
               <div className="min-w-0 flex-1">
-                <div className="text-sm text-muted-foreground">Progresso do enxoval</div>
-                <div className="font-display text-xl font-semibold truncate">
+                <div className="text-sm font-medium text-muted-foreground mb-1">Progresso do enxoval</div>
+                <div className="font-display text-3xl font-bold tracking-tight truncate">
                   {brl(r?.totalGeral)}{" "}
-                  <span className="text-muted-foreground text-base">de {brl(meta)}</span>
+                  <span className="text-muted-foreground font-medium text-lg tracking-normal">de {brl(meta)}</span>
                 </div>
                 {meta - (r?.totalGeral ?? 0) > 0 && (
                   <div className="text-xs text-muted-foreground mt-1">
@@ -480,7 +476,7 @@ function InicioPage() {
             {/* Divisão de Gastos (Casal) */}
             {isCasal && r && (r.totalPessoa1 > 0 || r.totalPessoa2 > 0) && (
               <div className="rounded-2xl border bg-card p-5 shadow-soft">
-                <h3 className="font-display text-lg font-semibold mb-3">Divisão de Gastos</h3>
+                <h3 className="font-display text-xl font-bold tracking-tight mb-4">Divisão de Gastos</h3>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
                   <div className="flex-1 w-full">
                     <div className="flex justify-between text-sm mb-1">
@@ -520,15 +516,15 @@ function InicioPage() {
 
                   <div className="flex gap-6 shrink-0">
                     <div>
-                      <div className="text-xs text-muted-foreground">{p1}</div>
-                      <div className="text-xl font-display font-semibold text-primary">
+                      <div className="text-xs text-muted-foreground font-medium mb-1">{p1}</div>
+                      <div className="text-2xl md:text-3xl font-display font-bold text-primary tracking-tight">
                         {brl(r.totalPessoa1)}
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground">{p2}</div>
+                      <div className="text-xs text-muted-foreground font-medium mb-1">{p2}</div>
                       <div
-                        className="text-xl font-display font-semibold"
+                        className="text-2xl md:text-3xl font-display font-bold tracking-tight"
                         style={{ color: "var(--terracota, #ec4899)" }}
                       >
                         {brl(r.totalPessoa2)}
@@ -543,7 +539,7 @@ function InicioPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Pie Chart — Gasto por cômodo */}
               <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
-                <h3 className="font-display text-lg font-semibold mb-1">Gasto por cômodo</h3>
+                <h3 className="font-display text-xl font-bold tracking-tight mb-2">Gasto por cômodo</h3>
                 <p className="text-xs text-muted-foreground mb-4">
                   Distribuição de valores por cômodo
                 </p>
@@ -575,7 +571,7 @@ function InicioPage() {
               </div>
               {/* Bar — Gasto por categoria */}
               <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
-                <h3 className="font-display text-lg font-semibold mb-1">Gasto por categoria</h3>
+                <h3 className="font-display text-xl font-bold tracking-tight mb-2">Gasto por categoria</h3>
                 <p className="text-xs text-muted-foreground mb-4">
                   Distribuição de valores por cômodo
                 </p>
@@ -632,7 +628,7 @@ function InicioPage() {
         {temMensais && (
           <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
             <div className="flex items-center gap-3 mb-1 flex-wrap">
-              <h3 className="font-display text-lg font-semibold">Comparativo mensal</h3>
+              <h3 className="font-display text-xl font-bold tracking-tight">Comparativo mensal</h3>
               {variacaoAtual !== null && (
                 <span
                   className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
@@ -684,7 +680,7 @@ function InicioPage() {
         {/* Faturas Mensais — sempre visível */}
         <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
           <div className="flex items-center gap-3 mb-1 flex-wrap">
-            <h3 className="font-display text-lg font-semibold">Projeção de Faturas</h3>
+            <h3 className="font-display text-xl font-bold tracking-tight">Projeção de Faturas</h3>
           </div>
           <p className="text-xs text-muted-foreground mb-4">
             Previsão de parcelamentos por mês — inclui itens comprados e com data prevista
@@ -739,7 +735,7 @@ function InicioPage() {
         {/* Progresso por cômodo */}
         {r?.porCategoria && r.porCategoria.length > 0 && (
           <div className="rounded-2xl border bg-card p-5 shadow-soft">
-            <h3 className="font-display text-lg font-semibold mb-1">Progresso por cômodo</h3>
+            <h3 className="font-display text-xl font-bold tracking-tight mb-2">Progresso por cômodo</h3>
             <p className="text-xs text-muted-foreground mb-4">
               Quanto já foi gasto em relação à meta de cada cômodo
             </p>
@@ -807,12 +803,12 @@ function ResumoCard({
       transition={{ duration: 0.35, delay }}
       className="rounded-2xl border bg-card p-4 shadow-soft"
     >
-      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-        <Icon className="h-4 w-4 text-primary" />
+      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-3">
+        <Icon className="h-5 w-5 text-primary" />
         {label}
       </div>
-      <div className="font-display text-xl md:text-2xl font-semibold truncate">{valor}</div>
-      {hint && <div className="text-xs text-muted-foreground mt-1 truncate">{hint}</div>}
+      <div className="font-display text-2xl md:text-3xl font-bold tracking-tight truncate">{valor}</div>
+      {hint && <div className="text-sm text-muted-foreground mt-2 truncate">{hint}</div>}
     </motion.div>
   );
 }
