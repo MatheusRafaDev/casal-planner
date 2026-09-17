@@ -969,32 +969,49 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 )}
                 {isCasal && origem !== "ganho" && (
                   <div className="space-y-4 sm:col-span-3 border rounded-xl p-4 bg-card mt-2">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label className="text-base">Dividir pagamento entre o casal?</Label>
-                        <p className="text-xs text-muted-foreground">
-                          Especifique quanto cada um vai pagar.
-                        </p>
-                      </div>
-                      <Switch
-                        checked={dividir}
-                        onCheckedChange={(checked) => {
-                          setDividir(checked);
-                          if (checked) {
+                    <div className="space-y-2">
+                      <Label className="text-base">Como o pagamento será feito?</Label>
+                      <Select
+                        value={
+                          dividir ? "dividir" :
+                          responsavelId === 1 ? "1" :
+                          responsavelId === 2 ? "2" :
+                          "conjunto"
+                        }
+                        onValueChange={(v) => {
+                          if (v === "dividir") {
+                            setDividir(true);
+                            setResponsavelId(null);
                             const total = (escolhido?.preco ?? precoNumerico) * quantidade;
                             setDivisaoPagamento({
                               valorPessoa1: total / 2,
                               valorPessoa2: total / 2,
                             });
+                          } else if (v === "conjunto") {
+                            setDividir(false);
+                            setResponsavelId(null);
+                            setDivisaoPagamento(null);
                           } else {
+                            setDividir(false);
+                            setResponsavelId(Number(v) as 1 | 2);
                             setDivisaoPagamento(null);
                           }
                         }}
-                      />
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="conjunto">Gasto Conjunto (Conta dos dois)</SelectItem>
+                          <SelectItem value="1">{p1} vai pagar 100%</SelectItem>
+                          <SelectItem value="2">{p2} vai pagar 100%</SelectItem>
+                          <SelectItem value="dividir">Dividir valores específicos</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     {dividir && divisaoPagamento && (
-                      <div className="pt-2">
+                      <div className="pt-2 border-t mt-3">
                         <div className="grid gap-4 sm:grid-cols-2">
                           <div className="space-y-2">
                             <Label>{p1}</Label>
@@ -1063,28 +1080,6 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                             </Button>
                           </div>
                         </div>
-                      </div>
-                    )}
-
-                    {!dividir && (
-                      <div className="space-y-2 pt-2 border-t mt-4">
-                        <Label>Ou defina um Responsável (quem compra tudo)</Label>
-                        <Select
-                          value={responsavelId ? String(responsavelId) : "none"}
-                          onValueChange={(v) => {
-                            if (v === "none") setResponsavelId(null);
-                            else setResponsavelId(Number(v) as 1 | 2);
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Sem responsável (juntos)</SelectItem>
-                            <SelectItem value="1">{p1}</SelectItem>
-                            <SelectItem value="2">{p2}</SelectItem>
-                          </SelectContent>
-                        </Select>
                       </div>
                     )}
                   </div>
