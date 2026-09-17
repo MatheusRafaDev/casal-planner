@@ -474,78 +474,64 @@ function InicioPage() {
             </div>
 
             {/* Divisão de Gastos (Casal) */}
-            {isCasal && r && (r.totalPessoa1 > 0 || r.totalPessoa2 > 0 || (r.totalGeral - (r.totalPessoa1 + r.totalPessoa2)) > 0) && (
+            {isCasal && r && (r.totalPessoa1 > 0 || r.totalPessoa2 > 0) && (
               <div className="rounded-2xl border bg-card p-5 shadow-soft">
                 <h3 className="font-display text-lg font-semibold mb-3">Divisão de Gastos</h3>
-                {(() => {
-                  const conj = Math.max(0, r.totalGeral - (r.totalPessoa1 + r.totalPessoa2));
-                  const base = r.totalGeral || 1;
-                  const pct1 = (r.totalPessoa1 / base) * 100;
-                  const pct2 = (r.totalPessoa2 / base) * 100;
-                  const pctC = (conj / base) * 100;
-
-                  return (
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                      <div className="flex-1 w-full">
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="font-medium text-primary">{p1}</span>
-                          {conj > 0 && <span className="font-medium text-muted-foreground">Conjunto</span>}
-                          <span className="font-medium" style={{ color: "var(--terracota, #ec4899)" }}>{p2}</span>
-                        </div>
-                        <div className="flex h-3 w-full rounded-full overflow-hidden bg-muted">
-                          <div
-                            className="h-full bg-primary transition-all"
-                            style={{ width: `${pct1}%` }}
-                          />
-                          {conj > 0 && (
-                            <div
-                              className="h-full bg-slate-400 transition-all"
-                              style={{ width: `${pctC}%` }}
-                            />
-                          )}
-                          <div
-                            className="h-full transition-all"
-                            style={{
-                              width: `${pct2}%`,
-                              backgroundColor: "var(--terracota, #ec4899)",
-                            }}
-                          />
-                        </div>
-                        <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                          <span>{pct1.toFixed(0)}%</span>
-                          {conj > 0 && <span>{pctC.toFixed(0)}%</span>}
-                          <span>{pct2.toFixed(0)}%</span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-4 sm:gap-6 shrink-0">
-                        <div>
-                          <div className="text-xs text-muted-foreground">{p1}</div>
-                          <div className="text-lg sm:text-xl font-display font-semibold text-primary">
-                            {brl(r.totalPessoa1)}
-                          </div>
-                        </div>
-                        {conj > 0 && (
-                          <div>
-                            <div className="text-xs text-muted-foreground">Conjunto</div>
-                            <div className="text-lg sm:text-xl font-display font-semibold text-slate-500">
-                              {brl(conj)}
-                            </div>
-                          </div>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                  <div className="flex-1 w-full">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="font-medium">{p1}</span>
+                      <span className="font-medium">{p2}</span>
+                    </div>
+                    <div className="flex h-3 w-full rounded-full overflow-hidden bg-muted">
+                      <div
+                        className="h-full bg-primary transition-all"
+                        style={{
+                          width: `${(r.totalPessoa1 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100}%`,
+                        }}
+                      />
+                      <div
+                        className="h-full bg-terracota transition-all"
+                        style={{
+                          width: `${(r.totalPessoa2 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100}%`,
+                          backgroundColor: "var(--terracota, #ec4899)",
+                        }}
+                      />
+                    </div>
+                    <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                      <span>
+                        {((r.totalPessoa1 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100).toFixed(
+                          0,
                         )}
-                        <div>
-                          <div className="text-xs text-muted-foreground font-medium mb-1">{p2}</div>
-                          <div
-                            className="text-lg sm:text-xl font-display font-semibold"
-                            style={{ color: "var(--terracota, #ec4899)" }}
-                          >
-                            {brl(r.totalPessoa2)}
-                          </div>
-                        </div>
+                        %
+                      </span>
+                      <span>
+                        {((r.totalPessoa2 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100).toFixed(
+                          0,
+                        )}
+                        %
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-6 shrink-0">
+                    <div>
+                      <div className="text-xs text-muted-foreground">{p1}</div>
+                      <div className="text-xl font-display font-semibold text-primary">
+                        {brl(r.totalPessoa1)}
                       </div>
                     </div>
-                  );
-                })()}
+                    <div>
+                      <div className="text-xs text-muted-foreground font-medium mb-1">{p2}</div>
+                      <div
+                        className="text-xl font-display font-semibold"
+                        style={{ color: "var(--terracota, #ec4899)" }}
+                      >
+                        {brl(r.totalPessoa2)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
