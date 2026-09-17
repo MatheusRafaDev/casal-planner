@@ -613,16 +613,16 @@ function PlanejamentoPage() {
                           <span className="text-xs font-medium truncate pr-2 text-muted-foreground">{p1}</span>
                           <span className="font-display font-semibold text-sm">{brl(totalP1)}</span>
                         </div>
+                        <div className="flex justify-between items-center bg-accent/40 rounded-lg px-2.5 py-1.5">
+                          <span className="text-xs font-medium truncate pr-2 text-muted-foreground">{p2}</span>
+                          <span className="font-display font-semibold text-sm">{brl(totalP2)}</span>
+                        </div>
                         {totalConjunto > 0 && (
                           <div className="flex justify-between items-center bg-accent/40 rounded-lg px-2.5 py-1.5">
                             <span className="text-xs font-medium truncate pr-2 text-muted-foreground">Conjunto</span>
                             <span className="font-display font-semibold text-sm">{brl(totalConjunto)}</span>
                           </div>
                         )}
-                        <div className="flex justify-between items-center bg-accent/40 rounded-lg px-2.5 py-1.5">
-                          <span className="text-xs font-medium truncate pr-2 text-muted-foreground">{p2}</span>
-                          <span className="font-display font-semibold text-sm">{brl(totalP2)}</span>
-                        </div>
                       </>
                     ) : (
                       <div className="flex justify-between items-center bg-accent/40 rounded-lg px-2.5 py-1.5">
