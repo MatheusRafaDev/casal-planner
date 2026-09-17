@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using CasalPlanner.Application.DTOs;
 using CasalPlanner.Application.Interfaces;
-using CasalPlanner.Infrastructure.Configurations;
 using CasalPlanner.Infrastructure.Helpers;
 
 namespace CasalPlanner.Infrastructure.Services;
