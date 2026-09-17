@@ -381,12 +381,14 @@ namespace CasalPlanner.Infrastructure.Services
             return result.ModifiedCount > 0;
         }
 
-        public async Task<Usuario?> ObterUsuarioPorCodigo(string codigo)
+        public async Task<Usuario?> ObterUsuarioPorCodigo(string email, string codigo)
         {
-            if (string.IsNullOrEmpty(codigo)) return null;
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(codigo)) return null;
             
+            var emailNormalizado = email.ToLower().Trim();
             return await _context.Usuarios
-                .Find(u => u.ResetCode == codigo && 
+                .Find(u => u.Email == emailNormalizado &&
+                          u.ResetCode == codigo && 
                           u.ResetCodeExpiresAt > DateTime.UtcNow &&
                           u.TipoConta == TipoConta.Individual)
                 .FirstOrDefaultAsync();
@@ -518,12 +520,15 @@ namespace CasalPlanner.Infrastructure.Services
             return result.ModifiedCount > 0;
         }
 
-        public async Task<Usuario?> ObterCasalPorCodigo(string codigo)
+        public async Task<Usuario?> ObterCasalPorCodigo(string email, string codigo)
         {
-            if (string.IsNullOrEmpty(codigo)) return null;
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(codigo)) return null;
             
+            var emailNormalizado = email.ToLower().Trim();
             return await _context.Usuarios
-                .Find(u => u.TipoConta == TipoConta.Casal && u.CasalInfo != null &&
+                .Find(u => u.TipoConta == TipoConta.Casal &&
+                          u.CasalInfo != null &&
+                          (u.CasalInfo.EmailPessoa1 == emailNormalizado || u.CasalInfo.EmailPessoa2 == emailNormalizado) &&
                           ((u.CasalInfo.ResetCodePessoa1 == codigo && u.CasalInfo.ResetCodeExpiresAtPessoa1 > DateTime.UtcNow) ||
                            (u.CasalInfo.ResetCodePessoa2 == codigo && u.CasalInfo.ResetCodeExpiresAtPessoa2 > DateTime.UtcNow)))
                 .FirstOrDefaultAsync();

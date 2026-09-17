@@ -13,6 +13,10 @@ namespace CasalPlanner.Application.DTOs
 
     public class ValidarCodigoDto
     {
+        [Required(ErrorMessage = "Email é obrigatório")]
+        [EmailAddress(ErrorMessage = "Email inválido")]
+        public string Email { get; set; } = string.Empty;
+
         [Required(ErrorMessage = "Código é obrigatório")]
         [StringLength(6, MinimumLength = 6, ErrorMessage = "Código deve ter 6 dígitos")]
         [RegularExpression(@"^\d{6}$", ErrorMessage = "Código deve conter apenas números")]

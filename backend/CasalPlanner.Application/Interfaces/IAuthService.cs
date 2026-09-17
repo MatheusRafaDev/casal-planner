@@ -29,7 +29,7 @@ public interface IAuthService
 
     // ========== RECUPERAÇÃO DE SENHA - INDIVIDUAL ==========
     Task<bool> SalvarCodigoRedefinicao(string usuarioId, string codigo, DateTime expiresAt);
-    Task<Usuario?> ObterUsuarioPorCodigo(string codigo);
+    Task<Usuario?> ObterUsuarioPorCodigo(string email, string codigo);
     Task<bool> VerificarCodigoRedefinicao(string usuarioId, string codigo);
     Task<bool> SalvarTokenRedefinicao(string usuarioId, string token, DateTime expiresAt);
     Task<Usuario?> ObterUsuarioPorTokenRedefinicao(string token);
@@ -39,7 +39,7 @@ public interface IAuthService
 
     // ========== RECUPERAÇÃO DE SENHA - CASAL ==========
     Task<bool> SalvarCodigoRedefinicaoCasal(string usuarioId, string pessoa, string codigo, DateTime expiresAt);
-    Task<Usuario?> ObterCasalPorCodigo(string codigo);
+    Task<Usuario?> ObterCasalPorCodigo(string email, string codigo);
     Task<bool> VerificarCodigoRedefinicaoCasal(string usuarioId, string pessoa, string codigo);
     Task<bool> SalvarTokenRedefinicaoCasal(string usuarioId, string pessoa, string token, DateTime expiresAt);
     Task<Usuario?> ObterCasalPorTokenRedefinicao(string token);

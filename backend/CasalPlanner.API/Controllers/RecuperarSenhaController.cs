@@ -193,7 +193,7 @@ public class RecuperarSenhaController : ControllerBase
         var codigo = request.Codigo.Trim();
 
         // 1. Verificar se código pertence a conta individual
-        var usuarioIndividual = await _authService.ObterUsuarioPorCodigo(codigo);
+        var usuarioIndividual = await _authService.ObterUsuarioPorCodigo(request.Email, codigo);
 
         if (usuarioIndividual != null)
         {
@@ -201,7 +201,7 @@ public class RecuperarSenhaController : ControllerBase
         }
 
         // 2. Verificar se código pertence a conta casal
-        var usuarioCasal = await _authService.ObterCasalPorCodigo(codigo);
+        var usuarioCasal = await _authService.ObterCasalPorCodigo(request.Email, codigo);
 
         if (usuarioCasal != null && usuarioCasal.CasalInfo != null)
         {

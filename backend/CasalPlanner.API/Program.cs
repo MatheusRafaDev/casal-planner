@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using System.Net;
 using Serilog;
 using CasalPlanner.API.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -357,24 +358,23 @@ app.Use(async (context, next) =>
 });
 
 // ===== PIPELINE =====
-if (!app.Environment.IsDevelopment())
-    app.UseHttpsRedirection();
-else
-    Console.WriteLine("🔧 Ambiente Dev: HTTP permitido");
-
 // Configure trusted proxies for X-Forwarded-For header (prevents IP spoofing)
-// In production, only trust the reverse proxy (nginx, load balancer, etc.)
+// This must be the first middleware before UseHttpsRedirection
 if (!app.Environment.IsDevelopment())
 {
     app.UseForwardedHeaders(new ForwardedHeadersOptions
     {
         ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-        // Clear known networks/proxies to trust all (or configure specific IPs)
-        // For most cloud providers, the load balancer is the only proxy
-        KnownNetworks = { },
+        ForwardLimit = 1,
+        KnownNetworks = { new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("10.0.0.0"), 8) },
         KnownProxies = { }
     });
 }
+
+if (!app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
+else
+    Console.WriteLine("🔧 Ambiente Dev: HTTP permitido");
 
 app.UseCors("CasalPlannerPolicy");
 
