@@ -39,6 +39,7 @@ import type { Categoria, PesquisaPrecoResultado } from "@/services/types";
 import { itensService } from "@/services/itens";
 import { pesquisaPrecosService } from "@/services/pesquisa-precos";
 import { registroPrecoService } from "@/services/registro-preco";
+import { extrairDadosPorOcr } from "@/services/ocr";
 import { groqService } from "@/services/groq";
 import { brl } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
@@ -346,9 +347,30 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         setQueryBusca(nomeIdentificado);
         setStep(2); // Vai para a pesquisa online
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Erro na análise da foto:", err);
-      toast.error("Não consegui ler a foto. Tente preencher manualmente.");
+      
+      try {
+        toast.info("Extraindo via OCR local (offline)...");
+        const ocrResult = await extrairDadosPorOcr(file);
+        
+        if (ocrResult.nome) {
+          handleNomeChange(ocrResult.nome);
+        }
+
+        if (ocrResult.preco && ocrResult.preco > 0) {
+          setPrecoNumerico(ocrResult.preco);
+          toast.success("Dados lidos via OCR local!");
+          setStep(3);
+        } else {
+          if (ocrResult.nome) setQueryBusca(ocrResult.nome);
+          toast.warning("Nome extraído, mas nenhum preço detectado. Prosseguindo...");
+          setStep(2);
+        }
+      } catch (ocrErr) {
+        console.error("Erro no fallback OCR:", ocrErr);
+        toast.error("Não consegui ler a foto. Tente preencher manualmente.");
+      }
     } finally {
       setAnalisandoFoto(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
