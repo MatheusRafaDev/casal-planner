@@ -502,7 +502,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   type="button"
                   variant="outline"
                   className="h-20 flex flex-col gap-2 bg-background/50 hover:bg-accent"
-                  disabled={analisandoFoto}
+                  disabled={analisandoFoto || extrairLink.isPending}
                   onClick={() => cameraInputRef.current?.click()}
                 >
                   <Camera className="h-6 w-6 text-primary" />
@@ -512,7 +512,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   type="button"
                   variant="outline"
                   className="h-20 flex flex-col gap-2 bg-background/50 hover:bg-accent"
-                  disabled={analisandoFoto}
+                  disabled={analisandoFoto || extrairLink.isPending}
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Upload className="h-6 w-6 text-primary" />
@@ -1049,13 +1049,13 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
           </Button>
 
           {step === 1 && (
-            <Button onClick={avancarDoNome} disabled={dupQuery.isFetching}>
-              {dupQuery.isFetching ? (
+            <Button onClick={avancarDoNome} disabled={dupQuery.isFetching || extrairLink.isPending || analisandoFoto}>
+              {(dupQuery.isFetching || extrairLink.isPending || analisandoFoto) ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
               ) : (
                 <ArrowRight className="h-4 w-4 mr-1" />
               )}
-              Buscar preços
+              {extrairLink.isPending ? "Extraindo link..." : analisandoFoto ? "Analisando foto..." : "Buscar preços"}
             </Button>
           )}
           {step === 2 && (
