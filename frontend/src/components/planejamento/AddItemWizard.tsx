@@ -506,7 +506,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
           >
             <div className="space-y-3 pb-4 border-b">
               <Label>Identificar utilizando foto</Label>
-              <div className="relative w-full group/upload">
+              <div className="flex flex-col gap-2 w-full group/upload">
                 <input
                   ref={cameraInputRef}
                   className="hidden"
@@ -541,7 +541,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     ) : (
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/upload:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
                         <Upload className="h-6 w-6 mb-2" />
-                        <span className="text-sm font-medium">Trocar foto</span>
+                        <span className="text-sm font-medium">Trocar foto na galeria</span>
                       </div>
                     )}
                   </div>
@@ -558,27 +558,25 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                         handleFile(e.dataTransfer.files[0]);
                       }
                     }}
-                    className="w-full h-32 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/60 bg-background/50 hover:bg-accent hover:border-primary/50 transition-all text-muted-foreground hover:text-foreground"
+                    className="w-full h-28 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/60 bg-background/50 hover:bg-accent hover:border-primary/50 transition-all text-muted-foreground hover:text-foreground"
                   >
                     <Upload className="h-7 w-7 text-primary/70" />
                     <span className="text-sm font-medium">Galeria ou arraste aqui</span>
                   </button>
                 )}
 
-                {/* Botão flutuante de Câmera */}
                 <Button
                   type="button"
-                  size="icon"
-                  variant="secondary"
-                  className="absolute bottom-3 right-3 h-10 w-10 rounded-full shadow-md bg-background/90 backdrop-blur border border-border/50 hover:bg-background text-foreground z-10"
+                  variant="outline"
+                  className={cn(
+                    "w-full rounded-xl transition-all",
+                    !fotoPreviewUrl ? "h-12 border-dashed border-primary/50 text-primary hover:bg-primary/5 hover:text-primary" : "h-10 text-muted-foreground"
+                  )}
                   disabled={analisandoFoto || extrairLink.isPending}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    cameraInputRef.current?.click();
-                  }}
-                  title="Tirar foto com a câmera"
+                  onClick={() => cameraInputRef.current?.click()}
                 >
-                  <Camera className="h-5 w-5 text-primary" />
+                  <Camera className={cn("mr-2", !fotoPreviewUrl ? "h-5 w-5" : "h-4 w-4")} />
+                  {!fotoPreviewUrl ? "Tirar foto com a câmera" : "Tirar nova foto com a câmera"}
                 </Button>
               </div>
             </div>
