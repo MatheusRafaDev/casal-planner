@@ -248,8 +248,8 @@ function InicioPage() {
       .reduce((s: number, i: Item) => s + i.preco * i.quantidade, 0);
 
     const metricas = [
-      ["Total Gasto", brl(totalGeral)],
-      ["Total de Itens", `${totalItens} itens (${totalComprados} comprados)`],
+      ["Gasto do Casal (Bolso)", brl(totalGeral)],
+      ["Total de Itens Pagos", `${totalItens} itens (${totalComprados} comprados)`],
       [
         "Meta Global",
         metaVal > 0 ? `${brl(metaVal)} (${pctMeta?.toFixed(1)}% atingido)` : "Não definida",
@@ -391,14 +391,14 @@ function InicioPage() {
           <div className="rounded-2xl border bg-card p-5 shadow-soft">
             <div className="flex items-center justify-between gap-3 mb-3">
               <div className="min-w-0 flex-1">
-                <div className="text-sm text-muted-foreground">Progresso do enxoval</div>
+                <div className="text-sm text-muted-foreground">Progresso do Orçamento (Bolso)</div>
                 <div className="font-display text-xl font-semibold truncate">
                   {brl(r?.totalGeral)}{" "}
                   <span className="text-muted-foreground text-base">de {brl(meta)}</span>
                 </div>
                 {meta - (r?.totalGeral ?? 0) > 0 && (
                   <div className="text-xs text-muted-foreground mt-1">
-                    Faltam {brl(meta - (r?.totalGeral ?? 0))}
+                    Saldo livre: {brl(meta - (r?.totalGeral ?? 0))}
                   </div>
                 )}
               </div>
@@ -445,9 +445,9 @@ function InicioPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <ResumoCard
                 icon={Wallet}
-                label="Total gasto"
+                label="Gasto do próprio bolso"
                 valor={brl(r?.totalGeral)}
-                hint={`${r?.itensComprados ?? 0} de ${r?.totalItens ?? 0} itens comprados`}
+                hint={`${r?.itensComprados ?? 0} de ${r?.totalItens ?? 0} itens pagos (exclui presentes)`}
                 delay={0}
               />
               <ResumoCard
