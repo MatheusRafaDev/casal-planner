@@ -259,6 +259,17 @@ function InicioPage() {
       ["VR / VA", brl(r?.totalVr ?? 0)],
     ];
 
+    if (isCasal) {
+      const conj = Math.max(0, (r?.totalGeral ?? 0) - ((r?.totalPessoa1 ?? 0) + (r?.totalPessoa2 ?? 0)));
+      metricas.push(
+        [`Gasto de ${p1}`, brl(r?.totalPessoa1 ?? 0)],
+        [`Gasto de ${p2}`, brl(r?.totalPessoa2 ?? 0)]
+      );
+      if (conj > 0) {
+        metricas.push(["Gasto Conjunto", brl(conj)]);
+      }
+    }
+
     autoTable(doc, {
       startY: 53,
       head: [["Métrica", "Valor"]],
