@@ -1,0 +1,28 @@
+using Microsoft.AspNetCore.Mvc;
+using CasalPlanner.Application.Interfaces;
+using CasalPlanner.Domain.Entities;
+
+namespace CasalPlanner.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class TestController : ControllerBase
+    {
+        private readonly CasalPlanner.Domain.Repositories.IItemRepository _itemRepo;
+
+        public TestController(CasalPlanner.Domain.Repositories.IItemRepository itemRepo)
+        {
+            _itemRepo = itemRepo;
+        }
+
+        [HttpGet("{slug}")]
+        public async Task<IActionResult> Get(string slug)
+        {
+            var userRepo = HttpContext.RequestServices.GetRequiredService<CasalPlanner.Domain.Repositories.IUsuarioRepository>();
+            var user = await userRepo.GetBySlugListaPublicaAsync(slug);
+            if (user == null) return NotFound();
+            var items = await _itemRepo.GetByUsuarioIdAsync(user.Id);
+            return Ok(items);
+        }
+    }
+}

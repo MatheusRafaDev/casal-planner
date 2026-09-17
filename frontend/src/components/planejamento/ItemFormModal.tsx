@@ -416,6 +416,7 @@ export function ItemFormModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="comprado">Será comprado</SelectItem>
+                  <SelectItem value="desejo">Quero ganhar (Lista Pública)</SelectItem>
                   <SelectItem value="ganho">Ganho / Presente</SelectItem>
                   {form.origem === "prometido" && (
                     <SelectItem value="prometido">Prometido por convidado</SelectItem>

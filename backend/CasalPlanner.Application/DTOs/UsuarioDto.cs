@@ -137,6 +137,7 @@ namespace CasalPlanner.Application.DTOs
     public class NotificacoesDto
     {
         public bool ReceberNotificacoes { get; set; }
+        public int? PessoaId { get; set; }
     }
 
     public class ConfigurarListaPublicaDto

@@ -34,20 +34,22 @@ namespace CasalPlanner.API.Controllers
             // Busca os itens
             var itens = await _itemRepository.GetByUsuarioIdAsync(usuario.Id!);
             
-            // Retorna apenas itens permitidos e remove dados sensíveis
+            // Retorna apenas itens marcados para a lista pública
             var itensPublicos = itens
+                .Where(i => i.Origem == "desejo" || i.Origem == "prometido" || i.Origem == "presente")
                 .Select(i => new {
                     i.Id,
                     i.Nome,
                     i.Marca,
                     i.Preco,
                     i.Quantidade,
-                    Comprado = i.Comprado || i.Origem == "prometido" || i.Origem == "presente",
+                    i.Comprado,
                     i.Loja,
                     i.LinkProduto,
                     i.FotoUrl,
                     i.Prioridade,
-                    i.Origem
+                    i.Origem,
+                    i.Variantes
                 });
 
             return Ok(new
@@ -71,14 +73,13 @@ namespace CasalPlanner.API.Controllers
             if (item == null)
                 return NotFound(new { message = "Item não encontrado." });
 
-            if (item.Comprado || item.Origem == "prometido" || item.Origem == "presente")
-                return BadRequest(new { message = "Este item já foi presenteado ou prometido." });
+            if (item.Comprado)
+                return BadRequest(new { message = "Este item já foi presenteado ou comprado." });
 
             // Atualiza o item
-            // Atualiza o item (mantém como não comprado na lista do casal para eles confirmarem)
-            item.Comprado = false;
-            item.Origem = "prometido";
-            item.OrigemDescricao = $"Presente prometido por {dto.NomeConvidado}";
+            item.Comprado = true;
+            item.Origem = "presente";
+            item.OrigemDescricao = $"Presente de {dto.NomeConvidado}";
             item.UpdatedAt = DateTime.UtcNow;
 
             await _itemRepository.UpdateRawAsync(item);

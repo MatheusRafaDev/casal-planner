@@ -10,8 +10,9 @@ export interface ItemPublico {
   loja?: string;
   linkProduto?: string;
   fotoUrl?: string;
-  prioridade: number;
+  prioridade: string;
   origem: string;
+  variantes?: string[];
 }
 
 export interface ListaPublicaResponse {

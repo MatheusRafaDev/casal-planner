@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { brl } from "@/lib/formatters";
 import { listaPublicaService, ItemPublico } from "@/services/lista-publica";
 
@@ -111,18 +112,18 @@ function ListaPublicaPage() {
             <div
               key={item.id}
               className={`flex flex-col rounded-2xl border overflow-hidden transition-all duration-300 ${
-                item.comprado
-                  ? "bg-muted/30 border-muted opacity-60 grayscale hover:grayscale-0"
-                  : "bg-card border-border hover:shadow-md hover:border-primary/20"
+                  item.comprado
+                    ? "bg-muted/30 border-muted opacity-80"
+                    : "bg-card border-border hover:shadow-md hover:border-primary/20"
               }`}
             >
               {/* Imagem */}
-              <div className="aspect-square bg-muted relative overflow-hidden flex items-center justify-center p-4">
+              <div className="aspect-square bg-white relative overflow-hidden flex items-center justify-center p-4">
                 {item.fotoUrl ? (
                   <img
                     src={item.fotoUrl}
                     alt={item.nome}
-                    className="w-full h-full object-contain mix-blend-multiply transition-transform duration-300 hover:scale-105"
+                    className="w-full h-full object-contain transition-transform duration-300 hover:scale-105"
                   />
                 ) : (
                   <Gift className="h-12 w-12 text-muted-foreground/30" />
@@ -130,7 +131,7 @@ function ListaPublicaPage() {
                 {item.comprado && (
                   <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] flex items-center justify-center">
                     <div className="bg-background/90 text-foreground px-4 py-2 rounded-full font-semibold flex items-center gap-2 shadow-sm">
-                      <Check className="h-4 w-4" /> Já Presenteado
+                      <Check className="h-4 w-4" /> {item.origem === "comprado" ? "Já Adquirido" : "Já Presenteado"}
                     </div>
                   </div>
                 )}
@@ -139,13 +140,35 @@ function ListaPublicaPage() {
               {/* Informações */}
               <div className="p-5 flex flex-col flex-1">
                 <div className="mb-2">
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    {item.prioridade && item.prioridade !== "normal" && (
+                      <Badge variant="outline" className={`text-[10px] px-1.5 py-0 uppercase tracking-wider ${item.prioridade === 'alta' ? 'text-red-500 border-red-500/30 bg-red-500/10' : 'text-amber-500 border-amber-500/30 bg-amber-500/10'}`}>
+                        Prioridade {item.prioridade}
+                      </Badge>
+                    )}
+                  </div>
                   <h3
                     className="font-semibold text-lg line-clamp-2 leading-tight"
                     title={item.nome}
                   >
-                    {item.nome}
+                    {item.quantidade > 1 ? `${item.quantidade}x ` : ""}{item.nome}
                   </h3>
-                  {item.marca && <p className="text-sm text-muted-foreground mt-1">{item.marca}</p>}
+                  {item.marca && <p className="text-sm text-muted-foreground mt-1 font-medium">{item.marca}</p>}
+                  
+                  {(item.loja || (item.variantes && item.variantes.length > 0)) && (
+                    <div className="flex flex-wrap gap-1.5 mt-2.5">
+                      {item.loja && (
+                        <Badge variant="secondary" className="text-xs font-normal opacity-80">
+                          Sugerido: {item.loja}
+                        </Badge>
+                      )}
+                      {item.variantes?.map((v, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs font-normal border-primary/20 bg-primary/5 text-primary">
+                          {v}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-auto pt-4 space-y-4">

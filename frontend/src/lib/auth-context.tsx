@@ -32,6 +32,7 @@ function normalizarPessoa(pessoaRaw: unknown): PessoaLike {
     email: (typeof p.email === "string" ? p.email : "") ?? "",
     dataNascimento: p.dataNascimento as string | null | undefined,
     avatar: p.avatar as string | null | undefined,
+    receberNotificacoes: p.receberNotificacoes as boolean | undefined,
   };
 }
 

@@ -82,10 +82,10 @@ export const usuarioService = {
       method: "PUT",
       body: { metaGlobalEnxoval: meta },
     }),
-  atualizarNotificacoes: (receberNotificacoes: boolean) =>
+  atualizarNotificacoes: (receberNotificacoes: boolean, pessoaId?: number) =>
     api("/api/usuario/notificacoes", {
       method: "PUT",
-      body: { receberNotificacoes },
+      body: { receberNotificacoes, pessoaId },
     }),
   configurarListaPublica: (ativa: boolean) =>
     api<{ success: boolean; message: string; usuario: Usuario }>("/api/usuario/lista-publica", {

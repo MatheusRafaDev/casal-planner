@@ -792,7 +792,7 @@ function PlanejamentoPage() {
                           </button>
 
                           {/* Logos + nomes de marca e loja */}
-                          <div className={cn("transition-opacity", it.comprado && "opacity-50 grayscale")}>
+                          <div className={cn("transition-opacity", it.comprado && "opacity-50")}>
                             {(it.marca || it.loja) && (
                             <div className="flex flex-wrap items-center gap-1.5 mt-2">
                               {it.marca && (
@@ -850,14 +850,22 @@ function PlanejamentoPage() {
                                   ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
                                   : it.origem === "prometido"
                                     ? "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400"
-                                    : "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400",
+                                    : it.origem === "desejo"
+                                      ? "bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400"
+                                      : it.comprado
+                                        ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20 dark:text-indigo-400"
+                                        : "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400",
                               )}
                             >
                               {it.origem === "ganho" || it.origem === "presente"
                                 ? "Presente"
                                 : it.origem === "prometido"
                                   ? "Prometido"
-                                  : "Será comprado"}
+                                  : it.origem === "desejo"
+                                    ? "Lista Pública"
+                                    : it.comprado
+                                      ? "Comprado"
+                                      : "Será comprado"}
                             </Badge>
                             {it.prioridade && (
                               <Badge

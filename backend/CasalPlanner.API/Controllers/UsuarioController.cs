@@ -506,10 +506,10 @@ public class UsuarioController : ControllerBase
         }
         else if (usuario.TipoConta == TipoConta.Casal && usuario.CasalInfo != null)
         {
-            var pessoaLogada = User.FindFirst("PessoaLogada")?.Value;
+            var pessoaAlvo = dto.PessoaId?.ToString() ?? User.FindFirst("PessoaLogada")?.Value;
             UpdateDefinition<Usuario> update;
 
-            if (pessoaLogada == "pessoa2")
+            if (pessoaAlvo == "2" || pessoaAlvo == "pessoa2")
                 update = Builders<Usuario>.Update.Set(u => u.CasalInfo!.ReceberNotificacoesPessoa2, dto.ReceberNotificacoes);
             else
                 update = Builders<Usuario>.Update.Set(u => u.CasalInfo!.ReceberNotificacoesPessoa1, dto.ReceberNotificacoes);

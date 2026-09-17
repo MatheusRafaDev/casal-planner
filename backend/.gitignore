@@ -6,3 +6,16 @@ obj/
 .vscode/
 *.user
 *.suo
+
+# Arquivos e pastas temporárias de teste
+MongoTest/
+QueryMongo.cs
+data.json
+raw_items.json
+query.js
+TestController.cs
+
+# Node modules e dependências acidentais no backend
+node_modules/
+package.json
+package-lock.json

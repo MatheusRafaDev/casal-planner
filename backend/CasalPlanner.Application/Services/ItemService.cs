@@ -161,15 +161,39 @@ namespace CasalPlanner.Application.Services
 
         public async Task<Item?> AtualizarComprado(string id, bool comprado, string usuarioId, string emailAutenticado)
         {
-            var item = await _itemRepository.UpdateCompradoAsync(id, usuarioId, comprado);
+            var itemAtual = await _itemRepository.GetByIdAsync(id, usuarioId);
+            if (itemAtual == null) return null;
 
-            if (item != null && comprado)
+            Item? itemResult = null;
+
+            // Se o item foi prometido por um convidado e o casal confirmou o recebimento
+            if (itemAtual.Origem == "prometido" && comprado)
+            {
+                itemAtual.Comprado = true;
+                itemAtual.Origem = "presente";
+                itemAtual.UpdatedAt = DateTime.UtcNow;
+                itemResult = await _itemRepository.UpdateRawAsync(itemAtual);
+            }
+            // Se o item era presente e o casal desmarcou, volta para prometido
+            else if (itemAtual.Origem == "presente" && !comprado)
+            {
+                itemAtual.Comprado = false;
+                itemAtual.Origem = "prometido";
+                itemAtual.UpdatedAt = DateTime.UtcNow;
+                itemResult = await _itemRepository.UpdateRawAsync(itemAtual);
+            }
+            else
+            {
+                itemResult = await _itemRepository.UpdateCompradoAsync(id, usuarioId, comprado);
+            }
+
+            if (itemResult != null && comprado)
             {
                 var usuario = await _usuarioRepository.GetByIdAsync(usuarioId);
                 if (usuario != null && usuario.IsCasal)
                 {
                     int currentPessoaId = (usuario.CasalInfo?.EmailPessoa2 == emailAutenticado) ? 2 : 1;
-                    var itemNome = item.Nome;
+                    var itemNome = itemResult.Nome;
                     await NotificarParceiroAsync(
                         usuario, 
                         currentPessoaId, 
@@ -177,11 +201,11 @@ namespace CasalPlanner.Application.Services
                         "O item '" + itemNome + "' foi marcado como comprado.", 
                         "email_throttle", 
                         itemNome,
-                        item);
+                        itemResult);
                 }
             }
 
-            return item;
+            return itemResult;
         }
 
         public async Task<bool> DeletarItem(string id, string usuarioId)
