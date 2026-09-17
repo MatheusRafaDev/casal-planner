@@ -570,7 +570,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-32 w-24 flex flex-col gap-2 bg-background/50 hover:bg-accent shrink-0 rounded-xl"
+                  className="h-32 w-24 flex flex-col items-center justify-center gap-2 bg-background/50 hover:bg-accent shrink-0 rounded-xl"
                   disabled={analisandoFoto || extrairLink.isPending}
                   onClick={() => cameraInputRef.current?.click()}
                 >
