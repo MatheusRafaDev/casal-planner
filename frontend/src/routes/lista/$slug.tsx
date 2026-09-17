@@ -107,20 +107,8 @@ function ListaPublicaPage() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro ao confirmar presente"),
   });
 
-  if (!data) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-        <Gift className="h-16 w-16 text-muted-foreground mb-4" />
-        <h1 className="text-2xl font-display font-bold mb-2">Lista não encontrada</h1>
-        <p className="text-muted-foreground max-w-md">
-          Este endereço não existe ou a lista foi desativada pelo casal. Verifique se o link está
-          correto.
-        </p>
-      </div>
-    );
-  }
-
-  const { casal, itens } = data;
+  const casal = data?.casal;
+  const itens = data?.itens || [];
 
   const comprados = itens.filter(i => i.comprado).length;
   const progresso = itens.length > 0 ? (comprados / itens.length) * 100 : 0;
@@ -159,6 +147,19 @@ function ListaPublicaPage() {
       return valA - valB;
     });
   }, [itens, busca, apenasDisponiveis, faixaPreco]);
+
+  if (!data) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
+        <Gift className="h-16 w-16 text-muted-foreground mb-4" />
+        <h1 className="text-2xl font-display font-bold mb-2">Lista não encontrada</h1>
+        <p className="text-muted-foreground max-w-md">
+          Este endereço não existe ou a lista foi desativada pelo casal. Verifique se o link está
+          correto.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
