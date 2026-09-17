@@ -126,7 +126,37 @@ function InicioPage() {
     );
   }
 
-  const r = resumo;
+  const validItens = itens.filter(i => !["ganho", "presente", "prometido"].includes(i.origem ?? ""));
+  const realTotalGeral = validItens.reduce((s, i) => s + i.preco * i.quantidade, 0);
+  const realTotalNormal = validItens.filter(i => i.pagamento !== "vr").reduce((s, i) => s + i.preco * i.quantidade, 0);
+  const realTotalVr = validItens.filter(i => i.pagamento === "vr").reduce((s, i) => s + i.preco * i.quantidade, 0);
+  const realTotalComprados = validItens.filter(i => i.comprado).length;
+
+  let realTotalP1 = 0;
+  let realTotalP2 = 0;
+  validItens.forEach(i => {
+    const valorTotal = i.preco * i.quantidade;
+    if (i.divisaoPagamento) {
+      realTotalP1 += i.divisaoPagamento.valorPessoa1 || 0;
+      realTotalP2 += i.divisaoPagamento.valorPessoa2 || 0;
+    } else if (i.responsavelId === 1) {
+      realTotalP1 += valorTotal;
+    } else if (i.responsavelId === 2) {
+      realTotalP2 += valorTotal;
+    }
+  });
+
+  const r = resumo ? {
+    ...resumo,
+    totalGeral: realTotalGeral,
+    totalNormal: realTotalNormal,
+    totalVr: realTotalVr,
+    itensComprados: realTotalComprados,
+    totalItens: validItens.length,
+    totalPessoa1: realTotalP1,
+    totalPessoa2: realTotalP2,
+  } : null;
+
   const meta = r?.metaGlobal ?? 0;
   const pct = meta > 0 ? Math.min(100, ((r?.totalGeral ?? 0) / meta) * 100) : 0;
 
