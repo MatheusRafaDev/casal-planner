@@ -506,7 +506,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
           >
             <div className="space-y-3 pb-4 border-b">
               <Label>Identificar utilizando foto</Label>
-              <div className="flex gap-3">
+              <div className="relative w-full group/upload">
                 <input
                   ref={cameraInputRef}
                   className="hidden"
@@ -523,59 +523,62 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   onChange={(e) => handleFile(e.target.files?.[0])}
                 />
                 
-                <div className="relative flex-1">
-                  {fotoPreviewUrl ? (
-                    <div 
-                      className={cn(
-                        "relative h-32 w-full rounded-xl overflow-hidden border bg-background/50 group transition-all",
-                        (!analisandoFoto && !extrairLink.isPending) && "cursor-pointer hover:border-primary/50"
-                      )} 
-                      onClick={() => !analisandoFoto && !extrairLink.isPending && fileInputRef.current?.click()}
-                    >
-                      <img src={fotoPreviewUrl} alt="Preview" className="w-full h-full object-cover drop-shadow-md" />
-                      
-                      {analisandoFoto ? (
-                        <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center backdrop-blur-sm">
-                          <Loader2 className="h-6 w-6 text-primary animate-spin mb-2" />
-                          <span className="text-xs font-medium text-primary">Analisando...</span>
-                        </div>
-                      ) : (
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
-                          <Upload className="h-6 w-6 mb-2" />
-                          <span className="text-sm font-medium">Trocar</span>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled={analisandoFoto || extrairLink.isPending}
-                      onClick={() => fileInputRef.current?.click()}
-                      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                          handleFile(e.dataTransfer.files[0]);
-                        }
-                      }}
-                      className="w-full h-32 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/60 bg-background/50 hover:bg-accent hover:border-primary/50 transition-all text-muted-foreground hover:text-foreground"
-                    >
-                      <Upload className="h-8 w-8 text-primary/70" />
-                      <span className="text-sm font-medium">Arraste ou clique aqui</span>
-                    </button>
-                  )}
-                </div>
+                {fotoPreviewUrl ? (
+                  <div 
+                    className={cn(
+                      "relative h-40 w-full rounded-xl overflow-hidden border bg-background/50 transition-all",
+                      (!analisandoFoto && !extrairLink.isPending) && "cursor-pointer hover:border-primary/50"
+                    )} 
+                    onClick={() => !analisandoFoto && !extrairLink.isPending && fileInputRef.current?.click()}
+                  >
+                    <img src={fotoPreviewUrl} alt="Preview" className="w-full h-full object-cover drop-shadow-md" />
+                    
+                    {analisandoFoto ? (
+                      <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center backdrop-blur-sm">
+                        <Loader2 className="h-6 w-6 text-primary animate-spin mb-2" />
+                        <span className="text-xs font-medium text-primary">Analisando...</span>
+                      </div>
+                    ) : (
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/upload:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
+                        <Upload className="h-6 w-6 mb-2" />
+                        <span className="text-sm font-medium">Trocar foto</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={analisandoFoto || extrairLink.isPending}
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        handleFile(e.dataTransfer.files[0]);
+                      }
+                    }}
+                    className="w-full h-32 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/60 bg-background/50 hover:bg-accent hover:border-primary/50 transition-all text-muted-foreground hover:text-foreground"
+                  >
+                    <Upload className="h-7 w-7 text-primary/70" />
+                    <span className="text-sm font-medium">Galeria ou arraste aqui</span>
+                  </button>
+                )}
 
+                {/* Botão flutuante de Câmera */}
                 <Button
                   type="button"
-                  variant="outline"
-                  className="h-32 w-24 flex flex-col items-center justify-center gap-2 bg-background/50 hover:bg-accent shrink-0 rounded-xl"
+                  size="icon"
+                  variant="secondary"
+                  className="absolute bottom-3 right-3 h-10 w-10 rounded-full shadow-md bg-background/90 backdrop-blur border border-border/50 hover:bg-background text-foreground z-10"
                   disabled={analisandoFoto || extrairLink.isPending}
-                  onClick={() => cameraInputRef.current?.click()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    cameraInputRef.current?.click();
+                  }}
+                  title="Tirar foto com a câmera"
                 >
-                  <Camera className="h-6 w-6 text-primary" />
-                  <span className="text-xs font-medium">Câmera</span>
+                  <Camera className="h-5 w-5 text-primary" />
                 </Button>
               </div>
             </div>
