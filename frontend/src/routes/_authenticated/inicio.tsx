@@ -289,6 +289,10 @@ function InicioPage() {
       ["VR / VA", brl(r?.totalVr ?? 0)],
     ];
 
+    if (totalEconomizadoGanhos > 0) {
+      metricas.push(["Economia (Presentes)", `${brl(totalEconomizadoGanhos)} (${qtdGanhos} itens)`]);
+    }
+
     if (isCasal) {
       const conj = Math.max(0, (r?.totalGeral ?? 0) - ((r?.totalPessoa1 ?? 0) + (r?.totalPessoa2 ?? 0)));
       metricas.push(
