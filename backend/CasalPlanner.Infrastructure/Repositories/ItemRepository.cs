@@ -217,7 +217,7 @@ namespace CasalPlanner.Infrastructure.Repositories
                 new BsonDocument("$match", new BsonDocument
                 {
                     { "UsuarioId", new ObjectId(usuarioId) },
-                    { "Origem", new BsonDocument("$nin", new BsonArray { OrigemItem.Prometido, OrigemItem.Presente }) }
+                    { "Origem", new BsonDocument("$nin", new BsonArray { OrigemItem.Prometido, OrigemItem.Presente, "ganho" }) }
                 }),
                 new BsonDocument("$project", new BsonDocument
                 {
