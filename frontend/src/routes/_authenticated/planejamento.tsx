@@ -184,12 +184,24 @@ function PlanejamentoPage() {
     .reduce((s, i) => s + i.preco * i.quantidade, 0);
   const compradosCategoria = itensCategoria.filter((i) => i.comprado).length;
 
-  const totalP1 = itensCategoria
-    .filter((i) => !["ganho", "presente", "prometido"].includes(i.origem ?? "") && i.responsavelId === 1)
-    .reduce((s, i) => s + i.preco * i.quantidade, 0);
-  const totalP2 = itensCategoria
-    .filter((i) => !["ganho", "presente", "prometido"].includes(i.origem ?? "") && i.responsavelId === 2)
-    .reduce((s, i) => s + i.preco * i.quantidade, 0);
+  let totalP1 = 0;
+  let totalP2 = 0;
+  let totalConjunto = 0;
+
+  itensCategoria.forEach((i) => {
+    if (["ganho", "presente", "prometido"].includes(i.origem ?? "")) return;
+    const valorTotal = i.preco * i.quantidade;
+    if (i.divisaoPagamento) {
+      totalP1 += i.divisaoPagamento.valorPessoa1 || 0;
+      totalP2 += i.divisaoPagamento.valorPessoa2 || 0;
+    } else if (i.responsavelId === 1) {
+      totalP1 += valorTotal;
+    } else if (i.responsavelId === 2) {
+      totalP2 += valorTotal;
+    } else {
+      totalConjunto += valorTotal;
+    }
+  });
 
   const percentComprado = itensCategoria.length
     ? (compradosCategoria / itensCategoria.length) * 100
@@ -601,6 +613,12 @@ function PlanejamentoPage() {
                           <span className="text-xs font-medium truncate pr-2 text-muted-foreground">{p1}</span>
                           <span className="font-display font-semibold text-sm">{brl(totalP1)}</span>
                         </div>
+                        {totalConjunto > 0 && (
+                          <div className="flex justify-between items-center bg-accent/40 rounded-lg px-2.5 py-1.5">
+                            <span className="text-xs font-medium truncate pr-2 text-muted-foreground">Conjunto</span>
+                            <span className="font-display font-semibold text-sm">{brl(totalConjunto)}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between items-center bg-accent/40 rounded-lg px-2.5 py-1.5">
                           <span className="text-xs font-medium truncate pr-2 text-muted-foreground">{p2}</span>
                           <span className="font-display font-semibold text-sm">{brl(totalP2)}</span>
