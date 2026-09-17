@@ -401,6 +401,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["itens-paginado"] });
+      qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
       reset();
     },
