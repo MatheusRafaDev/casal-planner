@@ -323,6 +323,12 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
 
   const handleFile = async (file?: File) => {
     if (!file) return;
+
+    // Eagerly set preview so the user sees the photo immediately
+    if (fotoPreviewUrl) URL.revokeObjectURL(fotoPreviewUrl);
+    setFotoFile(file);
+    setFotoPreviewUrl(URL.createObjectURL(file));
+
     setAnalisandoFoto(true);
     try {
       const imagemBase64 = await toBase64(file);
@@ -332,11 +338,6 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
       handleNomeChange(nomeIdentificado); // Isso já vai tentar preencher o cômodo
       setMarca(analise.marca ?? "");
       setLoja(analise.nomeMercado ?? "");
-
-      // Store the image to be used as the item's photo
-      if (fotoPreviewUrl) URL.revokeObjectURL(fotoPreviewUrl);
-      setFotoFile(file);
-      setFotoPreviewUrl(URL.createObjectURL(file));
 
       if (analise.preco && analise.preco > 0) {
         setPrecoNumerico(analise.preco);
@@ -505,15 +506,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
           >
             <div className="space-y-3 pb-4 border-b">
               <Label>Identificar utilizando foto</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  ref={cameraInputRef}
-                  className="hidden"
-                  type="file"
-                  accept="image/jpeg, image/png, image/webp"
-                  capture="environment"
-                  onChange={(e) => handleFile(e.target.files?.[0])}
-                />
+              <div className="relative">
                 <input
                   ref={fileInputRef}
                   className="hidden"
@@ -521,32 +514,50 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   accept="image/jpeg, image/png, image/webp"
                   onChange={(e) => handleFile(e.target.files?.[0])}
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-20 flex flex-col gap-2 bg-background/50 hover:bg-accent"
-                  disabled={analisandoFoto || extrairLink.isPending}
-                  onClick={() => cameraInputRef.current?.click()}
-                >
-                  <Camera className="h-6 w-6 text-primary" />
-                  Tirar foto
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-20 flex flex-col gap-2 bg-background/50 hover:bg-accent"
-                  disabled={analisandoFoto || extrairLink.isPending}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="h-6 w-6 text-primary" />
-                  Subir foto / Colar
-                </Button>
+                
+                {fotoPreviewUrl ? (
+                  <div 
+                    className={cn(
+                      "relative h-48 w-full rounded-xl overflow-hidden border bg-background/50 group transition-all",
+                      (!analisandoFoto && !extrairLink.isPending) && "cursor-pointer hover:border-primary/50"
+                    )} 
+                    onClick={() => !analisandoFoto && !extrairLink.isPending && fileInputRef.current?.click()}
+                  >
+                    <img src={fotoPreviewUrl} alt="Preview" className="w-full h-full object-contain drop-shadow-md" />
+                    
+                    {analisandoFoto ? (
+                      <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center backdrop-blur-sm">
+                        <Loader2 className="h-8 w-8 text-primary animate-spin mb-2" />
+                        <span className="text-sm font-medium text-primary">Analisando imagem...</span>
+                      </div>
+                    ) : (
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
+                        <Upload className="h-6 w-6 mb-2" />
+                        <span className="text-sm font-medium">Trocar foto</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={analisandoFoto || extrairLink.isPending}
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        handleFile(e.dataTransfer.files[0]);
+                      }
+                    }}
+                    className="w-full h-32 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/60 bg-background/50 hover:bg-accent hover:border-primary/50 transition-all text-muted-foreground hover:text-foreground"
+                  >
+                    <Upload className="h-8 w-8 text-primary/70" />
+                    <span className="text-sm font-medium">Arraste a foto ou clique aqui</span>
+                    <span className="text-xs opacity-70">(Você também pode colar com Ctrl+V)</span>
+                  </button>
+                )}
               </div>
-              {analisandoFoto && (
-                <div className="flex items-center justify-center text-sm text-primary pt-2">
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analisando imagem...
-                </div>
-              )}
             </div>
 
             <div className="space-y-2">
