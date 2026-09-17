@@ -745,13 +745,13 @@ function ExportarCard() {
 
       const itensNaoComprados = todosItens.filter((it) => !it.comprado);
       const totalGasto = todosItens
-        .filter((it) => it.origem !== "ganho")
+        .filter((it) => !["ganho", "presente", "prometido"].includes(it.origem ?? ""))
         .reduce((s, it) => s + it.preco * it.quantidade, 0);
       const totalRestante = itensNaoComprados
-        .filter((it) => it.origem !== "ganho")
+        .filter((it) => !["ganho", "presente", "prometido"].includes(it.origem ?? ""))
         .reduce((s, it) => s + it.preco * it.quantidade, 0);
       const totalEconomia = todosItens
-        .filter((it) => it.origem === "ganho")
+        .filter((it) => ["ganho", "presente", "prometido"].includes(it.origem ?? ""))
         .reduce((s, it) => s + it.preco * it.quantidade, 0);
 
       const doc = new jsPDF();
