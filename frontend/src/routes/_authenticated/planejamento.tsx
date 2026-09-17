@@ -22,6 +22,9 @@ import {
   Share2,
   FileText,
   Download,
+  User,
+  Users,
+  Gift,
 } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -610,16 +613,25 @@ function PlanejamentoPage() {
                     {isCasal ? (
                       <>
                         <div className="flex justify-between items-center bg-accent/40 rounded-lg px-2.5 py-1.5">
-                          <span className="text-xs font-medium truncate pr-2 text-muted-foreground">{p1}</span>
+                          <span className="flex items-center text-xs font-medium truncate pr-2 text-muted-foreground">
+                            <User className="w-3 h-3 mr-1.5 opacity-70" />
+                            {p1}
+                          </span>
                           <span className="font-display font-semibold text-sm">{brl(totalP1)}</span>
                         </div>
                         <div className="flex justify-between items-center bg-accent/40 rounded-lg px-2.5 py-1.5">
-                          <span className="text-xs font-medium truncate pr-2 text-muted-foreground">{p2}</span>
+                          <span className="flex items-center text-xs font-medium truncate pr-2 text-muted-foreground">
+                            <User className="w-3 h-3 mr-1.5 opacity-70" />
+                            {p2}
+                          </span>
                           <span className="font-display font-semibold text-sm">{brl(totalP2)}</span>
                         </div>
                         {totalConjunto > 0 && (
                           <div className="flex justify-between items-center bg-accent/40 rounded-lg px-2.5 py-1.5">
-                            <span className="text-xs font-medium truncate pr-2 text-muted-foreground">Conjunto</span>
+                            <span className="flex items-center text-xs font-medium truncate pr-2 text-muted-foreground">
+                              <Users className="w-3 h-3 mr-1.5 opacity-70" />
+                              Conjunto
+                            </span>
                             <span className="font-display font-semibold text-sm">{brl(totalConjunto)}</span>
                           </div>
                         )}
@@ -632,7 +644,10 @@ function PlanejamentoPage() {
                     )}
                     {economiaCategoria > 0 && (
                       <div className="flex justify-between items-center bg-emerald-500/10 rounded-lg px-2.5 py-1.5">
-                        <span className="text-xs font-medium truncate pr-2 text-emerald-600 dark:text-emerald-500">Presentes / Ganhos</span>
+                        <span className="flex items-center text-xs font-medium truncate pr-2 text-emerald-600 dark:text-emerald-500">
+                          <Gift className="w-3 h-3 mr-1.5" />
+                          Presentes / Ganhos
+                        </span>
                         <span className="font-display font-semibold text-sm text-emerald-600 dark:text-emerald-500">{brl(economiaCategoria)}</span>
                       </div>
                     )}
