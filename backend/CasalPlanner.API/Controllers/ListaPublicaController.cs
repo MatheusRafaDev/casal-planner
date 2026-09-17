@@ -1,5 +1,7 @@
 using CasalPlanner.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
+using System.Net;
 
 namespace CasalPlanner.API.Controllers
 {
@@ -31,12 +33,10 @@ namespace CasalPlanner.API.Controllers
                 ? $"{usuario.CasalInfo.NomeCompletoPessoa1} & {usuario.CasalInfo.NomeCompletoPessoa2}" 
                 : usuario.NomeCompleto;
 
-            // Busca os itens
-            var itens = await _itemRepository.GetByUsuarioIdAsync(usuario.Id!);
+            // Busca os itens já filtrados por origem (Desejo, Prometido, Presente) na query
+            var itens = await _itemRepository.GetItensListaPublicaAsync(usuario.Id!);
             
-            // Retorna apenas itens marcados para a lista pública
             var itensPublicos = itens
-                .Where(i => i.Origem == "desejo" || i.Origem == "prometido" || i.Origem == "presente")
                 .Select(i => new {
                     i.Id,
                     i.Nome,
@@ -69,42 +69,59 @@ namespace CasalPlanner.API.Controllers
             if (usuario == null || !usuario.ListaPublicaAtiva)
                 return NotFound(new { message = "Lista não encontrada ou inativa." });
 
-            var item = await _itemRepository.GetByIdAsync(itemId, usuario.Id!);
-            if (item == null)
-                return NotFound(new { message = "Item não encontrado." });
+            // Previne injeção de HTML no nome
+            var nomeSeguro = WebUtility.HtmlEncode(dto.NomeConvidado);
+            var undoToken = Guid.NewGuid().ToString("N");
+            var undoExpiresAt = DateTime.UtcNow.AddMinutes(10);
 
-            if (item.Comprado)
-                return BadRequest(new { message = "Este item já foi presenteado ou comprado." });
-
-            // Atualiza o item
-            item.Comprado = true;
-            item.Origem = "presente";
-            item.OrigemDescricao = $"Presente de {dto.NomeConvidado}";
-            item.UpdatedAt = DateTime.UtcNow;
-
-            await _itemRepository.UpdateRawAsync(item);
+            // Operação atômica que previne race condition
+            var atualizado = await _itemRepository.PresentearItemAtuomicoAsync(itemId, usuario.Id!, nomeSeguro, undoToken, undoExpiresAt);
+            if (atualizado == null)
+            {
+                return Conflict(new { message = "Esse item acabou de ser presenteado por outra pessoa." });
+            }
 
             // Disparar e-mail de notificação para o casal
             if (usuario.IsCasal && usuario.CasalInfo != null)
             {
                 if (usuario.CasalInfo.ReceberNotificacoesPessoa1 && !string.IsNullOrEmpty(usuario.CasalInfo.EmailPessoa1))
-                    await _emailService.EnviarEmailPresenteRecebidoAsync(usuario.CasalInfo.EmailPessoa1, usuario.CasalInfo.NomeCompletoPessoa1, dto.NomeConvidado, item);
+                    await _emailService.EnviarEmailPresenteRecebidoAsync(usuario.CasalInfo.EmailPessoa1, usuario.CasalInfo.NomeCompletoPessoa1, nomeSeguro, atualizado);
                     
                 if (usuario.CasalInfo.ReceberNotificacoesPessoa2 && !string.IsNullOrEmpty(usuario.CasalInfo.EmailPessoa2))
-                    await _emailService.EnviarEmailPresenteRecebidoAsync(usuario.CasalInfo.EmailPessoa2, usuario.CasalInfo.NomeCompletoPessoa2, dto.NomeConvidado, item);
+                    await _emailService.EnviarEmailPresenteRecebidoAsync(usuario.CasalInfo.EmailPessoa2, usuario.CasalInfo.NomeCompletoPessoa2, nomeSeguro, atualizado);
             }
             else
             {
                 if (!string.IsNullOrEmpty(usuario.Email) && usuario.ReceberNotificacoes)
-                    await _emailService.EnviarEmailPresenteRecebidoAsync(usuario.Email, usuario.NomeCompleto ?? "Usuário", dto.NomeConvidado, item);
+                    await _emailService.EnviarEmailPresenteRecebidoAsync(usuario.Email, usuario.NomeCompleto ?? "Usuário", nomeSeguro, atualizado);
             }
 
-            return Ok(new { message = "Presente prometido com sucesso!" });
+            return Ok(new { message = "Presente prometido com sucesso!", undoToken });
+        }
+
+        [HttpDelete("{slug}/presentear/{itemId}")]
+        public async Task<IActionResult> DesfazerPresentear(string slug, string itemId, [FromQuery] string token)
+        {
+            if (string.IsNullOrEmpty(token)) return BadRequest("Token inválido.");
+
+            var usuario = await _usuarioRepository.GetBySlugListaPublicaAsync(slug);
+            if (usuario == null || !usuario.ListaPublicaAtiva)
+                return NotFound(new { message = "Lista não encontrada." });
+
+            var desfeito = await _itemRepository.DesfazerPresenteAsync(itemId, token);
+            if (!desfeito)
+            {
+                return BadRequest(new { message = "O tempo para desfazer expirou ou o token é inválido." });
+            }
+
+            return Ok(new { message = "Presente desfeito com sucesso." });
         }
     }
 
     public class PresentearDto
     {
+        [Required(ErrorMessage = "O nome do convidado é obrigatório.")]
+        [StringLength(80, MinimumLength = 2, ErrorMessage = "O nome deve ter entre 2 e 80 caracteres.")]
         public string NomeConvidado { get; set; } = string.Empty;
     }
 }

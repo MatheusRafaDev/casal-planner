@@ -177,18 +177,18 @@ function PlanejamentoPage() {
     (i) => catAtualId === "tudo" || i.categoriaId === catAtualId,
   );
   const totalCategoria = itensCategoria
-    .filter((i) => i.origem !== "ganho")
+    .filter((i) => i.origem !== "presente" && i.origem !== "prometido")
     .reduce((s, i) => s + i.preco * i.quantidade, 0);
   const economiaCategoria = itensCategoria
-    .filter((i) => i.origem === "ganho")
+    .filter((i) => i.origem === "presente" || i.origem === "prometido")
     .reduce((s, i) => s + i.preco * i.quantidade, 0);
   const compradosCategoria = itensCategoria.filter((i) => i.comprado).length;
 
   const totalP1 = itensCategoria
-    .filter((i) => i.origem !== "ganho" && i.responsavelId === 1)
+    .filter((i) => i.origem !== "presente" && i.origem !== "prometido" && i.responsavelId === 1)
     .reduce((s, i) => s + i.preco * i.quantidade, 0);
   const totalP2 = itensCategoria
-    .filter((i) => i.origem !== "ganho" && i.responsavelId === 2)
+    .filter((i) => i.origem !== "presente" && i.origem !== "prometido" && i.responsavelId === 2)
     .reduce((s, i) => s + i.preco * i.quantidade, 0);
 
   const percentComprado = itensCategoria.length
@@ -353,7 +353,7 @@ function PlanejamentoPage() {
                       <span className={cn(catAtualId === "tudo" ? "text-foreground font-medium" : "")}>
                         {brl(
                           todosItens
-                            .filter((i) => i.origem !== "ganho")
+                            .filter((i) => i.origem !== "presente" && i.origem !== "prometido")
                             .reduce((s, i) => s + i.preco * i.quantidade, 0),
                         )}
                       </span>
@@ -368,7 +368,7 @@ function PlanejamentoPage() {
               const cItens = todosItens.filter((it) => it.categoriaId === c.id);
               const cComprados = cItens.filter((it) => it.comprado).length;
               const cGasto = cItens
-                .filter((it) => it.origem !== "ganho")
+                .filter((it) => it.origem !== "presente" && it.origem !== "prometido")
                 .reduce((s, it) => s + it.preco * it.quantidade, 0);
 
               return (

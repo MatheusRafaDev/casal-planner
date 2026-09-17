@@ -1,6 +1,7 @@
 using CasalPlanner.Domain.Entities;
 using CasalPlanner.Application.DTOs;
 using CasalPlanner.Application.Interfaces;
+using CasalPlanner.Domain.Enums;
 using CasalPlanner.Infrastructure.Persistence;
 using MongoDB.Driver;
 using MongoDB.Bson;
@@ -47,7 +48,7 @@ namespace CasalPlanner.Infrastructure.Repositories
             {
                 if (status == "comprados") filter &= builder.Eq(i => i.Comprado, true);
                 else if (status == "faltando") filter &= builder.Eq(i => i.Comprado, false);
-                else if (status == "presentes") filter &= builder.Eq(i => i.Origem, "ganho");
+                else if (status == "presentes") filter &= builder.Eq(i => i.Origem, OrigemItem.Presente) | builder.Eq(i => i.Origem, OrigemItem.Prometido);
             }
 
             if (!string.IsNullOrEmpty(pagamento) && pagamento != "todos")
@@ -154,6 +155,55 @@ namespace CasalPlanner.Infrastructure.Repositories
             return await _context.Itens.FindOneAndReplaceAsync(filter, item, options);
         }
 
+        public async Task<Item?> PresentearItemAtuomicoAsync(string itemId, string usuarioId, string nomeConvidado, string undoToken, DateTime undoExpiresAt)
+        {
+            var filter = Builders<Item>.Filter.And(
+                Builders<Item>.Filter.Eq(i => i.Id, itemId),
+                Builders<Item>.Filter.Eq(i => i.UsuarioId, usuarioId),
+                Builders<Item>.Filter.Eq(i => i.Comprado, false));
+
+            var update = Builders<Item>.Update
+                .Set(i => i.Comprado, true)
+                .Set(i => i.Origem, OrigemItem.Presente)
+                .Set(i => i.OrigemDescricao, $"Presente de {nomeConvidado}")
+                .Set(i => i.UndoToken, undoToken)
+                .Set(i => i.UndoExpiresAt, undoExpiresAt)
+                .Set(i => i.UpdatedAt, DateTime.UtcNow);
+
+            var options = new FindOneAndUpdateOptions<Item> { ReturnDocument = ReturnDocument.After };
+            return await _context.Itens.FindOneAndUpdateAsync(filter, update, options);
+        }
+
+        public async Task<bool> DesfazerPresenteAsync(string itemId, string undoToken)
+        {
+            var filter = Builders<Item>.Filter.And(
+                Builders<Item>.Filter.Eq(i => i.Id, itemId),
+                Builders<Item>.Filter.Eq(i => i.UndoToken, undoToken),
+                Builders<Item>.Filter.Gt(i => i.UndoExpiresAt, DateTime.UtcNow));
+
+            var update = Builders<Item>.Update
+                .Set(i => i.Comprado, false)
+                .Set(i => i.Origem, OrigemItem.Desejo)
+                .Set(i => i.OrigemDescricao, null)
+                .Set(i => i.UndoToken, null)
+                .Set(i => i.UndoExpiresAt, null)
+                .Set(i => i.UpdatedAt, DateTime.UtcNow);
+
+            var result = await _context.Itens.UpdateOneAsync(filter, update);
+            return result.ModifiedCount > 0;
+        }
+
+        public async Task<List<Item>> GetItensListaPublicaAsync(string usuarioId)
+        {
+            var origensValidas = new[] { OrigemItem.Desejo, OrigemItem.Prometido, OrigemItem.Presente };
+            var filter = Builders<Item>.Filter.And(
+                Builders<Item>.Filter.Eq(i => i.UsuarioId, usuarioId),
+                Builders<Item>.Filter.In(i => i.Origem, origensValidas)
+            );
+            
+            return await _context.Itens.Find(filter).ToListAsync();
+        }
+
         public async Task<(ResumoDto Resumo, ComparativoDto Comparativo)> ObterResumoAgregadoAsync(string usuarioId)
         {
             var hoje = DateTime.UtcNow;
@@ -167,7 +217,7 @@ namespace CasalPlanner.Infrastructure.Repositories
                 new BsonDocument("$match", new BsonDocument
                 {
                     { "UsuarioId", new ObjectId(usuarioId) },
-                    { "Origem", new BsonDocument("$ne", "ganho") }
+                    { "Origem", new BsonDocument("$nin", new BsonArray { OrigemItem.Prometido, OrigemItem.Presente }) }
                 }),
                 new BsonDocument("$project", new BsonDocument
                 {

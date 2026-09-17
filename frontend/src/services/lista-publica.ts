@@ -24,8 +24,13 @@ export const listaPublicaService = {
   getLista: (slug: string) => api<ListaPublicaResponse>(`/api/public/lista/${slug}`),
 
   presentear: (slug: string, itemId: string, nomeConvidado: string) =>
-    api<{ message: string }>(`/api/public/lista/${slug}/presentear/${itemId}`, {
+    api<{ message: string; undoToken?: string }>(`/api/public/lista/${slug}/presentear/${itemId}`, {
       method: "POST",
       body: { nomeConvidado },
+    }),
+
+  desfazerPresente: (slug: string, itemId: string, token: string) =>
+    api<{ message: string }>(`/api/public/lista/${slug}/presentear/${itemId}?token=${token}`, {
+      method: "DELETE",
     }),
 };

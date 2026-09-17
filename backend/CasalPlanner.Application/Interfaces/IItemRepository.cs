@@ -22,5 +22,8 @@ namespace CasalPlanner.Application.Interfaces
         Task<(ResumoDto Resumo, ComparativoDto Comparativo)> ObterResumoAgregadoAsync(string usuarioId);
         Task<List<Item>> GetAllAsync();
         Task<Item?> UpdateRawAsync(Item item);
+        Task<Item?> PresentearItemAtuomicoAsync(string itemId, string usuarioId, string nomeConvidado, string undoToken, DateTime undoExpiresAt);
+        Task<List<Item>> GetItensListaPublicaAsync(string usuarioId);
+        Task<bool> DesfazerPresenteAsync(string itemId, string undoToken);
     }
 }

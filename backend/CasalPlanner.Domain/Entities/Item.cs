@@ -44,6 +44,9 @@ public class Item
     public DivisaoPagamento? DivisaoPagamento { get; set; }
     public DateTime? DataCompra { get; set; }
     public DateTime? UltimoAlertaPrecoAt { get; set; }
+
+    public string? UndoToken { get; set; }
+    public DateTime? UndoExpiresAt { get; set; }
 }
 
 [BsonIgnoreExtraElements]
