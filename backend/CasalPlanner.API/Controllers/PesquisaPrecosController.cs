@@ -1,63 +1,85 @@
-using CasalPlanner.Application.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using CasalPlanner.Application.Interfaces;
+using CasalPlanner.Application.DTOs;
 
 namespace CasalPlanner.API.Controllers;
 
+/// <summary>
+/// Controller para pesquisa de preços de produtos em múltiplas fontes.
+/// </summary>
 [Authorize]
 [ApiController]
-[Route("api/pesquisaprecos")]
+[Route("api/[controller]")]
+[Produces("application/json")]
 public class PesquisaPrecosController : ControllerBase
 {
-    private readonly IExtratorLinkService _extrator;
+    private readonly IPesquisaPrecosService _pesquisaPrecosService;
+    private readonly IExtratorLinkService _extratorLinkService;
     private readonly ILogger<PesquisaPrecosController> _logger;
 
-    public PesquisaPrecosController(IExtratorLinkService extrator, ILogger<PesquisaPrecosController> logger)
+    public PesquisaPrecosController(
+        IPesquisaPrecosService pesquisaPrecosService,
+        IExtratorLinkService extratorLinkService,
+        ILogger<PesquisaPrecosController> logger)
     {
-        _extrator = extrator;
+        _pesquisaPrecosService = pesquisaPrecosService;
+        _extratorLinkService = extratorLinkService;
         _logger = logger;
     }
 
-    public record ExtrairLinkRequest(string Url);
+    /// <summary>
+    /// Pesquisa preços de um produto em múltiplas fontes simultaneamente.
+    /// </summary>
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Get(
+        [FromQuery] string q,
+        [FromQuery] string? marca = null,
+        [FromQuery] string? buscaUsuario = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(q) || q.Length > 300)
+            return BadRequest(new { error = "Consulta inválida. O parâmetro 'q' é obrigatório e deve ter no máximo 300 caracteres." });
+
+        var (produtos, marcaIdentificada, nomeValidado, queryUtilizada) =
+            await _pesquisaPrecosService.PesquisarAsync(q, marca, buscaUsuario);
+
+        return Ok(new
+        {
+            produtos,
+            marca_identificada = marcaIdentificada,
+            nome_validado = nomeValidado,
+            query_utilizada = queryUtilizada,
+            total = produtos.Count()
+        });
+    }
+
+    public class ExtrairLinkRequest
+    {
+        public string Url { get; set; } = string.Empty;
+    }
 
     /// <summary>
-    /// Extrai nome, preço, imagem e loja de um link de produto de e-commerce.
+    /// Extrai dados de um produto a partir de um link de e-commerce.
     /// </summary>
     [HttpPost("extrair-link")]
-    public async Task<IActionResult> ExtrairLink([FromBody] ExtrairLinkRequest request, CancellationToken cancellationToken)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ExtrairDeLink(
+        [FromBody] ExtrairLinkRequest request,
+        CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(request.Url))
-            return BadRequest(new { message = "URL é obrigatória." });
+        if (string.IsNullOrWhiteSpace(request.Url) || !Uri.TryCreate(request.Url, UriKind.Absolute, out _))
+            return BadRequest(new { error = "URL inválida." });
 
-        if (!Uri.TryCreate(request.Url, UriKind.Absolute, out var uri) ||
-            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
-            return BadRequest(new { message = "URL inválida. Informe um link completo (https://...)." });
+        var produto = await _extratorLinkService.ExtrairAsync(request.Url, cancellationToken);
 
-        try
-        {
-            var produto = await _extrator.ExtrairAsync(request.Url, cancellationToken);
+        if (produto == null)
+            return NotFound(new { error = "Não foi possível extrair dados deste link. Tente preencher manualmente." });
 
-            if (produto is null)
-                return UnprocessableEntity(new { message = "Não foi possível extrair informações do produto nesse link. Tente informar os dados manualmente." });
-
-            // Mapeia para o formato esperado pelo frontend
-            return Ok(new
-            {
-                nome   = produto.Nome,
-                preco  = produto.Preco,
-                imagem = produto.Imagem,
-                url    = produto.Url,
-                loja   = produto.Loja,
-            });
-        }
-        catch (OperationCanceledException)
-        {
-            return StatusCode(StatusCodes.Status408RequestTimeout, new { message = "A extração demorou demais. Tente novamente." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao extrair link: {Url}", request.Url);
-            return StatusCode(StatusCodes.Status502BadGateway, new { message = "Erro ao acessar o link informado." });
-        }
+        return Ok(produto);
     }
 }

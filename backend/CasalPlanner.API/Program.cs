@@ -276,6 +276,17 @@ builder.Services.AddScoped<IRecuperarSenhaService, RecuperarSenhaService>();
 builder.Services.AddScoped<IPushService, PushService>();
 builder.Services.AddSingleton<CloudinaryService>();
 
+// ===== Price Providers (SerpAPI + Mercado Livre) =====
+builder.Services.AddScoped<IPriceProvider, GoogleShoppingProvider>();
+builder.Services.AddScoped<IPriceProvider, MercadoLivreProvider>();
+builder.Services.Configure<PriceSearchOptions>(options =>
+{
+    options.CacheExpirationMinutes = int.TryParse(Environment.GetEnvironmentVariable("PRICE_CACHE_MINUTES"), out var m) ? m : 30;
+    options.TimeoutSeconds = int.TryParse(Environment.GetEnvironmentVariable("PRICE_TIMEOUT_SECONDS"), out var t) ? t : 20;
+    options.RetryCount = 2;
+});
+builder.Services.AddScoped<IPesquisaPrecosService, PesquisaPrecosService>();
+
 // Serviço de KeepAlive para evitar que a API durma no Render
 builder.Services.AddHostedService<KeepAliveService>();
 

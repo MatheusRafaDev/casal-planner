@@ -1,4 +1,4 @@
-namespace CasalPlanner.Application.DTOs;
+﻿namespace CasalPlanner.Application.DTOs;
 
 public class ProdutoDto
 {
@@ -19,7 +19,7 @@ public class ProdutoDto
     public string Marca { get; set; } = string.Empty;
     public string Modelo { get; set; } = string.Empty;
     public string Fonte { get; set; } = string.Empty;
-    public decimal Score { get; set; } // Score de confiança (0 a 100)
+    public decimal Score { get; set; } // Score de confian├ºa (0 a 100)
     public DateTime DataConsulta { get; set; } = DateTime.UtcNow;
     public string? Parcelamento { get; set; }
     public string LogoLoja { get; set; } = string.Empty;

@@ -1,7 +1,7 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using CasalPlanner.Application.DTOs;
 using CasalPlanner.Application.Interfaces;
-using CasalPlanner.Application.Helpers;
+using CasalPlanner.Infrastructure.Helpers;
 
 namespace CasalPlanner.Infrastructure.Services.Providers;
 
@@ -49,7 +49,7 @@ public class MercadoLivreProvider : IPriceProvider
                 var link = item.TryGetProperty("permalink", out var l) ? l.GetString() ?? "" : "";
                 var thumbnail = item.TryGetProperty("thumbnail", out var th) ? th.GetString() ?? "" : "";
                 
-                // Melhora qualidade da imagem do ML substituindo -I por -O (ou -F) se possível
+                // Melhora qualidade da imagem do ML substituindo -I por -O (ou -F) se poss├¡vel
                 if (!string.IsNullOrEmpty(thumbnail))
                     thumbnail = thumbnail.Replace("-I.jpg", "-O.jpg");
 

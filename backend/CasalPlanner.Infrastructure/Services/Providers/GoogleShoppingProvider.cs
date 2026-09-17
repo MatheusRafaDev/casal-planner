@@ -1,23 +1,18 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using CasalPlanner.Application.DTOs;
 using CasalPlanner.Application.Interfaces;
-using Microsoft.Extensions.Logging;
-using CasalPlanner.Application.Helpers;
+using CasalPlanner.Infrastructure.Helpers;
 
 namespace CasalPlanner.Infrastructure.Services.Providers;
 
 public class GoogleShoppingProvider : IPriceProvider
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IScrapeDoService _scrapeDoService;
-    private readonly ILogger<GoogleShoppingProvider> _logger;
     public string ProviderName => "Google Shopping";
 
-    public GoogleShoppingProvider(IHttpClientFactory httpClientFactory, IScrapeDoService scrapeDoService, ILogger<GoogleShoppingProvider> logger)
+    public GoogleShoppingProvider(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
-        _scrapeDoService = scrapeDoService;
-        _logger = logger;
     }
 
     public async Task<IEnumerable<ProdutoDto>> SearchAsync(string query, CancellationToken cancellationToken)
@@ -37,10 +32,10 @@ public class GoogleShoppingProvider : IPriceProvider
         if (string.IsNullOrEmpty(content))
             return Enumerable.Empty<ProdutoDto>();
 
-        return await ProcessResultsAsync(content, query);
+        return ProcessResults(content, query);
     }
 
-    private async Task<IEnumerable<ProdutoDto>> ProcessResultsAsync(string jsonContent, string originalQuery)
+    private IEnumerable<ProdutoDto> ProcessResults(string jsonContent, string originalQuery)
     {
         var produtos = new List<ProdutoDto>();
         try
@@ -67,22 +62,6 @@ public class GoogleShoppingProvider : IPriceProvider
                 var link = ExtractLink(item);
 
                 if (string.IsNullOrEmpty(link)) continue;
-
-                // Ignora links que na verdade são apenas páginas de busca da loja (Ads)
-                if (link.Contains("lista.mercadolivre.com.br") || 
-                    link.Contains("amazon.com.br/s?k=") || 
-                    link.Contains("busca.magazineluiza.com.br"))
-                {
-                    // Tenta usar o link do próprio Google Shopping se for um Ad disfarçado
-                    if (item.TryGetProperty("product_link", out var pLink) && !string.IsNullOrEmpty(pLink.GetString()))
-                    {
-                        link = pLink.GetString() ?? "";
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                }
 
                 var isUsed = StoreAndBrandHelper.IsUsedProduct(title);
                 var isMarketplace = StoreAndBrandHelper.IsMarketplaceStore(source, title, isUsed);
@@ -134,48 +113,29 @@ public class GoogleShoppingProvider : IPriceProvider
 
     private static string ExtractLink(JsonElement item)
     {
-        string rawLink = "";
+        if (item.TryGetProperty("link", out var link) &&
+            link.GetString()?.Contains("google.com/shopping") == false)
+            return link.GetString() ?? "";
 
-        if (item.TryGetProperty("link", out var link) && !string.IsNullOrEmpty(link.GetString()))
-            rawLink = link.GetString() ?? "";
-        else if (item.TryGetProperty("product_link", out var productLink))
-            rawLink = productLink.GetString() ?? "";
-        else if (item.TryGetProperty("serpapi_product_api", out var serpLink))
-            rawLink = serpLink.GetString() ?? "";
-        else if (item.TryGetProperty("serpapi_link", out var serp))
-            rawLink = serp.GetString() ?? "";
+        if (item.TryGetProperty("product_link", out var productLink))
+            return productLink.GetString() ?? "";
 
-        if (string.IsNullOrEmpty(rawLink))
-            return "";
+        if (item.TryGetProperty("serpapi_product_api", out var serpLink))
+            return serpLink.GetString() ?? "";
 
-        // Tenta limpar redirecionamentos do Google Shopping (google.com/url?q=...)
-        try
-        {
-            if (rawLink.Contains("google.com/url") || rawLink.Contains("google.com.br/url"))
-            {
-                var uri = new Uri(rawLink);
-                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-                var directUrl = query["q"] ?? query["url"];
-                
-                if (!string.IsNullOrEmpty(directUrl))
-                {
-                    return directUrl;
-                }
-            }
-        }
-        catch
-        {
-            // fallback para o rawLink
-        }
+        if (item.TryGetProperty("serpapi_link", out var serp))
+            return serp.GetString() ?? "";
 
-        return rawLink;
+        return "";
     }
 
     private static decimal ExtractPrice(JsonElement item)
     {
-        // Ignoramos o 'extracted_price' do SerpApi pois ele falha grosseiramente
-        // com decimais no Brasil (ex: R$ 596,70 vira 59670).
-        // Sempre usamos o campo 'price' (string) para fazer nosso próprio parse.
+        if (item.TryGetProperty("extracted_price", out var extracted))
+        {
+            if (extracted.ValueKind == JsonValueKind.Number)
+                return extracted.GetDecimal();
+        }
 
         if (!item.TryGetProperty("price", out var priceElem))
             return 0;
