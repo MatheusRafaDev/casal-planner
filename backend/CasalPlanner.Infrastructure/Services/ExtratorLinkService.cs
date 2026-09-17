@@ -37,6 +37,10 @@ public class ExtratorLinkService : IExtratorLinkService
         produto = await TentarExtrairViaGoogleAmpAsync(url, cancellationToken);
         if (produto is not null) return produto;
 
+        // Estratégia 3: Tentar via Scrape.do proxy (para sites com proteção pesada como Magalu)
+        produto = await TentarExtrairViaScrapeDoAsync(url, cancellationToken);
+        if (produto is not null) return produto;
+
         _logger.LogWarning("Todas as estratégias de extração falharam para: {Url}", url);
         return null;
     }
@@ -104,6 +108,40 @@ public class ExtratorLinkService : IExtratorLinkService
         catch (Exception ex)
         {
             _logger.LogDebug(ex, "Falha na extração via AMP cache de {Url}", url);
+            return null;
+        }
+    }
+
+    // ─── Estratégia 3: Scrape.do Proxy ───────────────────────────────────────
+
+    private async Task<ProdutoDto?> TentarExtrairViaScrapeDoAsync(string url, CancellationToken ct)
+    {
+        try
+        {
+            var token = Environment.GetEnvironmentVariable("SCRAPEDO_TOKEN");
+            if (string.IsNullOrEmpty(token))
+            {
+                _logger.LogDebug("SCRAPEDO_TOKEN não configurada, pulando estratégia 3");
+                return null;
+            }
+
+            var proxyUrl = $"http://api.scrape.do/?token={token}&url={Uri.EscapeDataString(url)}";
+
+            var req = new HttpRequestMessage(HttpMethod.Get, proxyUrl);
+            
+            using var resp = await _httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
+            if (!resp.IsSuccessStatusCode)
+            {
+                _logger.LogDebug("Scrape.do retornou {Status} para {Url}", resp.StatusCode, url);
+                return null;
+            }
+
+            var html = await resp.Content.ReadAsStringAsync(ct);
+            return ParseHtml(html, url);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Falha na extração via Scrape.do de {Url}", url);
             return null;
         }
     }
