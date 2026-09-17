@@ -7,11 +7,13 @@ namespace CasalPlanner.API.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+        private readonly IHostEnvironment _env;
 
-        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger, IHostEnvironment env)
         {
             _next = next;
             _logger = logger;
+            _env = env;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -57,7 +59,8 @@ namespace CasalPlanner.API.Middlewares
 
                 default:
                     _logger.LogError(exception, "Exceção não tratada capturada pelo middleware.");
-                    message = exception.Message; // Mantendo para não quebrar contrato do frontend por enquanto
+                    // Nunca expor detalhes internos em produção.
+                    message = _env.IsDevelopment() ? exception.Message : "Erro interno no servidor.";
                     break;
             }
 

@@ -402,8 +402,8 @@ namespace CasalPlanner.Infrastructure.Services
 
         private string GerarCodigoVerificacao()
         {
-            var random = new Random();
-            return random.Next(100000, 999999).ToString();
+            return System.Security.Cryptography.RandomNumberGenerator
+                .GetInt32(100000, 1000000).ToString();
         }
 
         private string GerarTokenUnico()

@@ -15,11 +15,22 @@ export class ApiError extends Error {
   }
 }
 
+/** Base resolvida: string vazia (relativo) quando a env não está definida. */
+function resolveBaseUrl(): string {
+  return API_BASE_URL && API_BASE_URL !== "undefined" ? API_BASE_URL : "";
+}
+
+/** Origin seguro em SSR, onde `window` não existe. */
+function currentOrigin(): string {
+  return typeof window !== "undefined" ? window.location.origin : "http://localhost";
+}
+
 let refreshInFlight: Promise<boolean> | null = null;
 
 async function refreshSession(): Promise<boolean> {
   if (!refreshInFlight) {
-    refreshInFlight = fetch(new URL(`${API_BASE_URL}/api/auth/refresh`).toString(), {
+    const refreshUrl = new URL(`${resolveBaseUrl()}/api/auth/refresh`, currentOrigin()).toString();
+    refreshInFlight = fetch(refreshUrl, {
       method: "POST",
       credentials: "include",
       headers: { Accept: "application/json" },
@@ -43,8 +54,8 @@ export interface ApiOptions extends Omit<RequestInit, "body" | "headers"> {
 export async function api<T = unknown>(path: string, opts: ApiOptions = {}): Promise<T> {
   const { body, headers = {}, query, ...rest } = opts;
 
-  const baseURL = API_BASE_URL && API_BASE_URL !== "undefined" ? API_BASE_URL : "";
-  const url = new URL(path.startsWith("http") ? path : `${baseURL}${path}`, window.location.origin);
+  const baseURL = resolveBaseUrl();
+  const url = new URL(path.startsWith("http") ? path : `${baseURL}${path}`, currentOrigin());
   if (query) {
     for (const [k, v] of Object.entries(query)) {
       if (v !== undefined && v !== null) url.searchParams.set(k, String(v));

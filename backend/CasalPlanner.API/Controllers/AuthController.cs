@@ -38,6 +38,12 @@ namespace CasalPlanner.API.Controllers
             _environment = environment;
         }
 
+        // Hash BCrypt fixo (workFactor 12) usado só para igualar o tempo de resposta.
+        private const string DummyHash = "$2a$12$usesomesillystringfore7hnbRJHxXVLeakoG8K30oukPsA.ztMG";
+
+        private static int JwtExpiresInMinutes =>
+            int.TryParse(Environment.GetEnvironmentVariable("JWT_EXPIRES_IN"), out var m) && m > 0 ? m : 60;
+
         private void SetTokenCookie(string token, string? refreshToken = null)
         {
             var cookieOptions = new CookieOptions
@@ -45,7 +51,7 @@ namespace CasalPlanner.API.Controllers
                 HttpOnly = true,
                 Secure = !_environment.IsDevelopment(),
                 SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
-                Expires = DateTime.UtcNow.AddDays(7)
+                Expires = DateTime.UtcNow.AddMinutes(JwtExpiresInMinutes)
             };
             Response.Cookies.Append("cp_token", token, cookieOptions);
 
@@ -90,6 +96,9 @@ namespace CasalPlanner.API.Controllers
 
             if (usuario == null)
             {
+                // Hash dummy: mantém o custo de tempo igual ao de um usuário existente,
+                // impedindo enumeração de contas por timing.
+                BCrypt.Net.BCrypt.Verify(dto.Senha ?? string.Empty, DummyHash);
                 _logger.LogWarning("Tentativa de login falhou (usuário não encontrado): {Email}", dto.Email);
                 return Unauthorized(new { message = "Credenciais inválidas" });
             }
@@ -223,8 +232,20 @@ namespace CasalPlanner.API.Controllers
                         : Builders<Usuario>.Update.Set(u => u.RefreshToken, null).Set(u => u.RefreshTokenExpiraEm, null);
                 await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioId, update);
             }
-            Response.Cookies.Delete("cp_token");
-            Response.Cookies.Delete("cp_refresh_token", new CookieOptions { Path = "/api/auth", Secure = !_environment.IsDevelopment(), SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None });
+            var deleteOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure   = !_environment.IsDevelopment(),
+                SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None
+            };
+            Response.Cookies.Delete("cp_token", deleteOptions);
+            Response.Cookies.Delete("cp_refresh_token", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure   = !_environment.IsDevelopment(),
+                SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
+                Path     = "/api/auth"
+            });
             return Ok(new { message = "Logout realizado com sucesso" });
         }
 

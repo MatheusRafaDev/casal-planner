@@ -52,7 +52,7 @@ var jwtKey      = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
 var jwtIssuer   = Environment.GetEnvironmentVariable("JWT_ISSUER")   ?? "CasalPlanner";
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "CasalPlannerUsers";
 
-if (jwtKey.Length < 10)
+if (jwtKey.Length < 32)
     throw new Exception("JWT_SECRET_KEY deve ter no mínimo 32 caracteres");
 
 var mongoConnection = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING")
@@ -131,6 +131,8 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
         new() { Endpoint = "POST:/api/auth/*",           Period = "10m", Limit = authLimit },
         new() { Endpoint = "POST:/api/recuperarsenha/*", Period = "10m", Limit = authLimit },
         new() { Endpoint = "POST:/api/registropreco/analisar", Period = "1h", Limit = 50 },
+        new() { Endpoint = "POST:/api/public/lista/*",   Period = "10m", Limit = 5 },
+        new() { Endpoint = "GET:/api/public/lista/*",    Period = "10m", Limit = 60 },
     };
 });
 builder.Services.AddInMemoryRateLimiting();
@@ -140,7 +142,7 @@ builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>()
 builder.Services.Configure<MongoDBSettings>(opt =>
 {
     opt.ConnectionString = mongoConnection;
-    opt.DatabaseName     = "CasalPlannerDB";
+    opt.DatabaseName     = Environment.GetEnvironmentVariable("MONGODB_DATABASE") ?? "CasalPlannerDB";
 });
 builder.Services.AddSingleton<MongoDbContext>();
 
@@ -190,29 +192,14 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CasalPlannerPolicy", policy =>
     {
-        if (builder.Environment.IsDevelopment())
-        {
-            // Em desenvolvimento: mais flexível
-            policy.WithOrigins(allowedOriginsList.ToArray())
-                  .AllowAnyMethod()
-                  .AllowAnyHeader()
-                  .AllowCredentials();
-            Console.WriteLine("🔓 CORS: Modo desenvolvimento - liberado para testes");
-        }
-        else
-        {
-            // Em produção: apenas origens específicas da ENV
-            policy.WithOrigins(allowedOriginsList.ToArray())
-                  .AllowAnyMethod()
-                  .AllowAnyHeader()
-                  .AllowCredentials();
-            
-            Console.WriteLine($"🔒 CORS: Modo produção - origens permitidas:");
-            foreach (var origin in allowedOriginsList)
-            {
-                Console.WriteLine($"   - {origin}");
-            }
-        }
+        policy.WithOrigins(allowedOriginsList.ToArray())
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+
+        Console.WriteLine($"🔒 CORS ({builder.Environment.EnvironmentName}) - origens permitidas:");
+        foreach (var origin in allowedOriginsList)
+            Console.WriteLine($"   - {origin}");
     });
 });
 
@@ -512,6 +499,9 @@ try
 catch (Exception ex)
 {
     Console.WriteLine($"❌ Erro na inicialização: {ex.Message}");
+    // Sem banco a API não funciona: derruba o processo em vez de subir "saudável"
+    // e responder 500 em toda request. O orquestrador reinicia.
+    if (!app.Environment.IsDevelopment()) throw;
 }
 
 // ===== 12. INICIAR SERVIDOR =====

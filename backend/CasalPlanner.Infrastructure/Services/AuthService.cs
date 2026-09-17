@@ -38,7 +38,9 @@ namespace CasalPlanner.Infrastructure.Services
             var emailNormalizado = NormalizarEmail(dto.Email);
 
             var usuarioExistente = await _context.Usuarios
-                .Find(u => u.Email == emailNormalizado)
+                .Find(u => u.Email == emailNormalizado ||
+                          (u.CasalInfo != null && u.CasalInfo.EmailPessoa1 == emailNormalizado) ||
+                          (u.CasalInfo != null && u.CasalInfo.EmailPessoa2 == emailNormalizado))
                 .FirstOrDefaultAsync();
 
             if (usuarioExistente != null) return null;
@@ -224,7 +226,8 @@ namespace CasalPlanner.Infrastructure.Services
             var descriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = DateTime.UtcNow.AddMinutes(
+                    int.TryParse(Environment.GetEnvironmentVariable("JWT_EXPIRES_IN"), out var expMin) && expMin > 0 ? expMin : 60),
                 Issuer = jwtIssuer,
                 Audience = jwtAudience,
                 SigningCredentials = new SigningCredentials(
@@ -241,6 +244,7 @@ namespace CasalPlanner.Infrastructure.Services
             using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
             rng.GetBytes(tokenBytes);
             var token = Convert.ToBase64String(tokenBytes);
+            var tokenHash = HashRefreshToken(token);
             var expiraEm = DateTime.UtcNow.AddDays(30);
 
             var update = Builders<Usuario>.Update;
@@ -249,19 +253,19 @@ namespace CasalPlanner.Infrastructure.Services
             if (string.IsNullOrEmpty(pessoa))
             {
                 updateDef = update
-                    .Set(u => u.RefreshToken, token)
+                    .Set(u => u.RefreshToken, tokenHash)
                     .Set(u => u.RefreshTokenExpiraEm, expiraEm);
             }
             else if (pessoa == "pessoa1")
             {
                 updateDef = update
-                    .Set(u => u.CasalInfo!.RefreshTokenPessoa1, token)
+                    .Set(u => u.CasalInfo!.RefreshTokenPessoa1, tokenHash)
                     .Set(u => u.CasalInfo!.RefreshTokenExpiraEmPessoa1, expiraEm);
             }
             else
             {
                 updateDef = update
-                    .Set(u => u.CasalInfo!.RefreshTokenPessoa2, token)
+                    .Set(u => u.CasalInfo!.RefreshTokenPessoa2, tokenHash)
                     .Set(u => u.CasalInfo!.RefreshTokenExpiraEmPessoa2, expiraEm);
             }
 
@@ -270,8 +274,12 @@ namespace CasalPlanner.Infrastructure.Services
             return (token, expiraEm);
         }
 
+        private static string HashRefreshToken(string token) =>
+            Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+
         public async Task<(Usuario? Usuario, string? Pessoa)> ValidarRefreshToken(string refreshToken)
         {
+            refreshToken = HashRefreshToken(refreshToken);
             // Busca como individual
             var individual = await _context.Usuarios
                 .Find(u => u.TipoConta == TipoConta.Individual && 
