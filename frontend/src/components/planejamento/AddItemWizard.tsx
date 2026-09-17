@@ -298,6 +298,29 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     setShowSuggestions(false);
   };
 
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      // Aceitar paste apenas no primeiro passo e se não estiver processando
+      if (step !== 1 || analisandoFoto) return;
+
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf("image") !== -1) {
+          const file = items[i].getAsFile();
+          if (file) {
+            handleFile(file);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener("paste", handlePaste as any);
+    return () => window.removeEventListener("paste", handlePaste as any);
+  }, [step, analisandoFoto]);
+
   const handleFile = async (file?: File) => {
     if (!file) return;
     setAnalisandoFoto(true);
@@ -516,7 +539,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Upload className="h-6 w-6 text-primary" />
-                  Subir foto
+                  Subir foto / Colar
                 </Button>
               </div>
               {analisandoFoto && (
