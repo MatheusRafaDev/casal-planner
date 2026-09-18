@@ -13,7 +13,7 @@ namespace CasalPlanner.API.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<KeepAliveService> _logger;
         private readonly string? _keepAliveUrl;
-        private readonly TimeSpan _interval = TimeSpan.FromMinutes(1); // Render dorme em 15 min de inatividade
+        private readonly TimeSpan _interval = TimeSpan.FromMinutes(14); // Render dorme em 15 min de inatividade
 
         public KeepAliveService(IHttpClientFactory httpClientFactory, ILogger<KeepAliveService> logger, IConfiguration configuration)
         {
