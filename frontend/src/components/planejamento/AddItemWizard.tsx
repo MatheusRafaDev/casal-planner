@@ -324,7 +324,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     return () => window.removeEventListener("paste", handlePaste as EventListener);
   }, [step, analisandoFoto]);
 
-  const handleFile = async (file?: File) => {
+  async function handleFile(file?: File) {
     if (!file) return;
 
     // Eagerly set preview so the user sees the photo immediately
@@ -357,7 +357,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
       if (fileInputRef.current) fileInputRef.current.value = "";
       if (cameraInputRef.current) cameraInputRef.current.value = "";
     }
-  };
+  }
 
   const dupQuery = useQuery({
     queryKey: ["duplicata", nome, categoriaId],
