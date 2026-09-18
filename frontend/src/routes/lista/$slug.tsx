@@ -50,6 +50,8 @@ export const Route = createFileRoute("/lista/$slug")({
   component: ListaPublicaPage,
 });
 
+const EMPTY_ARRAY: ItemPublico[] = [];
+
 function ListaPublicaPage() {
   const { slug } = useParams({ from: "/lista/$slug" });
   const loaderData = Route.useLoaderData();
@@ -108,7 +110,7 @@ function ListaPublicaPage() {
   });
 
   const casal = data?.casal;
-  const itens = data?.itens || [];
+  const itens = data?.itens ?? EMPTY_ARRAY;
 
   const comprados = itens.filter(i => i.comprado).length;
   const progresso = itens.length > 0 ? (comprados / itens.length) * 100 : 0;

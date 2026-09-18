@@ -298,6 +298,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     setShowSuggestions(false);
   };
 
+  const handleFileRef = useRef(handleFile);
+  handleFileRef.current = handleFile;
+
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       // Aceitar paste apenas no primeiro passo e se não estiver processando
@@ -310,15 +313,15 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         if (items[i].type.indexOf("image") !== -1) {
           const file = items[i].getAsFile();
           if (file) {
-            handleFile(file);
+            handleFileRef.current(file);
             break;
           }
         }
       }
     };
 
-    window.addEventListener("paste", handlePaste as any);
-    return () => window.removeEventListener("paste", handlePaste as any);
+    window.addEventListener("paste", handlePaste as EventListener);
+    return () => window.removeEventListener("paste", handlePaste as EventListener);
   }, [step, analisandoFoto]);
 
   const handleFile = async (file?: File) => {
@@ -422,7 +425,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
       
       // Tenta achar categoria pelo nome retornado
       const lower = r.titulo.toLowerCase();
-      let cat = categorias.find(c => lower.includes(c.nome.toLowerCase()));
+      const cat = categorias.find(c => lower.includes(c.nome.toLowerCase()));
       if (cat) setCategoriaId(cat.id);
       else if (!categoriaId) setCategoriaId(categorias[0]?.id);
 

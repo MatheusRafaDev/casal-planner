@@ -204,8 +204,44 @@ function InicioPage() {
       : 0;
   const qtdGanhos = itens.filter((i) => i.origem === "ganho").length;
 
-  // Bar chart mensal — com nomes reais dos meses
+  // Bar chart mensal — com nomes reais dos meses e cálculo manual
   const hoje = new Date();
+  const inicioMesAtual = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  const inicioMesPassado = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+  const inicioMesRetrasado = new Date(hoje.getFullYear(), hoje.getMonth() - 2, 1);
+  const inicioProximoMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1);
+
+  let atualComprado = 0;
+  let atualPrevisao = 0;
+  let passadoComprado = 0;
+  let passadoPrevisao = 0;
+  let retrasadoComprado = 0;
+  let retrasadoPrevisao = 0;
+
+  itens.forEach((i) => {
+    if (["ganho", "presente", "prometido"].includes(i.origem ?? "")) return;
+
+    const dataRefStr = i.dataCompra || i.createdAt;
+    if (!dataRefStr) return;
+    
+    // Tratando a data de referência para evitar problemas de timezone
+    // Vamos apenas focar no ano/mês que a string (YYYY-MM-DD) ou timestamp indica
+    const dataRef = new Date(dataRefStr);
+
+    const valorTotal = i.preco * i.quantidade;
+
+    if (dataRef >= inicioMesAtual && dataRef < inicioProximoMes) {
+      if (i.comprado) atualComprado += valorTotal;
+      else atualPrevisao += valorTotal;
+    } else if (dataRef >= inicioMesPassado && dataRef < inicioMesAtual) {
+      if (i.comprado) passadoComprado += valorTotal;
+      else passadoPrevisao += valorTotal;
+    } else if (dataRef >= inicioMesRetrasado && dataRef < inicioMesPassado) {
+      if (i.comprado) retrasadoComprado += valorTotal;
+      else retrasadoPrevisao += valorTotal;
+    }
+  });
+
   const MESES_PT = [
     "Jan",
     "Fev",
@@ -225,16 +261,19 @@ function InicioPage() {
   const mesRetrasadoNome = MESES_PT[(hoje.getMonth() + 10) % 12];
 
   const dadosMensais = [
-    { mes: mesRetrasadoNome, valor: r?.mesRetrasado ?? 0 },
-    { mes: mesPassadoNome, valor: r?.mesPassado ?? 0 },
-    { mes: mesAtualNome, valor: r?.mesAtual ?? 0 },
+    { mes: mesRetrasadoNome, comprado: retrasadoComprado, previsao: retrasadoPrevisao, total: retrasadoComprado + retrasadoPrevisao },
+    { mes: mesPassadoNome, comprado: passadoComprado, previsao: passadoPrevisao, total: passadoComprado + passadoPrevisao },
+    { mes: mesAtualNome, comprado: atualComprado, previsao: atualPrevisao, total: atualComprado + atualPrevisao },
   ];
 
-  // Variação % do mês atual em relação ao passado
+  // Variação % do mês atual em relação ao passado (considerando o total projetado)
+  const passadoTotal = passadoComprado + passadoPrevisao;
+  const atualTotal = atualComprado + atualPrevisao;
   const variacaoAtual =
-    (r?.mesPassado ?? 0) > 0
-      ? (((r?.mesAtual ?? 0) - (r?.mesPassado ?? 0)) / (r?.mesPassado ?? 0)) * 100
+    passadoTotal > 0
+      ? ((atualTotal - passadoTotal) / passadoTotal) * 100
       : null;
+
 
   // ─── Gerador de Relatório PDF Financeiro ───────────────────────────────────
   const gerarRelatorioFinanceiro = async () => {
@@ -518,67 +557,6 @@ function InicioPage() {
               />
             </div>
 
-            {/* Divisão de Gastos (Casal) */}
-            {isCasal && r && (r.totalPessoa1 > 0 || r.totalPessoa2 > 0) && (
-              <div className="rounded-2xl border bg-card p-5 shadow-soft">
-                <h3 className="font-display text-lg font-semibold mb-3">Divisão de Gastos</h3>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                  <div className="flex-1 w-full">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="font-medium">{p1}</span>
-                      <span className="font-medium">{p2}</span>
-                    </div>
-                    <div className="flex h-3 w-full rounded-full overflow-hidden bg-muted">
-                      <div
-                        className="h-full bg-primary transition-all"
-                        style={{
-                          width: `${(r.totalPessoa1 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100}%`,
-                        }}
-                      />
-                      <div
-                        className="h-full bg-terracota transition-all"
-                        style={{
-                          width: `${(r.totalPessoa2 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100}%`,
-                          backgroundColor: "var(--terracota, #ec4899)",
-                        }}
-                      />
-                    </div>
-                    <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                      <span>
-                        {((r.totalPessoa1 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100).toFixed(
-                          0,
-                        )}
-                        %
-                      </span>
-                      <span>
-                        {((r.totalPessoa2 / (r.totalPessoa1 + r.totalPessoa2 || 1)) * 100).toFixed(
-                          0,
-                        )}
-                        %
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-6 shrink-0">
-                    <div>
-                      <div className="text-xs text-muted-foreground">{p1}</div>
-                      <div className="text-xl font-display font-semibold text-primary">
-                        {brl(r.totalPessoa1)}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground font-medium mb-1">{p2}</div>
-                      <div
-                        className="text-xl font-display font-semibold"
-                        style={{ color: "var(--terracota, #ec4899)" }}
-                      >
-                        {brl(r.totalPessoa2)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Gráficos */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -705,9 +683,9 @@ function InicioPage() {
                   tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
                 />
                 <Tooltip
-                  formatter={(v: number) => [
+                  formatter={(v: number, name: string) => [
                     <span style={{ color: "white" }}>{brl(v)}</span>,
-                    <span style={{ color: "white" }}>Gasto</span>,
+                    <span style={{ color: "white" }}>{name === "comprado" ? "Comprado" : "Previsão"}</span>,
                   ]}
                   contentStyle={{
                     borderRadius: 8,
@@ -716,7 +694,8 @@ function InicioPage() {
                   }}
                   labelStyle={{ color: "white" }}
                 />
-                <Bar dataKey="valor" fill="var(--primary)" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="comprado" stackId="a" fill="var(--primary)" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="previsao" stackId="a" fill="var(--primary)" fillOpacity={0.4} radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

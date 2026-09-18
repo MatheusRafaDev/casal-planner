@@ -64,7 +64,15 @@ export const pesquisaPrecosService = {
   },
 
   extrairDeLink: async (url: string): Promise<PesquisaPrecoResultado> => {
-    const produto = await api<any>("/api/pesquisaprecos/extrair-link", {
+    interface ExtracaoResposta {
+      nome?: string;
+      loja?: string;
+      preco?: number;
+      url?: string;
+      imagem?: string;
+    }
+
+    const produto = await api<ExtracaoResposta>("/api/pesquisaprecos/extrair-link", {
       method: "POST",
       body: { url },
     });
