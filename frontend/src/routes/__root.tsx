@@ -153,6 +153,17 @@ function RootComponent() {
         sessionStorage.setItem("app_initialized", "true");
       }
     }
+
+    // Capturar erro de lazy loading do Vite (ex: Vercel deployou novos chunks e o PWA tentou buscar os antigos)
+    const handlePreloadError = (e: Event) => {
+      e.preventDefault();
+      window.location.reload();
+    };
+    window.addEventListener("vite:preloadError", handlePreloadError);
+    
+    return () => {
+      window.removeEventListener("vite:preloadError", handlePreloadError);
+    };
   }, []);
 
   return (
