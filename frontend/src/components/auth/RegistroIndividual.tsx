@@ -44,8 +44,8 @@ export function RegistroIndividual({ returnUrl }: { returnUrl?: string }) {
       });
       await refresh();
       toast.success("Conta criada! Bem-vindo(a).");
-      if (returnUrl) {
-        window.location.href = returnUrl;
+      if (returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")) {
+        navigate({ to: returnUrl as any });
       } else {
         navigate({ to: "/inicio" });
       }

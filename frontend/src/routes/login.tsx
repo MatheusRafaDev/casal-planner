@@ -37,8 +37,8 @@ function LoginPage() {
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      if (returnUrl) {
-        window.location.href = returnUrl;
+      if (returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")) {
+        navigate({ to: returnUrl as any });
       } else {
         navigate({ to: "/inicio" });
       }

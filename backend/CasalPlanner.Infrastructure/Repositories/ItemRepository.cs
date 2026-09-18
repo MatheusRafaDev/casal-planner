@@ -150,7 +150,9 @@ namespace CasalPlanner.Infrastructure.Repositories
 
         public async Task<Item?> UpdateRawAsync(Item item)
         {
-            var filter = Builders<Item>.Filter.Eq(i => i.Id, item.Id);
+            var filter = Builders<Item>.Filter.And(
+                Builders<Item>.Filter.Eq(i => i.Id, item.Id),
+                Builders<Item>.Filter.Eq(i => i.UsuarioId, item.UsuarioId));
             var options = new FindOneAndReplaceOptions<Item> { ReturnDocument = ReturnDocument.After };
             return await _context.Itens.FindOneAndReplaceAsync(filter, item, options);
         }

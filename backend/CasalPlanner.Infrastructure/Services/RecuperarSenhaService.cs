@@ -68,12 +68,12 @@ namespace CasalPlanner.Infrastructure.Services
                 if (usuario == null)
                 {
                     _logger.LogWarning("Tentativa de recuperação para email não cadastrado: {Email}", email);
+                    // Prevenir enumeração de emails: fingir sucesso
                     return new EsqueciSenhaResponseDto
                     {
-                        Success = false,
-                        Message = "Este email não está cadastrado em nossa plataforma",
-                        Code = "USER_NOT_FOUND",
-                        EmailExists = false
+                        Success = true,
+                        Message = "Se o e-mail estiver cadastrado, você receberá um código em instantes.",
+                        EmailExists = true
                     };
                 }
 
@@ -141,7 +141,7 @@ namespace CasalPlanner.Infrastructure.Services
                 return new EsqueciSenhaResponseDto
                 {
                     Success = true,
-                    Message = "Código enviado com sucesso!",
+                    Message = "Se o e-mail estiver cadastrado, você receberá um código em instantes.",
                     EmailExists = true
                 };
             }

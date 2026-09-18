@@ -134,8 +134,8 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
     try {
       await loginComGoogle(response.credential);
       toast.success("Bem-vindo(a)!");
-      if (returnUrl) {
-        window.location.href = returnUrl;
+      if (returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")) {
+        navigate({ to: returnUrl as any });
       } else {
         navigate({ to: "/inicio" });
       }
@@ -159,8 +159,8 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
     try {
       await login(email, senha);
       toast.success("Bem-vindo(a) de volta!");
-      if (returnUrl) {
-        window.location.href = returnUrl;
+      if (returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")) {
+        navigate({ to: returnUrl as any });
       } else {
         navigate({ to: "/inicio" });
       }
