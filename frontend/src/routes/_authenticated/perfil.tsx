@@ -48,7 +48,7 @@ import { maskDate, brToIsoDate, formatDate, brl } from "@/lib/formatters";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
-    meta: [{ title: "Perfil - CasalPlanner" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "CasalPlanner - Perfil" }, { name: "robots", content: "noindex" }],
   }),
   component: PerfilPage,
 });

@@ -80,7 +80,7 @@ const AddItemWizard = lazy(() =>
 
 export const Route = createFileRoute("/_authenticated/planejamento")({
   head: () => ({
-    meta: [{ title: "Planejamento - CasalPlanner" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "CasalPlanner - Planejamento" }, { name: "robots", content: "noindex" }],
   }),
   component: PlanejamentoPage,
 });

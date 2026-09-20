@@ -17,7 +17,7 @@ export const Route = createFileRoute("/login")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [
-      { title: "Entrar - CasalPlanner" },
+      { title: "CasalPlanner - Entrar" },
       { name: "description", content: "Acesse sua conta do CasalPlanner." },
       { name: "robots", content: "noindex" },
     ],

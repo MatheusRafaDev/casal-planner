@@ -10,7 +10,7 @@ export const Route = createFileRoute("/recuperar-senha")({
     };
   },
   head: () => ({
-    meta: [{ title: "Recuperar senha - CasalPlanner" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "CasalPlanner - Recuperar senha" }, { name: "robots", content: "noindex" }],
   }),
   component: RecuperarPage,
 });

@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/trocar-senha")({
   head: () => ({
-    meta: [{ title: "Trocar senha - CasalPlanner" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "CasalPlanner - Trocar senha" }, { name: "robots", content: "noindex" }],
   }),
   component: TrocarSenhaPage,
 });

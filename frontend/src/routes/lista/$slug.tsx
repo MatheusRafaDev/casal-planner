@@ -39,7 +39,7 @@ export const Route = createFileRoute("/lista/$slug")({
     const casal = loaderData?.casal ?? "Casal";
     return {
       meta: [
-        { title: `Lista de Desejos — ${casal}` },
+        { title: `CasalPlanner - Lista de Desejos — ${casal}` },
         { property: "og:title", content: `Lista de presentes de ${casal}` },
         { property: "og:description", content: "Escolha um presente para a nova casa 💝" },
         { property: "og:image", content: "https://casalplanner.vercel.app/og-lista.png" },
