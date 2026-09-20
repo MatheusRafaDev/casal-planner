@@ -14,6 +14,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { Toaster } from "@/components/ui/sonner";
 import { clearAppData } from "@/lib/clear-app-data";
+import { api } from "@/lib/api";
 
 function NotFoundComponent() {
   return (
@@ -145,6 +146,15 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    // Keep-alive: ping no backend a cada 14 minutos para evitar cold starts (ex: Render) enquanto a aba estiver aberta
+    const keepAliveInterval = setInterval(() => {
+      api("/api/health").catch(() => {});
+    }, 14 * 60 * 1000);
+
+    return () => clearInterval(keepAliveInterval);
+  }, []);
 
   useEffect(() => {
     if (import.meta.env.DEV) {
