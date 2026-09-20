@@ -1,5 +1,5 @@
 /**
- * Cliente HTTP central que fala com a API .NET do Casal Planner.
+ * Cliente HTTP central que fala com a API .NET do CasalPlanner.
  * Usa somente cookies HttpOnly, normaliza erros e devolve JSON tipado.
  */
 

@@ -31,9 +31,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <aside className="hidden md:flex md:flex-col w-64 border-r bg-sidebar text-sidebar-foreground fixed inset-y-0 left-0 z-50 overflow-hidden">
         <div className="p-6">
           <Link to="/inicio" className="flex items-center gap-2">
-            <img src="/logo.png" alt="Casal Planner" className="h-10 w-10 rounded-lg" />
-            <div className="leading-tight">
-              <div className="font-display text-lg font-semibold">Casal Planner</div>
+            <img src="/logo.png" alt="CasalPlanner" className="h-10 w-10 rounded-lg" />
+            <div className="flex flex-col">
+              <div className="font-display text-lg font-semibold">CasalPlanner</div>
               <div className="text-xs text-muted-foreground">Enxoval organizado</div>
             </div>
           </Link>

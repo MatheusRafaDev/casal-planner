@@ -1,5 +1,5 @@
 /**
- * Casal Planner — Service Worker
+ * CasalPlanner — Service Worker
  *
  * Estratégia:
  *  - Cache-first  → assets estáticos (JS, CSS, fontes, imagens)
@@ -137,7 +137,7 @@ function offlinePage() {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Casal Planner — Sem conexão</title>
+  <title>CasalPlanner - Sem conexão</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }

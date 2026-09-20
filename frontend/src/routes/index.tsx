@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Casal Planner — Enxoval de casa nova, sem dor de cabeça" },
+      { title: "CasalPlanner - Enxoval de casa nova, sem dor de cabeça" },
       {
         name: "description",
         content:
@@ -83,8 +83,8 @@ function Home_() {
       >
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-16">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Casal Planner" className="h-10 w-10 rounded-lg" />
-            <span className="font-display text-lg font-semibold">Casal Planner</span>
+            <img src="/logo.png" alt="CasalPlanner" className="h-10 w-10 rounded-lg" />
+            <span className="font-display text-lg font-semibold">CasalPlanner</span>
           </div>
           <nav className="flex items-center gap-2">
             <Button asChild variant="ghost">
@@ -244,7 +244,7 @@ function Home_() {
       </section>
 
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} Casal Planner. Feito com carinho.
+        © {new Date().getFullYear()} CasalPlanner. Feito com carinho.
       </footer>
     </div>
   );

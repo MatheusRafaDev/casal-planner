@@ -53,7 +53,7 @@
 @custom-variant xs (@media (width >= 360px));
 
 /*
- * Casal Planner — Design System
+ * CasalPlanner — Design System
  * Paleta: creme, sálvia, terracota, mel. Tudo em oklch.
  * Fonts: Space Grotesk (display) + Inter (body), carregadas via <link> em __root.
  */
@@ -61,7 +61,7 @@
 :root {
   --radius: 0.875rem;
 
-  /* Casal Planner — paleta roxa moderna e acolhedora */
+  /* CasalPlanner — paleta roxa moderna e acolhedora */
   --background: oklch(0.982 0.012 85);
   --foreground: oklch(0.27 0.035 145);
 

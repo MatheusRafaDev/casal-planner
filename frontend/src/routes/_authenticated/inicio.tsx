@@ -36,7 +36,7 @@ import type { Item } from "@/services/types";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   head: () => ({
-    meta: [{ title: "Início — Casal Planner" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Início - CasalPlanner" }, { name: "robots", content: "noindex" }],
   }),
   component: InicioPage,
 });

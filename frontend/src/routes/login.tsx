@@ -17,8 +17,8 @@ export const Route = createFileRoute("/login")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [
-      { title: "Entrar — Casal Planner" },
-      { name: "description", content: "Acesse sua conta do Casal Planner." },
+      { title: "Entrar - CasalPlanner" },
+      { name: "description", content: "Acesse sua conta do CasalPlanner." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -52,8 +52,8 @@ function LoginPage() {
         <div className="absolute inset-0 bg-gradient-hero" />
         <div className="relative z-10 p-12 flex flex-col justify-between w-full">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="Casal Planner" className="h-9 w-9 rounded-lg" />
-            <span className="font-display text-lg font-semibold">Casal Planner</span>
+            <img src="/logo.png" alt="CasalPlanner" className="h-9 w-9 rounded-lg" />
+            <span className="font-display text-lg font-semibold">CasalPlanner</span>
           </Link>
           <div className="max-w-md space-y-4">
             <h2 className="font-display text-4xl font-semibold leading-tight">
@@ -75,8 +75,8 @@ function LoginPage() {
       <div className="flex items-center justify-center p-6 md:p-12 md:order-first">
         <div className="w-full max-w-md space-y-6">
           <div className="md:hidden flex items-center gap-2">
-            <img src="/logo.png" alt="Casal Planner" className="h-9 w-9 rounded-lg" />
-            <span className="font-display text-lg font-semibold">Casal Planner</span>
+            <img src="/logo.png" alt="CasalPlanner" className="h-9 w-9 rounded-lg" />
+            <span className="font-display text-lg font-semibold">CasalPlanner</span>
           </div>
 
           <div>

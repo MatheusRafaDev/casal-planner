@@ -1,6 +1,6 @@
 {
-  "name": "Casal Planner",
-  "short_name": "Casal Planner",
+  "name": "CasalPlanner",
+  "short_name": "CasalPlanner",
   "description": "Planeje a compra dos itens da casa nova por cômodo, controle orçamento em VR e dinheiro, e pesquise preços com IA. Feito para casais e para você.",
   "start_url": "/",
   "scope": "/",

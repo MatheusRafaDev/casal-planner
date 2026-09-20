@@ -10,7 +10,7 @@ export const Route = createFileRoute("/recuperar-senha")({
     };
   },
   head: () => ({
-    meta: [{ title: "Recuperar senha — Casal Planner" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Recuperar senha - CasalPlanner" }, { name: "robots", content: "noindex" }],
   }),
   component: RecuperarPage,
 });
@@ -21,8 +21,8 @@ function RecuperarPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-6">
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Casal Planner" className="h-9 w-9 rounded-lg" />
-          <span className="font-display text-lg font-semibold">Casal Planner</span>
+          <img src="/logo.png" alt="CasalPlanner" className="h-9 w-9 rounded-lg" />
+          <span className="font-display text-lg font-semibold">CasalPlanner</span>
         </div>
 
         <div>

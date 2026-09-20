@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/trocar-senha")({
   head: () => ({
-    meta: [{ title: "Trocar senha — Casal Planner" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Trocar senha - CasalPlanner" }, { name: "robots", content: "noindex" }],
   }),
   component: TrocarSenhaPage,
 });
@@ -18,8 +18,8 @@ function TrocarSenhaPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-6">
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Casal Planner" className="h-9 w-9 rounded-lg" />
-          <span className="font-display text-lg font-semibold">Casal Planner</span>
+          <img src="/logo.png" alt="CasalPlanner" className="h-9 w-9 rounded-lg" />
+          <span className="font-display text-lg font-semibold">CasalPlanner</span>
         </div>
 
         <div>

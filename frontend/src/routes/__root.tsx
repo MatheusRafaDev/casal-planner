@@ -21,8 +21,8 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <img src="/logo.png" alt="Casal Planner" className="h-10 w-10 rounded-lg" />
-          <span className="font-display text-lg font-semibold">Casal Planner</span>
+          <img src="/logo.png" alt="CasalPlanner" className="h-10 w-10 rounded-lg" />
+          <span className="font-display text-lg font-semibold">CasalPlanner</span>
         </div>
         <h1 className="text-7xl font-display font-semibold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold">Página não encontrada</h2>
@@ -82,14 +82,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Casal Planner — Organize seu enxoval com o seu par" },
+      { title: "CasalPlanner - Organize seu enxoval com o seu par" },
       {
         name: "description",
         content:
           "Planeje a compra dos itens da casa nova por cômodo, controle orçamento em VR e dinheiro, e pesquise preços com IA. Feito para casais e para você.",
       },
-      { name: "author", content: "Casal Planner" },
-      { property: "og:title", content: "Casal Planner — Enxoval, orçamento e preços com IA" },
+      { name: "author", content: "CasalPlanner" },
+      { property: "og:title", content: "CasalPlanner - Enxoval, orçamento e preços com IA" },
       {
         property: "og:description",
         content:
@@ -101,7 +101,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#7c3aed" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "Casal Planner" },
+      { name: "apple-mobile-web-app-title", content: "CasalPlanner" },
       { name: "mobile-web-app-capable", content: "yes" },
     ],
     links: [
