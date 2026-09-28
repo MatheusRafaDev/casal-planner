@@ -360,13 +360,15 @@ app.Use(async (context, next) =>
 // This must be the first middleware before UseHttpsRedirection
 if (!app.Environment.IsDevelopment())
 {
-    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    var forwardedOptions = new ForwardedHeadersOptions
     {
         ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-        ForwardLimit = 1,
-        KnownNetworks = { new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("10.0.0.0"), 8) },
-        KnownProxies = { }
-    });
+        ForwardLimit = null // Permite que a infraestrutura gerencie a cadeia completa
+    };
+    // Limpa as redes conhecidas para confiar no proxy à frente (ex: Docker/Nginx ou provedor cloud)
+    forwardedOptions.KnownNetworks.Clear();
+    forwardedOptions.KnownProxies.Clear();
+    app.UseForwardedHeaders(forwardedOptions);
 }
 
 if (!app.Environment.IsDevelopment())

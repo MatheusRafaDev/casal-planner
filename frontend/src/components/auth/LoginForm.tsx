@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "@tanstack/react-router";
+import { useNavigate, useRouter, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,7 @@ function GoogleLogo({ className, style }: { className?: string; style?: React.CS
 }
 
 export function LoginForm({ returnUrl }: { returnUrl?: string }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
@@ -135,7 +136,7 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
       await loginComGoogle(response.credential);
       toast.success("Bem-vindo(a)!");
       if (returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")) {
-        navigate({ to: returnUrl as any });
+        router.history.push(returnUrl);
       } else {
         navigate({ to: "/inicio" });
       }
@@ -160,7 +161,7 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
       await login(email, senha);
       toast.success("Bem-vindo(a) de volta!");
       if (returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")) {
-        navigate({ to: returnUrl as any });
+        router.history.push(returnUrl);
       } else {
         navigate({ to: "/inicio" });
       }

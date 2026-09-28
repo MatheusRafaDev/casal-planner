@@ -53,10 +53,14 @@ namespace CasalPlanner.API.Services
                         _logger.LogWarning($"Aviso: Ping falhou com status {response.StatusCode}");
                     }
                 }
-                catch (TaskCanceledException)
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
                     // Cancelado pelo stoppingToken
                     break;
+                }
+                catch (TaskCanceledException)
+                {
+                    _logger.LogWarning("Aviso: O ping excedeu o tempo limite (timeout).");
                 }
                 catch (Exception ex)
                 {
@@ -68,7 +72,7 @@ namespace CasalPlanner.API.Services
                     // Espera 10 minutos antes do próximo ping
                     await Task.Delay(_interval, stoppingToken);
                 }
-                catch (TaskCanceledException)
+                catch (OperationCanceledException)
                 {
                     break;
                 }

@@ -69,8 +69,8 @@ namespace CasalPlanner.API.Controllers
             if (usuario == null || !usuario.ListaPublicaAtiva)
                 return NotFound(new { message = "Lista não encontrada ou inativa." });
 
-            // Previne injeção de HTML no nome
-            var nomeSeguro = WebUtility.HtmlEncode(dto.NomeConvidado);
+            // O frontend já previne XSS ao renderizar. Se codificarmos aqui, o banco salva entidades HTML (ex: &amp;) e exibe quebrado.
+            var nomeSeguro = dto.NomeConvidado.Trim();
             var undoToken = Guid.NewGuid().ToString("N");
             var undoExpiresAt = DateTime.UtcNow.AddMinutes(10);
 

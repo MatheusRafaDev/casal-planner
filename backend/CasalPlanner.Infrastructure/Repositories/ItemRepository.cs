@@ -159,10 +159,12 @@ namespace CasalPlanner.Infrastructure.Repositories
 
         public async Task<Item?> PresentearItemAtuomicoAsync(string itemId, string usuarioId, string nomeConvidado, string undoToken, DateTime undoExpiresAt)
         {
+            var origensValidas = new[] { OrigemItem.Desejo, OrigemItem.Prometido };
             var filter = Builders<Item>.Filter.And(
                 Builders<Item>.Filter.Eq(i => i.Id, itemId),
                 Builders<Item>.Filter.Eq(i => i.UsuarioId, usuarioId),
-                Builders<Item>.Filter.Eq(i => i.Comprado, false));
+                Builders<Item>.Filter.Eq(i => i.Comprado, false),
+                Builders<Item>.Filter.In(i => i.Origem, origensValidas));
 
             var update = Builders<Item>.Update
                 .Set(i => i.Comprado, true)

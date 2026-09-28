@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { User, Mail, Lock, Calendar, Target, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { CurrencyInput } from "@/components/ui/currency-input";
 
 export function RegistroIndividual({ returnUrl }: { returnUrl?: string }) {
   const navigate = useNavigate();
+  const router = useRouter();
   const { refresh } = useAuth();
   const [form, setForm] = useState({
     nomeCompleto: "",
@@ -45,7 +46,7 @@ export function RegistroIndividual({ returnUrl }: { returnUrl?: string }) {
       await refresh();
       toast.success("Conta criada! Bem-vindo(a).");
       if (returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")) {
-        navigate({ to: returnUrl as any });
+        router.history.push(returnUrl);
       } else {
         navigate({ to: "/inicio" });
       }

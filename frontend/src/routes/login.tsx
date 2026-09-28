@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Heart, User as UserIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,6 +28,7 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
+  const router = useRouter();
   const search = Route.useSearch();
   const [modo, setModo] = useState<"entrar" | "cadastrar">(
     search.registrar ? "cadastrar" : "entrar",
@@ -38,12 +39,12 @@ function LoginPage() {
   useEffect(() => {
     if (!loading && isAuthenticated) {
       if (returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")) {
-        navigate({ to: returnUrl as any });
+        router.history.push(returnUrl);
       } else {
         navigate({ to: "/inicio" });
       }
     }
-  }, [loading, isAuthenticated, navigate, returnUrl]);
+  }, [loading, isAuthenticated, navigate, router.history, returnUrl]);
 
   return (
     <div className="min-h-screen grid md:grid-cols-2 bg-background">
