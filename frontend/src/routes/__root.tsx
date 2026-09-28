@@ -149,9 +149,12 @@ function RootComponent() {
 
   useEffect(() => {
     // Keep-alive: ping no backend a cada 14 minutos para evitar cold starts (ex: Render) enquanto a aba estiver aberta
-    const keepAliveInterval = setInterval(() => {
-      api("/api/health").catch(() => {});
-    }, 14 * 60 * 1000);
+    const keepAliveInterval = setInterval(
+      () => {
+        api("/api/health").catch(() => {});
+      },
+      14 * 60 * 1000,
+    );
 
     return () => clearInterval(keepAliveInterval);
   }, []);
@@ -170,7 +173,7 @@ function RootComponent() {
       window.location.reload();
     };
     window.addEventListener("vite:preloadError", handlePreloadError);
-    
+
     return () => {
       window.removeEventListener("vite:preloadError", handlePreloadError);
     };

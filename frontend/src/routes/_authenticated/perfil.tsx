@@ -143,7 +143,10 @@ function PerfilPage() {
                         nome: dto.nome,
                         dataNascimento: dto.dataNascimento ?? null,
                       });
-                      await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true, 1);
+                      await usuarioService.atualizarNotificacoes(
+                        dto.receberNotificacoes ?? true,
+                        1,
+                      );
                       await refresh();
                     }}
                   />
@@ -164,7 +167,10 @@ function PerfilPage() {
                         nome: dto.nome,
                         dataNascimento: dto.dataNascimento ?? null,
                       });
-                      await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true, 2);
+                      await usuarioService.atualizarNotificacoes(
+                        dto.receberNotificacoes ?? true,
+                        2,
+                      );
                       await refresh();
                     }}
                   />
@@ -206,7 +212,7 @@ function PerfilPage() {
                   Encerre sua sessão ou exclua sua conta permanentemente.
                 </p>
               </div>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button variant="outline" onClick={logout} className="w-full">
                   <LogOut className="h-4 w-4 mr-2" /> Sair da conta
@@ -222,8 +228,8 @@ function PerfilPage() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Excluir conta permanentemente?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Todos os cômodos, itens, metas e pesquisas serão apagados. Essa ação não pode
-                        ser desfeita.
+                        Todos os cômodos, itens, metas e pesquisas serão apagados. Essa ação não
+                        pode ser desfeita.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -448,7 +454,12 @@ function PessoaForm({
               Avisos sobre itens marcados como comprados pelo parceiro.
             </p>
           </div>
-          <Switch checked={notif} onCheckedChange={setNotif} disabled={somenteLeitura} className="scale-110" />
+          <Switch
+            checked={notif}
+            onCheckedChange={setNotif}
+            disabled={somenteLeitura}
+            className="scale-110"
+          />
         </div>
       </div>
       {!somenteLeitura && (
@@ -597,17 +608,18 @@ function ListaPublicaCard() {
 
   const shareLink = () => {
     if (navigator.share) {
-      navigator.share({
-        title: "Nossa Lista de Desejos",
-        text: "Confira nossa lista de desejos!",
-        url: link,
-      }).catch((e) => console.log(e));
+      navigator
+        .share({
+          title: "Nossa Lista de Desejos",
+          text: "Confira nossa lista de desejos!",
+          url: link,
+        })
+        .catch((e) => console.log(e));
     } else {
       navigator.clipboard.writeText(link);
       toast.success("Link copiado!");
     }
   };
-
 
   return (
     <section className="rounded-2xl border bg-card shadow-soft overflow-hidden p-5">
@@ -617,12 +629,14 @@ function ListaPublicaCard() {
       </div>
 
       <p className="text-sm text-muted-foreground mb-4">
-        Crie uma página pública com os itens que você deseja adquirir para compartilhar com
-        seus amigos e familiares. O link é gerado automaticamente pelo sistema.
+        Crie uma página pública com os itens que você deseja adquirir para compartilhar com seus
+        amigos e familiares. O link é gerado automaticamente pelo sistema.
       </p>
 
       <div className="space-y-4">
-        <div className={`flex items-center justify-between ${usuario?.listaPublicaAtiva ? 'border-b pb-4' : ''}`}>
+        <div
+          className={`flex items-center justify-between ${usuario?.listaPublicaAtiva ? "border-b pb-4" : ""}`}
+        >
           <Label className="font-medium cursor-pointer" htmlFor="lista-ativa">
             Ativar Lista Pública
           </Label>
@@ -655,11 +669,11 @@ function ListaPublicaCard() {
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-2 mt-2">
-                <Button 
-                  variant="outline" 
-                  className="w-full rounded-xl hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-colors" 
+                <Button
+                  variant="outline"
+                  className="w-full rounded-xl hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-colors"
                   asChild
                 >
                   <a href={link} target="_blank" rel="noopener noreferrer">
@@ -667,9 +681,9 @@ function ListaPublicaCard() {
                     Acessar Lista
                   </a>
                 </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full rounded-xl hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-colors" 
+                <Button
+                  variant="outline"
+                  className="w-full rounded-xl hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-colors"
                   onClick={shareLink}
                 >
                   <Share2 className="h-4 w-4 mr-2" />
@@ -836,14 +850,25 @@ function ExportarCard() {
         <h2 className="font-display text-lg font-semibold">Exportar Planejamento</h2>
       </div>
       <p className="text-sm text-muted-foreground mb-4">
-        Baixe um arquivo contendo toda a sua lista de enxoval. Ideal para enviar para as lojas ou arquivar.
+        Baixe um arquivo contendo toda a sua lista de enxoval. Ideal para enviar para as lojas ou
+        arquivar.
       </p>
       <div className="flex flex-col gap-2">
-        <Button variant="outline" className="w-full rounded-xl" onClick={handleExportarCSV} disabled={exportando}>
+        <Button
+          variant="outline"
+          className="w-full rounded-xl"
+          onClick={handleExportarCSV}
+          disabled={exportando}
+        >
           <Download className="h-4 w-4 mr-2" />
           Exportar para CSV (Excel)
         </Button>
-        <Button variant="outline" className="w-full rounded-xl" onClick={handleExportarPDF} disabled={exportando}>
+        <Button
+          variant="outline"
+          className="w-full rounded-xl"
+          onClick={handleExportarPDF}
+          disabled={exportando}
+        >
           <Download className="h-4 w-4 mr-2" />
           Exportar para PDF
         </Button>

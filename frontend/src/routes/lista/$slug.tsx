@@ -55,11 +55,11 @@ const EMPTY_ARRAY: ItemPublico[] = [];
 function ListaPublicaPage() {
   const { slug } = useParams({ from: "/lista/$slug" });
   const loaderData = Route.useLoaderData();
-  
+
   const [busca, setBusca] = useState("");
   const [apenasDisponiveis, setApenasDisponiveis] = useState(false);
   const [faixaPreco, setFaixaPreco] = useState("todos");
-  
+
   const [itemSelecionado, setItemSelecionado] = useState<ItemPublico | null>(null);
   const [nomeConvidado, setNomeConvidado] = useState("");
   const [undoTokens, setUndoTokens] = useState<Record<string, string>>({});
@@ -93,15 +93,17 @@ function ListaPublicaPage() {
       if (resp.undoToken) {
         setUndoTokens((prev) => ({ ...prev, [itemId]: resp.undoToken! }));
       }
-      
+
       toast.success("Presente confirmado! O casal vai amar 💖", {
-        action: resp.undoToken ? {
-          label: "Desfazer",
-          onClick: () => desfazerMut.mutate({ itemId, token: resp.undoToken! })
-        } : undefined,
+        action: resp.undoToken
+          ? {
+              label: "Desfazer",
+              onClick: () => desfazerMut.mutate({ itemId, token: resp.undoToken! }),
+            }
+          : undefined,
         duration: 8000,
       });
-      
+
       setItemSelecionado(null);
       setNomeConvidado("");
       refetch();
@@ -112,7 +114,7 @@ function ListaPublicaPage() {
   const casal = data?.casal;
   const itens = data?.itens ?? EMPTY_ARRAY;
 
-  const comprados = itens.filter(i => i.comprado).length;
+  const comprados = itens.filter((i) => i.comprado).length;
   const progresso = itens.length > 0 ? (comprados / itens.length) * 100 : 0;
 
   const itensFiltrados = useMemo(() => {
@@ -123,11 +125,11 @@ function ListaPublicaPage() {
     );
 
     if (apenasDisponiveis) {
-      filtrados = filtrados.filter(i => !i.comprado);
+      filtrados = filtrados.filter((i) => !i.comprado);
     }
 
     if (faixaPreco !== "todos") {
-      filtrados = filtrados.filter(i => {
+      filtrados = filtrados.filter((i) => {
         const p = i.preco || 0;
         if (faixaPreco === "ate-100") return p > 0 && p <= 100;
         if (faixaPreco === "100-300") return p > 100 && p <= 300;
@@ -140,12 +142,12 @@ function ListaPublicaPage() {
       // 1. Disponibilidade
       if (a.comprado && !b.comprado) return 1;
       if (!a.comprado && b.comprado) return -1;
-      
+
       // 2. Prioridade (Alta = 0, Média = 1, Normal = 2)
       const prio = { alta: 0, media: 1, normal: 2 };
       const valA = prio[a.prioridade as keyof typeof prio] ?? 2;
       const valB = prio[b.prioridade as keyof typeof prio] ?? 2;
-      
+
       return valA - valB;
     });
   }, [itens, busca, apenasDisponiveis, faixaPreco]);
@@ -175,10 +177,12 @@ function ListaPublicaPage() {
             Lista de Desejos
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground font-medium">{casal}</p>
-          
+
           <div className="max-w-md mx-auto mt-6 pt-4 text-left">
             <div className="flex justify-between text-xs font-medium text-muted-foreground mb-1.5">
-              <span>{comprados} de {itens.length} presentes escolhidos</span>
+              <span>
+                {comprados} de {itens.length} presentes escolhidos
+              </span>
               <span>{Math.round(progresso)}%</span>
             </div>
             <Progress value={progresso} className="h-2.5" />
@@ -201,12 +205,14 @@ function ListaPublicaPage() {
           </div>
           <div className="flex flex-wrap gap-3 items-center">
             <div className="flex items-center space-x-2 bg-muted/30 p-2.5 rounded-full border px-4 h-12">
-              <Checkbox 
-                id="disponiveis" 
-                checked={apenasDisponiveis} 
-                onCheckedChange={(c) => setApenasDisponiveis(!!c)} 
+              <Checkbox
+                id="disponiveis"
+                checked={apenasDisponiveis}
+                onCheckedChange={(c) => setApenasDisponiveis(!!c)}
               />
-              <Label htmlFor="disponiveis" className="text-sm cursor-pointer whitespace-nowrap">Apenas disponíveis</Label>
+              <Label htmlFor="disponiveis" className="text-sm cursor-pointer whitespace-nowrap">
+                Apenas disponíveis
+              </Label>
             </div>
             <Select value={faixaPreco} onValueChange={setFaixaPreco}>
               <SelectTrigger className="w-[180px] h-12 rounded-full bg-muted/30 border-muted">
@@ -228,9 +234,9 @@ function ListaPublicaPage() {
             <div
               key={item.id}
               className={`flex flex-col rounded-2xl border overflow-hidden transition-all duration-300 ${
-                  item.comprado
-                    ? "bg-muted/30 border-muted opacity-80"
-                    : "bg-card border-border hover:shadow-md hover:border-primary/20"
+                item.comprado
+                  ? "bg-muted/30 border-muted opacity-80"
+                  : "bg-card border-border hover:shadow-md hover:border-primary/20"
               }`}
             >
               {/* Imagem */}
@@ -258,7 +264,10 @@ function ListaPublicaPage() {
                 <div className="mb-2">
                   <div className="flex items-start justify-between gap-2 mb-1.5">
                     {item.prioridade && item.prioridade !== "normal" && (
-                      <Badge variant="outline" className={`text-[10px] px-1.5 py-0 uppercase tracking-wider ${item.prioridade === 'alta' ? 'text-red-500 border-red-500/30 bg-red-500/10' : 'text-amber-500 border-amber-500/30 bg-amber-500/10'}`}>
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] px-1.5 py-0 uppercase tracking-wider ${item.prioridade === "alta" ? "text-red-500 border-red-500/30 bg-red-500/10" : "text-amber-500 border-amber-500/30 bg-amber-500/10"}`}
+                      >
                         Prioridade {item.prioridade}
                       </Badge>
                     )}
@@ -267,10 +276,13 @@ function ListaPublicaPage() {
                     className="font-semibold text-lg line-clamp-2 leading-tight"
                     title={item.nome}
                   >
-                    {item.quantidade > 1 ? `${item.quantidade}x ` : ""}{item.nome}
+                    {item.quantidade > 1 ? `${item.quantidade}x ` : ""}
+                    {item.nome}
                   </h3>
-                  {item.marca && <p className="text-sm text-muted-foreground mt-1 font-medium">{item.marca}</p>}
-                  
+                  {item.marca && (
+                    <p className="text-sm text-muted-foreground mt-1 font-medium">{item.marca}</p>
+                  )}
+
                   {(item.loja || (item.variantes && item.variantes.length > 0)) && (
                     <div className="flex flex-wrap gap-1.5 mt-2.5">
                       {item.loja && (
@@ -279,7 +291,11 @@ function ListaPublicaPage() {
                         </Badge>
                       )}
                       {item.variantes?.map((v, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs font-normal border-primary/20 bg-primary/5 text-primary">
+                        <Badge
+                          key={idx}
+                          variant="outline"
+                          className="text-xs font-normal border-primary/20 bg-primary/5 text-primary"
+                        >
                           {v}
                         </Badge>
                       ))}
@@ -302,11 +318,7 @@ function ListaPublicaPage() {
                   {!item.comprado && (
                     <div className="flex flex-col gap-2">
                       {item.linkProduto && (
-                        <Button
-                          variant="default"
-                          className="w-full rounded-xl"
-                          asChild
-                        >
+                        <Button variant="default" className="w-full rounded-xl" asChild>
                           <a href={item.linkProduto} target="_blank" rel="noopener noreferrer">
                             <ExternalLink className="h-4 w-4 mr-2" /> Comprar na Loja
                           </a>
@@ -317,7 +329,7 @@ function ListaPublicaPage() {
                         className="w-full rounded-xl"
                         onClick={() => setItemSelecionado(item)}
                       >
-                        <Gift className="h-4 w-4 mr-2" /> 
+                        <Gift className="h-4 w-4 mr-2" />
                         {item.linkProduto ? "Já comprei / Prometer" : "Presentear"}
                       </Button>
                     </div>
@@ -400,7 +412,8 @@ function ListaPublicaPage() {
 
               <div className="text-xs text-muted-foreground bg-primary/5 p-3 rounded-lg border border-primary/10">
                 <strong>Atenção:</strong> Ao confirmar, o presente será marcado como "comprado" e
-                não estará mais disponível para outros convidados. Você terá 10 minutos para desfazer esta ação se precisar.
+                não estará mais disponível para outros convidados. Você terá 10 minutos para
+                desfazer esta ação se precisar.
               </div>
             </div>
           )}

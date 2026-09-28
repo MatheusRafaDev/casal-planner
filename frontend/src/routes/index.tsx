@@ -193,9 +193,9 @@ function Home_() {
           >
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
+              <Input
                 name="codigo"
-                placeholder="Ex: matheus-e-rayane" 
+                placeholder="Ex: matheus-e-rayane"
                 className="pl-10 h-12 rounded-xl bg-background"
                 required
               />

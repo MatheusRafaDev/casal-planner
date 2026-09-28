@@ -422,10 +422,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
       setMarca(r.marca ?? "");
       setLoja(r.loja ?? "");
       setNome(r.titulo);
-      
+
       // Tenta achar categoria pelo nome retornado
       const lower = r.titulo.toLowerCase();
-      const cat = categorias.find(c => lower.includes(c.nome.toLowerCase()));
+      const cat = categorias.find((c) => lower.includes(c.nome.toLowerCase()));
       if (cat) setCategoriaId(cat.id);
       else if (!categoriaId) setCategoriaId(categorias[0]?.id);
 
@@ -433,7 +433,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     },
     onError: (e: Error) => {
       toast.error(e.message || "Erro ao extrair dados do link");
-    }
+    },
   });
 
   const avancarDoNome = async () => {
@@ -526,17 +526,25 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   accept="image/jpeg, image/png, image/webp"
                   onChange={(e) => handleFile(e.target.files?.[0])}
                 />
-                
+
                 {fotoPreviewUrl ? (
-                  <div 
+                  <div
                     className={cn(
                       "relative h-40 w-full rounded-xl overflow-hidden border bg-background/50 transition-all",
-                      (!analisandoFoto && !extrairLink.isPending) && "cursor-pointer hover:border-primary/50"
-                    )} 
-                    onClick={() => !analisandoFoto && !extrairLink.isPending && fileInputRef.current?.click()}
+                      !analisandoFoto &&
+                        !extrairLink.isPending &&
+                        "cursor-pointer hover:border-primary/50",
+                    )}
+                    onClick={() =>
+                      !analisandoFoto && !extrairLink.isPending && fileInputRef.current?.click()
+                    }
                   >
-                    <img src={fotoPreviewUrl} alt="Preview" className="w-full h-full object-cover drop-shadow-md" />
-                    
+                    <img
+                      src={fotoPreviewUrl}
+                      alt="Preview"
+                      className="w-full h-full object-cover drop-shadow-md"
+                    />
+
                     {analisandoFoto ? (
                       <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center backdrop-blur-sm">
                         <Loader2 className="h-6 w-6 text-primary animate-spin mb-2" />
@@ -554,7 +562,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     type="button"
                     disabled={analisandoFoto || extrairLink.isPending}
                     onClick={() => fileInputRef.current?.click()}
-                    onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
                     onDrop={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -574,7 +585,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   variant="outline"
                   className={cn(
                     "w-full rounded-xl transition-all",
-                    !fotoPreviewUrl ? "h-12 border-dashed border-primary/50 text-primary hover:bg-primary/5 hover:text-primary" : "h-10 text-muted-foreground"
+                    !fotoPreviewUrl
+                      ? "h-12 border-dashed border-primary/50 text-primary hover:bg-primary/5 hover:text-primary"
+                      : "h-10 text-muted-foreground",
                   )}
                   disabled={analisandoFoto || extrairLink.isPending}
                   onClick={() => cameraInputRef.current?.click()}
@@ -977,10 +990,13 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                       <Label className="text-base">Como o pagamento será feito?</Label>
                       <Select
                         value={
-                          dividir ? "dividir" :
-                          responsavelId === 1 ? "1" :
-                          responsavelId === 2 ? "2" :
-                          "conjunto"
+                          dividir
+                            ? "dividir"
+                            : responsavelId === 1
+                              ? "1"
+                              : responsavelId === 2
+                                ? "2"
+                                : "conjunto"
                         }
                         onValueChange={(v) => {
                           if (v === "dividir") {
@@ -1103,13 +1119,20 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
           </Button>
 
           {step === 1 && (
-            <Button onClick={avancarDoNome} disabled={dupQuery.isFetching || extrairLink.isPending || analisandoFoto}>
-              {(dupQuery.isFetching || extrairLink.isPending || analisandoFoto) ? (
+            <Button
+              onClick={avancarDoNome}
+              disabled={dupQuery.isFetching || extrairLink.isPending || analisandoFoto}
+            >
+              {dupQuery.isFetching || extrairLink.isPending || analisandoFoto ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
               ) : (
                 <ArrowRight className="h-4 w-4 mr-1" />
               )}
-              {extrairLink.isPending ? "Extraindo link..." : analisandoFoto ? "Analisando foto..." : "Buscar preços"}
+              {extrairLink.isPending
+                ? "Extraindo link..."
+                : analisandoFoto
+                  ? "Analisando foto..."
+                  : "Buscar preços"}
             </Button>
           )}
           {step === 2 && (

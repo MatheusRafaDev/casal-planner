@@ -275,8 +275,7 @@ function PlanejamentoPage() {
             Planejamento
           </h1>
           <div className="flex items-center gap-2 shrink-0">
-            <div className="flex flex-wrap items-center gap-2">
-            </div>
+            <div className="flex flex-wrap items-center gap-2"></div>
             <Button
               variant="secondary"
               size="sm"
@@ -341,156 +340,165 @@ function PlanejamentoPage() {
 
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Desktop: Sidebar with rooms */}
-        {portalTarget && createPortal(
-          <aside className="hidden lg:flex flex-col gap-1.5 w-full shrink-0">
-            <hr className="border-border/50 mb-2 -mx-3" />
-            {categoriasQ.isLoading && (
-              <div className="text-sm text-muted-foreground px-3">Carregando...</div>
-            )}
-            <div
-              className={cn(
-                "group flex items-center gap-3 rounded-lg p-2.5 transition-all cursor-pointer",
-                catAtualId === "tudo"
-                  ? "border border-primary/20 bg-primary/5 shadow-soft"
-                  : "border border-transparent hover:bg-accent/40",
+        {portalTarget &&
+          createPortal(
+            <aside className="hidden lg:flex flex-col gap-1.5 w-full shrink-0">
+              <hr className="border-border/50 mb-2 -mx-3" />
+              {categoriasQ.isLoading && (
+                <div className="text-sm text-muted-foreground px-3">Carregando...</div>
               )}
-              onClick={() => setCategoriaSelecionada("tudo")}
-            >
-              <span className="grid place-items-center h-8 w-8 rounded-md text-white shrink-0 shadow-soft bg-zinc-800">
-                <Package className="h-4 w-4" />
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm truncate">Todos os Itens</div>
-                <div className="text-xs text-muted-foreground mt-0.5">
-                  <div className="flex justify-between items-center">
-                    <span>
-                      {todosItens.filter((i) => i.comprado).length}/{todosItens.length} -{" "}
-                      <span className={cn(catAtualId === "tudo" ? "text-foreground font-medium" : "")}>
-                        {brl(
-                          todosItens
-                            .filter((i) => !["ganho", "presente", "prometido"].includes(i.origem ?? ""))
-                            .reduce((s, i) => s + i.preco * i.quantidade, 0),
-                        )}
+              <div
+                className={cn(
+                  "group flex items-center gap-3 rounded-lg p-2.5 transition-all cursor-pointer",
+                  catAtualId === "tudo"
+                    ? "border border-primary/20 bg-primary/5 shadow-soft"
+                    : "border border-transparent hover:bg-accent/40",
+                )}
+                onClick={() => setCategoriaSelecionada("tudo")}
+              >
+                <span className="grid place-items-center h-8 w-8 rounded-md text-white shrink-0 shadow-soft bg-zinc-800">
+                  <Package className="h-4 w-4" />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm truncate">Todos os Itens</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    <div className="flex justify-between items-center">
+                      <span>
+                        {todosItens.filter((i) => i.comprado).length}/{todosItens.length} -{" "}
+                        <span
+                          className={cn(catAtualId === "tudo" ? "text-foreground font-medium" : "")}
+                        >
+                          {brl(
+                            todosItens
+                              .filter(
+                                (i) => !["ganho", "presente", "prometido"].includes(i.origem ?? ""),
+                              )
+                              .reduce((s, i) => s + i.preco * i.quantidade, 0),
+                          )}
+                        </span>
                       </span>
-                    </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            {categorias.map((c) => {
-              const I = iconFor(c.icon);
-              const ativo = c.id === catAtualId;
-              const cItens = todosItens.filter((it) => it.categoriaId === c.id);
-              const cComprados = cItens.filter((it) => it.comprado).length;
-              const cGasto = cItens
-                .filter((it) => !["ganho", "presente", "prometido"].includes(it.origem ?? ""))
-                .reduce((s, it) => s + it.preco * it.quantidade, 0);
+              {categorias.map((c) => {
+                const I = iconFor(c.icon);
+                const ativo = c.id === catAtualId;
+                const cItens = todosItens.filter((it) => it.categoriaId === c.id);
+                const cComprados = cItens.filter((it) => it.comprado).length;
+                const cGasto = cItens
+                  .filter((it) => !["ganho", "presente", "prometido"].includes(it.origem ?? ""))
+                  .reduce((s, it) => s + it.preco * it.quantidade, 0);
 
-              return (
-                <div
-                  key={c.id}
-                  className={cn(
-                    "group flex items-center gap-3 rounded-lg p-2.5 transition-all cursor-pointer",
-                    ativo
-                      ? "border border-primary/20 bg-primary/5 shadow-soft"
-                      : "border border-transparent hover:bg-accent/40",
-                    c.metaOrcamento &&
-                      cGasto > c.metaOrcamento &&
-                      !ativo &&
-                      "bg-destructive/5",
-                  )}
-                  onClick={() => setCategoriaSelecionada(c.id)}
-                >
-                  <span
-                    className="grid place-items-center h-8 w-8 rounded-md text-white shrink-0 shadow-soft"
-                    style={{ backgroundColor: c.bg }}
+                return (
+                  <div
+                    key={c.id}
+                    className={cn(
+                      "group flex items-center gap-3 rounded-lg p-2.5 transition-all cursor-pointer",
+                      ativo
+                        ? "border border-primary/20 bg-primary/5 shadow-soft"
+                        : "border border-transparent hover:bg-accent/40",
+                      c.metaOrcamento && cGasto > c.metaOrcamento && !ativo && "bg-destructive/5",
+                    )}
+                    onClick={() => setCategoriaSelecionada(c.id)}
                   >
-                    <I className="h-4 w-4" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate flex items-center gap-2 capitalize">
-                      {c.nome}
-                      {c.metaOrcamento && cGasto > c.metaOrcamento && (
-                        <span className="text-destructive" title="Orçamento estourado">
-                          <AlertTriangle className="h-3.5 w-3.5" />
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      <div className="flex justify-between items-center">
-                        <span>
-                          {cComprados}/{cItens.length} -{" "}
-                          <span
-                            className={cn(
-                              ativo && "text-foreground font-medium",
-                              c.metaOrcamento && cGasto > c.metaOrcamento && "text-destructive",
-                            )}
-                          >
-                            {brl(cGasto)}
+                    <span
+                      className="grid place-items-center h-8 w-8 rounded-md text-white shrink-0 shadow-soft"
+                      style={{ backgroundColor: c.bg }}
+                    >
+                      <I className="h-4 w-4" />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate flex items-center gap-2 capitalize">
+                        {c.nome}
+                        {c.metaOrcamento && cGasto > c.metaOrcamento && (
+                          <span className="text-destructive" title="Orçamento estourado">
+                            <AlertTriangle className="h-3.5 w-3.5" />
                           </span>
-                        </span>
+                        )}
                       </div>
-                      {c.metaOrcamento ? (
-                        <div className="mt-1 space-y-1">
-                          <div className="h-0.5 w-full bg-border rounded-full overflow-hidden">
-                            <div
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        <div className="flex justify-between items-center">
+                          <span>
+                            {cComprados}/{cItens.length} -{" "}
+                            <span
                               className={cn(
-                                "h-full rounded-full transition-all",
-                                cGasto / c.metaOrcamento < 0.8
-                                  ? "bg-emerald-500"
-                                  : cGasto / c.metaOrcamento <= 1
-                                    ? "bg-amber-500"
-                                    : "bg-destructive",
+                                ativo && "text-foreground font-medium",
+                                c.metaOrcamento && cGasto > c.metaOrcamento && "text-destructive",
                               )}
-                              style={{ width: `${Math.min(100, (cGasto / c.metaOrcamento) * 100)}%` }}
-                            />
-                          </div>
+                            >
+                              {brl(cGasto)}
+                            </span>
+                          </span>
                         </div>
-                      ) : null}
+                        {c.metaOrcamento ? (
+                          <div className="mt-1 space-y-1">
+                            <div className="h-0.5 w-full bg-border rounded-full overflow-hidden">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full transition-all",
+                                  cGasto / c.metaOrcamento < 0.8
+                                    ? "bg-emerald-500"
+                                    : cGasto / c.metaOrcamento <= 1
+                                      ? "bg-amber-500"
+                                      : "bg-destructive",
+                                )}
+                                style={{
+                                  width: `${Math.min(100, (cGasto / c.metaOrcamento) * 100)}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 w-6 p-0 md:opacity-0 md:group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+                        >
+                          <MoreVertical className="h-3 w-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem onClick={() => setEditandoCategoria(c)}>
+                          <Pencil className="h-4 w-4 mr-2" /> Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => setExcluindoCategoria(c)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" /> Remover
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 p-0 md:opacity-0 md:group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity"
-                      >
-                        <MoreVertical className="h-3 w-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuItem onClick={() => setEditandoCategoria(c)}>
-                        <Pencil className="h-4 w-4 mr-2" /> Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => setExcluindoCategoria(c)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" /> Remover
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              );
-            })}
+                );
+              })}
 
-            {!categoriasQ.isLoading && categorias.length === 0 && (
-              <div className="rounded-xl border border-dashed p-4 mx-3 mt-2 text-center text-xs text-muted-foreground">
-                Nenhum cômodo ainda. Crie o primeiro para começar.
-              </div>
-            )}
-          </aside>,
-          portalTarget
-        )}
+              {!categoriasQ.isLoading && categorias.length === 0 && (
+                <div className="rounded-xl border border-dashed p-4 mx-3 mt-2 text-center text-xs text-muted-foreground">
+                  Nenhum cômodo ainda. Crie o primeiro para começar.
+                </div>
+              )}
+            </aside>,
+            portalTarget,
+          )}
 
         {/* Painel principal */}
         <section className="flex-1 space-y-4 min-w-0">
           {catAtualId === "tudo" || catAtual ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className={cn("rounded-2xl bg-gradient-warm p-3 border shadow-soft flex flex-col justify-between", isCasal ? "md:col-span-2" : "md:col-span-3")}>
+                <div
+                  className={cn(
+                    "rounded-2xl bg-gradient-warm p-3 border shadow-soft flex flex-col justify-between",
+                    isCasal ? "md:col-span-2" : "md:col-span-3",
+                  )}
+                >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
@@ -520,7 +528,9 @@ function PlanejamentoPage() {
                     </div>
 
                     <div className="text-left sm:text-right">
-                      <div className="text-[10px] text-muted-foreground font-medium mb-0.5">Total gasto</div>
+                      <div className="text-[10px] text-muted-foreground font-medium mb-0.5">
+                        Total gasto
+                      </div>
                       <div
                         className={cn(
                           "font-display text-base font-bold leading-none",
@@ -560,7 +570,10 @@ function PlanejamentoPage() {
                     <div>
                       <div className="flex justify-between text-[10px] mb-1">
                         <span className="text-muted-foreground font-medium">
-                          Progresso da compra <span className="opacity-70 font-normal">({compradosCategoria} de {itensCategoria.length} itens)</span>
+                          Progresso da compra{" "}
+                          <span className="opacity-70 font-normal">
+                            ({compradosCategoria} de {itensCategoria.length} itens)
+                          </span>
                         </span>
                         <span className="font-medium">{percentComprado.toFixed(0)}%</span>
                       </div>
@@ -570,8 +583,10 @@ function PlanejamentoPage() {
                       <div>
                         <div className="flex justify-between text-[10px] mb-1">
                           <span className="text-muted-foreground font-medium">
-                            Meta de orçamento <span className="opacity-70 font-normal">
-                              ({brl(totalCategoria)} / {brl(catAtual?.metaOrcamento || usuario?.metaGlobalEnxoval || 0)})
+                            Meta de orçamento{" "}
+                            <span className="opacity-70 font-normal">
+                              ({brl(totalCategoria)} /{" "}
+                              {brl(catAtual?.metaOrcamento || usuario?.metaGlobalEnxoval || 0)})
                             </span>
                           </span>
                           <span
@@ -586,9 +601,10 @@ function PlanejamentoPage() {
                           >
                             {percentMeta !== null
                               ? percentMeta.toFixed(0)
-                              : ((totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100).toFixed(
-                                  0,
-                                )}
+                              : (
+                                  (totalCategoria / (usuario?.metaGlobalEnxoval || 1)) *
+                                  100
+                                ).toFixed(0)}
                             %
                           </span>
                         </div>
@@ -632,14 +648,20 @@ function PlanejamentoPage() {
                               <Users className="w-3 h-3 mr-1.5 opacity-70" />
                               Conjunto
                             </span>
-                            <span className="font-display font-semibold text-sm">{brl(totalConjunto)}</span>
+                            <span className="font-display font-semibold text-sm">
+                              {brl(totalConjunto)}
+                            </span>
                           </div>
                         )}
                       </>
                     ) : (
                       <div className="flex justify-between items-center bg-accent/40 rounded-lg px-2.5 py-1.5">
-                        <span className="text-xs font-medium truncate pr-2 text-muted-foreground">Você pagou</span>
-                        <span className="font-display font-semibold text-sm">{brl(totalCategoria)}</span>
+                        <span className="text-xs font-medium truncate pr-2 text-muted-foreground">
+                          Você pagou
+                        </span>
+                        <span className="font-display font-semibold text-sm">
+                          {brl(totalCategoria)}
+                        </span>
                       </div>
                     )}
                     {economiaCategoria > 0 && (
@@ -648,7 +670,9 @@ function PlanejamentoPage() {
                           <Gift className="w-3 h-3 mr-1.5" />
                           Presentes / Ganhos
                         </span>
-                        <span className="font-display font-semibold text-sm text-emerald-600 dark:text-emerald-500">{brl(economiaCategoria)}</span>
+                        <span className="font-display font-semibold text-sm text-emerald-600 dark:text-emerald-500">
+                          {brl(economiaCategoria)}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -756,14 +780,14 @@ function PlanejamentoPage() {
                       transition={{
                         opacity: { duration: 0.2 },
                         layout: { type: "spring", bounce: 0, duration: 0.4 },
-                        scale: { type: "spring", bounce: 0, duration: 0.4 }
+                        scale: { type: "spring", bounce: 0, duration: 0.4 },
                       }}
                       key={it.id}
                       className={cn(
                         "flex flex-col gap-3 rounded-2xl border p-4 transition-shadow duration-200",
-                        it.comprado 
-                          ? "bg-card/40 border-transparent shadow-none" 
-                          : "bg-card shadow-soft hover:shadow-elegant"
+                        it.comprado
+                          ? "bg-card/40 border-transparent shadow-none"
+                          : "bg-card shadow-soft hover:shadow-elegant",
                       )}
                     >
                       <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -780,7 +804,7 @@ function PlanejamentoPage() {
                             onClick={() => setImagemAmpliada(it)}
                             className={cn(
                               "h-16 w-16 shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-white/50 dark:bg-white/10 overflow-hidden border border-border/50 transition-all",
-                              it.comprado && "opacity-50 grayscale"
+                              it.comprado && "opacity-50 grayscale",
                             )}
                             aria-label={`Ampliar imagem de ${it.nome}`}
                           >
@@ -795,7 +819,7 @@ function PlanejamentoPage() {
                           <div
                             className={cn(
                               "h-16 w-16 rounded-xl grid place-items-center text-white shrink-0 shadow-sm transition-all",
-                              it.comprado && "opacity-50 grayscale"
+                              it.comprado && "opacity-50 grayscale",
                             )}
                             style={{
                               backgroundColor:
@@ -818,7 +842,9 @@ function PlanejamentoPage() {
                             title="Editar item"
                             className={cn(
                               "max-w-full line-clamp-2 text-left font-semibold text-base md:text-lg hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 block leading-tight",
-                              it.comprado ? "line-through text-muted-foreground" : "text-foreground",
+                              it.comprado
+                                ? "line-through text-muted-foreground"
+                                : "text-foreground",
                             )}
                           >
                             {toTitleCase(it.nome)}
@@ -827,112 +853,124 @@ function PlanejamentoPage() {
                           {/* Logos + nomes de marca e loja */}
                           <div className={cn("transition-opacity", it.comprado && "opacity-50")}>
                             {(it.marca || it.loja) && (
-                            <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                              {it.marca && (
-                                <Badge
-                                  variant="secondary"
-                                  className="gap-1 px-2 py-0.5 text-xs bg-muted/60"
-                                >
-                                  <LogoBadge urls={getLogoUrls(it.marca, null, resolvedDomains)} />
-                                  {toTitleCase(it.marca)}
-                                </Badge>
-                              )}
-                              {it.loja &&
-                                (it.linkProduto ? (
-                                  <a
-                                    href={it.linkProduto}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="hover:opacity-80 transition-opacity"
+                              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                {it.marca && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="gap-1 px-2 py-0.5 text-xs bg-muted/60"
                                   >
+                                    <LogoBadge
+                                      urls={getLogoUrls(it.marca, null, resolvedDomains)}
+                                    />
+                                    {toTitleCase(it.marca)}
+                                  </Badge>
+                                )}
+                                {it.loja &&
+                                  (it.linkProduto ? (
+                                    <a
+                                      href={it.linkProduto}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="hover:opacity-80 transition-opacity"
+                                    >
+                                      <Badge
+                                        variant="outline"
+                                        className="gap-1 px-2 py-0.5 text-xs bg-card hover:bg-muted/50"
+                                      >
+                                        <LogoBadge
+                                          urls={getLogoUrls(
+                                            it.loja,
+                                            it.linkProduto,
+                                            resolvedDomains,
+                                          )}
+                                        />
+                                        {toTitleCase(it.loja)}
+                                        <ExternalLink className="w-3 h-3 ml-1 opacity-60" />
+                                      </Badge>
+                                    </a>
+                                  ) : (
                                     <Badge
                                       variant="outline"
-                                      className="gap-1 px-2 py-0.5 text-xs bg-card hover:bg-muted/50"
+                                      className="gap-1 px-2 py-0.5 text-xs bg-card"
                                     >
                                       <LogoBadge
-                                        urls={getLogoUrls(it.loja, it.linkProduto, resolvedDomains)}
+                                        urls={getLogoUrls(it.loja, null, resolvedDomains)}
                                       />
                                       {toTitleCase(it.loja)}
-                                      <ExternalLink className="w-3 h-3 ml-1 opacity-60" />
                                     </Badge>
-                                  </a>
-                                ) : (
-                                  <Badge
-                                    variant="outline"
-                                    className="gap-1 px-2 py-0.5 text-xs bg-card"
-                                  >
-                                    <LogoBadge urls={getLogoUrls(it.loja, null, resolvedDomains)} />
-                                    {toTitleCase(it.loja)}
-                                  </Badge>
-                                ))}
-                            </div>
-                          )}
+                                  ))}
+                              </div>
+                            )}
 
-                          {/* Metadados secundários: Categoria/Pagamento + Badges */}
-                          <div className="flex flex-wrap items-center gap-2 mt-2">
-                            <span className="text-xs text-muted-foreground">
-                              {toTitleCase(categorias.find((c) => c.id === it.categoriaId)?.nome || "")} 
-                              {' · '}
-                              {it.pagamento === "vr" ? "VR / VA" : "Dinheiro"}
-                            </span>
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                "text-[11px] py-0 px-2 font-medium border",
-                                it.origem === "ganho" || it.origem === "presente"
-                                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
-                                  : it.origem === "prometido"
-                                    ? "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400"
-                                    : it.origem === "desejo"
-                                      ? "bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400"
-                                      : it.comprado
-                                        ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20 dark:text-indigo-400"
-                                        : "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400",
-                              )}
-                            >
-                              {it.origem === "ganho" || it.origem === "presente"
-                                ? "Presente"
-                                : it.origem === "prometido"
-                                  ? "Prometido"
-                                  : it.origem === "desejo"
-                                    ? "Lista Pública"
-                                    : it.comprado
-                                      ? "Comprado"
-                                      : "Será comprado"}
-                            </Badge>
-                            {it.prioridade && (
+                            {/* Metadados secundários: Categoria/Pagamento + Badges */}
+                            <div className="flex flex-wrap items-center gap-2 mt-2">
+                              <span className="text-xs text-muted-foreground">
+                                {toTitleCase(
+                                  categorias.find((c) => c.id === it.categoriaId)?.nome || "",
+                                )}
+                                {" · "}
+                                {it.pagamento === "vr" ? "VR / VA" : "Dinheiro"}
+                              </span>
                               <Badge
                                 variant="outline"
                                 className={cn(
-                                  "text-[11px] py-0 px-2 font-medium border capitalize",
-                                  it.prioridade === "alta"
-                                    ? "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400"
-                                    : it.prioridade === "baixa"
-                                      ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
-                                      : "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
+                                  "text-[11px] py-0 px-2 font-medium border",
+                                  it.origem === "ganho" || it.origem === "presente"
+                                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
+                                    : it.origem === "prometido"
+                                      ? "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400"
+                                      : it.origem === "desejo"
+                                        ? "bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400"
+                                        : it.comprado
+                                          ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20 dark:text-indigo-400"
+                                          : "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400",
                                 )}
                               >
-                                Prioridade {it.prioridade}
+                                {it.origem === "ganho" || it.origem === "presente"
+                                  ? "Presente"
+                                  : it.origem === "prometido"
+                                    ? "Prometido"
+                                    : it.origem === "desejo"
+                                      ? "Lista Pública"
+                                      : it.comprado
+                                        ? "Comprado"
+                                        : "Será comprado"}
                               </Badge>
+                              {it.prioridade && (
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    "text-[11px] py-0 px-2 font-medium border capitalize",
+                                    it.prioridade === "alta"
+                                      ? "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400"
+                                      : it.prioridade === "baixa"
+                                        ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
+                                        : "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
+                                  )}
+                                >
+                                  Prioridade {it.prioridade}
+                                </Badge>
+                              )}
+                            </div>
+                            {it.origem === "prometido" && it.origemDescricao && (
+                              <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1.5 font-medium">
+                                🎁 {it.origemDescricao} — aguardando confirmação
+                              </p>
                             )}
-                          </div>
-                          {it.origem === "prometido" && it.origemDescricao && (
-                            <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1.5 font-medium">
-                              🎁 {it.origemDescricao} — aguardando confirmação
-                            </p>
-                          )}
                           </div>
                         </div>
                       </div>
-                      
+
                       <hr className="border-border/60 my-1" />
 
                       <div className="flex items-end justify-between gap-3 mt-auto">
                         <div className="text-left min-w-0">
-                          <div className={cn(
-                            "font-display font-bold text-lg md:text-xl truncate tracking-tight",
-                            it.comprado ? "text-muted-foreground" : "text-foreground"
-                          )}>
+                          <div
+                            className={cn(
+                              "font-display font-bold text-lg md:text-xl truncate tracking-tight",
+                              it.comprado ? "text-muted-foreground" : "text-foreground",
+                            )}
+                          >
                             {brl(it.preco * it.quantidade)}
                           </div>
                           <div className="text-xs text-muted-foreground">
@@ -1064,7 +1102,6 @@ function PlanejamentoPage() {
           item={editandoItem}
         />
       )}
-
 
       <Dialog open={!!imagemAmpliada} onOpenChange={(open) => !open && setImagemAmpliada(null)}>
         <DialogContent className="max-w-4xl p-4">

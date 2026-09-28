@@ -46,15 +46,14 @@ export function CategoriaFormModal({ open, onOpenChange, categoria }: Props) {
       return categoriasService.criar(dto);
     },
     onMutate: async (dto) => {
-      onOpenChange(false);
       toast.success(isEdit ? "Salvando cômodo..." : "Criando cômodo...");
     },
     onSuccess: () => {
+      onOpenChange(false);
       qc.invalidateQueries({ queryKey: ["categorias"] });
     },
     onError: (e: Error) => {
       toast.error(e.message);
-      onOpenChange(true);
     },
   });
 

@@ -11,5 +11,5 @@ export const groqService = {
     itemSimilar: undefined,
   }),
   resumoEnxoval: async () => ({ resumo: "" }),
-  descobrirDominios: async (nomes: string[]) => ({} as Record<string, string>),
+  descobrirDominios: async (nomes: string[]) => ({}) as Record<string, string>,
 };

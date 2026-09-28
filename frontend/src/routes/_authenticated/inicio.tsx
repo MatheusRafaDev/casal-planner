@@ -81,7 +81,11 @@ function InicioPage() {
     // Inclui itens comprados E itens com data prevista de compra (para projeção futura)
     // Ignora itens que já foram comprados e não estão parcelados (pagamento à vista já liquidado)
     const itensRelevantes = itens.filter(
-      (i) => i.origem !== "ganho" && i.pagamento !== "vr" && (i.comprado || i.dataCompra) && !(i.comprado && (i.parcelas ?? 1) <= 1),
+      (i) =>
+        i.origem !== "ganho" &&
+        i.pagamento !== "vr" &&
+        (i.comprado || i.dataCompra) &&
+        !(i.comprado && (i.parcelas ?? 1) <= 1),
     );
 
     itensRelevantes.forEach((item) => {
@@ -126,15 +130,21 @@ function InicioPage() {
     );
   }
 
-  const validItens = itens.filter(i => !["ganho", "presente", "prometido"].includes(i.origem ?? ""));
+  const validItens = itens.filter(
+    (i) => !["ganho", "presente", "prometido"].includes(i.origem ?? ""),
+  );
   const realTotalGeral = validItens.reduce((s, i) => s + i.preco * i.quantidade, 0);
-  const realTotalNormal = validItens.filter(i => i.pagamento !== "vr").reduce((s, i) => s + i.preco * i.quantidade, 0);
-  const realTotalVr = validItens.filter(i => i.pagamento === "vr").reduce((s, i) => s + i.preco * i.quantidade, 0);
-  const realTotalComprados = validItens.filter(i => i.comprado).length;
+  const realTotalNormal = validItens
+    .filter((i) => i.pagamento !== "vr")
+    .reduce((s, i) => s + i.preco * i.quantidade, 0);
+  const realTotalVr = validItens
+    .filter((i) => i.pagamento === "vr")
+    .reduce((s, i) => s + i.preco * i.quantidade, 0);
+  const realTotalComprados = validItens.filter((i) => i.comprado).length;
 
   let realTotalP1 = 0;
   let realTotalP2 = 0;
-  validItens.forEach(i => {
+  validItens.forEach((i) => {
     const valorTotal = i.preco * i.quantidade;
     if (i.divisaoPagamento) {
       realTotalP1 += i.divisaoPagamento.valorPessoa1 || 0;
@@ -146,16 +156,18 @@ function InicioPage() {
     }
   });
 
-  const r = resumo ? {
-    ...resumo,
-    totalGeral: realTotalGeral,
-    totalNormal: realTotalNormal,
-    totalVr: realTotalVr,
-    itensComprados: realTotalComprados,
-    totalItens: validItens.length,
-    totalPessoa1: realTotalP1,
-    totalPessoa2: realTotalP2,
-  } : null;
+  const r = resumo
+    ? {
+        ...resumo,
+        totalGeral: realTotalGeral,
+        totalNormal: realTotalNormal,
+        totalVr: realTotalVr,
+        itensComprados: realTotalComprados,
+        totalItens: validItens.length,
+        totalPessoa1: realTotalP1,
+        totalPessoa2: realTotalP2,
+      }
+    : null;
 
   const meta = r?.metaGlobal ?? 0;
   const pct = meta > 0 ? Math.min(100, ((r?.totalGeral ?? 0) / meta) * 100) : 0;
@@ -223,7 +235,7 @@ function InicioPage() {
 
     const dataRefStr = i.dataCompra || i.createdAt;
     if (!dataRefStr) return;
-    
+
     // Tratando a data de referência para evitar problemas de timezone
     // Vamos apenas focar no ano/mês que a string (YYYY-MM-DD) ou timestamp indica
     const dataRef = new Date(dataRefStr);
@@ -261,19 +273,31 @@ function InicioPage() {
   const mesRetrasadoNome = MESES_PT[(hoje.getMonth() + 10) % 12];
 
   const dadosMensais = [
-    { mes: mesRetrasadoNome, comprado: retrasadoComprado, previsao: retrasadoPrevisao, total: retrasadoComprado + retrasadoPrevisao },
-    { mes: mesPassadoNome, comprado: passadoComprado, previsao: passadoPrevisao, total: passadoComprado + passadoPrevisao },
-    { mes: mesAtualNome, comprado: atualComprado, previsao: atualPrevisao, total: atualComprado + atualPrevisao },
+    {
+      mes: mesRetrasadoNome,
+      comprado: retrasadoComprado,
+      previsao: retrasadoPrevisao,
+      total: retrasadoComprado + retrasadoPrevisao,
+    },
+    {
+      mes: mesPassadoNome,
+      comprado: passadoComprado,
+      previsao: passadoPrevisao,
+      total: passadoComprado + passadoPrevisao,
+    },
+    {
+      mes: mesAtualNome,
+      comprado: atualComprado,
+      previsao: atualPrevisao,
+      total: atualComprado + atualPrevisao,
+    },
   ];
 
   // Variação % do mês atual em relação ao passado (considerando o total projetado)
   const passadoTotal = passadoComprado + passadoPrevisao;
   const atualTotal = atualComprado + atualPrevisao;
   const variacaoAtual =
-    passadoTotal > 0
-      ? ((atualTotal - passadoTotal) / passadoTotal) * 100
-      : null;
-
+    passadoTotal > 0 ? ((atualTotal - passadoTotal) / passadoTotal) * 100 : null;
 
   // ─── Gerador de Relatório PDF Financeiro ───────────────────────────────────
   const gerarRelatorioFinanceiro = async () => {
@@ -329,14 +353,20 @@ function InicioPage() {
     ];
 
     if (totalEconomizadoGanhos > 0) {
-      metricas.push(["Economia (Presentes)", `${brl(totalEconomizadoGanhos)} (${qtdGanhos} itens)`]);
+      metricas.push([
+        "Economia (Presentes)",
+        `${brl(totalEconomizadoGanhos)} (${qtdGanhos} itens)`,
+      ]);
     }
 
     if (isCasal) {
-      const conj = Math.max(0, (r?.totalGeral ?? 0) - ((r?.totalPessoa1 ?? 0) + (r?.totalPessoa2 ?? 0)));
+      const conj = Math.max(
+        0,
+        (r?.totalGeral ?? 0) - ((r?.totalPessoa1 ?? 0) + (r?.totalPessoa2 ?? 0)),
+      );
       metricas.push(
         [`Gasto de ${p1}`, brl(r?.totalPessoa1 ?? 0)],
-        [`Gasto de ${p2}`, brl(r?.totalPessoa2 ?? 0)]
+        [`Gasto de ${p2}`, brl(r?.totalPessoa2 ?? 0)],
       );
       if (conj > 0) {
         metricas.push(["Gasto Conjunto", brl(conj)]);
@@ -557,7 +587,6 @@ function InicioPage() {
               />
             </div>
 
-
             {/* Gráficos */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Pie Chart — Gasto por cômodo */}
@@ -685,7 +714,9 @@ function InicioPage() {
                 <Tooltip
                   formatter={(v: number, name: string) => [
                     <span style={{ color: "white" }}>{brl(v)}</span>,
-                    <span style={{ color: "white" }}>{name === "comprado" ? "Comprado" : "Previsão"}</span>,
+                    <span style={{ color: "white" }}>
+                      {name === "comprado" ? "Comprado" : "Previsão"}
+                    </span>,
                   ]}
                   contentStyle={{
                     borderRadius: 8,
@@ -695,7 +726,13 @@ function InicioPage() {
                   labelStyle={{ color: "white" }}
                 />
                 <Bar dataKey="comprado" stackId="a" fill="var(--primary)" radius={[0, 0, 0, 0]} />
-                <Bar dataKey="previsao" stackId="a" fill="var(--primary)" fillOpacity={0.4} radius={[6, 6, 0, 0]} />
+                <Bar
+                  dataKey="previsao"
+                  stackId="a"
+                  fill="var(--primary)"
+                  fillOpacity={0.4}
+                  radius={[6, 6, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
