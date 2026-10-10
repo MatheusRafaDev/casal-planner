@@ -224,7 +224,7 @@ export function ItemFormModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
+      <DialogContent 
         className="w-[95vw] sm:w-full max-w-[95vw] sm:max-w-lg max-h-[90dvh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         onPaste={handlePaste}
         onDragOver={handleDragOver}
@@ -335,7 +335,7 @@ export function ItemFormModal({
               {!isEdit && dupQuery.data?.duplicata && (
                 <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 flex gap-2 text-sm mt-2">
                   <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                  <div className="text-amber-800">
+                  <div className="text-amber-800 dark:text-amber-200">
                     Já existe um item similar neste cômodo: <b>{dupQuery.data.itemSimilar}</b>
                   </div>
                 </div>

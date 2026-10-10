@@ -222,7 +222,11 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
           </button>
         </div>
       </div>
-      <Button type="submit" className="w-full" disabled={loading || googleLoading}>
+      <Button
+        type="submit"
+        className="w-full bg-gradient-primary shadow-warm"
+        disabled={loading || googleLoading}
+      >
         {loading ? "Entrando..." : "Entrar"}
       </Button>
 
@@ -245,9 +249,9 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
               justifyContent: "center",
               gap: "0.625rem",
               width: "100%",
-              height: "2.5rem",
-              borderRadius: "0.5rem",
-              border: "1px solid var(--border)",
+              height: "2.75rem",
+              borderRadius: "0.75rem",
+              border: "1.5px solid var(--border)",
               background: "white",
               color: "#3c4043",
               fontFamily: "Inter, sans-serif",
@@ -256,9 +260,26 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
               letterSpacing: "0.01em",
               cursor: !googleReady || googleLoading || loading ? "not-allowed" : "pointer",
               opacity: !googleReady || googleLoading || loading ? 0.6 : 1,
-              transition: "opacity 0.15s ease",
+              boxShadow: "0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.05)",
+              transition: "box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease",
               outline: "none",
               userSelect: "none",
+            }}
+            onMouseEnter={(e) => {
+              if (googleReady && !googleLoading && !loading) {
+                e.currentTarget.style.boxShadow =
+                  "0 4px 12px 0 rgb(0 0 0 / 0.12), 0 2px 4px -1px rgb(0 0 0 / 0.08)";
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow =
+                "0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.05)";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 1px 3px 0 rgb(0 0 0 / 0.08)";
             }}
           >
             {googleLoading ? (

@@ -81,7 +81,9 @@ export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: Wizar
           <div key={n} className="flex items-center gap-2 flex-1">
             <div
               className={`h-8 w-8 rounded-full grid place-items-center text-sm font-semibold ${
-                passo >= n ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                passo >= n
+                  ? "bg-gradient-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
               }`}
             >
               {n}
@@ -100,7 +102,7 @@ export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: Wizar
             <Label>E-mail</Label>
             <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
-          <Button className="w-full" disabled={loading}>
+          <Button className="w-full bg-gradient-primary" disabled={loading}>
             {loading ? "Enviando..." : "Enviar código"}
           </Button>
         </form>
@@ -121,7 +123,7 @@ export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: Wizar
               </InputOTPGroup>
             </InputOTP>
           </div>
-          <Button className="w-full" disabled={loading || codigo.length < 6}>
+          <Button className="w-full bg-gradient-primary" disabled={loading || codigo.length < 6}>
             {loading ? "Validando..." : "Validar código"}
           </Button>
           <Button type="button" variant="ghost" className="w-full" onClick={() => setPasso(1)}>
@@ -179,7 +181,7 @@ export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: Wizar
               </button>
             </div>
           </div>
-          <Button className="w-full" disabled={loading}>
+          <Button className="w-full bg-gradient-primary" disabled={loading}>
             {loading ? "Salvando..." : "Redefinir senha"}
           </Button>
         </form>

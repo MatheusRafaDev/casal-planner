@@ -155,8 +155,8 @@ function ListaPublicaPage() {
   if (!data) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-        <Gift className="h-12 w-12 text-muted-foreground mb-4" />
-        <h1 className="text-2xl font-display font-semibold mb-2">Lista não encontrada</h1>
+        <Gift className="h-16 w-16 text-muted-foreground mb-4" />
+        <h1 className="text-2xl font-display font-bold mb-2">Lista não encontrada</h1>
         <p className="text-muted-foreground max-w-md">
           Este endereço não existe ou a lista foi desativada pelo casal. Verifique se o link está
           correto.
@@ -168,12 +168,12 @@ function ListaPublicaPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-muted/60 border-b pt-12 pb-10 px-4 text-center">
+      <header className="bg-primary/5 border-b border-primary/10 pt-16 pb-12 px-4 text-center">
         <div className="max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center justify-center h-12 w-12 rounded-lg bg-primary/5 text-primary mb-2">
+          <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-2">
             <Gift className="h-8 w-8" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-display font-semibold text-foreground">
+          <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground">
             Lista de Desejos
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground font-medium">{casal}</p>
@@ -200,11 +200,11 @@ function ListaPublicaPage() {
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Buscar itens..."
-              className="pl-10 h-10 rounded-md bg-card"
+              className="pl-10 h-12 rounded-full bg-muted/50 border-muted focus-visible:ring-primary shadow-sm"
             />
           </div>
           <div className="flex flex-wrap gap-3 items-center">
-            <div className="flex items-center space-x-2 bg-card p-2.5 rounded-md border px-4 h-10">
+            <div className="flex items-center space-x-2 bg-muted/30 p-2.5 rounded-full border px-4 h-12">
               <Checkbox
                 id="disponiveis"
                 checked={apenasDisponiveis}
@@ -215,7 +215,7 @@ function ListaPublicaPage() {
               </Label>
             </div>
             <Select value={faixaPreco} onValueChange={setFaixaPreco}>
-              <SelectTrigger className="w-[180px] h-10 rounded-md bg-card">
+              <SelectTrigger className="w-[180px] h-12 rounded-full bg-muted/30 border-muted">
                 <SelectValue placeholder="Preço" />
               </SelectTrigger>
               <SelectContent>
@@ -233,10 +233,10 @@ function ListaPublicaPage() {
           {itensFiltrados.map((item) => (
             <div
               key={item.id}
-              className={`flex flex-col rounded-xl border overflow-hidden transition-colors duration-150 ${
+              className={`flex flex-col rounded-2xl border overflow-hidden transition-all duration-300 ${
                 item.comprado
                   ? "bg-muted/30 border-muted opacity-80"
-                  : "bg-card border-border hover:border-primary/30"
+                  : "bg-card border-border hover:shadow-md hover:border-primary/20"
               }`}
             >
               {/* Imagem */}
@@ -245,13 +245,13 @@ function ListaPublicaPage() {
                   <img
                     src={item.fotoUrl}
                     alt={item.nome}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-contain transition-transform duration-300 hover:scale-105"
                   />
                 ) : (
                   <Gift className="h-12 w-12 text-muted-foreground/30" />
                 )}
                 {item.comprado && (
-                  <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] flex items-center justify-center">
                     <div className="bg-background/90 text-foreground px-4 py-2 rounded-full font-semibold flex items-center gap-2 shadow-sm">
                       <Check className="h-4 w-4" /> Já Presenteado
                     </div>

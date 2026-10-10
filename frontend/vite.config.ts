@@ -14,6 +14,9 @@ export default defineConfig({
   },
   nitro: {
     preset: "vercel",
+    routeRules: {
+      "/api/**": { proxy: "https://casalplanner-api.onrender.com/api/**" }
+    }
   },
   vite: {
     server: {

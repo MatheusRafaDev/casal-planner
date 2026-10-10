@@ -58,4 +58,15 @@ export function iconFor(name?: string | null): LucideIcon {
   return ICON_MAP[name] ?? Package;
 }
 
-export const CATEGORIA_COLORS = ["#7655a6", "#9a83bd", "#b8abc9", "#6b7280", "#a85b4b", "#a77721"];
+export const CATEGORIA_COLORS = [
+  "#a78bfa",
+  "#8b5cf6",
+  "#7c3aed",
+  "#c084fc",
+  "#f472b6",
+  "#f59e0b",
+  "#fb7185",
+  "#34d399",
+  "#38bdf8",
+  "#facc15",
+];

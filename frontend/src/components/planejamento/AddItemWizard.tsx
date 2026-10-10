@@ -546,7 +546,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     />
 
                     {analisandoFoto ? (
-                      <div className="absolute inset-0 bg-background/90 flex flex-col items-center justify-center">
+                      <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center backdrop-blur-sm">
                         <Loader2 className="h-6 w-6 text-primary animate-spin mb-2" />
                         <span className="text-xs font-medium text-primary">Analisando...</span>
                       </div>
@@ -723,7 +723,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     />
                     <Button
                       type="button"
-                      className="h-9 px-4 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shrink-0 text-sm"
+                      className="h-9 px-4 rounded-lg bg-gradient-primary text-primary-foreground shadow-md hover:shadow-lg transition-all shrink-0 text-sm"
                       onClick={() => {
                         setEscolhido(null);
                         setStep(3);
@@ -739,7 +739,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
 
           {step === 3 && (
             <div className="py-2 space-y-4 overflow-y-auto flex-1 min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              <div className="rounded-lg border p-4 bg-muted/40 relative group/header">
+              <div className="rounded-xl border p-4 bg-gradient-warm relative group/header">
                 <div className="relative">
                   <textarea
                     value={nome}

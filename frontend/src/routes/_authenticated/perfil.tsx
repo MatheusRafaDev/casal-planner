@@ -90,12 +90,10 @@ function PerfilPage() {
   if (!usuario) return null;
 
   return (
-    <div className="p-4 md:p-8 w-full max-w-[1600px] space-y-5">
+    <div className="p-4 md:p-8 w-full max-w-[1600px] space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-display font-semibold tracking-tight">
-            Meu Perfil
-          </h1>
+          <h1 className="text-2xl md:text-4xl font-display font-bold tracking-tight">Meu Perfil</h1>
           <p className="text-sm md:text-base text-muted-foreground font-medium mt-1">
             Conta {isCasal ? "de Casal" : "Individual"}
           </p>
@@ -105,7 +103,7 @@ function PerfilPage() {
             variant="secondary"
             size="sm"
             onClick={triggerInstall}
-            className="font-medium rounded-md"
+            className="font-medium rounded-full shadow-sm"
           >
             <Download className="h-4 w-4 md:mr-2" />
             <span className="hidden md:inline">Instalar App</span>
@@ -263,7 +261,7 @@ function PerfilPage() {
         <div className="space-y-6 lg:space-y-8">
           {/* Convites Recebidos */}
           {!isCasal && convitesQuery.data && convitesQuery.data.length > 0 && (
-            <section className="rounded-2xl border border-primary/20 bg-primary/[0.03] p-5 shadow-soft">
+            <section className="rounded-2xl border border-primary/50 bg-primary/5 p-5 shadow-soft">
               <div className="flex items-center gap-2 mb-4">
                 <MailOpen className="h-5 w-5 text-primary" />
                 <h2 className="font-display text-lg font-semibold text-primary">
@@ -466,7 +464,11 @@ function PessoaForm({
       </div>
       {!somenteLeitura && (
         <div className="pt-2">
-          <Button type="submit" disabled={mut.isPending} className="w-full sm:w-auto h-10 px-6">
+          <Button
+            type="submit"
+            disabled={mut.isPending}
+            className="w-full sm:w-auto h-11 px-8 rounded-full bg-gradient-primary shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
+          >
             <Save className="h-4 w-4 mr-2" />
             {mut.isPending ? "Salvando..." : "Salvar alterações"}
           </Button>
@@ -518,7 +520,7 @@ function MetaEnxovalCard({
         }}
       >
         <CurrencyInput value={valor} onValueChange={setValor} placeholder="R$ 0,00" />
-        <Button type="submit" disabled={mut.isPending}>
+        <Button type="submit" disabled={mut.isPending} className="bg-gradient-primary">
           Salvar
         </Button>
       </form>
@@ -574,7 +576,7 @@ function TrocarSenhaCard() {
         type="button"
         onClick={() => mut.mutate()}
         disabled={mut.isPending}
-        className="w-full sm:w-auto"
+        className="w-full sm:w-auto bg-gradient-primary"
       >
         {mut.isPending ? "Enviando..." : "Enviar link de redefinição"}
       </Button>
