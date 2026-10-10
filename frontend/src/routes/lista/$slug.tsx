@@ -166,59 +166,63 @@ function ListaPublicaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-primary/5 border-b border-primary/10 pt-16 pb-12 px-4 text-center">
-        <div className="max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-2">
-            <Gift className="h-8 w-8" />
-          </div>
-          <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground">
-            Lista de Desejos
+    <div className="min-h-screen bg-[#FAFAFA] font-sans selection:bg-primary/20">
+      {/* Header Premium */}
+      <header className="pt-20 pb-16 px-4 text-center bg-white border-b shadow-sm relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent opacity-60" />
+        <div className="relative max-w-4xl mx-auto space-y-5">
+          <p className="uppercase tracking-[0.3em] text-xs font-semibold text-primary/80">
+            Lista de Presentes
+          </p>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-medium tracking-tight text-foreground">
+            {casal}
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground font-medium">{casal}</p>
+          <p className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto font-light">
+            Obrigado por celebrar esse momento especial conosco. Escolha com carinho!
+          </p>
 
-          <div className="max-w-md mx-auto mt-6 pt-4 text-left">
-            <div className="flex justify-between text-xs font-medium text-muted-foreground mb-1.5">
-              <span>
-                {comprados} de {itens.length} presentes escolhidos
-              </span>
-              <span>{Math.round(progresso)}%</span>
+          <div className="pt-6 max-w-xs mx-auto">
+            <div className="flex justify-between text-xs font-medium text-muted-foreground/70 mb-2 uppercase tracking-wide">
+              <span>{comprados} Presenteados</span>
+              <span>{itens.length - comprados} Restantes</span>
             </div>
-            <Progress value={progresso} className="h-2.5" />
+            <Progress value={progresso} className="h-1.5 bg-muted/50 [&>div]:bg-primary/60" />
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8 md:py-12">
-        {/* Filtros */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8 md:mb-12">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      <main className="max-w-[1400px] mx-auto px-4 py-12 md:py-16">
+        {/* Filtros Elegantes */}
+        <div className="flex flex-col lg:flex-row gap-4 mb-10 items-center justify-between bg-white p-2 rounded-2xl shadow-sm border border-border/40">
+          <div className="relative flex-1 w-full max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              placeholder="Buscar itens..."
-              className="pl-10 h-12 rounded-full bg-muted/50 border-muted focus-visible:ring-primary shadow-sm"
+              placeholder="Encontre um presente..."
+              className="pl-11 h-12 bg-transparent border-none shadow-none focus-visible:ring-0 text-base placeholder:text-muted-foreground/60"
             />
           </div>
-          <div className="flex flex-wrap gap-3 items-center">
-            <div className="flex items-center space-x-2 bg-muted/30 p-2.5 rounded-full border px-4 h-12">
+          <div className="h-px w-full lg:h-8 lg:w-px bg-border/50 hidden lg:block" />
+          <div className="flex flex-wrap lg:flex-nowrap gap-2 items-center w-full lg:w-auto px-2 lg:px-0 pb-2 lg:pb-0">
+            <div className="flex items-center space-x-2 px-3 h-10 hover:bg-muted/50 rounded-lg transition-colors cursor-pointer" onClick={() => setApenasDisponiveis(!apenasDisponiveis)}>
               <Checkbox
                 id="disponiveis"
                 checked={apenasDisponiveis}
                 onCheckedChange={(c) => setApenasDisponiveis(!!c)}
+                className="border-muted-foreground/30 data-[state=checked]:bg-primary"
               />
-              <Label htmlFor="disponiveis" className="text-sm cursor-pointer whitespace-nowrap">
-                Apenas disponíveis
+              <Label htmlFor="disponiveis" className="text-sm cursor-pointer whitespace-nowrap text-muted-foreground">
+                Ocultar presenteados
               </Label>
             </div>
+            <div className="h-4 w-px bg-border/50 hidden sm:block mx-1" />
             <Select value={faixaPreco} onValueChange={setFaixaPreco}>
-              <SelectTrigger className="w-[180px] h-12 rounded-full bg-muted/30 border-muted">
-                <SelectValue placeholder="Preço" />
+              <SelectTrigger className="w-[160px] h-10 border-none bg-transparent hover:bg-muted/50 rounded-lg shadow-none focus:ring-0 text-muted-foreground">
+                <SelectValue placeholder="Faixa de preço" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-xl">
                 <SelectItem value="todos">Qualquer valor</SelectItem>
                 <SelectItem value="ate-100">Até R$ 100</SelectItem>
                 <SelectItem value="100-300">R$ 100 a R$ 300</SelectItem>
@@ -228,113 +232,91 @@ function ListaPublicaPage() {
           </div>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {/* Grid Elegante */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
           {itensFiltrados.map((item) => (
             <div
               key={item.id}
-              className={`flex flex-col rounded-2xl border overflow-hidden transition-all duration-300 ${
+              className={`group flex flex-col transition-all duration-500 rounded-2xl ${
                 item.comprado
-                  ? "bg-muted/30 border-muted opacity-80"
-                  : "bg-card border-border hover:shadow-md hover:border-primary/20"
+                  ? "opacity-60 grayscale hover:grayscale-0"
+                  : "hover:-translate-y-1"
               }`}
             >
-              {/* Imagem */}
-              <div className="aspect-square bg-white relative overflow-hidden flex items-center justify-center p-4">
+              {/* Imagem Container */}
+              <div className="aspect-[4/3] bg-white rounded-2xl border border-border/40 shadow-sm relative overflow-hidden flex items-center justify-center p-6 mb-4">
                 {item.fotoUrl ? (
                   <img
                     src={item.fotoUrl}
                     alt={item.nome}
-                    className="w-full h-full object-contain transition-transform duration-300 hover:scale-105"
+                    className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+                    loading="lazy"
                   />
                 ) : (
-                  <Gift className="h-12 w-12 text-muted-foreground/30" />
+                  <Gift className="h-10 w-10 text-muted-foreground/20" />
                 )}
+                
                 {item.comprado && (
-                  <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] flex items-center justify-center">
-                    <div className="bg-background/90 text-foreground px-4 py-2 rounded-full font-semibold flex items-center gap-2 shadow-sm">
-                      <Check className="h-4 w-4" /> Já Presenteado
+                  <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] flex items-center justify-center">
+                    <div className="bg-foreground text-background px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider shadow-lg flex items-center gap-1.5">
+                      <Check className="h-3.5 w-3.5" /> Presenteado
                     </div>
+                  </div>
+                )}
+                
+                {!item.comprado && item.prioridade === "alta" && (
+                  <div className="absolute top-3 left-3 bg-red-500 text-white text-[10px] uppercase tracking-wider font-semibold px-2 py-1 rounded-md shadow-sm">
+                    Muito Desejado
                   </div>
                 )}
               </div>
 
-              {/* Informações */}
-              <div className="p-5 flex flex-col flex-1">
-                <div className="mb-2">
-                  <div className="flex items-start justify-between gap-2 mb-1.5">
-                    {item.prioridade && item.prioridade !== "normal" && (
-                      <Badge
-                        variant="outline"
-                        className={`text-[10px] px-1.5 py-0 uppercase tracking-wider ${item.prioridade === "alta" ? "text-red-500 border-red-500/30 bg-red-500/10" : "text-amber-500 border-amber-500/30 bg-amber-500/10"}`}
-                      >
-                        Prioridade {item.prioridade}
-                      </Badge>
-                    )}
-                  </div>
-                  <h3
-                    className="font-semibold text-lg line-clamp-2 leading-tight"
-                    title={item.nome}
-                  >
-                    {item.quantidade > 1 ? `${item.quantidade}x ` : ""}
-                    {item.nome}
-                  </h3>
-                  {item.marca && (
-                    <p className="text-sm text-muted-foreground mt-1 font-medium">{item.marca}</p>
-                  )}
+              {/* Detalhes Minimalistas */}
+              <div className="flex flex-col flex-1 px-1">
+                <h3
+                  className="font-medium text-lg leading-snug text-foreground mb-1 group-hover:text-primary transition-colors line-clamp-2"
+                  title={item.nome}
+                >
+                  {item.quantidade > 1 ? <span className="text-muted-foreground">{item.quantidade}x </span> : ""}
+                  {item.nome}
+                </h3>
+                
+                {item.marca && (
+                  <p className="text-sm text-muted-foreground font-light">{item.marca}</p>
+                )}
 
-                  {(item.loja || (item.variantes && item.variantes.length > 0)) && (
-                    <div className="flex flex-wrap gap-1.5 mt-2.5">
-                      {item.loja && (
-                        <Badge variant="secondary" className="text-xs font-normal opacity-80">
-                          Sugerido: {item.loja}
-                        </Badge>
-                      )}
-                      {item.variantes?.map((v, idx) => (
-                        <Badge
-                          key={idx}
-                          variant="outline"
-                          className="text-xs font-normal border-primary/20 bg-primary/5 text-primary"
-                        >
-                          {v}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-auto pt-4 space-y-4">
+                <div className="mt-4 flex items-end justify-between gap-4">
                   {item.preco && item.preco > 0 ? (
-                    <div className="flex flex-col">
-                      <span className="text-xs text-muted-foreground">Valor sugerido</span>
-                      <span className="text-xl font-bold text-primary">{brl(item.preco)}</span>
+                    <div>
+                      <span className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Valor Sugerido</span>
+                      <span className="text-xl font-display font-semibold tracking-tight">{brl(item.preco)}</span>
                     </div>
                   ) : (
-                    <div className="text-sm text-muted-foreground italic py-1">
-                      Valor não definido
-                    </div>
-                  )}
-
-                  {!item.comprado && (
-                    <div className="flex flex-col gap-2">
-                      {item.linkProduto && (
-                        <Button variant="default" className="w-full rounded-xl" asChild>
-                          <a href={item.linkProduto} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4 mr-2" /> Comprar na Loja
-                          </a>
-                        </Button>
-                      )}
-                      <Button
-                        variant={item.linkProduto ? "outline" : "default"}
-                        className="w-full rounded-xl"
-                        onClick={() => setItemSelecionado(item)}
-                      >
-                        <Gift className="h-4 w-4 mr-2" />
-                        {item.linkProduto ? "Já comprei / Prometer" : "Presentear"}
-                      </Button>
+                    <div>
+                      <span className="block text-[10px] uppercase tracking-wider text-transparent mb-0.5">-</span>
+                      <span className="text-sm font-medium italic text-muted-foreground">Valor Livre</span>
                     </div>
                   )}
                 </div>
+
+                {!item.comprado && (
+                  <div className="mt-6 flex flex-col gap-2">
+                    <Button
+                      className="w-full rounded-xl bg-foreground text-background hover:bg-foreground/90 h-11 shadow-none transition-transform active:scale-95"
+                      onClick={() => setItemSelecionado(item)}
+                    >
+                      Presentear
+                    </Button>
+                    {item.linkProduto && (
+                      <Button variant="ghost" className="w-full rounded-xl h-11 text-muted-foreground hover:text-foreground" asChild>
+                        <a href={item.linkProduto} target="_blank" rel="noopener noreferrer">
+                          <span>Ver na Loja</span>
+                          <ExternalLink className="h-3.5 w-3.5 ml-1.5 opacity-70" />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -347,82 +329,79 @@ function ListaPublicaPage() {
         </div>
       </main>
 
-      {/* Modal Presentear */}
+      {/* Modal Presentear (Minimalista) */}
       <Dialog open={!!itemSelecionado} onOpenChange={(open) => !open && setItemSelecionado(null)}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Você vai presentear:</DialogTitle>
-            <DialogDescription>
-              Ficamos muito felizes! Por favor, informe seu nome para que o casal saiba quem deu
-              este presente.
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-background rounded-2xl">
+          <DialogHeader className="p-6 pb-2 text-left">
+            <DialogTitle className="text-2xl font-display">Presentear</DialogTitle>
+            <DialogDescription className="text-sm">
+              Por favor, informe seu nome para que o casal saiba quem preparou esta surpresa.
             </DialogDescription>
           </DialogHeader>
 
           {itemSelecionado && (
-            <div className="py-4 space-y-6">
-              {/* Resumo do item */}
-              <div className="flex gap-4 items-center bg-muted/50 p-3 rounded-xl border">
-                <div className="h-16 w-16 bg-background rounded-lg border flex flex-shrink-0 items-center justify-center p-1 overflow-hidden">
+            <div className="px-6 pb-6 space-y-6">
+              {/* Card Resumo do Produto */}
+              <div className="flex gap-4 items-center bg-white border shadow-sm p-3 rounded-2xl">
+                <div className="h-20 w-20 bg-muted/20 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden p-2">
                   {itemSelecionado.fotoUrl ? (
-                    <img
-                      src={itemSelecionado.fotoUrl}
-                      alt={itemSelecionado.nome}
-                      className="w-full h-full object-contain"
-                    />
+                    <img src={itemSelecionado.fotoUrl} alt={itemSelecionado.nome} className="w-full h-full object-contain" />
                   ) : (
-                    <Gift className="h-6 w-6 text-muted-foreground/50" />
+                    <Gift className="h-6 w-6 text-muted-foreground/30" />
                   )}
                 </div>
-                <div>
-                  <h4 className="font-medium text-sm line-clamp-2">{itemSelecionado.nome}</h4>
-                  {itemSelecionado.preco && itemSelecionado.preco > 0 && (
-                    <p className="font-semibold text-primary text-sm mt-1">
-                      {brl(itemSelecionado.preco)}
-                    </p>
-                  )}
+                <div className="min-w-0 pr-2">
+                  <h4 className="font-medium text-sm line-clamp-2 leading-snug">{itemSelecionado.nome}</h4>
+                  <div className="mt-1 flex items-center justify-between">
+                    {itemSelecionado.preco && itemSelecionado.preco > 0 ? (
+                      <span className="font-semibold font-display text-foreground">{brl(itemSelecionado.preco)}</span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground italic">Livre</span>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Informações da Loja */}
+              {/* Loja (Se Houver) */}
               {itemSelecionado.linkProduto && (
-                <div className="text-sm">
-                  <p className="text-muted-foreground mb-2">
-                    Você pode adquirir este item na loja sugerida:
-                  </p>
-                  <Button variant="outline" className="w-full justify-between" asChild>
+                <div className="bg-muted/30 rounded-xl p-4 text-sm text-center">
+                  <p className="text-muted-foreground mb-3 text-xs uppercase tracking-wider font-medium">Link sugerido para compra</p>
+                  <Button variant="outline" className="w-full rounded-xl bg-white" asChild>
                     <a href={itemSelecionado.linkProduto} target="_blank" rel="noopener noreferrer">
-                      <span>Ver na loja {itemSelecionado.loja && `(${itemSelecionado.loja})`}</span>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                      <span>Acessar {itemSelecionado.loja && itemSelecionado.loja}</span>
+                      <ExternalLink className="h-4 w-4 text-muted-foreground ml-2" />
                     </a>
                   </Button>
                 </div>
               )}
 
-              {/* Formulário */}
+              {/* Identificação */}
               <div className="space-y-2">
-                <Label htmlFor="nome">Seu Nome / Família</Label>
+                <Label htmlFor="nome" className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                  Seu Nome ou Família
+                </Label>
                 <Input
                   id="nome"
                   placeholder="Ex: Tio João e Tia Maria"
                   value={nomeConvidado}
                   onChange={(e) => setNomeConvidado(e.target.value)}
                   autoFocus
+                  className="h-12 rounded-xl bg-muted/20"
                 />
               </div>
 
-              <div className="text-xs text-muted-foreground bg-primary/5 p-3 rounded-lg border border-primary/10">
-                <strong>Atenção:</strong> Ao confirmar, o presente será marcado como "comprado" e
-                não estará mais disponível para outros convidados. Você terá 10 minutos para
-                desfazer esta ação se precisar.
-              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                O presente será reservado no sistema imediatamente.<br/> Você poderá desfazer a reserva por 10 minutos se mudar de ideia.
+              </p>
             </div>
           )}
 
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setItemSelecionado(null)}>
+          <DialogFooter className="p-4 bg-muted/10 border-t flex-row justify-end gap-2">
+            <Button variant="ghost" className="rounded-xl w-full sm:w-auto" onClick={() => setItemSelecionado(null)}>
               Cancelar
             </Button>
             <Button
+              className="rounded-xl w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90"
               onClick={() => presentearMut.mutate()}
               disabled={!nomeConvidado.trim() || presentearMut.isPending}
             >

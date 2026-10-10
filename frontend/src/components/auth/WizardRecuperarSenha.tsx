@@ -76,31 +76,43 @@ export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: Wizar
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        {[1, 2, 3].map((n) => (
-          <div key={n} className="flex items-center gap-2 flex-1">
+      <div className="flex items-center justify-between mb-8">
+        {[
+          { num: 1, label: "E-mail" },
+          { num: 2, label: "Código" },
+          { num: 3, label: "Senha" }
+        ].map((step, idx) => (
+          <div key={step.num} className="flex flex-col items-center gap-2 flex-1 relative">
             <div
-              className={`h-8 w-8 rounded-full grid place-items-center text-sm font-semibold ${
-                passo >= n
-                  ? "bg-primary text-primary-foreground"
+              className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold z-10 transition-colors ${
+                passo >= step.num
+                  ? "bg-primary text-primary-foreground shadow-sm"
                   : "bg-muted text-muted-foreground"
               }`}
             >
-              {n}
+              {step.num}
             </div>
-            {n < 3 && <div className={`h-0.5 flex-1 ${passo > n ? "bg-primary" : "bg-muted"}`} />}
+            <span className={`text-xs font-medium ${passo >= step.num ? "text-foreground" : "text-muted-foreground"}`}>
+              {step.label}
+            </span>
+            {idx < 2 && (
+              <div className="absolute top-4 left-[60%] w-[80%] h-[2px] -translate-y-1/2 -z-0">
+                <div className={`h-full w-full ${passo > step.num ? "bg-primary" : "bg-muted"}`} />
+              </div>
+            )}
           </div>
         ))}
       </div>
 
       {passo === 1 && (
-        <form onSubmit={enviarCodigo} className="space-y-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Mail className="h-4 w-4" /> Informe o e-mail cadastrado
+        <form onSubmit={enviarCodigo} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 text-sm text-muted-foreground">
+            <Mail className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+            <p>Informe o endereço de e-mail associado à sua conta para receber um código de verificação.</p>
           </div>
           <div className="space-y-2">
-            <Label>E-mail</Label>
-            <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Label htmlFor="email">E-mail</Label>
+            <Input id="email" type="email" placeholder="voce@exemplo.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <Button className="w-full bg-primary" disabled={loading}>
             {loading ? "Enviando..." : "Enviar código"}
@@ -109,10 +121,13 @@ export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: Wizar
       )}
 
       {passo === 2 && (
-        <form onSubmit={validar} className="space-y-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <KeyRound className="h-4 w-4" /> Digite o código de 6 dígitos enviado para{" "}
-            <strong className="text-foreground">{email}</strong>
+        <form onSubmit={validar} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 text-sm text-muted-foreground">
+            <KeyRound className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+            <p>
+              Digite o código numérico de 6 dígitos enviado para{" "}
+              <strong className="text-foreground font-medium">{email}</strong>.
+            </p>
           </div>
           <div className="flex justify-center">
             <InputOTP maxLength={6} value={codigo} onChange={setCodigo}>
@@ -133,9 +148,10 @@ export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: Wizar
       )}
 
       {passo === 3 && (
-        <form onSubmit={redefinir} className="space-y-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Lock className="h-4 w-4" /> Defina sua nova senha
+        <form onSubmit={redefinir} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 text-sm text-muted-foreground">
+            <Lock className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+            <p>Crie uma nova senha segura. Ela deve ter pelo menos 6 caracteres.</p>
           </div>
           <div className="space-y-2">
             <Label>Nova senha</Label>

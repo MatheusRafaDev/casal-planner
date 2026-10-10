@@ -12,6 +12,7 @@ import {
   Bot,
   FileText,
   Gift,
+  CheckCircle,
 } from "lucide-react";
 import {
   Pie,
@@ -466,410 +467,242 @@ function InicioPage() {
   };
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+    hidden: { opacity: 0, y: 15 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
   };
 
   return (
     <motion.div
-      className="p-4 md:p-8 w-full max-w-[1600px] space-y-6"
+      className="p-4 md:p-6 lg:p-8 w-full max-w-[1200px] mx-auto space-y-6 md:space-y-8"
       variants={containerVariants}
       initial="hidden"
       animate="show"
     >
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="font-display text-3xl md:text-4xl font-semibold">Início</h1>
-          <p className="text-muted-foreground">Seu enxoval em números.</p>
+      {/* Cabeçalho */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
+        <div>
+          <h1 className="font-display text-2xl md:text-3xl font-semibold tracking-tight text-foreground">Visão Geral</h1>
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">
+            {isCasal ? `Enxoval de ${p1.split(' ')[0]} e ${p2.split(' ')[0]}.` : 'O progresso financeiro do seu enxoval.'}
+          </p>
         </div>
-        <div className="flex flex-wrap gap-2 shrink-0">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
             onClick={gerarRelatorioFinanceiro}
-            className="border-primary/40 text-primary hover:bg-primary/10"
+            className="flex-1 sm:flex-none h-10 border-border text-foreground hover:bg-muted"
           >
-            <FileText className="h-4 w-4 mr-1" /> Relatório PDF
+            <FileText className="h-4 w-4 mr-2" /> PDF
           </Button>
-          <Button asChild className="bg-primary">
+          <Button asChild size="sm" className="flex-1 sm:flex-none h-10 bg-primary">
             <Link to="/planejamento">
-              Ir para o planejamento <ArrowRight className="h-4 w-4 ml-2" />
+              Planejar <ArrowRight className="h-4 w-4 ml-2" />
             </Link>
           </Button>
         </div>
       </div>
 
-      {/* Progresso do Enxoval */}
-      <motion.div variants={itemVariants}>
-        {meta > 0 ? (
-          <div className="rounded-2xl border bg-card p-5">
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <div className="min-w-0 flex-1">
-                <div className="text-sm text-muted-foreground">Progresso do Orçamento (Bolso)</div>
-                <div className="font-display text-xl font-semibold truncate">
-                  {brl(r?.totalGeral)}{" "}
-                  <span className="text-muted-foreground text-base">de {brl(meta)}</span>
+      {semDados ? (
+        <motion.div variants={itemVariants} className="rounded-2xl border bg-card p-8 sm:p-12 text-center shadow-sm">
+          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-primary/10 text-primary mb-6">
+            <Sparkles className="h-8 w-8" />
+          </div>
+          <h2 className="font-display text-2xl font-semibold tracking-tight mb-2">Comece o seu enxoval</h2>
+          <p className="text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed">
+            Adicione os itens que você planeja comprar para que possamos gerar análises financeiras inteligentes e o controle do seu orçamento.
+          </p>
+          <Button asChild size="lg" className="bg-primary">
+            <Link to="/planejamento">Adicionar primeiro item</Link>
+          </Button>
+        </motion.div>
+      ) : (
+        <>
+          {/* Bento Grid Principal */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* Bloco 1: Indicador Principal (Span 8) */}
+            <motion.div variants={itemVariants} className="lg:col-span-8 rounded-2xl border bg-card p-6 md:p-8 shadow-sm flex flex-col justify-between">
+              <div className="flex items-start justify-between mb-8">
+                <div>
+                  <div className="text-sm font-semibold tracking-wider text-muted-foreground uppercase mb-1">Gasto do Bolso</div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-display text-5xl md:text-6xl font-bold tracking-tight text-foreground">
+                      {brl(r?.totalGeral).replace('R$', '').trim()}
+                    </span>
+                    <span className="text-lg text-muted-foreground font-medium">BRL</span>
+                  </div>
                 </div>
-                {meta - (r?.totalGeral ?? 0) > 0 && (
-                  <div className="text-xs text-muted-foreground mt-1">
-                    Saldo livre: {brl(meta - (r?.totalGeral ?? 0))}
+                {meta > 0 && (
+                  <div className="text-xs font-semibold px-3 py-1.5 bg-primary/10 text-primary rounded-full shrink-0">
+                    {pct.toFixed(0)}% da meta
                   </div>
                 )}
               </div>
-              <span className="text-sm font-medium text-primary shrink-0">{pct.toFixed(0)}%</span>
-            </div>
-            <Progress value={pct} />
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="min-w-0 flex-1">
-              <div className="font-semibold text-primary">Progresso do enxoval</div>
-              <p className="text-sm text-muted-foreground mt-1">
-                Defina um orçamento máximo para o seu enxoval e acompanhe o progresso aqui.
-              </p>
-            </div>
-            <Link to="/perfil" className="shrink-0">
-              <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
-                <Target className="mr-2 h-4 w-4" />
-                Definir meta
-              </Button>
-            </Link>
-          </div>
-        )}
-      </motion.div>
 
-      {/* IA */}
-      <motion.div variants={itemVariants}>
-        {semDados ? (
-          <div className="rounded-2xl border bg-muted/30 p-6 sm:p-10 text-center">
-            <Sparkles className="h-8 w-8 mx-auto text-primary mb-3" />
-            <h2 className="font-display text-xl font-semibold mb-2">
-              Comece adicionando itens ao seu planejamento
-            </h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Assim que registrar suas compras, os cards e gráficos aparecem aqui.
-            </p>
-            <Button asChild className="bg-primary">
-              <Link to="/planejamento">Adicionar primeiro item</Link>
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Cards principais */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <ResumoCard
-                icon={Wallet}
-                label="Gasto do próprio bolso"
-                valor={brl(r?.totalGeral)}
-                hint={`${r?.itensComprados ?? 0} de ${r?.totalItens ?? 0} itens pagos (exclui presentes)`}
-                delay={0}
-              />
-              <ResumoCard
-                icon={ShoppingBag}
-                label="Dinheiro / VR"
-                valor={`${brl(r?.totalNormal)}`}
-                hint={`VR: ${brl(r?.totalVr)}`}
-                delay={0.05}
-              />
-              <ResumoCard
-                icon={CreditCard}
-                label="Parcelado"
-                valor={brl(totalParcelado)}
-                hint="Soma das compras parceladas"
-                delay={0.1}
-              />
-              <ResumoCard
-                icon={Gift}
-                label="Economizado com presentes"
-                valor={brl(totalEconomizadoGanhos)}
-                hint={`${qtdGanhos} ${qtdGanhos === 1 ? "item ganho" : "itens ganhos"} no enxoval`}
-                delay={0.15}
-              />
-            </div>
+              {meta > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-muted-foreground">Progresso do orçamento</span>
+                    <span className="font-medium">
+                      Meta: {brl(meta)} 
+                      {meta - (r?.totalGeral ?? 0) > 0 && <span className="text-emerald-600 font-medium ml-1">({brl(meta - (r?.totalGeral ?? 0))} livres)</span>}
+                    </span>
+                  </div>
+                  <Progress value={pct} className="h-2" />
+                </div>
+              )}
 
-            {/* Gráficos */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Pie Chart — Gasto por cômodo */}
-              <div className="rounded-2xl border bg-card p-5 overflow-hidden">
-                <h3 className="font-display text-lg font-semibold mb-1">Gasto por cômodo</h3>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Distribuição de valores por cômodo
-                </p>
-                {dadosCategoria.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-16 text-center">
-                    Sem gastos ainda.
-                  </p>
-                ) : (
-                  <ChartContainer config={chartConfig} className="h-[300px] w-full max-w-full">
-                    <PieChart>
-                      <Pie
-                        data={dadosCategoria}
-                        dataKey="valor"
-                        nameKey="nomeBase"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={2}
-                      >
-                        {dadosCategoria.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.cor} />
-                        ))}
-                      </Pie>
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                    </PieChart>
-                  </ChartContainer>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t mt-auto">
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5"><ShoppingBag className="w-3.5 h-3.5"/> Dinheiro</div>
+                  <div className="font-semibold text-foreground">{brl(r?.totalNormal)}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5"/> Parcelado</div>
+                  <div className="font-semibold text-foreground">{brl(totalParcelado)}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5"/> VR/VA</div>
+                  <div className="font-semibold text-foreground">{brl(r?.totalVr)}</div>
+                </div>
+                {isCasal && (
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5"><Target className="w-3.5 h-3.5"/> Divisão</div>
+                    <div className="text-xs font-medium text-foreground leading-tight space-y-0.5">
+                      <div className="truncate"><span className="text-muted-foreground">{p1.split(' ')[0]}:</span> {brl(r?.totalPessoa1)}</div>
+                      <div className="truncate"><span className="text-muted-foreground">{p2.split(' ')[0]}:</span> {brl(r?.totalPessoa2)}</div>
+                    </div>
+                  </div>
                 )}
               </div>
-              {/* Bar — Gasto por categoria */}
-              <div className="rounded-2xl border bg-card p-5 overflow-hidden">
-                <h3 className="font-display text-lg font-semibold mb-1">Gasto por categoria</h3>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Distribuição de valores por cômodo
-                </p>
-                {dadosCategoria.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-16 text-center">
-                    Sem gastos ainda.
-                  </p>
+            </motion.div>
+
+            {/* Bloco 2: Próximos Passos (Span 4) */}
+            <motion.div variants={itemVariants} className="lg:col-span-4 rounded-2xl border bg-muted/30 p-6 md:p-8 flex flex-col shadow-sm">
+              <h3 className="font-semibold text-lg tracking-tight mb-1">Próximas compras</h3>
+              <p className="text-sm text-muted-foreground mb-6">Pendências no planejamento</p>
+              
+              <div className="flex-1 space-y-3">
+                {validItens.filter(i => !i.comprado).length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-8">
+                    <CheckCircle className="h-8 w-8 text-emerald-500/40 mb-3" />
+                    <p className="text-sm font-medium text-foreground">Tudo comprado!</p>
+                    <p className="text-xs mt-1">Nenhuma pendência.</p>
+                  </div>
                 ) : (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart
-                      data={dadosCategoria}
-                      margin={{ top: 4, right: 8, bottom: 4, left: 0 }}
-                    >
+                  validItens.filter(i => !i.comprado).slice(0, 4).map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3.5 rounded-xl bg-background border shadow-sm transition-colors hover:border-primary/30">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <ShoppingBag className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{item.nome}</p>
+                          <p className="text-xs text-muted-foreground truncate">{item.categoriaNome ?? "Sem cômodo"}</p>
+                        </div>
+                      </div>
+                      <div className="text-sm font-semibold text-foreground shrink-0 ml-3">
+                        {brl(item.preco)}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              
+              <Button asChild variant="ghost" className="w-full mt-6 text-primary hover:text-primary hover:bg-primary/5">
+                <Link to="/planejamento">Ver planejamento completo</Link>
+              </Button>
+            </motion.div>
+          </div>
+
+          {/* Segunda Linha: Visualizações */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Gráfico: Projeção de Faturas */}
+            <motion.div variants={itemVariants} className="rounded-2xl border bg-card p-6 md:p-8 shadow-sm flex flex-col">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h3 className="font-semibold text-lg tracking-tight">Projeção de Faturas</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Evolução futura de gastos parcelados e agendados</p>
+                </div>
+              </div>
+
+              <div className="flex-1 min-h-[260px]">
+                {faturasMensais.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
+                    <p className="text-sm">Sem parcelamentos registrados para os próximos meses.</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={faturasMensais} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                       <XAxis
-                        dataKey="nome"
-                        tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                        dataKey="name"
                         axisLine={false}
                         tickLine={false}
+                        tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
+                        dy={10}
                       />
-                      <YAxis
-                        tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-                        axisLine={false}
-                        tickLine={false}
-                        tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
-                      />
+                      <YAxis hide />
                       <Tooltip
-                        formatter={(v: number) => [
-                          <span style={{ color: "white" }}>{brl(v)}</span>,
-                          <span style={{ color: "white" }}>Gasto</span>,
-                        ]}
-                        contentStyle={{
-                          borderRadius: 8,
-                          border: "1px solid var(--border)",
-                          background: "var(--card)",
-                        }}
-                        labelStyle={{ color: "white" }}
+                        cursor={{ fill: 'var(--muted)', opacity: 0.5 }}
+                        contentStyle={{ borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                        formatter={(v: number) => [<span className="font-semibold text-foreground">{brl(v)}</span>, <span className="text-muted-foreground">Fatura</span>]}
+                        labelStyle={{ fontWeight: 600, color: 'var(--foreground)', marginBottom: '4px' }}
                       />
-                      <Bar dataKey="valor" radius={[6, 6, 0, 0]}>
-                        {dadosCategoria.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.cor} />
-                        ))}
-                      </Bar>
+                      <Bar dataKey="valor" fill="var(--primary)" radius={[4, 4, 0, 0]} maxBarSize={45} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
               </div>
-            </div>
-          </div>
-        )}
-      </motion.div>
+            </motion.div>
 
-      {/* Comparativo mensal */}
-      <motion.div variants={itemVariants} className="space-y-6">
-        {temMensais && (
-          <div className="rounded-2xl border bg-card p-5 overflow-hidden">
-            <div className="flex items-center gap-3 mb-1 flex-wrap">
-              <h3 className="font-display text-lg font-semibold">Comparativo mensal</h3>
-              {variacaoAtual !== null && (
-                <span
-                  className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                    variacaoAtual >= 0
-                      ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-                      : "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
-                  }`}
-                >
-                  {variacaoAtual >= 0 ? "+" : ""}
-                  {variacaoAtual.toFixed(1)}% vs {mesPassadoNome}
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mb-4">
-              Evolução dos gastos nos últimos 3 meses
-            </p>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={dadosMensais} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
-                <XAxis
-                  dataKey="mes"
-                  tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
-                />
-                <Tooltip
-                  formatter={(v: number, name: string) => [
-                    <span style={{ color: "white" }}>{brl(v)}</span>,
-                    <span style={{ color: "white" }}>
-                      {name === "comprado" ? "Comprado" : "Previsão"}
-                    </span>,
-                  ]}
-                  contentStyle={{
-                    borderRadius: 8,
-                    border: "1px solid var(--border)",
-                    background: "var(--card)",
-                  }}
-                  labelStyle={{ color: "white" }}
-                />
-                <Bar dataKey="comprado" stackId="a" fill="var(--primary)" radius={[0, 0, 0, 0]} />
-                <Bar
-                  dataKey="previsao"
-                  stackId="a"
-                  fill="var(--primary)"
-                  fillOpacity={0.4}
-                  radius={[6, 6, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-
-        {/* Faturas Mensais — sempre visível */}
-        <div className="rounded-2xl border bg-card p-5 overflow-hidden">
-          <div className="flex items-center gap-3 mb-1 flex-wrap">
-            <h3 className="font-display text-lg font-semibold">Projeção de Faturas</h3>
-          </div>
-          <p className="text-xs text-muted-foreground mb-4">
-            Previsão de parcelamentos por mês — inclui itens comprados e com data prevista
-          </p>
-          {faturasMensais.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-muted-foreground gap-2">
-              <span className="text-3xl">📅</span>
-              <p className="text-sm text-center">
-                Nenhum parcelamento registrado ainda.
-                <br />
-                <span className="text-xs">
-                  Adicione uma data de compra nos itens do planejamento para ver a projeção aqui.
-                </span>
-              </p>
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={faturasMensais} margin={{ top: 4, right: 8, bottom: 25, left: 0 }}>
-                <XAxis
-                  dataKey="name"
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
-                />
-                <Tooltip
-                  formatter={(v: number) => [
-                    <span style={{ color: "white" }}>{brl(v)}</span>,
-                    <span style={{ color: "white" }}>Fatura</span>,
-                  ]}
-                  contentStyle={{
-                    borderRadius: 8,
-                    border: "1px solid var(--border)",
-                    background: "var(--card)",
-                  }}
-                  labelStyle={{ color: "white" }}
-                />
-                <Bar dataKey="valor" fill="#7c3aed" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-
-        {/* Progresso por cômodo */}
-        {r?.porCategoria && r.porCategoria.length > 0 && (
-          <div className="rounded-2xl border bg-card p-5">
-            <h3 className="font-display text-lg font-semibold mb-1">Progresso por cômodo</h3>
-            <p className="text-xs text-muted-foreground mb-4">
-              Quanto já foi gasto em relação à meta de cada cômodo
-            </p>
-            <div className="space-y-4">
-              {r.porCategoria.map((c) => {
-                const metaC = c.metaOrcamento ?? 0;
-                const pctC = metaC > 0 ? Math.min(100, (c.totalGasto / metaC) * 100) : 0;
-                const IconComp = iconFor(c.icon);
-                return (
-                  <div key={c.categoriaId}>
-                    <div className="flex items-center justify-between gap-2 text-sm mb-1.5">
-                      <span className="font-medium flex items-center gap-2 min-w-0">
-                        <span
-                          className="inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0"
-                          style={{ background: (c.cor ?? "#8b5cf6") + "33" }}
-                        >
-                          <IconComp
-                            className="w-4 h-4"
-                            style={{ color: c.cor ?? "var(--primary)" }}
-                          />
-                        </span>
-                        <span className="truncate">{c.categoriaNome}</span>
-                      </span>
-                      <span className="text-muted-foreground text-xs shrink-0">
-                        {brl(c.totalGasto)}
-                        {metaC > 0 && <span> / {brl(metaC)}</span>}
-                      </span>
-                    </div>
-                    {metaC > 0 ? (
-                      <Progress value={pctC} />
-                    ) : (
-                      <div
-                        className="h-2 rounded-full"
-                        style={{ background: c.cor ?? "var(--muted)" }}
-                      />
-                    )}
+            {/* Progresso por Cômodo */}
+            <motion.div variants={itemVariants} className="rounded-2xl border bg-card p-6 md:p-8 shadow-sm flex flex-col">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h3 className="font-semibold text-lg tracking-tight">Distribuição por Cômodo</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Onde seu orçamento está sendo alocado</p>
+                </div>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto pr-2 space-y-6">
+                {r?.porCategoria && r.porCategoria.length > 0 ? (
+                  r.porCategoria.map((c) => {
+                    const metaC = c.metaOrcamento ?? 0;
+                    const pctC = metaC > 0 ? Math.min(100, (c.totalGasto / metaC) * 100) : 0;
+                    const IconComp = iconFor(c.icon);
+                    return (
+                      <div key={c.categoriaId}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${c.cor ?? '#8b5cf6'}20`, color: c.cor ?? '#8b5cf6' }}>
+                              <IconComp className="h-4 w-4" />
+                            </div>
+                            <span className="font-medium text-sm text-foreground">{c.categoriaNome}</span>
+                          </div>
+                          <div className="text-right flex flex-col">
+                            <span className="font-semibold text-sm text-foreground">{brl(c.totalGasto)}</span>
+                            {metaC > 0 && <span className="text-xs text-muted-foreground">de {brl(metaC)}</span>}
+                          </div>
+                        </div>
+                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden mt-2">
+                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${metaC > 0 ? pctC : 100}%`, backgroundColor: c.cor ?? 'var(--primary)' }} />
+                        </div>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
+                    <p className="text-sm">Nenhum cômodo com gastos associados.</p>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </motion.div>
-    </motion.div>
-  );
-}
+                )}
+              </div>
+            </motion.div>
 
-function ResumoCard({
-  icon: Icon,
-  label,
-  valor,
-  hint,
-  delay = 0,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  valor: string;
-  hint?: string;
-  delay?: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay }}
-      className="rounded-2xl border bg-card p-4"
-    >
-      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-        <Icon className="h-4 w-4 text-primary" />
-        {label}
-      </div>
-      <div className="font-display text-xl md:text-2xl font-semibold truncate">{valor}</div>
-      {hint && <div className="text-xs text-muted-foreground mt-1 truncate">{hint}</div>}
+          </div>
+        </>
+      )}
     </motion.div>
   );
 }

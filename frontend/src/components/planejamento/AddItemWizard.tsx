@@ -18,6 +18,7 @@ import {
   Gift,
   Wallet,
   Pencil,
+  Trash2,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -460,20 +461,20 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   };
 
   const stepper = (n: number, label: string) => (
-    <div className="flex items-center gap-2">
+    <div className={cn("flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2", step === n ? "opacity-100" : step > n ? "opacity-100" : "opacity-40")}>
       <span
         className={cn(
-          "h-6 w-6 rounded-full grid place-items-center text-xs font-medium",
+          "h-6 w-6 sm:h-7 sm:w-7 rounded-full flex items-center justify-center text-xs font-semibold border-2 transition-colors",
           step === n
-            ? "bg-primary text-primary-foreground"
+            ? "border-primary bg-primary text-primary-foreground"
             : step > n
-              ? "bg-primary/20 text-primary"
-              : "bg-muted text-muted-foreground",
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-muted-foreground/30 bg-transparent text-muted-foreground",
         )}
       >
-        {step > n ? <Check className="h-3 w-3" /> : n}
+        {step > n ? <Check className="h-3.5 w-3.5" /> : n}
       </span>
-      <span className={cn("text-xs", step === n ? "text-foreground" : "text-muted-foreground")}>
+      <span className={cn("text-[10px] sm:text-xs font-semibold uppercase tracking-wider", step === n ? "text-foreground" : "text-muted-foreground")}>
         {label}
       </span>
     </div>
@@ -487,24 +488,31 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         if (!o) reset();
       }}
     >
-      <DialogContent className="w-[95vw] max-w-2xl max-h-[85dvh] overflow-hidden flex flex-col p-4 sm:p-6">
-        <DialogHeader>
-          <DialogTitle className="font-display flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" /> Novo item
+      <DialogContent className="w-[95vw] max-w-3xl max-h-[90dvh] overflow-hidden flex flex-col p-0 gap-0 bg-background/95 backdrop-blur-md">
+        <DialogHeader className="p-4 sm:p-6 pb-4 border-b bg-card">
+          <DialogTitle className="font-display text-xl sm:text-2xl flex items-center gap-3 mb-5">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+               <Sparkles className="h-5 w-5" />
+            </div>
+            Adicionar Novo Item
           </DialogTitle>
-          <div className="flex items-center gap-4 pt-2">
-            {stepper(1, "Item")}
-            <div className="h-px flex-1 bg-border" />
-            {stepper(2, "Preço")}
-            <div className="h-px flex-1 bg-border" />
-            {stepper(3, "Confirmar")}
+          <div className="flex items-center w-full px-1">
+            {stepper(1, "Identificação")}
+            <div className="h-0.5 flex-1 mx-2 sm:mx-4 bg-muted rounded-full overflow-hidden">
+               <div className={cn("h-full bg-primary transition-all duration-500", step > 1 ? "w-full" : "w-0")} />
+            </div>
+            {stepper(2, "Busca")}
+            <div className="h-0.5 flex-1 mx-2 sm:mx-4 bg-muted rounded-full overflow-hidden">
+               <div className={cn("h-full bg-primary transition-all duration-500", step > 2 ? "w-full" : "w-0")} />
+            </div>
+            {stepper(3, "Detalhes")}
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden flex flex-col min-h-0 pr-1">
+        <div className="flex-1 overflow-hidden flex flex-col min-h-0 px-4 sm:px-6">
           <div
             className={cn(
-              "space-y-4 py-2 overflow-y-auto flex-1 min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
+              "space-y-6 py-4 overflow-y-auto flex-1 min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
               step === 1 ? "block" : "hidden",
             )}
           >
@@ -738,367 +746,198 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
           )}
 
           {step === 3 && (
-            <div className="py-2 space-y-4 overflow-y-auto flex-1 min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              <div className="rounded-xl border p-4 bg-muted/30 relative group/header">
-                <div className="relative">
-                  <textarea
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    rows={2}
-                    className="font-display text-xl font-bold py-2 px-3 border border-border/40 bg-background/40 hover:bg-background/60 hover:border-primary/50 focus-visible:border-primary focus-visible:bg-background transition-all w-full pr-8 resize-none rounded-lg outline-none shadow-sm"
-                    placeholder="Nome do produto"
-                  />
-                  <Pencil className="h-4 w-4 absolute right-3 top-3 text-muted-foreground opacity-50 transition-opacity pointer-events-none" />
-                </div>
-                <div className="flex flex-wrap gap-2 mt-3 px-3 text-sm text-muted-foreground items-center">
-                  <Select value={categoriaId} onValueChange={setCategoriaId}>
-                    <SelectTrigger className="h-8 text-sm min-w-[180px] w-auto bg-background/50 hover:bg-background transition-colors">
-                      <SelectValue placeholder="Selecione um cômodo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categorias.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {escolhido?.loja && <Badge variant="outline">{escolhido.loja}</Badge>}
-                  {escolhido?.marca && <Badge variant="outline">{escolhido.marca}</Badge>}
-                </div>
-                <div className="mt-4 flex items-end justify-between">
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">Preço unitário</div>
-                    <div className="relative group/price">
-                      <CurrencyInput
-                        value={precoNumerico}
-                        onValueChange={(v) => setPrecoNumerico(v)}
-                        className="font-display text-2xl font-semibold text-primary h-auto py-1.5 px-3 border border-border/40 bg-background/40 hover:bg-background/60 hover:border-primary/50 focus-visible:border-primary focus-visible:bg-background transition-all text-left w-40 rounded-lg shadow-sm outline-none pr-8"
-                      />
-                      <Pencil className="h-3 w-3 absolute right-3 top-1/2 -translate-y-1/2 text-primary opacity-50 transition-opacity pointer-events-none" />
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs text-muted-foreground mb-1">Total</div>
-                    <div className="font-display text-xl font-semibold py-1.5">
-                      {brl(precoNumerico * quantidade)}
-                    </div>
-                  </div>
-                </div>
-                {/* Preview: imagem do item (upload manual ou thumbnail online) */}
-                {(fotoPreviewUrl || escolhido?.thumbnail) && (
-                  <div className="relative mt-4 w-full h-72 rounded-2xl overflow-hidden border bg-background/50">
-                    {/* Fundo Desfocado Premium */}
-                    <div
-                      className="absolute inset-0 bg-cover bg-center opacity-30 blur-2xl scale-110"
-                      style={{ backgroundImage: `url(${fotoPreviewUrl ?? escolhido!.thumbnail})` }}
-                    />
-                    {/* Imagem Principal */}
-                    <img
-                      src={fotoPreviewUrl ?? escolhido!.thumbnail}
-                      alt=""
-                      className="relative h-full w-full object-contain drop-shadow-xl"
-                    />
-                    {fotoPreviewUrl && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          URL.revokeObjectURL(fotoPreviewUrl);
-                          setFotoPreviewUrl(null);
-                          setFotoFile(null);
-                          if (itemFotoInputRef.current) itemFotoInputRef.current.value = "";
-                        }}
-                        className="absolute top-1 right-1 rounded-full bg-black/60 text-white text-xs px-1.5 py-0.5 hover:bg-black/80 transition-colors"
-                        title="Remover foto"
-                      >
-                        ✕
-                      </button>
+            <div className="py-4 space-y-5 overflow-y-auto flex-1 min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              
+              {/* Bloco 1: Identidade Básica */}
+              <div className="grid grid-cols-1 md:grid-cols-[130px_1fr] gap-4 sm:gap-6">
+                
+                {/* Foto */}
+                <div className="flex flex-col gap-2">
+                  <div className="relative w-full aspect-square mx-auto md:mx-0 rounded-2xl overflow-hidden border bg-background/50 group shrink-0">
+                    {fotoPreviewUrl || escolhido?.thumbnail ? (
+                      <>
+                        <div className="absolute inset-0 bg-cover bg-center opacity-20 blur-xl scale-125" style={{ backgroundImage: `url(${fotoPreviewUrl ?? escolhido!.thumbnail})` }} />
+                        <img src={fotoPreviewUrl ?? escolhido!.thumbnail} alt="" className="relative h-full w-full object-contain p-2" />
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground bg-muted/20">
+                        <Camera className="h-8 w-8 mb-2 opacity-50" />
+                        <span className="text-[10px] uppercase font-medium">Sem foto</span>
+                      </div>
                     )}
+                    
+                    {/* Ações da foto no hover */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 backdrop-blur-sm">
+                       <button type="button" onClick={() => itemFotoInputRef.current?.click()} className="text-white text-xs flex items-center gap-1 hover:text-primary transition-colors">
+                         <Upload className="w-4 h-4" /> Trocar
+                       </button>
+                       {fotoPreviewUrl && (
+                         <button type="button" onClick={() => { URL.revokeObjectURL(fotoPreviewUrl); setFotoPreviewUrl(null); setFotoFile(null); if (itemFotoInputRef.current) itemFotoInputRef.current.value = ""; }} className="text-destructive text-xs flex items-center gap-1 hover:text-red-400 transition-colors">
+                           <Trash2 className="w-4 h-4" /> Remover
+                         </button>
+                       )}
+                    </div>
                   </div>
-                )}
-                {/* Botão para adicionar foto do item (só aparece se não há thumbnail online) */}
-                {!escolhido?.thumbnail && !fotoPreviewUrl && (
-                  <button
-                    type="button"
-                    onClick={() => itemFotoInputRef.current?.click()}
-                    className="mt-4 w-full rounded-lg border border-dashed border-border/60 py-3 text-xs text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Upload className="h-3.5 w-3.5" />
-                    Adicionar foto do item
-                  </button>
-                )}
-                {/* Se tem thumbnail mas quer substituir */}
-                {escolhido?.thumbnail && !fotoPreviewUrl && (
-                  <button
-                    type="button"
-                    onClick={() => itemFotoInputRef.current?.click()}
-                    className="mt-2 w-full text-xs text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1"
-                  >
-                    <Upload className="h-3 w-3" />
-                    Substituir por foto própria
-                  </button>
-                )}
-                <input
-                  ref={itemFotoInputRef}
-                  type="file"
-                  accept="image/jpeg, image/png, image/webp"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    if (fotoPreviewUrl) URL.revokeObjectURL(fotoPreviewUrl);
-                    setFotoFile(file);
-                    setFotoPreviewUrl(URL.createObjectURL(file));
-                  }}
-                />
+                  <input ref={itemFotoInputRef} type="file" accept="image/jpeg, image/png, image/webp" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (!file) return; if (fotoPreviewUrl) URL.revokeObjectURL(fotoPreviewUrl); setFotoFile(file); setFotoPreviewUrl(URL.createObjectURL(file)); }} />
+                </div>
+
+                {/* Nome e Preço */}
+                <div className="flex flex-col gap-3">
+                  <div className="relative group/title">
+                    <textarea value={nome} onChange={(e) => setNome(e.target.value)} rows={2} className="font-display text-xl sm:text-2xl font-bold py-2 px-3 border border-transparent hover:bg-muted/30 focus-visible:bg-muted/50 focus-visible:border-primary/50 transition-all w-full pr-8 resize-none rounded-xl outline-none" placeholder="Nome do produto" />
+                    <Pencil className="h-4 w-4 absolute right-3 top-3 text-muted-foreground opacity-0 group-hover/title:opacity-50 transition-opacity pointer-events-none" />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 px-3">
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1 block">Preço Unitário</Label>
+                      <div className="relative group/price inline-block max-w-full">
+                        <CurrencyInput value={precoNumerico} onValueChange={setPrecoNumerico} className="font-display text-2xl font-semibold text-primary py-1 px-3 border border-transparent hover:bg-muted/30 focus-visible:bg-muted/50 focus-visible:border-primary/50 transition-all text-left w-full sm:w-44 rounded-lg outline-none" />
+                        <Pencil className="h-3 w-3 absolute right-3 top-1/2 -translate-y-1/2 text-primary opacity-0 group-hover/price:opacity-50 transition-opacity pointer-events-none" />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1 block">Quantidade</Label>
+                      <Input type="number" min="1" value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} className="w-20 text-lg font-semibold h-10 border-border/60 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                    </div>
+                  </div>
+                  
+                  <div className="px-3 flex items-center gap-2 mt-1">
+                     <span className="text-sm font-medium text-muted-foreground">Custo Total:</span>
+                     <span className="text-sm font-bold text-foreground">{brl(precoNumerico * quantidade)}</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-3 mt-2">
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-1.5">
-                    <Hash className="h-3.5 w-3.5 text-muted-foreground" />
-                    Quantidade
-                  </Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={quantidade}
-                    onChange={(e) => setQuantidade(Number(e.target.value))}
-                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
+              {/* Bloco 2: Classificação */}
+              <div className="rounded-xl border bg-muted/10 p-4 sm:p-5 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium flex items-center gap-1.5"><Hash className="w-3.5 h-3.5 opacity-70" /> Cômodo</Label>
+                  <Select value={categoriaId} onValueChange={setCategoriaId}>
+                    <SelectTrigger className="h-9 bg-card"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>
+                      {categorias.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-1.5">
-                    <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                    Marca
-                  </Label>
-                  <Input
-                    value={marca}
-                    onChange={(e) => setMarca(e.target.value)}
-                    placeholder="Ex.: Brastemp"
-                  />
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 opacity-70" /> Marca</Label>
+                  <Input value={marca} onChange={(e) => setMarca(e.target.value)} placeholder="Opcional" className="h-9 bg-card" />
                 </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-1.5">
-                    <Store className="h-3.5 w-3.5 text-muted-foreground" />
-                    Loja
-                  </Label>
-                  <Input
-                    value={loja}
-                    onChange={(e) => setLoja(e.target.value)}
-                    placeholder="Ex.: Fast Shop"
-                  />
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium flex items-center gap-1.5"><Store className="w-3.5 h-3.5 opacity-70" /> Loja</Label>
+                  <Input value={loja} onChange={(e) => setLoja(e.target.value)} placeholder="Opcional" className="h-9 bg-card" />
                 </div>
               </div>
-              <div className="grid gap-4 sm:grid-cols-3 mt-2">
-                {origem !== "ganho" && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <Label className="flex items-center gap-1.5">
-                        <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
-                        Parcelas
-                      </Label>
-                      {parcelas > 1 && (
-                        <span className="text-xs text-muted-foreground">
-                          {brl(precoNumerico / parcelas)}/parcela
-                        </span>
-                      )}
-                    </div>
-                    <Select
-                      value={String(parcelas)}
-                      onValueChange={(v) => setParcelas(Number(v))}
-                      disabled={pagamento === "vr"}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+
+              {/* Bloco 3: Financeiro e Planejamento */}
+              <div className="rounded-xl border bg-card p-4 sm:p-5 space-y-5 shadow-sm">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium flex items-center gap-1.5"><Gift className="w-3.5 h-3.5 opacity-70" /> Origem</Label>
+                    <Select value={origem} onValueChange={(v) => { setOrigem(v as "comprado" | "ganho"); if(v==="ganho") setParcelas(1); }}>
+                      <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((p) => (
-                          <SelectItem key={p} value={String(p)}>
-                            {p === 1
-                              ? "À vista (1x)"
-                              : `${p}x • ${brl((escolhido?.preco ?? precoNumerico) / p)}`}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="comprado">Compra planejada</SelectItem>
+                        <SelectItem value="ganho">Presente / Ganho</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                )}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-1.5">
-                    <Zap className="h-3.5 w-3.5 text-muted-foreground" />
-                    Prioridade
-                  </Label>
-                  <Select value={prioridade} onValueChange={(v) => setPrioridade(v)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="alta">Alta</SelectItem>
-                      <SelectItem value="media">Média</SelectItem>
-                      <SelectItem value="baixa">Baixa</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-1.5">
-                    <Gift className="h-3.5 w-3.5 text-muted-foreground" />
-                    Origem
-                  </Label>
-                  <Select
-                    value={origem}
-                    onValueChange={(v) => {
-                      setOrigem(v as "comprado" | "ganho");
-                      if (v === "ganho") setParcelas(1);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="comprado">Será comprado</SelectItem>
-                      <SelectItem value="ganho">Ganho / Presente</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {origem !== "ganho" && (
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-1.5">
-                      <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
-                      Pagamento
-                    </Label>
-                    <Select
-                      value={pagamento}
-                      onValueChange={(v) => {
-                        setPagamento(v as "normal" | "vr");
-                        if (v === "vr") setParcelas(1);
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="normal">Dinheiro</SelectItem>
-                        <SelectItem value="vr">VR / VA</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                {isCasal && origem !== "ganho" && (
-                  <div className="space-y-4 sm:col-span-3 border rounded-xl p-4 bg-card mt-2">
-                    <div className="space-y-2">
-                      <Label className="text-base">Como o pagamento será feito?</Label>
-                      <Select
-                        value={
-                          dividir
-                            ? "dividir"
-                            : responsavelId === 1
-                              ? "1"
-                              : responsavelId === 2
-                                ? "2"
-                                : "conjunto"
-                        }
-                        onValueChange={(v) => {
-                          if (v === "dividir") {
-                            setDividir(true);
-                            setResponsavelId(null);
-                            const total = (escolhido?.preco ?? precoNumerico) * quantidade;
-                            setDivisaoPagamento({
-                              valorPessoa1: total / 2,
-                              valorPessoa2: total / 2,
-                            });
-                          } else if (v === "conjunto") {
-                            setDividir(false);
-                            setResponsavelId(null);
-                            setDivisaoPagamento(null);
-                          } else {
-                            setDividir(false);
-                            setResponsavelId(Number(v) as 1 | 2);
-                            setDivisaoPagamento(null);
-                          }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
+                  
+                  {origem !== "ganho" && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5 opacity-70" /> Pagamento</Label>
+                      <Select value={pagamento} onValueChange={(v) => { setPagamento(v as "normal" | "vr"); if(v==="vr") setParcelas(1); }}>
+                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="conjunto">Gasto Conjunto (Conta dos dois)</SelectItem>
-                          <SelectItem value="1">{p1} vai pagar 100%</SelectItem>
-                          <SelectItem value="2">{p2} vai pagar 100%</SelectItem>
-                          <SelectItem value="dividir">Dividir valores específicos</SelectItem>
+                          <SelectItem value="normal">Dinheiro / Cartão</SelectItem>
+                          <SelectItem value="vr">VR / VA</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
+                  )}
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 opacity-70" /> Prioridade</Label>
+                    <Select value={prioridade} onValueChange={setPrioridade}>
+                      <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="alta">Alta (Urgente)</SelectItem>
+                        <SelectItem value="media">Média</SelectItem>
+                        <SelectItem value="baixa">Baixa (Pode esperar)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {origem !== "ganho" && (
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-xs font-medium flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5 opacity-70" /> Parcelamento</Label>
+                        {parcelas > 1 && <span className="text-[10px] text-muted-foreground font-medium">{brl((precoNumerico*quantidade) / parcelas)}/mês</span>}
+                      </div>
+                      <Select value={String(parcelas)} onValueChange={(v) => setParcelas(Number(v))} disabled={pagamento === "vr"}>
+                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {[1,2,3,4,5,6,7,8,9,10,11,12].map(p => (
+                            <SelectItem key={p} value={String(p)}>
+                              {p === 1 ? "À vista" : `${p}x sem juros`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+
+                {isCasal && origem !== "ganho" && (
+                  <div className="pt-4 border-t border-dashed">
+                    <Label className="text-sm font-semibold mb-3 block">Responsável pelo pagamento</Label>
+                    <Select
+                      value={dividir ? "dividir" : responsavelId === 1 ? "1" : responsavelId === 2 ? "2" : "conjunto"}
+                      onValueChange={(v) => {
+                        if (v === "dividir") {
+                          setDividir(true); setResponsavelId(null);
+                          const total = precoNumerico * quantidade;
+                          setDivisaoPagamento({ valorPessoa1: total/2, valorPessoa2: total/2 });
+                        } else if (v === "conjunto") {
+                          setDividir(false); setResponsavelId(null); setDivisaoPagamento(null);
+                        } else {
+                          setDividir(false); setResponsavelId(Number(v) as 1 | 2); setDivisaoPagamento(null);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="bg-muted/40 h-10"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="conjunto">Conta Conjunta (Ambos pagam)</SelectItem>
+                        <SelectItem value="1">{p1} paga 100%</SelectItem>
+                        <SelectItem value="2">{p2} paga 100%</SelectItem>
+                        <SelectItem value="dividir">Dividir valores específicos...</SelectItem>
+                      </SelectContent>
+                    </Select>
 
                     {dividir && divisaoPagamento && (
-                      <div className="pt-2 border-t mt-3">
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <div className="space-y-2">
-                            <Label>{p1}</Label>
-                            <CurrencyInput
-                              value={divisaoPagamento.valorPessoa1}
-                              onValueChange={(v) =>
-                                setDivisaoPagamento({ ...divisaoPagamento, valorPessoa1: v })
-                              }
-                            />
+                      <div className="mt-3 p-4 rounded-xl bg-accent/30 border space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">{p1}</Label>
+                            <CurrencyInput className="h-9 text-sm bg-background" value={divisaoPagamento.valorPessoa1} onValueChange={(v) => setDivisaoPagamento({ ...divisaoPagamento, valorPessoa1: v })} />
                           </div>
-                          <div className="space-y-2">
-                            <Label>{p2}</Label>
-                            <CurrencyInput
-                              value={divisaoPagamento.valorPessoa2}
-                              onValueChange={(v) =>
-                                setDivisaoPagamento({ ...divisaoPagamento, valorPessoa2: v })
-                              }
-                            />
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">{p2}</Label>
+                            <CurrencyInput className="h-9 text-sm bg-background" value={divisaoPagamento.valorPessoa2} onValueChange={(v) => setDivisaoPagamento({ ...divisaoPagamento, valorPessoa2: v })} />
                           </div>
                         </div>
-                        <div className="flex justify-between items-center mt-3">
-                          <div className="text-xs text-muted-foreground">
-                            Total:{" "}
-                            {brl(divisaoPagamento.valorPessoa1 + divisaoPagamento.valorPessoa2)} /{" "}
-                            {brl((escolhido?.preco ?? precoNumerico) * quantidade)}
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-7 text-xs px-2"
-                              onClick={() => {
-                                const total = (escolhido?.preco ?? precoNumerico) * quantidade;
-                                setDivisaoPagamento({ valorPessoa1: total, valorPessoa2: 0 });
-                              }}
-                            >
-                              100/0
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-7 text-xs px-2"
-                              onClick={() => {
-                                const total = (escolhido?.preco ?? precoNumerico) * quantidade;
-                                setDivisaoPagamento({
-                                  valorPessoa1: total / 2,
-                                  valorPessoa2: total / 2,
-                                });
-                              }}
-                            >
-                              50/50
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-7 text-xs px-2"
-                              onClick={() => {
-                                const total = (escolhido?.preco ?? precoNumerico) * quantidade;
-                                setDivisaoPagamento({ valorPessoa1: 0, valorPessoa2: total });
-                              }}
-                            >
-                              0/100
-                            </Button>
-                          </div>
+                        <div className="flex flex-wrap justify-between items-center gap-2">
+                           <div className="text-xs font-medium">
+                              Soma: <span className={Math.abs((divisaoPagamento.valorPessoa1 + divisaoPagamento.valorPessoa2) - (precoNumerico * quantidade)) > 0.01 ? "text-destructive" : "text-emerald-500"}>
+                                {brl(divisaoPagamento.valorPessoa1 + divisaoPagamento.valorPessoa2)}
+                              </span> / {brl(precoNumerico * quantidade)}
+                           </div>
+                           <div className="flex gap-1.5">
+                             <Button type="button" variant="outline" size="sm" className="h-7 px-2 text-[10px] bg-background" onClick={() => setDivisaoPagamento({ valorPessoa1: precoNumerico*quantidade, valorPessoa2: 0 })}>100/0</Button>
+                             <Button type="button" variant="outline" size="sm" className="h-7 px-2 text-[10px] bg-background" onClick={() => setDivisaoPagamento({ valorPessoa1: (precoNumerico*quantidade)/2, valorPessoa2: (precoNumerico*quantidade)/2 })}>50/50</Button>
+                             <Button type="button" variant="outline" size="sm" className="h-7 px-2 text-[10px] bg-background" onClick={() => setDivisaoPagamento({ valorPessoa1: 0, valorPessoa2: precoNumerico*quantidade })}>0/100</Button>
+                           </div>
                         </div>
                       </div>
                     )}
@@ -1109,51 +948,50 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
           )}
         </div>
 
-        <div className="flex justify-between items-center pt-3 border-t">
+        <div className="flex justify-between items-center p-4 sm:p-6 border-t bg-muted/10 shrink-0">
           <Button
             variant="ghost"
+            className="text-muted-foreground hover:text-foreground"
             onClick={() => (step > 1 ? setStep((s) => (s - 1) as Step) : onOpenChange(false))}
           >
-            <ArrowLeft className="h-4 w-4 mr-1" />
+            <ArrowLeft className="h-4 w-4 mr-2" />
             {step > 1 ? "Voltar" : "Cancelar"}
           </Button>
 
           {step === 1 && (
             <Button
+              className="bg-primary hover:bg-primary/90 min-w-[120px]"
               onClick={avancarDoNome}
               disabled={dupQuery.isFetching || extrairLink.isPending || analisandoFoto}
             >
               {dupQuery.isFetching || extrairLink.isPending || analisandoFoto ? (
-                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-              ) : (
-                <ArrowRight className="h-4 w-4 mr-1" />
-              )}
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : null}
               {extrairLink.isPending
-                ? "Extraindo link..."
+                ? "Extraindo..."
                 : analisandoFoto
-                  ? "Analisando foto..."
-                  : "Buscar preços"}
+                  ? "Analisando..."
+                  : "Avançar"}
+              {!(dupQuery.isFetching || extrairLink.isPending || analisandoFoto) && <ArrowRight className="h-4 w-4 ml-2" />}
             </Button>
           )}
           {step === 2 && (
-            <Button variant="secondary" onClick={() => setStep(3)}>
-              Pular <ArrowRight className="h-4 w-4 ml-1" />
+            <Button className="bg-primary hover:bg-primary/90" onClick={() => setStep(3)}>
+              Continuar <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           )}
           {step === 3 && (
             <Button
+              className="bg-primary hover:bg-primary/90 min-w-[140px]"
               onClick={() => {
                 if (!categoriaId) {
                   return toast.error("Selecione um cômodo antes de adicionar.");
                 }
                 if (dividir && divisaoPagamento) {
-                  const preco = escolhido?.preco ?? precoNumerico;
-                  const total = preco * quantidade;
+                  const total = precoNumerico * quantidade;
                   const soma = divisaoPagamento.valorPessoa1 + divisaoPagamento.valorPessoa2;
                   if (Math.abs(soma - total) > 0.01) {
-                    return toast.error(
-                      `A soma da divisão (${brl(soma)}) deve ser igual ao total (${brl(total)}).`,
-                    );
+                    return toast.error(`A soma da divisão deve ser igual ao total (${brl(total)}).`);
                   }
                 }
                 criar.mutate();
@@ -1161,11 +999,11 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
               disabled={criar.isPending}
             >
               {criar.isPending ? (
-                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
-                <Check className="h-4 w-4 mr-1" />
+                <Check className="h-4 w-4 mr-2" />
               )}
-              Adicionar item
+              {criar.isPending ? "Salvando..." : "Concluir Cadastro"}
             </Button>
           )}
         </div>

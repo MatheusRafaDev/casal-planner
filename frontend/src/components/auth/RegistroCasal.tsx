@@ -36,9 +36,12 @@ function PessoaFields({
 }) {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   return (
-    <div className="space-y-4 p-4 rounded-xl border bg-card">
-      <div className="flex items-center gap-2 font-medium">
-        <Heart className="h-4 w-4 text-terracota" /> {label}
+    <div className="space-y-4 pt-4 border-t first:border-0 first:pt-0">
+      <div className="flex items-center gap-2 font-semibold text-sm text-foreground">
+        <div className="h-6 w-6 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+          <Heart className="h-3.5 w-3.5" />
+        </div>
+        {label}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5 sm:col-span-2">
@@ -167,10 +170,12 @@ export function RegistroCasal() {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4">
-      <PessoaFields label="Pessoa 1" value={p1} onChange={setP1} />
-      <PessoaFields label="Pessoa 2" value={p2} onChange={setP2} />
-      <div className="space-y-2 p-4 rounded-xl border bg-card">
+    <form onSubmit={submit} className="space-y-6">
+      <div className="space-y-6">
+        <PessoaFields label="Primeiro parceiro" value={p1} onChange={setP1} />
+        <PessoaFields label="Segundo parceiro" value={p2} onChange={setP2} />
+      </div>
+      <div className="space-y-2 pt-4 border-t">
         <Label>Meta do Enxoval (R$)</Label>
         <div className="relative">
           <Target className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground z-10" />

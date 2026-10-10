@@ -90,137 +90,187 @@ function PerfilPage() {
   if (!usuario) return null;
 
   return (
-    <div className="p-4 md:p-8 w-full max-w-[1600px] space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center justify-between mb-8">
+    <div className="w-full max-w-5xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500 pb-20">
+      <div className="flex items-center justify-between pb-6 border-b border-border/50">
         <div>
-          <h1 className="text-2xl md:text-4xl font-display font-bold tracking-tight">Meu Perfil</h1>
-          <p className="text-sm md:text-base text-muted-foreground font-medium mt-1">
-            Conta {isCasal ? "de Casal" : "Individual"}
+          <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight">Configurações da Conta</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Gerencie suas informações, preferências e dados {isCasal ? "do casal" : "pessoais"}.
           </p>
         </div>
         {installPrompt && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={triggerInstall}
-            className="font-medium rounded-full shadow-sm"
-          >
-            <Download className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Instalar App</span>
+          <Button variant="outline" size="sm" onClick={triggerInstall} className="rounded-full shadow-sm bg-background">
+            <Download className="h-4 w-4 mr-2" /> Instalar App
           </Button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
-        {/* COLUNA ESQUERDA: Minha Conta & Segurança */}
-        <div className="space-y-6 lg:space-y-8">
-          {/* Dados */}
-          <section className="rounded-2xl border bg-card p-5 md:p-6">
-            <h2 className="font-display text-lg font-semibold mb-4">Dados pessoais</h2>
-            {isCasal ? (
-              <Tabs defaultValue="p1">
-                <TabsList className="grid grid-cols-2 mb-4">
-                  <TabsTrigger value="p1">
-                    {usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}
-                  </TabsTrigger>
-                  <TabsTrigger value="p2">
-                    {usuario.casalInfo?.pessoa2.nome ?? "Pessoa 2"}
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="p1">
-                  <PessoaForm
-                    key="p1"
-                    dados={{
-                      nome: usuario.casalInfo?.pessoa1.nome ?? "",
-                      email: usuario.casalInfo?.pessoa1.email ?? "",
-                      dataNascimento: usuario.casalInfo?.pessoa1.dataNascimento ?? "",
-                      receberNotificacoes: usuario.casalInfo?.pessoa1.receberNotificacoes ?? true,
-                    }}
-                    bloquearEmailCpf
-                    somenteLeitura={usuario.pessoaLogada !== 1}
-                    onSave={async (dto) => {
-                      await usuarioService.atualizarPerfilCasal(usuario.id, 1, {
-                        nome: dto.nome,
-                        dataNascimento: dto.dataNascimento ?? null,
-                      });
-                      await usuarioService.atualizarNotificacoes(
-                        dto.receberNotificacoes ?? true,
-                        1,
-                      );
-                      await refresh();
-                    }}
-                  />
-                </TabsContent>
-                <TabsContent value="p2">
-                  <PessoaForm
-                    key="p2"
-                    dados={{
-                      nome: usuario.casalInfo?.pessoa2.nome ?? "",
-                      email: usuario.casalInfo?.pessoa2.email ?? "",
-                      dataNascimento: usuario.casalInfo?.pessoa2.dataNascimento ?? "",
-                      receberNotificacoes: usuario.casalInfo?.pessoa2.receberNotificacoes ?? true,
-                    }}
-                    bloquearEmailCpf
-                    somenteLeitura={usuario.pessoaLogada !== 2}
-                    onSave={async (dto) => {
-                      await usuarioService.atualizarPerfilCasal(usuario.id, 2, {
-                        nome: dto.nome,
-                        dataNascimento: dto.dataNascimento ?? null,
-                      });
-                      await usuarioService.atualizarNotificacoes(
-                        dto.receberNotificacoes ?? true,
-                        2,
-                      );
-                      await refresh();
-                    }}
-                  />
-                </TabsContent>
-              </Tabs>
-            ) : (
-              <PessoaForm
-                dados={{
-                  nome: usuario.nomeCompleto ?? "",
-                  email: usuario.email ?? "",
-                  dataNascimento: usuario.dataNascimento ?? "",
-                  receberNotificacoes: usuario.receberNotificacoes ?? true,
-                }}
-                bloquearEmailCpf
-                onSave={async (dto) => {
-                  await usuarioService.atualizarPerfil({
-                    nomeCompleto: dto.nome,
-                    email: dto.email,
-                    dataNascimento: dto.dataNascimento ?? undefined,
-                  });
-                  await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true);
-                  await refresh();
-                }}
-              />
-            )}
-          </section>
+      <div className="flex flex-col gap-10 divide-y divide-border/50">
+        
+        {/* SEC 1: Dados Pessoais / Casal */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 first:pt-0">
+          <div className="md:col-span-1 space-y-1">
+            <h2 className="font-semibold text-lg flex items-center gap-2"><User className="w-5 h-5 text-primary" /> Perfil</h2>
+            <p className="text-sm text-muted-foreground">
+              Atualize suas informações pessoais e notificações.
+            </p>
+          </div>
+          <div className="md:col-span-2">
+            <div className="bg-card rounded-2xl border p-5 shadow-sm">
+              {isCasal ? (
+                <Tabs defaultValue="p1" className="w-full">
+                  <TabsList className="grid grid-cols-2 mb-6 p-1 bg-muted/50">
+                    <TabsTrigger value="p1" className="rounded-md">{usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}</TabsTrigger>
+                    <TabsTrigger value="p2" className="rounded-md">{usuario.casalInfo?.pessoa2.nome ?? "Pessoa 2"}</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="p1" className="mt-0">
+                    <PessoaForm
+                      key="p1"
+                      dados={{
+                        nome: usuario.casalInfo?.pessoa1.nome ?? "",
+                        email: usuario.casalInfo?.pessoa1.email ?? "",
+                        dataNascimento: usuario.casalInfo?.pessoa1.dataNascimento ?? "",
+                        receberNotificacoes: usuario.casalInfo?.pessoa1.receberNotificacoes ?? true,
+                      }}
+                      bloquearEmailCpf
+                      somenteLeitura={usuario.pessoaLogada !== 1}
+                      onSave={async (dto) => {
+                        await usuarioService.atualizarPerfilCasal(usuario.id, 1, { nome: dto.nome, dataNascimento: dto.dataNascimento ?? null });
+                        await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true, 1);
+                        await refresh();
+                      }}
+                    />
+                  </TabsContent>
+                  <TabsContent value="p2" className="mt-0">
+                    <PessoaForm
+                      key="p2"
+                      dados={{
+                        nome: usuario.casalInfo?.pessoa2.nome ?? "",
+                        email: usuario.casalInfo?.pessoa2.email ?? "",
+                        dataNascimento: usuario.casalInfo?.pessoa2.dataNascimento ?? "",
+                        receberNotificacoes: usuario.casalInfo?.pessoa2.receberNotificacoes ?? true,
+                      }}
+                      bloquearEmailCpf
+                      somenteLeitura={usuario.pessoaLogada !== 2}
+                      onSave={async (dto) => {
+                        await usuarioService.atualizarPerfilCasal(usuario.id, 2, { nome: dto.nome, dataNascimento: dto.dataNascimento ?? null });
+                        await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true, 2);
+                        await refresh();
+                      }}
+                    />
+                  </TabsContent>
+                </Tabs>
+              ) : (
+                <PessoaForm
+                  dados={{
+                    nome: usuario.nomeCompleto ?? "",
+                    email: usuario.email ?? "",
+                    dataNascimento: usuario.dataNascimento ?? "",
+                    receberNotificacoes: usuario.receberNotificacoes ?? true,
+                  }}
+                  bloquearEmailCpf
+                  onSave={async (dto) => {
+                    await usuarioService.atualizarPerfil({ nomeCompleto: dto.nome, email: dto.email, dataNascimento: dto.dataNascimento ?? undefined });
+                    await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true);
+                    await refresh();
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        </section>
 
-          {/* Senha */}
-          <TrocarSenhaCard />
+        {/* SEC 2: Parcerias e Convites (Só Individual) */}
+        {!isCasal && (
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10">
+            <div className="md:col-span-1 space-y-1">
+              <h2 className="font-semibold text-lg flex items-center gap-2"><MailOpen className="w-5 h-5 text-primary" /> Família & Casal</h2>
+              <p className="text-sm text-muted-foreground">
+                Vincule sua conta com seu parceiro(a) para planejarem juntos.
+              </p>
+            </div>
+            <div className="md:col-span-2 space-y-6">
+              
+              {/* Convites Recebidos */}
+              {convitesQuery.data && convitesQuery.data.length > 0 && (
+                <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 space-y-4">
+                  <h3 className="font-medium text-primary flex items-center gap-2"><Bell className="w-4 h-4" /> Convites Recebidos</h3>
+                  {convitesQuery.data.map((convite) => (
+                    <div key={convite.token} className="bg-background rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between border shadow-sm">
+                      <div className="flex-1">
+                        <p className="font-medium text-sm"><strong>{convite.nomeConvidante}</strong> convidou você.</p>
+                        <p className="text-xs text-muted-foreground mt-1">Ao aceitar, seus dados atuais serão migrados para uma conta conjunta.</p>
+                      </div>
+                      <Button onClick={() => aceitarMutation.mutate(convite.token)} disabled={aceitarMutation.isPending} size="sm" className="w-full sm:w-auto shrink-0 bg-primary">
+                        <Check className="h-4 w-4 mr-2" /> {aceitarMutation.isPending ? "Processando..." : "Aceitar Convite"}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-          {/* Zona perigosa & Logout */}
-          <section className="rounded-3xl border border-destructive/20 bg-destructive/5 p-6 hover:bg-destructive/10 transition-colors duration-300">
-            <div className="flex flex-col gap-4">
-              <div>
-                <h2 className="font-display text-lg font-semibold text-destructive mb-1">
-                  Acesso & Segurança
-                </h2>
-                <p className="text-sm text-destructive/80">
-                  Encerre sua sessão ou exclua sua conta permanentemente.
-                </p>
+              {/* Enviar Convite */}
+              <div className="bg-card rounded-2xl border p-5 shadow-sm space-y-4">
+                <div className="space-y-1">
+                  <h3 className="font-medium">Convidar Parceiro(a)</h3>
+                  <p className="text-sm text-muted-foreground">Insira o e-mail do seu parceiro para enviar um convite de união de contas.</p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Input 
+                    type="email" 
+                    placeholder="parceiro@email.com" 
+                    value={emailParceiro} 
+                    onChange={(e) => setEmailParceiro(e.target.value)} 
+                    className="flex-1 bg-muted/30"
+                  />
+                  <Button onClick={() => conviteMutation.mutate()} disabled={!emailParceiro || conviteMutation.isPending} className="shrink-0 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors">
+                    <Share2 className="h-4 w-4 mr-2" /> {conviteMutation.isPending ? "Enviando..." : "Enviar Convite"}
+                  </Button>
+                </div>
               </div>
+            </div>
+          </section>
+        )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Button variant="outline" onClick={logout} className="w-full">
+        {/* SEC 3: Preferências e Exportação */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10">
+          <div className="md:col-span-1 space-y-1">
+            <h2 className="font-semibold text-lg flex items-center gap-2"><Target className="w-5 h-5 text-primary" /> Preferências</h2>
+            <p className="text-sm text-muted-foreground">
+              Configure sua meta financeira, lista pública e exporte seus dados.
+            </p>
+          </div>
+          <div className="md:col-span-2 space-y-6">
+            <MetaEnxovalCard metaUsuario={usuario.metaGlobalEnxoval ?? null} onSaved={refresh} />
+            <ListaPublicaCard />
+            <ExportarCard />
+          </div>
+        </section>
+
+        {/* SEC 4: Segurança */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10">
+          <div className="md:col-span-1 space-y-1">
+            <h2 className="font-semibold text-lg text-destructive flex items-center gap-2"><KeyRound className="w-5 h-5" /> Segurança</h2>
+            <p className="text-sm text-muted-foreground">
+              Proteja sua conta ou remova seus dados permanentemente.
+            </p>
+          </div>
+          <div className="md:col-span-2 space-y-6">
+            <TrocarSenhaCard />
+            
+            <div className="bg-destructive/5 border border-destructive/20 rounded-2xl p-5 shadow-sm">
+              <h3 className="font-medium text-destructive mb-1">Zona de Risco</h3>
+              <p className="text-sm text-destructive/80 mb-5">
+                Encerrar sua sessão neste dispositivo ou deletar toda a sua conta do CasalPlanner.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button variant="outline" onClick={logout} className="flex-1 bg-background border-destructive/30 text-destructive hover:bg-destructive/10">
                   <LogOut className="h-4 w-4 mr-2" /> Sair da conta
                 </Button>
 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive" className="w-full">
+                    <Button variant="destructive" className="flex-1">
                       <Trash2 className="h-4 w-4 mr-2" /> Excluir conta
                     </Button>
                   </AlertDialogTrigger>
@@ -228,8 +278,7 @@ function PerfilPage() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Excluir conta permanentemente?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Todos os cômodos, itens, metas e pesquisas serão apagados. Essa ação não
-                        pode ser desfeita.
+                        Todos os cômodos, itens, metas e configurações serão apagados. Essa ação não pode ser desfeita.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -239,11 +288,11 @@ function PerfilPage() {
                         onClick={async () => {
                           try {
                             await usuarioService.excluirConta(usuario.id);
-                            toast.success("Conta excluída");
+                            toast.success("Conta excluída com sucesso.");
                             logout();
                             navigate({ to: "/" });
                           } catch (e) {
-                            toast.error(e instanceof Error ? e.message : "Erro ao excluir");
+                            toast.error(e instanceof Error ? e.message : "Erro ao excluir conta");
                           }
                         }}
                       >
@@ -254,89 +303,9 @@ function PerfilPage() {
                 </AlertDialog>
               </div>
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
 
-        {/* COLUNA DIREITA: Planejamento & Recursos */}
-        <div className="space-y-6 lg:space-y-8">
-          {/* Convites Recebidos */}
-          {!isCasal && convitesQuery.data && convitesQuery.data.length > 0 && (
-            <section className="rounded-2xl border border-primary/50 bg-primary/5 p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <MailOpen className="h-5 w-5 text-primary" />
-                <h2 className="font-display text-lg font-semibold text-primary">
-                  Você tem um convite!
-                </h2>
-              </div>
-              <div className="space-y-4">
-                {convitesQuery.data.map((convite) => (
-                  <div
-                    key={convite.token}
-                    className="bg-background rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between border"
-                  >
-                    <div>
-                      <p className="font-medium text-base">
-                        <strong>{convite.nomeConvidante}</strong> convidou você para o CasalPlanner.
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Aceite para vincular suas contas. Ao aceitar, seus dados atuais serão
-                        migrados para a conta de casal.
-                      </p>
-                    </div>
-                    <Button
-                      onClick={() => aceitarMutation.mutate(convite.token)}
-                      disabled={aceitarMutation.isPending}
-                      className="w-full md:w-auto shrink-0"
-                    >
-                      <Check className="h-4 w-4 mr-2" />
-                      {aceitarMutation.isPending ? "Aceitando..." : "Aceitar Convite"}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Enviar Convite */}
-          {!isCasal && (
-            <section className="rounded-2xl border bg-card p-5">
-              <h2 className="font-display text-lg font-semibold mb-4">Convidar parceiro</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Envie um convite para o email do seu parceiro. Ele será notificado para acessar o
-                aplicativo e aceitar.
-              </p>
-              <div className="space-y-3">
-                <div>
-                  <Label htmlFor="email-parceiro">Email do parceiro</Label>
-                  <Input
-                    id="email-parceiro"
-                    type="email"
-                    placeholder="parceiro@email.com"
-                    value={emailParceiro}
-                    onChange={(e) => setEmailParceiro(e.target.value)}
-                  />
-                </div>
-                <Button
-                  onClick={() => conviteMutation.mutate()}
-                  disabled={!emailParceiro || conviteMutation.isPending}
-                  className="w-full"
-                >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  {conviteMutation.isPending ? "Enviando..." : "Enviar convite"}
-                </Button>
-              </div>
-            </section>
-          )}
-
-          {/* Lista Pública */}
-          <ListaPublicaCard />
-
-          {/* Meta */}
-          <MetaEnxovalCard metaUsuario={usuario.metaGlobalEnxoval ?? null} onSaved={refresh} />
-
-          {/* Exportar */}
-          <ExportarCard />
-        </div>
       </div>
     </div>
   );
@@ -507,10 +476,10 @@ function MetaEnxovalCard({
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
   });
   return (
-    <section className="rounded-2xl border bg-card p-5">
-      <div className="flex items-center gap-2 mb-3">
-        <Target className="h-4 w-4 text-primary" />
-        <h2 className="font-display text-lg font-semibold">Meta total do enxoval</h2>
+    <section className="rounded-xl border bg-card p-5 md:p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-4">
+        <Target className="h-5 w-5 text-primary" />
+        <h2 className="font-display text-xl font-semibold">Meta total do enxoval</h2>
       </div>
       <form
         className="flex gap-2"
@@ -550,10 +519,10 @@ function TrocarSenhaCard() {
   });
 
   return (
-    <section className="rounded-2xl border bg-card overflow-hidden p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <KeyRound className="h-4 w-4 text-primary" />
-        <h2 className="font-display text-lg font-semibold">Segurança e Senha</h2>
+    <section className="rounded-xl border bg-card p-5 md:p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-5">
+        <KeyRound className="h-5 w-5 text-primary" />
+        <h2 className="font-display text-xl font-semibold">Segurança e Senha</h2>
       </div>
 
       <p className="text-sm text-muted-foreground mb-4">
@@ -622,10 +591,10 @@ function ListaPublicaCard() {
   };
 
   return (
-    <section className="rounded-2xl border bg-card overflow-hidden p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <Share2 className="h-4 w-4 text-primary" />
-        <h2 className="font-display text-lg font-semibold">Sua Lista Pública</h2>
+    <section className="rounded-xl border bg-card p-5 md:p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-5">
+        <Share2 className="h-5 w-5 text-primary" />
+        <h2 className="font-display text-xl font-semibold">Sua Lista Pública</h2>
       </div>
 
       <p className="text-sm text-muted-foreground mb-4">
