@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://casalplanner-api.onrender.com/api/:path*"
+      "destination": "https://casal-planner.onrender.com/api/:path*"
     }
   ],
   "headers": [

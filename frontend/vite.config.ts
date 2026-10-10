@@ -16,7 +16,7 @@ export default defineConfig({
     preset: "vercel",
     // @ts-ignore: routeRules exists in nitro but isn't typed in lovable plugin
     routeRules: {
-      "/api/**": { proxy: "https://casalplanner-api.onrender.com/api/**" }
+      "/api/**": { proxy: "https://casal-planner.onrender.com/api/**" }
     }
   },
   vite: {
