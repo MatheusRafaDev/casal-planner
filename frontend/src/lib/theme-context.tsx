@@ -15,17 +15,16 @@ const ThemeContext = createContext<ThemeCtx | null>(null);
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const { usuario } = useAuth();
 
-  // Força o modo claro no HTML ao carregar
+  // Força o modo escuro no HTML ao carregar
   useEffect(() => {
-    document.documentElement.classList.remove("dark");
-    document.documentElement.classList.add("light");
+    document.documentElement.classList.add("dark");
   }, []);
 
   const setTheme = (t: Theme) => {};
   const toggle = () => {};
 
   return (
-    <ThemeContext.Provider value={{ theme: "light", toggle, setTheme }}>
+    <ThemeContext.Provider value={{ theme: "dark", toggle, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -351,12 +351,12 @@ function PlanejamentoPage() {
                 className={cn(
                   "group flex items-center gap-3 rounded-lg p-2.5 transition-all cursor-pointer",
                   catAtualId === "tudo"
-                    ? "border border-primary/20 bg-primary/5"
+                    ? "border border-primary/20 bg-primary/5 shadow-soft"
                     : "border border-transparent hover:bg-accent/40",
                 )}
                 onClick={() => setCategoriaSelecionada("tudo")}
               >
-                <span className="grid place-items-center h-8 w-8 rounded-md text-white shrink-0 bg-zinc-800">
+                <span className="grid place-items-center h-8 w-8 rounded-md text-white shrink-0 shadow-soft bg-zinc-800">
                   <Package className="h-4 w-4" />
                 </span>
                 <div className="flex-1 min-w-0">
@@ -396,14 +396,14 @@ function PlanejamentoPage() {
                     className={cn(
                       "group flex items-center gap-3 rounded-lg p-2.5 transition-all cursor-pointer",
                       ativo
-                        ? "border border-primary/20 bg-primary/5"
+                        ? "border border-primary/20 bg-primary/5 shadow-soft"
                         : "border border-transparent hover:bg-accent/40",
                       c.metaOrcamento && cGasto > c.metaOrcamento && !ativo && "bg-destructive/5",
                     )}
                     onClick={() => setCategoriaSelecionada(c.id)}
                   >
                     <span
-                      className="grid place-items-center h-8 w-8 rounded-md text-white shrink-0"
+                      className="grid place-items-center h-8 w-8 rounded-md text-white shrink-0 shadow-soft"
                       style={{ backgroundColor: c.bg }}
                     >
                       <I className="h-4 w-4" />
@@ -495,7 +495,7 @@ function PlanejamentoPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div
                   className={cn(
-                    "rounded-2xl bg-muted/30 p-3 border flex flex-col justify-between",
+                    "rounded-2xl bg-gradient-warm p-3 border shadow-soft flex flex-col justify-between",
                     isCasal ? "md:col-span-2" : "md:col-span-3",
                   )}
                 >
@@ -503,7 +503,7 @@ function PlanejamentoPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span
-                          className="grid place-items-center h-8 w-8 rounded-md text-white"
+                          className="grid place-items-center h-8 w-8 rounded-md text-white shadow-soft"
                           style={{ backgroundColor: catAtual ? catAtual.bg : "#27272a" }}
                         >
                           {(() => {
@@ -621,7 +621,7 @@ function PlanejamentoPage() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl bg-card p-3 border flex flex-col justify-center gap-2">
+                <div className="rounded-2xl bg-card p-3 border shadow-soft flex flex-col justify-center gap-2">
                   <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold text-center mb-1">
                     {isCasal ? "Divisão de Custos" : "Resumo Financeiro"}
                   </div>
@@ -666,11 +666,11 @@ function PlanejamentoPage() {
                     )}
                     {economiaCategoria > 0 && (
                       <div className="flex justify-between items-center bg-emerald-500/10 rounded-lg px-2.5 py-1.5">
-                        <span className="flex items-center text-xs font-medium truncate pr-2 text-emerald-600">
+                        <span className="flex items-center text-xs font-medium truncate pr-2 text-emerald-600 dark:text-emerald-500">
                           <Gift className="w-3 h-3 mr-1.5" />
                           Presentes / Ganhos
                         </span>
-                        <span className="font-display font-semibold text-sm text-emerald-600">
+                        <span className="font-display font-semibold text-sm text-emerald-600 dark:text-emerald-500">
                           {brl(economiaCategoria)}
                         </span>
                       </div>
@@ -787,7 +787,7 @@ function PlanejamentoPage() {
                         "flex flex-col gap-3 rounded-2xl border p-4 transition-shadow duration-200",
                         it.comprado
                           ? "bg-card/40 border-transparent shadow-none"
-                          : "bg-card hover:",
+                          : "bg-card shadow-soft hover:shadow-elegant",
                       )}
                     >
                       <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -1054,7 +1054,7 @@ function PlanejamentoPage() {
               </motion.div>
             </>
           ) : (
-            <div className="rounded-2xl border border-dashed p-16 text-center bg-muted/30">
+            <div className="rounded-2xl border border-dashed p-16 text-center bg-gradient-warm">
               <Plus className="h-8 w-8 mx-auto text-primary mb-3" />
               <p className="text-muted-foreground">
                 Crie seu primeiro cômodo para começar o planejamento.
