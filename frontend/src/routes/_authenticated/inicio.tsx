@@ -518,81 +518,139 @@ function InicioPage() {
         </motion.div>
       ) : (
         <>
-          {/* Bento Grid Principal */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            {/* Bloco 1: Indicador Principal (Span 8) */}
-            <motion.div variants={itemVariants} className="lg:col-span-8 rounded-2xl border bg-card p-6 md:p-8 shadow-sm flex flex-col justify-between">
-              <div className="flex items-start justify-between mb-8">
-                <div>
-                  <div className="text-sm font-semibold tracking-wider text-muted-foreground uppercase mb-1">Gasto do Bolso</div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-display text-5xl md:text-6xl font-bold tracking-tight text-foreground">
-                      {brl(r?.totalGeral).replace('R$', '').trim()}
-                    </span>
-                    <span className="text-lg text-muted-foreground font-medium">BRL</span>
-                  </div>
+          {/* Faixa de Destaque (Gasto do Bolso) */}
+          <motion.div variants={itemVariants} className="rounded-[var(--radius-lg)] border border-primary/10 bg-primary/5 p-5 md:p-8 shadow-soft flex flex-col gap-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="text-sm font-medium text-muted-foreground mb-1">Gasto do Casal (Bolso)</div>
+                <div className="flex items-baseline gap-2">
+                  <span className="font-display text-5xl md:text-6xl font-bold tracking-tight text-foreground tabular-nums">
+                    {brl(r?.totalGeral).replace('R$', '').trim()}
+                  </span>
+                  <span className="text-lg text-muted-foreground font-medium">BRL</span>
                 </div>
-                {meta > 0 && (
-                  <div className="text-xs font-semibold px-3 py-1.5 bg-primary/10 text-primary rounded-full shrink-0">
-                    {pct.toFixed(0)}% da meta
-                  </div>
-                )}
               </div>
-
               {meta > 0 && (
-                <div className="mb-8">
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Progresso do orçamento</span>
-                    <span className="font-medium">
-                      Meta: {brl(meta)} 
-                      {meta - (r?.totalGeral ?? 0) > 0 && <span className="text-emerald-600 font-medium ml-1">({brl(meta - (r?.totalGeral ?? 0))} livres)</span>}
-                    </span>
-                  </div>
-                  <Progress value={pct} className="h-2" />
+                <div className="text-sm font-medium px-4 py-2 bg-background border rounded-full text-foreground shadow-sm">
+                  <span className="text-primary font-bold">{pct.toFixed(0)}%</span> da meta de {brl(meta)}
                 </div>
               )}
+            </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t mt-auto">
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5"><ShoppingBag className="w-3.5 h-3.5"/> Dinheiro</div>
-                  <div className="font-semibold text-foreground">{brl(r?.totalNormal)}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5"/> Parcelado</div>
-                  <div className="font-semibold text-foreground">{brl(totalParcelado)}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5"/> VR/VA</div>
-                  <div className="font-semibold text-foreground">{brl(r?.totalVr)}</div>
-                </div>
-                {isCasal && (
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5"><Target className="w-3.5 h-3.5"/> Divisão</div>
-                    <div className="text-xs font-medium text-foreground leading-tight space-y-0.5">
-                      <div className="truncate"><span className="text-muted-foreground">{p1.split(' ')[0]}:</span> {brl(r?.totalPessoa1)}</div>
-                      <div className="truncate"><span className="text-muted-foreground">{p2.split(' ')[0]}:</span> {brl(r?.totalPessoa2)}</div>
-                    </div>
-                  </div>
+            {meta > 0 && (
+              <div className="space-y-2">
+                <Progress value={pct} className="h-3 bg-primary/10 [&>div]:bg-primary" />
+                {meta - (r?.totalGeral ?? 0) > 0 && (
+                  <p className="text-xs text-muted-foreground font-medium text-right">
+                    Restam <span className="tabular-nums">{brl(meta - (r?.totalGeral ?? 0))}</span> livres
+                  </p>
                 )}
               </div>
-            </motion.div>
+            )}
+            
+            {/* Mini-Totais (Chips) */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <div className="flex items-center gap-2 bg-background border px-3 py-2 rounded-lg shadow-sm">
+                <div className="bg-mel/20 text-mel p-1.5 rounded-md"><ShoppingBag className="w-4 h-4"/></div>
+                <div>
+                  <div className="text-[10px] font-medium text-muted-foreground">Dinheiro</div>
+                  <div className="text-sm font-bold tabular-nums leading-none">{brl(r?.totalNormal)}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 bg-background border px-3 py-2 rounded-lg shadow-sm">
+                <div className="bg-terracota/20 text-terracota p-1.5 rounded-md"><CreditCard className="w-4 h-4"/></div>
+                <div>
+                  <div className="text-[10px] font-medium text-muted-foreground">Parcelado</div>
+                  <div className="text-sm font-bold tabular-nums leading-none">{brl(totalParcelado)}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 bg-background border px-3 py-2 rounded-lg shadow-sm">
+                <div className="bg-success/20 text-success p-1.5 rounded-md"><Wallet className="w-4 h-4"/></div>
+                <div>
+                  <div className="text-[10px] font-medium text-muted-foreground">VR/VA</div>
+                  <div className="text-sm font-bold tabular-nums leading-none">{brl(r?.totalVr)}</div>
+                </div>
+              </div>
+              {isCasal && (
+                <div className="flex items-center gap-2 bg-background border px-3 py-2 rounded-lg shadow-sm">
+                  <div className="bg-primary/20 text-primary p-1.5 rounded-md"><Target className="w-4 h-4"/></div>
+                  <div>
+                    <div className="text-[10px] font-medium text-muted-foreground">Divisão</div>
+                    <div className="text-xs font-medium leading-tight mt-0.5">
+                      <span className="text-muted-foreground">{p1.split(' ')[0]}:</span> <span className="tabular-nums">{brl(r?.totalPessoa1)}</span>
+                      <span className="mx-1 text-muted-foreground">|</span>
+                      <span className="text-muted-foreground">{p2.split(' ')[0]}:</span> <span className="tabular-nums">{brl(r?.totalPessoa2)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
 
-            {/* Bloco 2: Próximos Passos (Span 4) */}
-            <motion.div variants={itemVariants} className="lg:col-span-4 rounded-2xl border bg-muted/30 p-6 md:p-8 flex flex-col shadow-sm">
-              <h3 className="font-semibold text-lg tracking-tight mb-1">Próximas compras</h3>
+          {/* Distribuição por Cômodo (Grid de Cards) */}
+          <motion.div variants={itemVariants} className="space-y-4">
+            <div>
+              <h3 className="font-display text-xl font-semibold tracking-tight">Por Cômodo</h3>
+              <p className="text-sm text-muted-foreground">Onde seu orçamento está sendo alocado</p>
+            </div>
+            
+            {r?.porCategoria && r.porCategoria.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {r.porCategoria.map((c) => {
+                  const metaC = c.metaOrcamento ?? 0;
+                  const pctC = metaC > 0 ? Math.min(100, (c.totalGasto / metaC) * 100) : 0;
+                  const IconComp = iconFor(c.icon);
+                  
+                  return (
+                    <div key={c.categoriaId} className="bg-card border rounded-[var(--radius-lg)] p-4 shadow-sm flex flex-col gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${c.cor ?? 'var(--primary)'}20`, color: c.cor ?? 'var(--primary)' }}>
+                          <IconComp className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm text-foreground truncate">{c.categoriaNome}</p>
+                          <p className="text-xs text-muted-foreground">{c.totalItens} itens</p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div className="flex items-end justify-between mb-2">
+                          <span className="font-semibold text-lg text-foreground tabular-nums leading-none">{brl(c.totalGasto)}</span>
+                          {metaC > 0 && <span className="text-xs text-muted-foreground">de <span className="tabular-nums">{brl(metaC)}</span></span>}
+                        </div>
+                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${metaC > 0 ? pctC : 100}%`, backgroundColor: c.cor ?? 'var(--primary)' }} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rounded-[var(--radius-lg)] border bg-card p-8 text-center text-muted-foreground shadow-sm">
+                Nenhum cômodo com gastos associados.
+              </div>
+            )}
+          </motion.div>
+
+          {/* Duas colunas finais: Próximas Compras e Projeção */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Próximas Compras */}
+            <motion.div variants={itemVariants} className="rounded-[var(--radius-lg)] border-none bg-muted/30 p-5 md:p-6 flex flex-col">
+              <h3 className="font-display text-lg font-semibold tracking-tight mb-1">Próximas compras</h3>
               <p className="text-sm text-muted-foreground mb-6">Pendências no planejamento</p>
               
               <div className="flex-1 space-y-3">
                 {validItens.filter(i => !i.comprado).length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-8">
-                    <CheckCircle className="h-8 w-8 text-emerald-500/40 mb-3" />
+                    <CheckCircle className="h-8 w-8 text-success/40 mb-3" />
                     <p className="text-sm font-medium text-foreground">Tudo comprado!</p>
                     <p className="text-xs mt-1">Nenhuma pendência.</p>
                   </div>
                 ) : (
                   validItens.filter(i => !i.comprado).slice(0, 4).map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3.5 rounded-xl bg-background border shadow-sm transition-colors hover:border-primary/30">
+                    <div key={idx} className="flex items-center justify-between p-3.5 rounded-xl bg-background border shadow-sm">
                       <div className="flex items-center gap-3 overflow-hidden">
                         <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
                           <ShoppingBag className="h-4 w-4" />
@@ -602,7 +660,7 @@ function InicioPage() {
                           <p className="text-xs text-muted-foreground truncate">{item.categoriaNome ?? "Sem cômodo"}</p>
                         </div>
                       </div>
-                      <div className="text-sm font-semibold text-foreground shrink-0 ml-3">
+                      <div className="text-sm font-semibold text-foreground shrink-0 ml-3 tabular-nums">
                         {brl(item.preco)}
                       </div>
                     </div>
@@ -614,24 +672,20 @@ function InicioPage() {
                 <Link to="/planejamento">Ver planejamento completo</Link>
               </Button>
             </motion.div>
-          </div>
 
-          {/* Segunda Linha: Visualizações */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
             {/* Gráfico: Projeção de Faturas */}
-            <motion.div variants={itemVariants} className="rounded-2xl border bg-card p-6 md:p-8 shadow-sm flex flex-col">
+            <motion.div variants={itemVariants} className="rounded-[var(--radius-lg)] border bg-card p-5 md:p-6 shadow-sm flex flex-col">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h3 className="font-semibold text-lg tracking-tight">Projeção de Faturas</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Evolução futura de gastos parcelados e agendados</p>
+                  <h3 className="font-display text-lg font-semibold tracking-tight">Projeção de Faturas</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Evolução futura de gastos parcelados</p>
                 </div>
               </div>
 
-              <div className="flex-1 min-h-[260px]">
+              <div className="flex-1 min-h-[220px]">
                 {faturasMensais.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
-                    <p className="text-sm">Sem parcelamentos registrados para os próximos meses.</p>
+                    <p className="text-sm">Sem parcelamentos registrados.</p>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
@@ -646,8 +700,8 @@ function InicioPage() {
                       <YAxis hide />
                       <Tooltip
                         cursor={{ fill: 'var(--muted)', opacity: 0.5 }}
-                        contentStyle={{ borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
-                        formatter={(v: number) => [<span className="font-semibold text-foreground">{brl(v)}</span>, <span className="text-muted-foreground">Fatura</span>]}
+                        contentStyle={{ borderRadius: '12px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}
+                        formatter={(v: number) => [<span className="font-semibold text-foreground tabular-nums">{brl(v)}</span>, <span className="text-muted-foreground">Fatura</span>]}
                         labelStyle={{ fontWeight: 600, color: 'var(--foreground)', marginBottom: '4px' }}
                       />
                       <Bar dataKey="valor" fill="var(--primary)" radius={[4, 4, 0, 0]} maxBarSize={45} />
@@ -656,50 +710,6 @@ function InicioPage() {
                 )}
               </div>
             </motion.div>
-
-            {/* Progresso por Cômodo */}
-            <motion.div variants={itemVariants} className="rounded-2xl border bg-card p-6 md:p-8 shadow-sm flex flex-col">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h3 className="font-semibold text-lg tracking-tight">Distribuição por Cômodo</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Onde seu orçamento está sendo alocado</p>
-                </div>
-              </div>
-              
-              <div className="flex-1 overflow-y-auto pr-2 space-y-6">
-                {r?.porCategoria && r.porCategoria.length > 0 ? (
-                  r.porCategoria.map((c) => {
-                    const metaC = c.metaOrcamento ?? 0;
-                    const pctC = metaC > 0 ? Math.min(100, (c.totalGasto / metaC) * 100) : 0;
-                    const IconComp = iconFor(c.icon);
-                    return (
-                      <div key={c.categoriaId}>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${c.cor ?? '#8b5cf6'}20`, color: c.cor ?? '#8b5cf6' }}>
-                              <IconComp className="h-4 w-4" />
-                            </div>
-                            <span className="font-medium text-sm text-foreground">{c.categoriaNome}</span>
-                          </div>
-                          <div className="text-right flex flex-col">
-                            <span className="font-semibold text-sm text-foreground">{brl(c.totalGasto)}</span>
-                            {metaC > 0 && <span className="text-xs text-muted-foreground">de {brl(metaC)}</span>}
-                          </div>
-                        </div>
-                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden mt-2">
-                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${metaC > 0 ? pctC : 100}%`, backgroundColor: c.cor ?? 'var(--primary)' }} />
-                        </div>
-                      </div>
-                    )
-                  })
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
-                    <p className="text-sm">Nenhum cômodo com gastos associados.</p>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-
           </div>
         </>
       )}
