@@ -120,7 +120,7 @@ function PerfilPage() {
             </p>
           </div>
           <div className="md:col-span-2">
-            <div className="bg-card rounded-2xl border p-5 shadow-sm">
+            <div className="bg-card rounded-[var(--radius-lg)] border p-5 shadow-sm">
               {isCasal ? (
                 <Tabs defaultValue="p1" className="w-full">
                   <TabsList className="grid grid-cols-2 mb-6 p-1 bg-muted/50">
@@ -197,10 +197,10 @@ function PerfilPage() {
               
               {/* Convites Recebidos */}
               {convitesQuery.data && convitesQuery.data.length > 0 && (
-                <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 space-y-4">
+                <div className="bg-primary/5 border border-primary/20 rounded-[var(--radius-lg)] p-5 space-y-4">
                   <h3 className="font-medium text-primary flex items-center gap-2"><Bell className="w-4 h-4" /> Convites Recebidos</h3>
                   {convitesQuery.data.map((convite) => (
-                    <div key={convite.token} className="bg-background rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between border shadow-sm">
+                    <div key={convite.token} className="bg-background rounded-[var(--radius-lg)] p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between border shadow-sm">
                       <div className="flex-1">
                         <p className="font-medium text-sm"><strong>{convite.nomeConvidante}</strong> convidou você.</p>
                         <p className="text-xs text-muted-foreground mt-1">Ao aceitar, seus dados atuais serão migrados para uma conta conjunta.</p>
@@ -214,7 +214,7 @@ function PerfilPage() {
               )}
 
               {/* Enviar Convite */}
-              <div className="bg-card rounded-2xl border p-5 shadow-sm space-y-4">
+              <div className="bg-card rounded-[var(--radius-lg)] border p-5 shadow-sm space-y-4">
                 <div className="space-y-1">
                   <h3 className="font-medium">Convidar Parceiro(a)</h3>
                   <p className="text-sm text-muted-foreground">Insira o e-mail do seu parceiro para enviar um convite de união de contas.</p>
@@ -263,7 +263,7 @@ function PerfilPage() {
           <div className="md:col-span-2 space-y-6">
             <TrocarSenhaCard />
             
-            <div className="bg-destructive/5 border border-destructive/20 rounded-2xl p-5 shadow-sm">
+            <div className="bg-destructive/5 border border-destructive/20 rounded-[var(--radius-lg)] p-5 shadow-sm">
               <h3 className="font-medium text-destructive mb-1">Zona de Risco</h3>
               <p className="text-sm text-destructive/80 mb-5">
                 Encerrar sua sessão neste dispositivo ou deletar toda a sua conta do CasalPlanner.
@@ -382,7 +382,7 @@ function PessoaForm({
             onChange={(e) => setNome(e.target.value)}
             required
             disabled={somenteLeitura}
-            className="h-11 rounded-xl"
+            className="h-11 rounded-[var(--radius-lg)]"
           />
         </div>
         <div className="space-y-1.5">
@@ -394,7 +394,7 @@ function PessoaForm({
             required
             disabled={bloquearEmailCpf || somenteLeitura}
             readOnly={bloquearEmailCpf || somenteLeitura}
-            className="h-11 rounded-xl"
+            className="h-11 rounded-[var(--radius-lg)]"
           />
           {bloquearEmailCpf && (
             <p className="text-xs text-muted-foreground">
@@ -410,7 +410,7 @@ function PessoaForm({
             onChange={(e) => setNasc(maskDate(e.target.value))}
             placeholder="dd/mm/aaaa"
             disabled={somenteLeitura}
-            className="h-11 rounded-xl"
+            className="h-11 rounded-[var(--radius-lg)]"
           />
         </div>
 
@@ -456,7 +456,7 @@ function TemaCard() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <section className="rounded-xl border bg-card p-5 md:p-6 shadow-sm">
+    <section className="rounded-[var(--radius-lg)] border bg-card p-5 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         {theme === "light" ? (
           <Sun className="h-5 w-5 text-primary" />
@@ -541,7 +541,7 @@ function MetaEnxovalCard({
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
   });
   return (
-    <section className="rounded-xl border bg-card p-5 md:p-6 shadow-sm">
+    <section className="rounded-[var(--radius-lg)] border bg-card p-5 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <Target className="h-5 w-5 text-primary" />
         <h2 className="font-display text-xl font-semibold">Meta total do enxoval</h2>
@@ -584,7 +584,7 @@ function TrocarSenhaCard() {
   });
 
   return (
-    <section className="rounded-xl border bg-card p-5 md:p-6 shadow-sm">
+    <section className="rounded-[var(--radius-lg)] border bg-card p-5 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-5">
         <KeyRound className="h-5 w-5 text-primary" />
         <h2 className="font-display text-xl font-semibold">Segurança e Senha</h2>
@@ -656,7 +656,7 @@ function ListaPublicaCard() {
   };
 
   return (
-    <section className="rounded-xl border bg-card p-5 md:p-6 shadow-sm">
+    <section className="rounded-[var(--radius-lg)] border bg-card p-5 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-5">
         <Share2 className="h-5 w-5 text-primary" />
         <h2 className="font-display text-xl font-semibold">Sua Lista Pública</h2>
@@ -689,7 +689,7 @@ function ListaPublicaCard() {
           <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
             <Label>Seu link exclusivo</Label>
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-xl border">
+              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-[var(--radius-lg)] border">
                 <p className="text-sm font-medium truncate flex-1">{link}</p>
                 <Button
                   variant="ghost"
@@ -707,7 +707,7 @@ function ListaPublicaCard() {
               <div className="grid grid-cols-2 gap-2 mt-2">
                 <Button
                   variant="outline"
-                  className="w-full rounded-xl hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-colors"
+                  className="w-full rounded-[var(--radius-lg)] hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-colors"
                   asChild
                 >
                   <a href={link} target="_blank" rel="noopener noreferrer">
@@ -717,7 +717,7 @@ function ListaPublicaCard() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full rounded-xl hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-colors"
+                  className="w-full rounded-[var(--radius-lg)] hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-colors"
                   onClick={shareLink}
                 >
                   <Share2 className="h-4 w-4 mr-2" />
@@ -878,7 +878,7 @@ function ExportarCard() {
   };
 
   return (
-    <section className="rounded-2xl border bg-card overflow-hidden p-5">
+    <section className="rounded-[var(--radius-lg)] border bg-card overflow-hidden p-5">
       <div className="flex items-center gap-2 mb-4">
         <Download className="h-4 w-4 text-primary" />
         <h2 className="font-display text-lg font-semibold">Exportar Planejamento</h2>
@@ -890,7 +890,7 @@ function ExportarCard() {
       <div className="flex flex-col gap-2">
         <Button
           variant="outline"
-          className="w-full rounded-xl"
+          className="w-full rounded-[var(--radius-lg)]"
           onClick={handleExportarCSV}
           disabled={exportando}
         >
@@ -899,7 +899,7 @@ function ExportarCard() {
         </Button>
         <Button
           variant="outline"
-          className="w-full rounded-xl"
+          className="w-full rounded-[var(--radius-lg)]"
           onClick={handleExportarPDF}
           disabled={exportando}
         >

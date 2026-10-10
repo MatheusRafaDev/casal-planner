@@ -480,7 +480,7 @@ function PlanejamentoPage() {
               })}
 
               {!categoriasQ.isLoading && categorias.length === 0 && (
-                <div className="rounded-xl border border-dashed p-4 mx-3 mt-2 text-center text-xs text-muted-foreground">
+                <div className="rounded-[var(--radius-lg)] border border-dashed p-4 mx-3 mt-2 text-center text-xs text-muted-foreground">
                   Nenhum cômodo ainda. Crie o primeiro para começar.
                 </div>
               )}
@@ -494,7 +494,7 @@ function PlanejamentoPage() {
             <>
               <div className="flex flex-col gap-4 mb-6">
                 {/* Resumo da Categoria */}
-                <div className="flex flex-col lg:flex-row gap-4 lg:items-center justify-between rounded-xl bg-card border p-4 shadow-sm">
+                <div className="flex flex-col lg:flex-row gap-4 lg:items-center justify-between rounded-[var(--radius-lg)] bg-card border p-4 shadow-sm">
                   {/* Info da Categoria */}
                   <div className="flex items-center gap-3">
                     <span
@@ -643,7 +643,7 @@ function PlanejamentoPage() {
                   </div>
                 )}
                 {!itensQ.isLoading && itensFiltrados.length === 0 && (
-                  <div className="rounded-xl border border-dashed p-12 text-center bg-muted/10">
+                  <div className="rounded-[var(--radius-lg)] border border-dashed p-12 text-center bg-muted/10">
                     <Package className="h-10 w-10 mx-auto text-primary/40 mb-3" />
                     <p className="text-sm font-medium text-foreground">
                       Nenhum item encontrado.
@@ -676,7 +676,7 @@ function PlanejamentoPage() {
                       transition={{ duration: 0.2 }}
                       key={it.id}
                       className={cn(
-                        "group flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-xl border bg-card transition-colors hover:border-primary/40 shadow-sm relative overflow-hidden",
+                        "group flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-[var(--radius-lg)] border bg-card transition-colors hover:border-primary/40 shadow-sm relative overflow-hidden",
                         it.comprado && "bg-muted/30 border-transparent shadow-none"
                       )}
                     >

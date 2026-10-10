@@ -125,7 +125,7 @@ function InicioPage() {
     return (
       <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-4">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-32 rounded-2xl bg-muted animate-pulse" />
+          <div key={i} className="h-32 rounded-[var(--radius-lg)] bg-muted animate-pulse" />
         ))}
       </div>
     );
@@ -504,8 +504,8 @@ function InicioPage() {
       </div>
 
       {semDados ? (
-        <motion.div variants={itemVariants} className="rounded-2xl border bg-card p-8 sm:p-12 text-center shadow-sm">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-primary/10 text-primary mb-6">
+        <motion.div variants={itemVariants} className="rounded-[var(--radius-lg)] border bg-card p-8 sm:p-12 text-center shadow-sm">
+          <div className="inline-flex items-center justify-center h-16 w-16 rounded-[var(--radius-lg)] bg-primary/10 text-primary mb-6">
             <Sparkles className="h-8 w-8" />
           </div>
           <h2 className="font-display text-2xl font-semibold tracking-tight mb-2">Comece o seu enxoval</h2>
@@ -650,7 +650,7 @@ function InicioPage() {
                   </div>
                 ) : (
                   validItens.filter(i => !i.comprado).slice(0, 4).map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3.5 rounded-xl bg-background border shadow-sm">
+                    <div key={idx} className="flex items-center justify-between p-3.5 rounded-[var(--radius-lg)] bg-background border shadow-sm">
                       <div className="flex items-center gap-3 overflow-hidden">
                         <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
                           <ShoppingBag className="h-4 w-4" />

@@ -96,7 +96,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
           e.preventDefault();
           if (q.trim()) setAtiva(q.trim());
         }}
-        className="flex gap-2 p-1 bg-muted/30 rounded-xl border"
+        className="flex gap-2 p-1 bg-muted/30 rounded-[var(--radius-lg)] border"
       >
         <div className="relative flex-1 min-w-0">
           <Search className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70" />
@@ -135,7 +135,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
 
       {/* Estados da Pesquisa */}
       {query.isError && (
-        <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6 text-center flex flex-col items-center gap-2">
+        <div className="rounded-[var(--radius-lg)] border border-destructive/20 bg-destructive/5 p-6 text-center flex flex-col items-center gap-2">
           <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center text-destructive">
             <Search className="h-5 w-5" />
           </div>
@@ -145,7 +145,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
       )}
 
       {!ativa && !query.isFetching && (
-        <div className="rounded-xl border border-dashed p-10 text-center flex flex-col items-center gap-3 bg-muted/10">
+        <div className="rounded-[var(--radius-lg)] border border-dashed p-10 text-center flex flex-col items-center gap-3 bg-muted/10">
           <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
             <Store className="h-6 w-6" />
           </div>
@@ -157,7 +157,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
       )}
       
       {query.isFetching && (
-        <div className="rounded-xl border border-dashed p-10 text-center flex flex-col items-center gap-3 bg-muted/5">
+        <div className="rounded-[var(--radius-lg)] border border-dashed p-10 text-center flex flex-col items-center gap-3 bg-muted/5">
           <Loader2 className="h-8 w-8 text-primary animate-spin" />
           <div className="space-y-1">
             <p className="text-sm font-medium">Analisando ofertas...</p>
@@ -190,7 +190,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
             {resultadosOrdenados.map((r, i) => (
               <div
                 key={`${r.link}-${i}`}
-                className="group relative flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-xl border bg-card hover:border-primary/40 transition-colors"
+                className="group relative flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-[var(--radius-lg)] border bg-card hover:border-primary/40 transition-colors"
               >
                 {/* Imagem (Se houver) */}
                 <div className="w-16 h-16 shrink-0 rounded-lg bg-white border flex items-center justify-center overflow-hidden">
@@ -274,7 +274,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
       )}
 
       {query.data && query.data.resultados?.length === 0 && !query.isFetching && (
-        <div className="rounded-xl border border-dashed p-10 text-center flex flex-col items-center gap-3 bg-muted/10">
+        <div className="rounded-[var(--radius-lg)] border border-dashed p-10 text-center flex flex-col items-center gap-3 bg-muted/10">
           <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
             <Search className="h-6 w-6" />
           </div>

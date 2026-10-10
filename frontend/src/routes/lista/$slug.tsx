@@ -194,7 +194,7 @@ function ListaPublicaPage() {
       {/* Main Content */}
       <main className="max-w-[1400px] mx-auto px-4 py-12 md:py-16">
         {/* Filtros Elegantes */}
-        <div className="flex flex-col lg:flex-row gap-4 mb-10 items-center justify-between bg-white p-2 rounded-2xl shadow-sm border border-border/40">
+        <div className="flex flex-col lg:flex-row gap-4 mb-10 items-center justify-between bg-white p-2 rounded-[var(--radius-lg)] shadow-sm border border-border/40">
           <div className="relative flex-1 w-full max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -222,7 +222,7 @@ function ListaPublicaPage() {
               <SelectTrigger className="w-[160px] h-10 border-none bg-transparent hover:bg-muted/50 rounded-lg shadow-none focus:ring-0 text-muted-foreground">
                 <SelectValue placeholder="Faixa de preço" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl">
+              <SelectContent className="rounded-[var(--radius-lg)]">
                 <SelectItem value="todos">Qualquer valor</SelectItem>
                 <SelectItem value="ate-100">Até R$ 100</SelectItem>
                 <SelectItem value="100-300">R$ 100 a R$ 300</SelectItem>
@@ -237,14 +237,14 @@ function ListaPublicaPage() {
           {itensFiltrados.map((item) => (
             <div
               key={item.id}
-              className={`group flex flex-col transition-all duration-500 rounded-2xl ${
+              className={`group flex flex-col transition-all duration-500 rounded-[var(--radius-lg)] ${
                 item.comprado
                   ? "opacity-60 grayscale hover:grayscale-0"
                   : "hover:-translate-y-1"
               }`}
             >
               {/* Imagem Container */}
-              <div className="aspect-[4/3] bg-white rounded-2xl border border-border/40 shadow-sm relative overflow-hidden flex items-center justify-center p-6 mb-4">
+              <div className="aspect-[4/3] bg-white rounded-[var(--radius-lg)] border border-border/40 shadow-sm relative overflow-hidden flex items-center justify-center p-6 mb-4">
                 {item.fotoUrl ? (
                   <img
                     src={item.fotoUrl}
@@ -302,13 +302,13 @@ function ListaPublicaPage() {
                 {!item.comprado && (
                   <div className="mt-6 flex flex-col gap-2">
                     <Button
-                      className="w-full rounded-xl bg-foreground text-background hover:bg-foreground/90 h-11 shadow-none transition-transform active:scale-95"
+                      className="w-full rounded-[var(--radius-lg)] bg-foreground text-background hover:bg-foreground/90 h-11 shadow-none transition-transform active:scale-95"
                       onClick={() => setItemSelecionado(item)}
                     >
                       Presentear
                     </Button>
                     {item.linkProduto && (
-                      <Button variant="ghost" className="w-full rounded-xl h-11 text-muted-foreground hover:text-foreground" asChild>
+                      <Button variant="ghost" className="w-full rounded-[var(--radius-lg)] h-11 text-muted-foreground hover:text-foreground" asChild>
                         <a href={item.linkProduto} target="_blank" rel="noopener noreferrer">
                           <span>Ver na Loja</span>
                           <ExternalLink className="h-3.5 w-3.5 ml-1.5 opacity-70" />
@@ -331,7 +331,7 @@ function ListaPublicaPage() {
 
       {/* Modal Presentear (Minimalista) */}
       <Dialog open={!!itemSelecionado} onOpenChange={(open) => !open && setItemSelecionado(null)}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-background rounded-2xl">
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-background rounded-[var(--radius-lg)]">
           <DialogHeader className="p-6 pb-2 text-left">
             <DialogTitle className="text-2xl font-display">Presentear</DialogTitle>
             <DialogDescription className="text-sm">
@@ -342,8 +342,8 @@ function ListaPublicaPage() {
           {itemSelecionado && (
             <div className="px-6 pb-6 space-y-6">
               {/* Card Resumo do Produto */}
-              <div className="flex gap-4 items-center bg-white border shadow-sm p-3 rounded-2xl">
-                <div className="h-20 w-20 bg-muted/20 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden p-2">
+              <div className="flex gap-4 items-center bg-white border shadow-sm p-3 rounded-[var(--radius-lg)]">
+                <div className="h-20 w-20 bg-muted/20 rounded-[var(--radius-lg)] flex-shrink-0 flex items-center justify-center overflow-hidden p-2">
                   {itemSelecionado.fotoUrl ? (
                     <img src={itemSelecionado.fotoUrl} alt={itemSelecionado.nome} className="w-full h-full object-contain" />
                   ) : (
@@ -364,9 +364,9 @@ function ListaPublicaPage() {
 
               {/* Loja (Se Houver) */}
               {itemSelecionado.linkProduto && (
-                <div className="bg-muted/30 rounded-xl p-4 text-sm text-center">
+                <div className="bg-muted/30 rounded-[var(--radius-lg)] p-4 text-sm text-center">
                   <p className="text-muted-foreground mb-3 text-xs uppercase tracking-wider font-medium">Link sugerido para compra</p>
-                  <Button variant="outline" className="w-full rounded-xl bg-white" asChild>
+                  <Button variant="outline" className="w-full rounded-[var(--radius-lg)] bg-white" asChild>
                     <a href={itemSelecionado.linkProduto} target="_blank" rel="noopener noreferrer">
                       <span>Acessar {itemSelecionado.loja && itemSelecionado.loja}</span>
                       <ExternalLink className="h-4 w-4 text-muted-foreground ml-2" />
@@ -386,7 +386,7 @@ function ListaPublicaPage() {
                   value={nomeConvidado}
                   onChange={(e) => setNomeConvidado(e.target.value)}
                   autoFocus
-                  className="h-12 rounded-xl bg-muted/20"
+                  className="h-12 rounded-[var(--radius-lg)] bg-muted/20"
                 />
               </div>
 
@@ -397,11 +397,11 @@ function ListaPublicaPage() {
           )}
 
           <DialogFooter className="p-4 bg-muted/10 border-t flex-row justify-end gap-2">
-            <Button variant="ghost" className="rounded-xl w-full sm:w-auto" onClick={() => setItemSelecionado(null)}>
+            <Button variant="ghost" className="rounded-[var(--radius-lg)] w-full sm:w-auto" onClick={() => setItemSelecionado(null)}>
               Cancelar
             </Button>
             <Button
-              className="rounded-xl w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90"
+              className="rounded-[var(--radius-lg)] w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90"
               onClick={() => presentearMut.mutate()}
               disabled={!nomeConvidado.trim() || presentearMut.isPending}
             >

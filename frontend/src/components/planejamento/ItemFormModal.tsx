@@ -245,7 +245,7 @@ export function ItemFormModal({
           {/* Seção 1: Identificação Básica */}
           <section className="flex flex-col sm:flex-row gap-6">
             {/* Imagem */}
-            <div className="w-32 h-32 mx-auto sm:mx-0 shrink-0 relative group rounded-2xl overflow-hidden border bg-muted/20">
+            <div className="w-32 h-32 mx-auto sm:mx-0 shrink-0 relative group rounded-[var(--radius-lg)] overflow-hidden border bg-muted/20">
               <input ref={fileInputRef} type="file" accept="image/jpeg, image/png, image/webp" className="hidden" onChange={(e) => { if (e.target.files?.[0]) { set("fotoFile", e.target.files[0]); setImageError(false); } }} />
               
               {form.fotoFile ? (
@@ -427,7 +427,7 @@ export function ItemFormModal({
             </div>
 
             {isCasal && form.origem !== "ganho" && (
-              <div className="mt-4 p-4 rounded-xl border bg-muted/10 space-y-4">
+              <div className="mt-4 p-4 rounded-[var(--radius-lg)] border bg-muted/10 space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
                   <div className="space-y-1">
                     <Label className="text-sm font-semibold">Responsável Financeiro</Label>

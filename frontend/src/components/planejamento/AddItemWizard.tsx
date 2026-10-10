@@ -491,7 +491,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
       <DialogContent className="w-[95vw] max-w-3xl max-h-[90dvh] overflow-hidden flex flex-col p-0 gap-0 bg-background/95 backdrop-blur-md">
         <DialogHeader className="p-4 sm:p-6 pb-4 border-b bg-card">
           <DialogTitle className="font-display text-xl sm:text-2xl flex items-center gap-3 mb-5">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+            <div className="h-10 w-10 rounded-[var(--radius-lg)] bg-primary/10 flex items-center justify-center text-primary shrink-0">
                <Sparkles className="h-5 w-5" />
             </div>
             Adicionar Novo Item
@@ -538,7 +538,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 {fotoPreviewUrl ? (
                   <div
                     className={cn(
-                      "relative h-40 w-full rounded-xl overflow-hidden border bg-background/50 transition-all",
+                      "relative h-40 w-full rounded-[var(--radius-lg)] overflow-hidden border bg-background/50 transition-all",
                       !analisandoFoto &&
                         !extrairLink.isPending &&
                         "cursor-pointer hover:border-primary/50",
@@ -581,7 +581,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                         handleFile(e.dataTransfer.files[0]);
                       }
                     }}
-                    className="w-full h-28 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/60 bg-background/50 hover:bg-accent hover:border-primary/50 transition-all text-muted-foreground hover:text-foreground"
+                    className="w-full h-28 flex flex-col items-center justify-center gap-2 rounded-[var(--radius-lg)] border-2 border-dashed border-border/60 bg-background/50 hover:bg-accent hover:border-primary/50 transition-all text-muted-foreground hover:text-foreground"
                   >
                     <Upload className="h-7 w-7 text-primary/70" />
                     <span className="text-sm font-medium">Galeria ou arraste aqui</span>
@@ -592,7 +592,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   type="button"
                   variant="outline"
                   className={cn(
-                    "w-full rounded-xl transition-all",
+                    "w-full rounded-[var(--radius-lg)] transition-all",
                     !fotoPreviewUrl
                       ? "h-12 border-dashed border-primary/50 text-primary hover:bg-primary/5 hover:text-primary"
                       : "h-10 text-muted-foreground",
@@ -630,7 +630,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   </div>
                 )}
                 {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute z-50 w-full mt-1 rounded-xl border bg-popover shadow-lg overflow-hidden">
+                  <div className="absolute z-50 w-full mt-1 rounded-[var(--radius-lg)] border bg-popover shadow-lg overflow-hidden">
                     {suggestions.map((s, i) => (
                       <button
                         key={i}
@@ -696,7 +696,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
 
           {step === 2 && (
             <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-              <div className="flex-1 overflow-hidden flex flex-col min-h-0 bg-background/50 rounded-xl border">
+              <div className="flex-1 overflow-hidden flex flex-col min-h-0 bg-background/50 rounded-[var(--radius-lg)] border">
                 <div className="p-4 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                   <PainelPesquisaPrecos
                     initialQuery={queryBusca}
@@ -712,7 +712,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 </div>
               </div>
               <div className="mt-4 shrink-0">
-                <div className="rounded-2xl border bg-card p-4 flex flex-col sm:flex-row items-center gap-4 justify-between">
+                <div className="rounded-[var(--radius-lg)] border bg-card p-4 flex flex-col sm:flex-row items-center gap-4 justify-between">
                   <div className="space-y-1 text-center sm:text-left w-full sm:w-auto">
                     <Label className="text-base font-semibold">Preço manual</Label>
                     <p className="text-xs text-muted-foreground">
@@ -753,7 +753,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 
                 {/* Foto */}
                 <div className="flex flex-col gap-2">
-                  <div className="relative w-full aspect-square mx-auto md:mx-0 rounded-2xl overflow-hidden border bg-background/50 group shrink-0">
+                  <div className="relative w-full aspect-square mx-auto md:mx-0 rounded-[var(--radius-lg)] overflow-hidden border bg-background/50 group shrink-0">
                     {fotoPreviewUrl || escolhido?.thumbnail ? (
                       <>
                         <div className="absolute inset-0 bg-cover bg-center opacity-20 blur-xl scale-125" style={{ backgroundImage: `url(${fotoPreviewUrl ?? escolhido!.thumbnail})` }} />
@@ -784,7 +784,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 {/* Nome e Preço */}
                 <div className="flex flex-col gap-3">
                   <div className="relative group/title">
-                    <textarea value={nome} onChange={(e) => setNome(e.target.value)} rows={2} className="font-display text-xl sm:text-2xl font-bold py-2 px-3 border border-transparent hover:bg-muted/30 focus-visible:bg-muted/50 focus-visible:border-primary/50 transition-all w-full pr-8 resize-none rounded-xl outline-none" placeholder="Nome do produto" />
+                    <textarea value={nome} onChange={(e) => setNome(e.target.value)} rows={2} className="font-display text-xl sm:text-2xl font-bold py-2 px-3 border border-transparent hover:bg-muted/30 focus-visible:bg-muted/50 focus-visible:border-primary/50 transition-all w-full pr-8 resize-none rounded-[var(--radius-lg)] outline-none" placeholder="Nome do produto" />
                     <Pencil className="h-4 w-4 absolute right-3 top-3 text-muted-foreground opacity-0 group-hover/title:opacity-50 transition-opacity pointer-events-none" />
                   </div>
                   
@@ -810,7 +810,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
               </div>
 
               {/* Bloco 2: Classificação */}
-              <div className="rounded-xl border bg-muted/10 p-4 sm:p-5 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+              <div className="rounded-[var(--radius-lg)] border bg-muted/10 p-4 sm:p-5 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium flex items-center gap-1.5"><Hash className="w-3.5 h-3.5 opacity-70" /> Cômodo</Label>
                   <Select value={categoriaId} onValueChange={setCategoriaId}>
@@ -831,7 +831,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
               </div>
 
               {/* Bloco 3: Financeiro e Planejamento */}
-              <div className="rounded-xl border bg-card p-4 sm:p-5 space-y-5 shadow-sm">
+              <div className="rounded-[var(--radius-lg)] border bg-card p-4 sm:p-5 space-y-5 shadow-sm">
                 <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium flex items-center gap-1.5"><Gift className="w-3.5 h-3.5 opacity-70" /> Origem</Label>
@@ -916,7 +916,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     </Select>
 
                     {dividir && divisaoPagamento && (
-                      <div className="mt-3 p-4 rounded-xl bg-accent/30 border space-y-4">
+                      <div className="mt-3 p-4 rounded-[var(--radius-lg)] bg-accent/30 border space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-1.5">
                             <Label className="text-xs">{p1}</Label>

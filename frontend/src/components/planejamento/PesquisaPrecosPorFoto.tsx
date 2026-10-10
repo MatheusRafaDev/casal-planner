@@ -163,7 +163,7 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
   if (estado === "idle" || estado === "error") {
     return (
       <div 
-        className="w-full flex flex-col items-center justify-center p-6 sm:p-8 rounded-2xl border-2 border-dashed bg-muted/10 hover:bg-muted/30 transition-colors cursor-pointer text-center group"
+        className="w-full flex flex-col items-center justify-center p-6 sm:p-8 rounded-[var(--radius-lg)] border-2 border-dashed bg-muted/10 hover:bg-muted/30 transition-colors cursor-pointer text-center group"
         onClick={() => !disabled && inputRef.current?.click()}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
@@ -198,12 +198,12 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
 
   if (estado === "processing") {
     return (
-      <div className="w-full flex flex-col sm:flex-row items-center gap-6 p-6 rounded-2xl border bg-card relative overflow-hidden">
+      <div className="w-full flex flex-col sm:flex-row items-center gap-6 p-6 rounded-[var(--radius-lg)] border bg-card relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-muted">
           <div className="h-full bg-primary animate-pulse w-1/2 rounded-full" />
         </div>
         
-        <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded-xl overflow-hidden border bg-black/5 relative">
+        <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded-[var(--radius-lg)] overflow-hidden border bg-black/5 relative">
           {preview && (
             <img src={preview} alt="Preview" className="w-full h-full object-cover opacity-50" />
           )}
@@ -222,10 +222,10 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
 
   if (estado === "success" && resultado) {
     return (
-      <div className="w-full rounded-2xl border bg-card overflow-hidden flex flex-col">
+      <div className="w-full rounded-[var(--radius-lg)] border bg-card overflow-hidden flex flex-col">
         {/* Header e Preview */}
         <div className="flex flex-col sm:flex-row p-4 sm:p-6 gap-6 bg-muted/10 border-b">
-          <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded-xl overflow-hidden border bg-background relative group">
+          <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded-[var(--radius-lg)] overflow-hidden border bg-background relative group">
             {preview && <img src={preview} alt="Preview" className="w-full h-full object-cover" />}
             <button 
               onClick={resetar}

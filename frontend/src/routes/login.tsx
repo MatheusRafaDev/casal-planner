@@ -47,10 +47,10 @@ function LoginPage() {
   }, [loading, isAuthenticated, navigate, router.history, returnUrl]);
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-muted/10 selection:bg-primary/20">
-      <div className="w-full max-w-[420px] bg-card rounded-2xl border shadow-sm p-6 sm:p-10">
+    <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-background selection:bg-primary/20">
+      <div className="w-full max-w-[420px] bg-card rounded-[var(--radius-lg)] border shadow-sm p-6 sm:p-10">
         <div className="flex flex-col items-center text-center space-y-6 mb-8">
-          <Link to="/" className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10 mb-2">
+          <Link to="/" className="inline-flex items-center justify-center h-12 w-12 rounded-[var(--radius-lg)] bg-primary/10 mb-2">
             <Heart className="h-6 w-6 text-primary" />
           </Link>
           <div className="space-y-2">

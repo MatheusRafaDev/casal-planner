@@ -227,7 +227,7 @@ function Home_() {
       {/* Public List Search */}
       <section className="py-24 px-6 border-t bg-background">
         <div className="max-w-4xl mx-auto text-center flex flex-col items-center">
-          <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-muted text-foreground mb-6">
+          <div className="inline-flex items-center justify-center h-12 w-12 rounded-[var(--radius-lg)] bg-muted text-foreground mb-6">
             <Gift className="h-6 w-6" />
           </div>
           <h2 className="text-3xl md:text-4xl font-display font-semibold tracking-tight mb-4">

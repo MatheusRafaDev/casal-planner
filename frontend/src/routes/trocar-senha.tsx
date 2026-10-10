@@ -15,10 +15,10 @@ function TrocarSenhaPage() {
   const email = usuario?.email ?? usuario?.casalInfo?.pessoa1?.email ?? "";
 
   return (
-    <div className="min-h-screen bg-muted/10 relative flex flex-col items-center justify-center p-4 selection:bg-primary/20">
-      <div className="w-full max-w-[420px] bg-card rounded-2xl border shadow-sm p-6 sm:p-10">
+    <div className="min-h-screen bg-background relative flex flex-col items-center justify-center p-4 selection:bg-primary/20">
+      <div className="w-full max-w-[420px] bg-card rounded-[var(--radius-lg)] border shadow-sm p-6 sm:p-10">
         <div className="flex flex-col items-center text-center space-y-6 mb-8">
-          <Link to="/" className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10 mb-2">
+          <Link to="/" className="inline-flex items-center justify-center h-12 w-12 rounded-[var(--radius-lg)] bg-primary/10 mb-2">
             <img src="/logo.png" alt="CasalPlanner" className="h-6 w-6 rounded-sm opacity-90" />
           </Link>
           <div className="space-y-2">

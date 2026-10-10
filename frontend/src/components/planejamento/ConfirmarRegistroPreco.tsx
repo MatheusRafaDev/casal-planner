@@ -64,7 +64,7 @@ export function ConfirmarRegistroPreco({ open, onOpenChange, itemId, dados, onSa
 
         <div className="p-5 sm:p-6 space-y-6 max-h-[70dvh] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full">
           {/* Preço em Destaque */}
-          <div className="flex flex-col items-center justify-center p-6 bg-primary/5 border rounded-2xl border-primary/20 group">
+          <div className="flex flex-col items-center justify-center p-6 bg-primary/5 border rounded-[var(--radius-lg)] border-primary/20 group">
             <label className="text-primary font-semibold text-xs uppercase tracking-wider mb-2">
               Valor Registrado
             </label>
