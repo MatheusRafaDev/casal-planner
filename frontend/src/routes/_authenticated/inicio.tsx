@@ -649,22 +649,25 @@ function InicioPage() {
                     <p className="text-xs mt-1">Nenhuma pendência.</p>
                   </div>
                 ) : (
-                  validItens.filter(i => !i.comprado).slice(0, 4).map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3.5 rounded-[var(--radius-lg)] bg-background border shadow-sm">
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                          <ShoppingBag className="h-4 w-4" />
+                  validItens.filter(i => !i.comprado).slice(0, 4).map((item, idx) => {
+                    const cat = categorias.find(c => c.id === item.categoriaId);
+                    return (
+                      <div key={idx} className="flex items-center justify-between p-3.5 rounded-[var(--radius-lg)] bg-background border shadow-sm">
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                            <ShoppingBag className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{item.nome}</p>
+                            <p className="text-xs text-muted-foreground truncate">{cat?.nome ?? "Sem cômodo"}</p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{item.nome}</p>
-                          <p className="text-xs text-muted-foreground truncate">{item.categoriaNome ?? "Sem cômodo"}</p>
+                        <div className="text-sm font-semibold text-foreground shrink-0 ml-3 tabular-nums">
+                          {brl(item.preco)}
                         </div>
                       </div>
-                      <div className="text-sm font-semibold text-foreground shrink-0 ml-3 tabular-nums">
-                        {brl(item.preco)}
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
               
