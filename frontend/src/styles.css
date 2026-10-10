@@ -44,8 +44,8 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
-  --font-sans: "Inter", sans-serif;
-  --font-display: "Inter", sans-serif;
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+  --font-display: "Outfit", sans-serif;
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -90,14 +90,14 @@
   --input: hsl(240 6% 90%);
   --ring: hsl(262 55% 52%);
 
-  /* Neutral Sidebar */
-  --sidebar: hsl(240 5% 98%);
-  --sidebar-foreground: hsl(240 10% 15%);
+  /* Dark Blue Sidebar for Light Mode */
+  --sidebar: hsl(220 45% 10%);
+  --sidebar-foreground: hsl(220 20% 95%);
   --sidebar-primary: hsl(262 55% 52%);
   --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(240 5% 92%);
-  --sidebar-accent-foreground: hsl(240 10% 10%);
-  --sidebar-border: hsl(240 6% 90%);
+  --sidebar-accent: hsl(220 40% 16%);
+  --sidebar-accent-foreground: hsl(0 0% 100%);
+  --sidebar-border: hsl(220 40% 16%);
   --sidebar-ring: hsl(262 55% 52%);
 
   /* Chart Colors (Professional Palette) */

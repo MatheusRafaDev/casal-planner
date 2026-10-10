@@ -18,7 +18,11 @@ import {
   Bell,
   BellOff,
   ExternalLink,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
+import { useTheme } from "@/lib/theme-context";
 import { usePwa } from "@/hooks/use-pwa";
 import { useAuth } from "@/lib/auth-context";
 
@@ -241,6 +245,7 @@ function PerfilPage() {
             </p>
           </div>
           <div className="md:col-span-2 space-y-6">
+            <TemaCard />
             <MetaEnxovalCard metaUsuario={usuario.metaGlobalEnxoval ?? null} onSaved={refresh} />
             <ListaPublicaCard />
             <ExportarCard />
@@ -444,6 +449,66 @@ function PessoaForm({
         </div>
       )}
     </form>
+  );
+}
+
+function TemaCard() {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <section className="rounded-xl border bg-card p-5 md:p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-4">
+        {theme === "light" ? (
+          <Sun className="h-5 w-5 text-primary" />
+        ) : theme === "dark" ? (
+          <Moon className="h-5 w-5 text-primary" />
+        ) : (
+          <Monitor className="h-5 w-5 text-primary" />
+        )}
+        <h2 className="font-display text-xl font-semibold">Aparência do Sistema</h2>
+      </div>
+      <p className="text-sm text-muted-foreground mb-5">
+        Escolha entre o modo claro, escuro ou siga a preferência do seu dispositivo.
+      </p>
+
+      <div className="grid grid-cols-3 gap-3">
+        <button
+          onClick={() => setTheme("light")}
+          className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 p-4 transition-all ${
+            theme === "light"
+              ? "border-primary bg-primary/5 text-primary font-medium"
+              : "border-border bg-background text-muted-foreground hover:bg-muted/50"
+          }`}
+        >
+          <Sun className="h-6 w-6" />
+          <span className="text-sm">Claro</span>
+        </button>
+
+        <button
+          onClick={() => setTheme("dark")}
+          className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 p-4 transition-all ${
+            theme === "dark"
+              ? "border-primary bg-primary/5 text-primary font-medium"
+              : "border-border bg-background text-muted-foreground hover:bg-muted/50"
+          }`}
+        >
+          <Moon className="h-6 w-6" />
+          <span className="text-sm">Escuro</span>
+        </button>
+
+        <button
+          onClick={() => setTheme("system")}
+          className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 p-4 transition-all ${
+            theme === "system"
+              ? "border-primary bg-primary/5 text-primary font-medium"
+              : "border-border bg-background text-muted-foreground hover:bg-muted/50"
+          }`}
+        >
+          <Monitor className="h-6 w-6" />
+          <span className="text-sm">Sistema</span>
+        </button>
+      </div>
+    </section>
   );
 }
 

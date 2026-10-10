@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useMotionProps } from "@/hooks/use-reduced-motion";
-import { Gift, LayoutDashboard, Search, Check, Users, Wallet, UserPlus } from "lucide-react";
+import { Gift, LayoutDashboard, Search, Check, Users, Wallet, UserPlus, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTheme } from "@/lib/theme-context";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -20,6 +21,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Home_() {
+  const { theme, toggle } = useTheme();
+
   const fadeUp = useMotionProps({
     initial: { opacity: 0, y: 20 },
     whileInView: { opacity: 1, y: 0 },
@@ -39,7 +42,14 @@ function Home_() {
             <img src="/logo.png" alt="CasalPlanner" className="h-7 w-7 rounded-md" />
             <span className="text-lg font-semibold tracking-tight font-display">CasalPlanner</span>
           </div>
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-2 sm:gap-4">
+            <button
+              onClick={toggle}
+              className="text-muted-foreground hover:text-foreground p-2 rounded-md transition-colors"
+              title="Alternar tema"
+            >
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
             <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
               Entrar
             </Link>
