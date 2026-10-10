@@ -110,14 +110,14 @@ function Home_() {
         {/* Right Side: UI Mockup */}
         <motion.div
           {...useMotionProps({
-            initial: { opacity: 0, x: 20 },
-            animate: { opacity: 1, x: 0 },
+            initial: { opacity: 0, y: 20 },
+            animate: { opacity: 1, y: 0 },
             transition: { duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.3 },
           })}
-          className="flex-1 w-full max-w-2xl relative perspective-[1200px]"
+          className="flex-1 w-full max-w-2xl relative"
         >
           {/* Main App Mockup */}
-          <div className="bg-card border rounded-xl shadow-sm p-6 relative z-10 w-full overflow-hidden flex flex-col md:rotate-y-[-5deg] md:rotate-x-[2deg] transform-gpu transition-transform hover:rotate-0 duration-700">
+          <div className="bg-card border rounded-[var(--radius)] shadow-card p-6 md:p-8 relative z-10 w-full overflow-hidden flex flex-col">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h3 className="text-2xl font-display font-semibold tracking-tight">Cozinha</h3>
@@ -165,7 +165,7 @@ function Home_() {
           </div>
 
           {/* Overlapping Notification Card to demonstrate Couple Sync */}
-          <div className="absolute -bottom-6 md:-bottom-12 -left-4 md:-left-12 bg-background border rounded-lg shadow-md p-4 z-20 flex items-center gap-4 animate-in slide-in-from-bottom-8 duration-700 delay-500 fill-mode-both">
+          <div className="absolute -bottom-6 md:-bottom-8 -left-4 md:-left-8 bg-background border rounded-[var(--radius)] shadow-card p-4 z-20 flex items-center gap-4 animate-in slide-in-from-bottom-8 duration-700 delay-500 fill-mode-both">
             <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-primary">
               <UserPlus className="h-5 w-5" />
             </div>
@@ -189,32 +189,36 @@ function Home_() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {/* Box 1 */}
-            <motion.div {...fadeUp} className="bg-background border p-8 md:p-10 rounded-2xl flex flex-col h-full shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            {/* Box 1 (Grande) */}
+            <motion.div {...fadeUp} className="md:col-span-2 bg-background border p-8 md:p-10 rounded-[var(--radius)] flex flex-col h-full shadow-soft">
               <LayoutDashboard className="h-8 w-8 text-primary mb-6" />
-              <h3 className="text-xl font-semibold tracking-tight mb-3">Organização por Cômodos</h3>
-              <p className="text-muted-foreground leading-relaxed flex-1">
+              <h3 className="text-2xl font-display font-semibold tracking-tight mb-3">Organização por Cômodos</h3>
+              <p className="text-muted-foreground text-lg leading-relaxed flex-1">
                 Divida suas compras entre Cozinha, Quarto, Sala, e defina uma meta de gastos para cada área. Descubra rapidamente onde você está estourando o orçamento.
               </p>
             </motion.div>
             
-            {/* Box 2 */}
-            <motion.div {...fadeUp} transition={{ delay: 0.1, duration: 0.8 }} className="bg-background border p-8 md:p-10 rounded-2xl flex flex-col h-full shadow-sm">
+            {/* Box 2 (Menor) */}
+            <motion.div {...fadeUp} transition={{ delay: 0.1, duration: 0.8 }} className="bg-background border p-8 md:p-10 rounded-[var(--radius)] flex flex-col h-full shadow-soft">
               <Wallet className="h-8 w-8 text-primary mb-6" />
-              <h3 className="text-xl font-semibold tracking-tight mb-3">Vale-Refeição vs Dinheiro</h3>
+              <h3 className="text-xl font-display font-semibold tracking-tight mb-3">Vale ou Dinheiro?</h3>
               <p className="text-muted-foreground leading-relaxed flex-1">
-                Vai pagar com vale-alimentação? Marque o item na plataforma. O sistema separa automaticamente o que sai da sua conta corrente do que sai dos benefícios.
+                Marque o item na plataforma. O sistema separa automaticamente o que sai da sua conta corrente do que sai dos benefícios.
               </p>
             </motion.div>
             
-            {/* Box 3 */}
-            <motion.div {...fadeUp} transition={{ delay: 0.2, duration: 0.8 }} className="bg-background border p-8 md:p-10 rounded-2xl flex flex-col h-full shadow-sm">
-              <Users className="h-8 w-8 text-primary mb-6" />
-              <h3 className="text-xl font-semibold tracking-tight mb-3">Sincronia a Dois</h3>
-              <p className="text-muted-foreground leading-relaxed flex-1">
-                Vincule a conta do seu parceiro. Se ele marcar um item como comprado ou adicionar um produto novo no mercado, o seu painel atualiza na mesma hora.
-              </p>
+            {/* Box 3 (Horizontal Full) */}
+            <motion.div {...fadeUp} transition={{ delay: 0.2, duration: 0.8 }} className="md:col-span-3 bg-background border p-8 md:p-10 rounded-[var(--radius)] flex flex-col md:flex-row items-center gap-8 shadow-soft">
+              <div className="h-16 w-16 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
+                <Users className="h-8 w-8 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-display font-semibold tracking-tight mb-3">Sincronia a Dois</h3>
+                <p className="text-muted-foreground text-lg leading-relaxed">
+                  Vincule a conta do seu parceiro. Se ele marcar um item como comprado ou adicionar um produto novo no mercado, o seu painel atualiza na mesma hora. Planejar juntos nunca foi tão fácil.
+                </p>
+              </div>
             </motion.div>
           </div>
         </div>
