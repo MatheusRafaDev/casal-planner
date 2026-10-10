@@ -28,7 +28,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       : usuario?.nomeCompleto;
 
   return (
-    <div className="min-h-screen flex flex-col bg-muted/10 md:pl-64 font-sans">
+    <div className="min-h-screen flex flex-col bg-background md:pl-64 font-sans">
       {/* Mobile Top Header */}
       <header className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 h-14 bg-sidebar text-sidebar-foreground border-b border-sidebar-border shadow-sm">
         <div className="flex items-center gap-2">
@@ -79,11 +79,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
                   active
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                    ? "bg-primary/10 text-primary shadow-sm"
                     : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                 )}
               >
-                <n.icon className={cn("h-4 w-4", active ? "text-sidebar-primary-foreground" : "text-sidebar-foreground/70")} />
+                <n.icon className={cn("h-4 w-4", active ? "text-primary" : "text-sidebar-foreground/70")} />
                 {n.label}
               </Link>
             );
@@ -157,16 +157,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={n.to}
                 to={n.to}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 w-full h-full transition-colors relative",
-                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+                  "flex flex-col items-center justify-center gap-0.5 w-full h-full transition-colors",
+                  active ? "text-primary" : "text-sidebar-foreground/70 hover:text-sidebar-foreground",
                 )}
                 aria-current={active ? "page" : undefined}
               >
-                {active && (
-                  <div className="absolute top-0 inset-x-4 h-[2px] bg-primary rounded-b-full" />
-                )}
-                <n.icon className={cn("h-5 w-5 mt-1", active && "text-primary")} />
-                <span className={cn("text-[10px]", active ? "font-semibold" : "font-medium")}>
+                <div
+                  className={cn(
+                    "flex items-center justify-center h-8 w-12 rounded-full transition-colors",
+                    active ? "bg-primary/10" : "bg-transparent",
+                  )}
+                >
+                  <n.icon className="h-5 w-5" />
+                </div>
+                <span className={cn("text-[10px]", active ? "font-bold" : "font-medium")}>
                   {n.label}
                 </span>
               </Link>
