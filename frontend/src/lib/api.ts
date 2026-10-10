@@ -17,6 +17,9 @@ export class ApiError extends Error {
 
 /** Base resolvida: string vazia (relativo) quando a env não está definida. */
 function resolveBaseUrl(): string {
+  // Em produção, a Vercel encaminha /api para o backend no mesmo domínio,
+  // evitando que navegadores móveis bloqueiem os cookies de sessão cross-site.
+  if (import.meta.env.PROD && typeof window !== "undefined") return "";
   return API_BASE_URL && API_BASE_URL !== "undefined" ? API_BASE_URL : "";
 }
 

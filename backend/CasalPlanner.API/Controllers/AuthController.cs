@@ -44,7 +44,12 @@ namespace CasalPlanner.API.Controllers
         private static int JwtExpiresInMinutes =>
             int.TryParse(Environment.GetEnvironmentVariable("JWT_EXPIRES_IN"), out var m) && m > 0 ? m : 60;
 
-        private void SetTokenCookie(string token, string? refreshToken = null)
+        private bool IsMobileDevice()
+        {
+            return SessionLifetimePolicy.IsMobileClient(Request);
+        }
+
+        private void SetTokenCookie(string token, string? refreshToken = null, bool isMobile = false)
         {
             var cookieOptions = new CookieOptions
             {
@@ -63,7 +68,7 @@ namespace CasalPlanner.API.Controllers
                     Secure = !_environment.IsDevelopment(),
                     SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
                     Path = "/api/auth",
-                    Expires = DateTime.UtcNow.AddDays(30)
+                    Expires = isMobile ? DateTime.UtcNow.AddDays(3650) : DateTime.UtcNow.AddDays(7)
                 };
                 Response.Cookies.Append("cp_refresh_token", refreshToken, refreshCookieOptions);
             }
@@ -121,9 +126,10 @@ namespace CasalPlanner.API.Controllers
                 ? _authService.GerarTokenCasal(usuario, pessoa)
                 : _authService.GerarToken(usuario);
 
-            var refreshTokenResult = await _authService.GerarERegistrarRefreshToken(usuario.Id!, isCasal ? pessoa : null);
+            var isMobile = IsMobileDevice();
+            var refreshTokenResult = await _authService.GerarERegistrarRefreshToken(usuario.Id!, isCasal ? pessoa : null, isMobile);
 
-            SetTokenCookie(token, refreshTokenResult.Token);
+            SetTokenCookie(token, refreshTokenResult.Token, isMobile);
 
             _logger.LogInformation("Login realizado com sucesso: {Email}", dto.Email);
 
@@ -206,9 +212,10 @@ namespace CasalPlanner.API.Controllers
                 ? _authService.GerarTokenCasal(usuario, pessoa)
                 : _authService.GerarToken(usuario);
 
-            var refreshTokenResult = await _authService.GerarERegistrarRefreshToken(usuario.Id!, isCasal ? pessoa : null);
+            var isMobile = IsMobileDevice();
+            var refreshTokenResult = await _authService.GerarERegistrarRefreshToken(usuario.Id!, isCasal ? pessoa : null, isMobile);
 
-            SetTokenCookie(token, refreshTokenResult.Token);
+            SetTokenCookie(token, refreshTokenResult.Token, isMobile);
 
             var usuarioMapeado = isCasal
                 ? UsuarioMapper.MapearCasal(usuario, pessoa)
@@ -270,9 +277,10 @@ namespace CasalPlanner.API.Controllers
                 ? _authService.GerarTokenCasal(usuario, pessoa!)
                 : _authService.GerarToken(usuario);
 
-            var novoRefreshToken = await _authService.GerarERegistrarRefreshToken(usuario.Id!, isCasal ? pessoa : null);
+            var isMobile = IsMobileDevice();
+            var novoRefreshToken = await _authService.GerarERegistrarRefreshToken(usuario.Id!, isCasal ? pessoa : null, isMobile);
 
-            SetTokenCookie(token, novoRefreshToken.Token);
+            SetTokenCookie(token, novoRefreshToken.Token, isMobile);
 
             return Ok(new { success = true });
         }

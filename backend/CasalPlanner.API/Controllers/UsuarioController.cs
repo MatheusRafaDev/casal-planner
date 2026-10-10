@@ -36,12 +36,13 @@ public class UsuarioController : ControllerBase
         _emailService = emailService; // ADICIONE ESTA LINHA
     }
 
-    private void SetAuthCookies(string token, string refreshToken)
+    private void SetAuthCookies(string token, string refreshToken, bool isMobile)
     {
         var sameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None;
         var secure = !_environment.IsDevelopment();
-        Response.Cookies.Append("cp_token", token, new CookieOptions { HttpOnly = true, Secure = secure, SameSite = sameSite, Expires = DateTime.UtcNow.AddDays(7) });
-        Response.Cookies.Append("cp_refresh_token", refreshToken, new CookieOptions { HttpOnly = true, Secure = secure, SameSite = sameSite, Path = "/api/auth", Expires = DateTime.UtcNow.AddDays(30) });
+        var expires = isMobile ? DateTime.UtcNow.AddDays(3650) : DateTime.UtcNow.AddDays(7);
+        Response.Cookies.Append("cp_token", token, new CookieOptions { HttpOnly = true, Secure = secure, SameSite = sameSite, Expires = expires });
+        Response.Cookies.Append("cp_refresh_token", refreshToken, new CookieOptions { HttpOnly = true, Secure = secure, SameSite = sameSite, Path = "/api/auth", Expires = expires });
     }
 
     private string GetUsuarioId()
@@ -134,8 +135,9 @@ public class UsuarioController : ControllerBase
         }
 
         var token = _authService.GerarToken(usuario);
-        var refreshToken = await _authService.GerarERegistrarRefreshToken(usuario.Id!);
-        SetAuthCookies(token, refreshToken.Token);
+        var isMobile = SessionLifetimePolicy.IsMobileClient(Request);
+        var refreshToken = await _authService.GerarERegistrarRefreshToken(usuario.Id!, isMobile: isMobile);
+        SetAuthCookies(token, refreshToken.Token, isMobile);
 
         // Retornar dados completos do usuário
         return Ok(new
@@ -199,8 +201,9 @@ public class UsuarioController : ControllerBase
         }
 
         var token = _authService.GerarTokenCasal(usuario, "pessoa1");
-        var refreshToken = await _authService.GerarERegistrarRefreshToken(usuario.Id!, "pessoa1");
-        SetAuthCookies(token, refreshToken.Token);
+        var isMobile = SessionLifetimePolicy.IsMobileClient(Request);
+        var refreshToken = await _authService.GerarERegistrarRefreshToken(usuario.Id!, "pessoa1", isMobile);
+        SetAuthCookies(token, refreshToken.Token, isMobile);
 
         // Retornar dados completos do casal
         return Ok(new
@@ -766,8 +769,9 @@ public class UsuarioController : ControllerBase
         // Gerar novo token para B (agora como pessoa2 na conta de A)
         var updatedInviter = await _context.Usuarios.Find(u => u.Id == inviter.Id).FirstOrDefaultAsync();
         var newToken = _authService.GerarTokenCasal(updatedInviter!, "pessoa2");
-        var refreshToken = await _authService.GerarERegistrarRefreshToken(updatedInviter!.Id!, "pessoa2");
-        SetAuthCookies(newToken, refreshToken.Token);
+        var isMobile = SessionLifetimePolicy.IsMobileClient(Request);
+        var refreshToken = await _authService.GerarERegistrarRefreshToken(updatedInviter!.Id!, "pessoa2", isMobile);
+        SetAuthCookies(newToken, refreshToken.Token, isMobile);
 
         return Ok(new { 
             message = "Contas vinculadas com sucesso!",

@@ -238,14 +238,17 @@ namespace CasalPlanner.Infrastructure.Services
             return (handler, descriptor);
         }
 
-        public async Task<(string Token, DateTime ExpiraEm)> GerarERegistrarRefreshToken(string usuarioId, string? pessoa = null)
+        public async Task<(string Token, DateTime ExpiraEm)> GerarERegistrarRefreshToken(
+            string usuarioId,
+            string? pessoa = null,
+            bool isMobile = false)
         {
             var tokenBytes = new byte[64];
             using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
             rng.GetBytes(tokenBytes);
             var token = Convert.ToBase64String(tokenBytes);
             var tokenHash = HashRefreshToken(token);
-            var expiraEm = DateTime.UtcNow.AddDays(30);
+            var expiraEm = isMobile ? DateTime.UtcNow.AddDays(3650) : DateTime.UtcNow.AddDays(7);
 
             var update = Builders<Usuario>.Update;
             UpdateDefinition<Usuario> updateDef;

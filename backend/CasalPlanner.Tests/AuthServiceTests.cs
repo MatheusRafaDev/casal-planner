@@ -74,13 +74,24 @@ public class AuthServiceTests
 
         Assert.NotNull(token);
         Assert.True(token.Length > 0);
-        Assert.True(expiraEm > DateTime.UtcNow.AddDays(29));
+        Assert.InRange(expiraEm, DateTime.UtcNow.AddDays(6).AddHours(23), DateTime.UtcNow.AddDays(7).AddSeconds(1));
 
         mockCollection.Verify(c => c.UpdateOneAsync(
             It.IsAny<FilterDefinition<Usuario>>(),
             It.IsAny<UpdateDefinition<Usuario>>(),
             It.IsAny<UpdateOptions>(),
             It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GerarERegistrarRefreshToken_Mobile_ShouldUseLongLifetime()
+    {
+        var mockCollection = new Mock<IMongoCollection<Usuario>>();
+        _contextMock.Setup(c => c.Usuarios).Returns(mockCollection.Object);
+
+        var (_, expiraEm) = await _service.GerarERegistrarRefreshToken("user-1", isMobile: true);
+
+        Assert.InRange(expiraEm, DateTime.UtcNow.AddDays(3649), DateTime.UtcNow.AddDays(3650).AddSeconds(1));
     }
 
     [Fact]
