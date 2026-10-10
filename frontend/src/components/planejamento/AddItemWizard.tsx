@@ -704,7 +704,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                 </div>
               </div>
               <div className="mt-4 shrink-0">
-                <div className="rounded-2xl border bg-card p-4 flex flex-col sm:flex-row items-center gap-4 justify-between shadow-soft">
+                <div className="rounded-2xl border bg-card p-4 flex flex-col sm:flex-row items-center gap-4 justify-between">
                   <div className="space-y-1 text-center sm:text-left w-full sm:w-auto">
                     <Label className="text-base font-semibold">Preço manual</Label>
                     <p className="text-xs text-muted-foreground">
@@ -723,7 +723,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     />
                     <Button
                       type="button"
-                      className="h-9 px-4 rounded-lg bg-gradient-primary text-primary-foreground shadow-md hover:shadow-lg transition-all shrink-0 text-sm"
+                      className="h-9 px-4 rounded-lg bg-primary text-primary-foreground shadow-md hover:shadow-lg transition-all shrink-0 text-sm"
                       onClick={() => {
                         setEscolhido(null);
                         setStep(3);
@@ -739,7 +739,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
 
           {step === 3 && (
             <div className="py-2 space-y-4 overflow-y-auto flex-1 min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              <div className="rounded-xl border p-4 bg-gradient-warm relative group/header">
+              <div className="rounded-xl border p-4 bg-muted/30 relative group/header">
                 <div className="relative">
                   <textarea
                     value={nome}

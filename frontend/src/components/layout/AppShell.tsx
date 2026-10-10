@@ -48,7 +48,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   active
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-soft"
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : "hover:bg-sidebar-accent/60",
                 )}
               >

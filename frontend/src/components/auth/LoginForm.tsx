@@ -224,7 +224,7 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
       </div>
       <Button
         type="submit"
-        className="w-full bg-gradient-primary shadow-warm"
+        className="w-full bg-primary"
         disabled={loading || googleLoading}
       >
         {loading ? "Entrando..." : "Entrar"}

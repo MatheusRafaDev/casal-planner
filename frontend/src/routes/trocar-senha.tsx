@@ -30,7 +30,7 @@ function TrocarSenhaPage() {
           </p>
         </div>
 
-        <div className="p-6 rounded-2xl border bg-card shadow-soft">
+        <div className="p-6 rounded-2xl border bg-card">
           <WizardRecuperarSenha initialEmail={email} startStep={1} />
         </div>
 

@@ -171,7 +171,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
         {resultadosOrdenados.map((r, i) => (
           <div
             key={`${r.link}-${i}`}
-            className="p-3 rounded-xl border bg-card hover:shadow-soft transition-shadow flex gap-3"
+            className="p-3 rounded-xl border bg-card hover: transition-shadow flex gap-3"
           >
             {r.thumbnail && !imageErrors[`${r.link}-${i}`] ? (
               <img

@@ -53,7 +53,7 @@ function FeatureCard({ f, i }: { f: Feature; i: number }) {
     transition: { duration: 0.5, delay: i * 0.08 },
   });
   return (
-    <motion.div {...anim} className="p-6 rounded-2xl border bg-card shadow-soft">
+    <motion.div {...anim} className="p-6 rounded-2xl border bg-card">
       <span className="grid place-items-center h-11 w-11 rounded-xl bg-accent text-accent-foreground mb-4">
         <f.icon className="h-5 w-5" />
       </span>
@@ -90,7 +90,7 @@ function Home_() {
             <Button asChild variant="ghost">
               <Link to="/login">Entrar</Link>
             </Button>
-            <Button asChild className="bg-gradient-primary shadow-warm">
+            <Button asChild className="bg-primary">
               <Link to="/login" search={{ registrar: 1 }}>
                 Criar conta
               </Link>
@@ -101,7 +101,7 @@ function Home_() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero opacity-70" />
+        <div className="absolute inset-0 bg-muted/10 opacity-70" />
         <div className="relative max-w-6xl mx-auto px-4 py-20 md:py-28 grid md:grid-cols-2 gap-12 items-center">
           <motion.div {...heroText} className="space-y-6">
             <span className="inline-flex items-center gap-2 rounded-full border bg-card/70 px-3 py-1 text-xs font-medium">
@@ -115,7 +115,7 @@ function Home_() {
               melhor preço. Feito para casais que querem começar a vida a dois sem susto na fatura.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="bg-gradient-primary shadow-warm">
+              <Button asChild size="lg" className="bg-primary">
                 <Link to="/login" search={{ registrar: 1 }}>
                   Começar de graça <ArrowRight className="h-4 w-4 ml-2" />
                 </Link>
@@ -131,7 +131,7 @@ function Home_() {
           </motion.div>
 
           <motion.div {...heroCard} className="relative">
-            <div className="rounded-3xl border bg-card p-6 shadow-warm">
+            <div className="rounded-3xl border bg-card p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="font-display text-lg">Cozinha</div>
                 <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
@@ -226,7 +226,7 @@ function Home_() {
 
       {/* CTA */}
       <section className="max-w-6xl mx-auto px-4 pb-24">
-        <div className="rounded-3xl bg-gradient-warm border p-10 md:p-14 text-center shadow-elegant">
+        <div className="rounded-3xl bg-muted/30 border p-10 md:p-14 text-center">
           <h2 className="font-display text-3xl md:text-4xl font-semibold">
             Pronto para montar a casa dos sonhos?
           </h2>
@@ -234,7 +234,7 @@ function Home_() {
             Crie sua conta em menos de 1 minuto individual ou de casal e comece agora.
           </p>
           <div className="mt-6 flex justify-center gap-3">
-            <Button asChild size="lg" className="bg-gradient-primary shadow-warm">
+            <Button asChild size="lg" className="bg-primary">
               <Link to="/login" search={{ registrar: 1 }}>
                 Criar minha conta
               </Link>

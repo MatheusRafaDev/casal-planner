@@ -115,7 +115,7 @@ function PerfilPage() {
         {/* COLUNA ESQUERDA: Minha Conta & Segurança */}
         <div className="space-y-6 lg:space-y-8">
           {/* Dados */}
-          <section className="rounded-2xl border bg-card p-5 md:p-6 shadow-soft">
+          <section className="rounded-2xl border bg-card p-5 md:p-6">
             <h2 className="font-display text-lg font-semibold mb-4">Dados pessoais</h2>
             {isCasal ? (
               <Tabs defaultValue="p1">
@@ -261,7 +261,7 @@ function PerfilPage() {
         <div className="space-y-6 lg:space-y-8">
           {/* Convites Recebidos */}
           {!isCasal && convitesQuery.data && convitesQuery.data.length > 0 && (
-            <section className="rounded-2xl border border-primary/50 bg-primary/5 p-5 shadow-soft">
+            <section className="rounded-2xl border border-primary/50 bg-primary/5 p-5">
               <div className="flex items-center gap-2 mb-4">
                 <MailOpen className="h-5 w-5 text-primary" />
                 <h2 className="font-display text-lg font-semibold text-primary">
@@ -299,7 +299,7 @@ function PerfilPage() {
 
           {/* Enviar Convite */}
           {!isCasal && (
-            <section className="rounded-2xl border bg-card p-5 shadow-soft">
+            <section className="rounded-2xl border bg-card p-5">
               <h2 className="font-display text-lg font-semibold mb-4">Convidar parceiro</h2>
               <p className="text-sm text-muted-foreground mb-4">
                 Envie um convite para o email do seu parceiro. Ele será notificado para acessar o
@@ -467,7 +467,7 @@ function PessoaForm({
           <Button
             type="submit"
             disabled={mut.isPending}
-            className="w-full sm:w-auto h-11 px-8 rounded-full bg-gradient-primary shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
+            className="w-full sm:w-auto h-11 px-8 rounded-full bg-primary shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
           >
             <Save className="h-4 w-4 mr-2" />
             {mut.isPending ? "Salvando..." : "Salvar alterações"}
@@ -507,7 +507,7 @@ function MetaEnxovalCard({
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
   });
   return (
-    <section className="rounded-2xl border bg-card p-5 shadow-soft">
+    <section className="rounded-2xl border bg-card p-5">
       <div className="flex items-center gap-2 mb-3">
         <Target className="h-4 w-4 text-primary" />
         <h2 className="font-display text-lg font-semibold">Meta total do enxoval</h2>
@@ -520,7 +520,7 @@ function MetaEnxovalCard({
         }}
       >
         <CurrencyInput value={valor} onValueChange={setValor} placeholder="R$ 0,00" />
-        <Button type="submit" disabled={mut.isPending} className="bg-gradient-primary">
+        <Button type="submit" disabled={mut.isPending} className="bg-primary">
           Salvar
         </Button>
       </form>
@@ -550,7 +550,7 @@ function TrocarSenhaCard() {
   });
 
   return (
-    <section className="rounded-2xl border bg-card shadow-soft overflow-hidden p-5">
+    <section className="rounded-2xl border bg-card overflow-hidden p-5">
       <div className="flex items-center gap-2 mb-4">
         <KeyRound className="h-4 w-4 text-primary" />
         <h2 className="font-display text-lg font-semibold">Segurança e Senha</h2>
@@ -576,7 +576,7 @@ function TrocarSenhaCard() {
         type="button"
         onClick={() => mut.mutate()}
         disabled={mut.isPending}
-        className="w-full sm:w-auto bg-gradient-primary"
+        className="w-full sm:w-auto bg-primary"
       >
         {mut.isPending ? "Enviando..." : "Enviar link de redefinição"}
       </Button>
@@ -622,7 +622,7 @@ function ListaPublicaCard() {
   };
 
   return (
-    <section className="rounded-2xl border bg-card shadow-soft overflow-hidden p-5">
+    <section className="rounded-2xl border bg-card overflow-hidden p-5">
       <div className="flex items-center gap-2 mb-4">
         <Share2 className="h-4 w-4 text-primary" />
         <h2 className="font-display text-lg font-semibold">Sua Lista Pública</h2>
@@ -844,7 +844,7 @@ function ExportarCard() {
   };
 
   return (
-    <section className="rounded-2xl border bg-card shadow-soft overflow-hidden p-5">
+    <section className="rounded-2xl border bg-card overflow-hidden p-5">
       <div className="flex items-center gap-2 mb-4">
         <Download className="h-4 w-4 text-primary" />
         <h2 className="font-display text-lg font-semibold">Exportar Planejamento</h2>

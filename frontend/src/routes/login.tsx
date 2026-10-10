@@ -50,7 +50,7 @@ function LoginPage() {
     <div className="min-h-screen grid md:grid-cols-2 bg-background">
       {/* Lado ilustrativo */}
       <div className="hidden md:flex relative overflow-hidden md:order-last">
-        <div className="absolute inset-0 bg-gradient-hero" />
+        <div className="absolute inset-0 bg-muted/10" />
         <div className="relative z-10 p-12 flex flex-col justify-between w-full">
           <Link to="/" className="flex items-center gap-2">
             <img src="/logo.png" alt="CasalPlanner" className="h-9 w-9 rounded-lg" />
