@@ -42,7 +42,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: { error: any; reset: () => void }) {
   // IMPORTANTE: sem hooks de router aqui.
   // O error boundary do root pode renderizar antes do RouterContext estar
   // disponível (ex: se o RootComponent crashar). Chamar useRouter() aqui
