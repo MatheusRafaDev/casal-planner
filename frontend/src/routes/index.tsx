@@ -1,9 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useMotionProps } from "@/hooks/use-reduced-motion";
 import { Sparkles, Heart, Home, Wallet, Search, ShieldCheck, ArrowRight, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -64,6 +66,25 @@ function FeatureCard({ f, i }: { f: Feature; i: number }) {
 }
 
 function Home_() {
+  const { isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const userAgent = navigator.userAgent;
+    setIsMobile(
+      /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent) ||
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (navigator as Navigator & { standalone?: boolean }).standalone === true,
+    );
+  }, []);
+
+  useEffect(() => {
+    if (isMobile && !loading && isAuthenticated) {
+      navigate({ to: "/inicio", replace: true });
+    }
+  }, [isMobile, loading, isAuthenticated, navigate]);
+
   const heroText = useMotionProps({
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
@@ -74,11 +95,20 @@ function Home_() {
     animate: { opacity: 1, scale: 1 },
     transition: { duration: 0.7, delay: 0.15 },
   });
+
+  if (isMobile && (loading || isAuthenticated)) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-background">
+        <div className="text-sm text-muted-foreground animate-pulse">Carregando...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header
-        className="border-b bg-background/70 backdrop-blur sticky top-0 z-40"
+        className="border-b bg-background sticky top-0 z-40"
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-16">
@@ -90,7 +120,7 @@ function Home_() {
             <Button asChild variant="ghost">
               <Link to="/login">Entrar</Link>
             </Button>
-            <Button asChild className="bg-gradient-primary shadow-warm">
+            <Button asChild>
               <Link to="/login" search={{ registrar: 1 }}>
                 Criar conta
               </Link>
@@ -101,13 +131,13 @@ function Home_() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero opacity-70" />
+        <div className="absolute inset-0 bg-muted/60" />
         <div className="relative max-w-6xl mx-auto px-4 py-20 md:py-28 grid md:grid-cols-2 gap-12 items-center">
           <motion.div {...heroText} className="space-y-6">
             <span className="inline-flex items-center gap-2 rounded-full border bg-card/70 px-3 py-1 text-xs font-medium">
               <Sparkles className="h-3 w-3 text-terracota" /> Novo: pesquisa de preço com IA
             </span>
-            <h1 className="font-display text-4xl md:text-6xl font-semibold leading-[1.05]">
+            <h1 className="font-display text-4xl md:text-5xl font-semibold leading-[1.1]">
               A casa nova <span className="italic text-primary">merece</span> um plano bonito.
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl">
@@ -115,7 +145,7 @@ function Home_() {
               melhor preço. Feito para casais que querem começar a vida a dois sem susto na fatura.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="bg-gradient-primary shadow-warm">
+              <Button asChild size="lg">
                 <Link to="/login" search={{ registrar: 1 }}>
                   Começar de graça <ArrowRight className="h-4 w-4 ml-2" />
                 </Link>
@@ -131,7 +161,7 @@ function Home_() {
           </motion.div>
 
           <motion.div {...heroCard} className="relative">
-            <div className="rounded-3xl border bg-card p-6 shadow-warm">
+            <div className="rounded-xl border bg-card p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="font-display text-lg">Cozinha</div>
                 <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
@@ -226,7 +256,7 @@ function Home_() {
 
       {/* CTA */}
       <section className="max-w-6xl mx-auto px-4 pb-24">
-        <div className="rounded-3xl bg-gradient-warm border p-10 md:p-14 text-center shadow-elegant">
+        <div className="rounded-xl bg-card border p-8 md:p-12 text-center">
           <h2 className="font-display text-3xl md:text-4xl font-semibold">
             Pronto para montar a casa dos sonhos?
           </h2>
@@ -234,7 +264,7 @@ function Home_() {
             Crie sua conta em menos de 1 minuto individual ou de casal e comece agora.
           </p>
           <div className="mt-6 flex justify-center gap-3">
-            <Button asChild size="lg" className="bg-gradient-primary shadow-warm">
+            <Button asChild size="lg">
               <Link to="/login" search={{ registrar: 1 }}>
                 Criar minha conta
               </Link>

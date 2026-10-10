@@ -41,16 +41,7 @@ export const Route = createFileRoute("/_authenticated/inicio")({
   component: InicioPage,
 });
 
-const FALLBACK_COLORS = [
-  "#8b5cf6",
-  "#ec4899",
-  "#f59e0b",
-  "#10b981",
-  "#3b82f6",
-  "#f43f5e",
-  "#06b6d4",
-  "#a855f7",
-];
+const FALLBACK_COLORS = ["#7655a6", "#9a83bd", "#b8abc9", "#6b7280", "#c9c4d0"];
 
 function InicioPage() {
   const { usuario } = useAuth();
@@ -491,7 +482,7 @@ function InicioPage() {
           >
             <FileText className="h-4 w-4 mr-1" /> Relatório PDF
           </Button>
-          <Button asChild className="bg-gradient-primary shadow-warm">
+          <Button asChild>
             <Link to="/planejamento">
               Ir para o planejamento <ArrowRight className="h-4 w-4 ml-2" />
             </Link>
@@ -541,7 +532,7 @@ function InicioPage() {
       {/* IA */}
       <motion.div variants={itemVariants}>
         {semDados ? (
-          <div className="rounded-2xl border bg-gradient-warm p-6 sm:p-10 text-center shadow-soft">
+          <div className="rounded-xl border bg-card p-6 sm:p-10 text-center">
             <Sparkles className="h-8 w-8 mx-auto text-primary mb-3" />
             <h2 className="font-display text-xl font-semibold mb-2">
               Comece adicionando itens ao seu planejamento
@@ -549,7 +540,7 @@ function InicioPage() {
             <p className="text-sm text-muted-foreground mb-4">
               Assim que registrar suas compras, os cards e gráficos aparecem aqui.
             </p>
-            <Button asChild className="bg-gradient-primary shadow-warm">
+            <Button asChild>
               <Link to="/planejamento">Adicionar primeiro item</Link>
             </Button>
           </div>
@@ -684,9 +675,7 @@ function InicioPage() {
               {variacaoAtual !== null && (
                 <span
                   className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                    variacaoAtual >= 0
-                      ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-                      : "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+                    variacaoAtual >= 0 ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"
                   }`}
                 >
                   {variacaoAtual >= 0 ? "+" : ""}
@@ -777,17 +766,17 @@ function InicioPage() {
                 />
                 <Tooltip
                   formatter={(v: number) => [
-                    <span style={{ color: "white" }}>{brl(v)}</span>,
-                    <span style={{ color: "white" }}>Fatura</span>,
+                    <span style={{ color: "var(--foreground)" }}>{brl(v)}</span>,
+                    <span style={{ color: "var(--foreground)" }}>Fatura</span>,
                   ]}
                   contentStyle={{
                     borderRadius: 8,
                     border: "1px solid var(--border)",
                     background: "var(--card)",
                   }}
-                  labelStyle={{ color: "white" }}
+                  labelStyle={{ color: "var(--foreground)" }}
                 />
-                <Bar dataKey="valor" fill="#7c3aed" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="valor" fill="#7655a6" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}

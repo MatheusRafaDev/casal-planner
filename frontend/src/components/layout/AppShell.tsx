@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, LayoutGrid, User, LogOut, Download, PieChart } from "lucide-react";
+import { Home, LayoutGrid, User, LogOut, Download } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
 import { usePwa } from "@/hooks/use-pwa";
@@ -48,8 +48,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   active
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-soft"
-                    : "hover:bg-sidebar-accent/60",
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
                 <n.icon className="h-4 w-4" />
@@ -96,7 +96,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Bottom nav mobile */}
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 border-t bg-sidebar/95 backdrop-blur z-40"
+        className="md:hidden fixed bottom-0 inset-x-0 border-t bg-sidebar z-40"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
         <div className="grid grid-cols-3 h-16">
@@ -120,7 +120,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 )}
                 {/* Fundo sutil no item ativo */}
                 {active && (
-                  <span className="absolute inset-x-2 inset-y-1.5 rounded-xl bg-primary/10" />
+                  <span className="absolute inset-x-2 inset-y-1.5 rounded-md bg-primary/5" />
                 )}
                 <n.icon className="h-5 w-5 relative" />
                 <span className="relative">{n.label}</span>

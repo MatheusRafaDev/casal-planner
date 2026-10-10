@@ -7,11 +7,11 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { MotionConfig } from "framer-motion";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth-context";
-import { ThemeProvider } from "@/lib/theme-context";
 import { Toaster } from "@/components/ui/sonner";
 import { clearAppData } from "@/lib/clear-app-data";
 import { api } from "@/lib/api";
@@ -98,7 +98,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       // PWA
-      { name: "theme-color", content: "#7c3aed" },
+      { name: "theme-color", content: "#7655a6" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "CasalPlanner" },
@@ -132,7 +132,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR" className="dark" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning>
       <head suppressHydrationWarning>
         <HeadContent />
       </head>
@@ -182,10 +182,10 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider>
+        <MotionConfig reducedMotion="user">
           <Outlet />
           <Toaster richColors position="top-right" closeButton />
-        </ThemeProvider>
+        </MotionConfig>
       </AuthProvider>
     </QueryClientProvider>
   );

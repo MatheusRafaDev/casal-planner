@@ -182,7 +182,7 @@ export function RegistroCasal() {
           />
         </div>
       </div>
-      <Button type="submit" className="w-full bg-gradient-primary shadow-warm" disabled={loading}>
+      <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Criando..." : "Criar conta do casal"}
       </Button>
     </form>

@@ -402,11 +402,8 @@ function PlanejamentoPage() {
                     )}
                     onClick={() => setCategoriaSelecionada(c.id)}
                   >
-                    <span
-                      className="grid place-items-center h-8 w-8 rounded-md text-white shrink-0 shadow-soft"
-                      style={{ backgroundColor: c.bg }}
-                    >
-                      <I className="h-4 w-4" />
+                    <span className="grid place-items-center h-8 w-8 rounded-md bg-muted text-muted-foreground shrink-0">
+                      <I className="h-4 w-4" style={{ color: c.bg }} />
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm truncate flex items-center gap-2 capitalize">
@@ -495,20 +492,22 @@ function PlanejamentoPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div
                   className={cn(
-                    "rounded-2xl bg-gradient-warm p-3 border shadow-soft flex flex-col justify-between",
+                    "rounded-xl bg-card p-3 border flex flex-col justify-between",
                     isCasal ? "md:col-span-2" : "md:col-span-3",
                   )}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span
-                          className="grid place-items-center h-8 w-8 rounded-md text-white shadow-soft"
-                          style={{ backgroundColor: catAtual ? catAtual.bg : "#27272a" }}
-                        >
+                        <span className="grid place-items-center h-8 w-8 rounded-md bg-muted text-muted-foreground">
                           {(() => {
                             const I = catAtual ? iconFor(catAtual.icon) : Package;
-                            return <I className="h-4 w-4" />;
+                            return (
+                              <I
+                                className="h-4 w-4"
+                                style={catAtual ? { color: catAtual.bg } : undefined}
+                              />
+                            );
                           })()}
                         </span>
                         <div>
@@ -666,11 +665,11 @@ function PlanejamentoPage() {
                     )}
                     {economiaCategoria > 0 && (
                       <div className="flex justify-between items-center bg-emerald-500/10 rounded-lg px-2.5 py-1.5">
-                        <span className="flex items-center text-xs font-medium truncate pr-2 text-emerald-600 dark:text-emerald-500">
+                        <span className="flex items-center text-xs font-medium truncate pr-2 text-emerald-700">
                           <Gift className="w-3 h-3 mr-1.5" />
                           Presentes / Ganhos
                         </span>
-                        <span className="font-display font-semibold text-sm text-emerald-600 dark:text-emerald-500">
+                        <span className="font-display font-semibold text-sm text-emerald-700">
                           {brl(economiaCategoria)}
                         </span>
                       </div>
@@ -803,7 +802,7 @@ function PlanejamentoPage() {
                             type="button"
                             onClick={() => setImagemAmpliada(it)}
                             className={cn(
-                              "h-16 w-16 shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-white/50 dark:bg-white/10 overflow-hidden border border-border/50 transition-all",
+                              "h-16 w-16 shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-muted/40 overflow-hidden border border-border transition-colors",
                               it.comprado && "opacity-50 grayscale",
                             )}
                             aria-label={`Ampliar imagem de ${it.nome}`}
@@ -811,26 +810,26 @@ function PlanejamentoPage() {
                             <img
                               src={it.fotoUrl}
                               alt={it.nome}
-                              className="h-full w-full object-cover transition-transform hover:scale-110"
+                              className="h-full w-full object-cover"
                               onError={() => setImageErrors((prev) => ({ ...prev, [it.id]: true }))}
                             />
                           </button>
                         ) : (
                           <div
                             className={cn(
-                              "h-16 w-16 rounded-xl grid place-items-center text-white shrink-0 shadow-sm transition-all",
+                              "h-16 w-16 rounded-lg grid place-items-center bg-muted text-muted-foreground shrink-0 transition-opacity",
                               it.comprado && "opacity-50 grayscale",
                             )}
-                            style={{
-                              backgroundColor:
-                                categorias.find((c) => c.id === it.categoriaId)?.bg ?? "#27272a",
-                            }}
                           >
                             {(() => {
-                              const I = iconFor(
-                                categorias.find((c) => c.id === it.categoriaId)?.icon ?? "package",
+                              const categoria = categorias.find((c) => c.id === it.categoriaId);
+                              const I = iconFor(categoria?.icon ?? "package");
+                              return (
+                                <I
+                                  className="h-7 w-7"
+                                  style={categoria ? { color: categoria.bg } : undefined}
+                                />
                               );
-                              return <I className="h-7 w-7" />;
                             })()}
                           </div>
                         )}
@@ -916,14 +915,14 @@ function PlanejamentoPage() {
                                 className={cn(
                                   "text-[11px] py-0 px-2 font-medium border",
                                   it.origem === "ganho" || it.origem === "presente"
-                                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                     : it.origem === "prometido"
-                                      ? "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400"
+                                      ? "bg-amber-50 text-amber-800 border-amber-200"
                                       : it.origem === "desejo"
-                                        ? "bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400"
+                                        ? "bg-primary/5 text-primary border-primary/15"
                                         : it.comprado
-                                          ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20 dark:text-indigo-400"
-                                          : "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400",
+                                          ? "bg-muted text-muted-foreground border-border"
+                                          : "bg-muted text-muted-foreground border-border",
                                 )}
                               >
                                 {it.origem === "ganho" || it.origem === "presente"
@@ -942,10 +941,10 @@ function PlanejamentoPage() {
                                   className={cn(
                                     "text-[11px] py-0 px-2 font-medium border capitalize",
                                     it.prioridade === "alta"
-                                      ? "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400"
+                                      ? "bg-red-50 text-red-700 border-red-200"
                                       : it.prioridade === "baixa"
-                                        ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
-                                        : "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
+                                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                        : "bg-amber-50 text-amber-800 border-amber-200",
                                   )}
                                 >
                                   Prioridade {it.prioridade}
@@ -953,7 +952,7 @@ function PlanejamentoPage() {
                               )}
                             </div>
                             {it.origem === "prometido" && it.origemDescricao && (
-                              <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1.5 font-medium">
+                              <p className="text-[11px] text-amber-800 mt-1.5 font-medium">
                                 🎁 {it.origemDescricao} — aguardando confirmação
                               </p>
                             )}
@@ -1054,7 +1053,7 @@ function PlanejamentoPage() {
               </motion.div>
             </>
           ) : (
-            <div className="rounded-2xl border border-dashed p-16 text-center bg-gradient-warm">
+            <div className="rounded-xl border border-dashed p-10 text-center bg-card">
               <Plus className="h-8 w-8 mx-auto text-primary mb-3" />
               <p className="text-muted-foreground">
                 Crie seu primeiro cômodo para começar o planejamento.
