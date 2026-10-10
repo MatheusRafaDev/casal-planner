@@ -491,7 +491,7 @@ function InicioPage() {
           >
             <FileText className="h-4 w-4 mr-1" /> Relatório PDF
           </Button>
-          <Button asChild className="bg-gradient-primary shadow-warm">
+          <Button asChild className="bg-primary">
             <Link to="/planejamento">
               Ir para o planejamento <ArrowRight className="h-4 w-4 ml-2" />
             </Link>
@@ -502,7 +502,7 @@ function InicioPage() {
       {/* Progresso do Enxoval */}
       <motion.div variants={itemVariants}>
         {meta > 0 ? (
-          <div className="rounded-2xl border bg-card p-5 shadow-soft">
+          <div className="rounded-2xl border bg-card p-5">
             <div className="flex items-center justify-between gap-3 mb-3">
               <div className="min-w-0 flex-1">
                 <div className="text-sm text-muted-foreground">Progresso do Orçamento (Bolso)</div>
@@ -521,7 +521,7 @@ function InicioPage() {
             <Progress value={pct} />
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-soft">
+          <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="min-w-0 flex-1">
               <div className="font-semibold text-primary">Progresso do enxoval</div>
               <p className="text-sm text-muted-foreground mt-1">
@@ -541,7 +541,7 @@ function InicioPage() {
       {/* IA */}
       <motion.div variants={itemVariants}>
         {semDados ? (
-          <div className="rounded-2xl border bg-gradient-warm p-6 sm:p-10 text-center shadow-soft">
+          <div className="rounded-2xl border bg-muted/30 p-6 sm:p-10 text-center">
             <Sparkles className="h-8 w-8 mx-auto text-primary mb-3" />
             <h2 className="font-display text-xl font-semibold mb-2">
               Comece adicionando itens ao seu planejamento
@@ -549,7 +549,7 @@ function InicioPage() {
             <p className="text-sm text-muted-foreground mb-4">
               Assim que registrar suas compras, os cards e gráficos aparecem aqui.
             </p>
-            <Button asChild className="bg-gradient-primary shadow-warm">
+            <Button asChild className="bg-primary">
               <Link to="/planejamento">Adicionar primeiro item</Link>
             </Button>
           </div>
@@ -590,7 +590,7 @@ function InicioPage() {
             {/* Gráficos */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Pie Chart — Gasto por cômodo */}
-              <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
+              <div className="rounded-2xl border bg-card p-5 overflow-hidden">
                 <h3 className="font-display text-lg font-semibold mb-1">Gasto por cômodo</h3>
                 <p className="text-xs text-muted-foreground mb-4">
                   Distribuição de valores por cômodo
@@ -622,7 +622,7 @@ function InicioPage() {
                 )}
               </div>
               {/* Bar — Gasto por categoria */}
-              <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
+              <div className="rounded-2xl border bg-card p-5 overflow-hidden">
                 <h3 className="font-display text-lg font-semibold mb-1">Gasto por categoria</h3>
                 <p className="text-xs text-muted-foreground mb-4">
                   Distribuição de valores por cômodo
@@ -678,7 +678,7 @@ function InicioPage() {
       {/* Comparativo mensal */}
       <motion.div variants={itemVariants} className="space-y-6">
         {temMensais && (
-          <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
+          <div className="rounded-2xl border bg-card p-5 overflow-hidden">
             <div className="flex items-center gap-3 mb-1 flex-wrap">
               <h3 className="font-display text-lg font-semibold">Comparativo mensal</h3>
               {variacaoAtual !== null && (
@@ -739,7 +739,7 @@ function InicioPage() {
         )}
 
         {/* Faturas Mensais — sempre visível */}
-        <div className="rounded-2xl border bg-card p-5 shadow-soft overflow-hidden">
+        <div className="rounded-2xl border bg-card p-5 overflow-hidden">
           <div className="flex items-center gap-3 mb-1 flex-wrap">
             <h3 className="font-display text-lg font-semibold">Projeção de Faturas</h3>
           </div>
@@ -795,7 +795,7 @@ function InicioPage() {
 
         {/* Progresso por cômodo */}
         {r?.porCategoria && r.porCategoria.length > 0 && (
-          <div className="rounded-2xl border bg-card p-5 shadow-soft">
+          <div className="rounded-2xl border bg-card p-5">
             <h3 className="font-display text-lg font-semibold mb-1">Progresso por cômodo</h3>
             <p className="text-xs text-muted-foreground mb-4">
               Quanto já foi gasto em relação à meta de cada cômodo
@@ -862,7 +862,7 @@ function ResumoCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay }}
-      className="rounded-2xl border bg-card p-4 shadow-soft"
+      className="rounded-2xl border bg-card p-4"
     >
       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
         <Icon className="h-4 w-4 text-primary" />
