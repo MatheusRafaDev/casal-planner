@@ -47,7 +47,7 @@
   --radius-md: calc(var(--radius) - 4px);
   --radius-sm: calc(var(--radius) - 6px);
 
-  --font-sans: "Inter", sans-serif;
+  --font-sans: "Manrope", sans-serif;
   --font-display: "Fraunces", serif;
 
   --shadow-soft: var(--shadow-soft);
@@ -61,7 +61,7 @@
 /*
  * CasalPlanner — Design System
  * Paleta: creme, sálvia, terracota, mel. Tudo em oklch.
- * Fonts: Space Grotesk (display) + Inter (body), carregadas via <link> em __root.
+ * Fonts: Fraunces (display) + Manrope (body), carregadas via <link> em __root.
  */
 
 :root {
