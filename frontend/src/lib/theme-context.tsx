@@ -16,7 +16,7 @@ const ThemeContext = createContext<ThemeCtx | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(
-    () => (localStorage.getItem(STORAGE_KEY) as Theme) || "system"
+    () => (typeof window !== "undefined" ? (localStorage.getItem(STORAGE_KEY) as Theme) : "system") || "system"
   );
   const [actualTheme, setActualTheme] = useState<"light" | "dark">("dark");
 
@@ -50,7 +50,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [theme]);
 
   const setTheme = (newTheme: Theme) => {
-    localStorage.setItem(STORAGE_KEY, newTheme);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY, newTheme);
+    }
     setThemeState(newTheme);
   };
 
