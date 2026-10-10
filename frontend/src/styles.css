@@ -45,7 +45,7 @@
   --radius-sm: calc(var(--radius) - 4px);
 
   --font-sans: "Inter", sans-serif;
-  --font-display: "Space Grotesk", sans-serif;
+  --font-display: "Inter", sans-serif;
 }
 
 @custom-variant dark (&:is(.dark *));
