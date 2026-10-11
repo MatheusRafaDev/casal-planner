@@ -163,13 +163,6 @@ function ProgressBar({ value, tone = "brand" }: { value: number; tone?: "brand" 
   );
 }
 
-function DemoBadge() {
-  return (
-    <span className="rounded-sm bg-primary/10 border border-primary/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-      Demonstração ao vivo
-    </span>
-  );
-}
 
 /* -------------------------------------------------------------------------- */
 /* Main Home Page Component                                                   */
@@ -321,12 +314,9 @@ function HomePage() {
 
       <main className="flex-1">
         {/* ------------------------------------------------------------------ */}
-        {/* 2. Hero Section (Linear & Lovable Split Grid)                      */}
+        {/* 2. Hero Section                                                    */}
         {/* ------------------------------------------------------------------ */}
         <section className="relative overflow-hidden pt-12 md:pt-20 pb-20 md:pb-28 border-b border-border">
-          {/* Subtle violet ambient glow */}
-          <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-primary/10 rounded-full blur-[100px] pointer-events-none -z-10" />
-
           <div className="max-w-7xl mx-auto px-4 sm:px-6 grid items-center gap-12 lg:grid-cols-[1fr_1.15fr]">
             {/* Left Column: Copy */}
             <motion.div
@@ -336,10 +326,7 @@ function HomePage() {
                 transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
               })}
             >
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>Enxoval • Compras • Orçamento</span>
-              </div>
+    
 
               <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.08] font-display text-balance">
                 Uma casa nova começa com bons planos.
@@ -383,17 +370,16 @@ function HomePage() {
               className="relative"
             >
               <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card" aria-label="Demonstração do painel">
-                {/* Header Window Bar */}
-                <div className="flex items-center justify-between border-b border-border bg-muted/40 px-4 py-3">
+                {/* Preview Topbar */}
+                <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full bg-border" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-border" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-border" />
-                    <span className="ml-2.5 text-xs font-semibold text-muted-foreground font-mono">
-                      Painel • Ana & Lucas
+                    <span className="text-xs font-semibold text-foreground font-mono">
+                      Painel do Enxoval • Ana & Lucas
                     </span>
                   </div>
-                  <DemoBadge />
+                  <span className="text-[11px] font-mono text-muted-foreground">
+                    Sincronizado
+                  </span>
                 </div>
 
                 <div className="grid gap-5 p-5 sm:p-6">
@@ -492,7 +478,7 @@ function HomePage() {
         {/* ------------------------------------------------------------------ */}
         {/* 3. Benefícios (#beneficios)                                         */}
         {/* ------------------------------------------------------------------ */}
-        <section id="beneficios" className="scroll-mt-20 border-b border-border bg-card/40 py-20 md:py-28">
+        <section id="beneficios" className="scroll-mt-20 border-b border-border bg-surface py-20 md:py-28">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <motion.div {...fadeUp} className="max-w-2xl">
               <p className="text-xs font-semibold uppercase tracking-wider text-primary">Benefícios</p>
@@ -617,9 +603,9 @@ function HomePage() {
             <motion.div {...fadeUp}>
               <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
                 {/* Header with Title and Room Selector Tabs */}
-                <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-muted/40">
+                <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-muted/30">
                   <span className="text-sm font-bold font-display">Cômodos da Casa</span>
-                  <DemoBadge />
+                  <span className="text-xs text-muted-foreground font-mono">Prévia interativa</span>
                 </div>
 
                 {/* Room Tabs Bar (Interactive!) */}
@@ -701,7 +687,7 @@ function HomePage() {
         {/* ------------------------------------------------------------------ */}
         {/* 5. Como Funciona (Do planejamento à casa pronta - #como-funciona)  */}
         {/* ------------------------------------------------------------------ */}
-        <section id="como-funciona" className="scroll-mt-20 py-20 md:py-28 border-b border-border bg-card/30">
+        <section id="como-funciona" className="scroll-mt-20 py-20 md:py-28 border-b border-border bg-surface">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <motion.div {...fadeUp}>
               <p className="text-xs font-semibold uppercase tracking-wider text-primary">Passo a passo</p>
@@ -788,7 +774,7 @@ function HomePage() {
                     <Wallet className="h-5 w-5 text-primary" />
                     <p className="text-base font-bold font-display">Divisão das despesas</p>
                   </div>
-                  <DemoBadge />
+                  <span className="text-xs text-muted-foreground font-mono">Exemplo real</span>
                 </div>
 
                 {/* 2 Persons Split Cards */}
@@ -836,7 +822,7 @@ function HomePage() {
         {/* ------------------------------------------------------------------ */}
         {/* 7. Funcionalidades & Inteligência (#funcionalidades)               */}
         {/* ------------------------------------------------------------------ */}
-        <section id="funcionalidades" className="scroll-mt-20 py-20 md:py-28 border-b border-border bg-card/30">
+        <section id="funcionalidades" className="scroll-mt-20 py-20 md:py-28 border-b border-border bg-surface">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="grid gap-10 lg:grid-cols-2 items-center">
               <div>
@@ -849,7 +835,7 @@ function HomePage() {
                     A <strong className="text-foreground">pesquisa de preços</strong> reúne opções de um mesmo produto para vocês compararem antes de comprar e guardarem o link e o valor escolhido no item.
                   </p>
                   <p>
-                    O <strong className="text-foreground">assistente de inteligência artificial</strong> ajuda a preencher nome, categoria e especificações técnicas de qualquer produto colando apenas o link.
+                    O <strong className="text-foreground">preenchimento inteligente de links</strong> busca automaticamente nome, marca, foto e especificações de qualquer loja apenas colando a URL.
                   </p>
                   <p>
                     Use o <strong className="text-foreground">scanner de código de barras (EAN)</strong> na câmera do seu celular para registrar itens instantaneamente enquanto caminha por lojas físicas.
@@ -889,11 +875,11 @@ function HomePage() {
 
                 <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
                   <div className="h-9 w-9 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-3">
-                    <Sparkles className="h-5 w-5" />
+                    <Search className="h-5 w-5" />
                   </div>
-                  <h4 className="font-bold text-base font-display">IA Gratuita & Rápida</h4>
+                  <h4 className="font-bold text-base font-display">Extração Automática de Dados</h4>
                   <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                    Extração inteligente de links e sugestões de presentes sem limites no plano gratuito.
+                    Identificação rápida de marcas, lojas e especificações técnicas sem digitação manual.
                   </p>
                 </div>
 
@@ -959,7 +945,7 @@ function HomePage() {
         {/* ------------------------------------------------------------------ */}
         {/* 9. Final Call to Action                                            */}
         {/* ------------------------------------------------------------------ */}
-        <section className="py-20 md:py-28 border-b border-border bg-card/60">
+        <section className="py-20 md:py-28 border-b border-border bg-surface">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="max-w-2xl">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight font-display leading-[1.1]">

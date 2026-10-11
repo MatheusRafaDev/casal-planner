@@ -66,141 +66,72 @@ function LoginPage() {
   return (
     <div className="min-h-screen w-full bg-background text-foreground flex flex-col lg:grid lg:grid-cols-[1.1fr_1fr] selection:bg-primary/20 relative">
       {/* =========================================
-          PAINEL ESQUERDO: SHOWCASE LOVABLE DESIGN
+          PAINEL ESQUERDO: APRESENTAÇÃO DO PRODUTO
       ========================================= */}
-      <div className="hidden lg:flex flex-col justify-between border-r border-border bg-card/40 p-10 xl:p-14 relative overflow-hidden">
-        {/* Glows sutis da paleta Violet Issue */}
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-primary/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-10 right-10 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Topo: Logo & Badge da Versão */}
-        <div className="flex items-center justify-between relative z-10">
+      <div className="hidden lg:flex flex-col justify-between border-r border-border bg-muted/20 p-10 xl:p-14">
+        {/* Topo: Logo */}
+        <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5 font-bold tracking-tight text-foreground group">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--radius-md)] bg-primary text-primary-foreground shadow-glow transition-transform group-hover:scale-105">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground shadow-sm transition-transform group-hover:scale-105">
               <Home className="h-5 w-5" />
             </span>
             <span className="font-display text-xl tracking-tight">Casal Planner</span>
           </Link>
-          <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 font-mono text-[11px] uppercase px-2.5 py-0.5">
-            Violet Issue • v2.0
-          </Badge>
         </div>
 
-        {/* Centro: Hero & Mockup Interativo Lovable */}
-        <div className="my-auto py-8 space-y-6 max-w-xl relative z-10">
+        {/* Centro: Mensagem & Pilares reais */}
+        <div className="my-auto py-8 space-y-8 max-w-lg">
           <div className="space-y-3">
-            <span className="text-xs font-semibold uppercase tracking-wider text-primary font-mono inline-flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5" />
-              Enxoval • Compras • Orçamento
-            </span>
             <h1 className="font-display text-3xl xl:text-4xl font-extrabold tracking-tight text-foreground leading-tight">
-              Uma casa nova começa com bons planos.
+              Planejar a dois é começar a casa com o pé direito.
             </h1>
-            <p className="text-sm xl:text-base text-muted-foreground leading-relaxed">
-              Organizem o enxoval, planejem as compras e acompanhem os gastos juntos. Tudo em um só lugar, do primeiro item até a casa pronta.
+            <p className="text-base text-muted-foreground leading-relaxed">
+              Acompanhem cada cômodo, organizem as compras e mantenham total clareza sobre o orçamento do novo lar.
             </p>
           </div>
 
-          {/* Card Mockup Fiel ao Preview Lovable com as cores do sistema */}
-          <div className="rounded-xl border border-border bg-card shadow-soft overflow-hidden">
-            {/* Topbar do mockup */}
-            <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-muted/20">
-              <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-border" />
-                <span className="h-2.5 w-2.5 rounded-full bg-border" />
-                <span className="h-2.5 w-2.5 rounded-full bg-border" />
-                <span className="ml-2 text-xs font-semibold text-muted-foreground">
-                  Painel • Ana & Lucas
-                </span>
+          <div className="space-y-4 pt-2">
+            <div className="flex items-start gap-3.5">
+              <div className="h-8 w-8 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary mt-0.5">
+                <Check className="h-4 w-4" />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                Demonstração ao vivo
-              </span>
-            </div>
-
-            {/* Conteúdo do mockup */}
-            <div className="p-4 xl:p-5 space-y-4">
-              {/* Barra de Progresso Global */}
               <div>
-                <div className="flex items-baseline justify-between text-xs mb-1.5">
-                  <span className="font-semibold text-foreground">Progresso do enxoval</span>
-                  <span className="font-mono font-bold text-primary">68%</span>
-                </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                  <div className="h-full bg-primary rounded-full transition-all duration-500 w-[68%]" />
-                </div>
-                <p className="mt-1.5 text-[11px] text-muted-foreground">
-                  61 de 97 itens comprados
+                <p className="text-sm font-semibold text-foreground">Organização completa por ambiente</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                  Cozinha, sala, quarto e lavanderia com estimativas de custos e status em tempo real.
                 </p>
               </div>
+            </div>
 
-              {/* 3 Blocos Financeiros */}
-              <div className="grid grid-cols-3 divide-x divide-border rounded-[var(--radius-md)] border border-border bg-background/50">
-                <div className="p-2.5 text-center sm:text-left">
-                  <p className="text-[10px] uppercase font-semibold text-muted-foreground">Planejado</p>
-                  <p className="mt-0.5 text-xs xl:text-sm font-bold font-mono text-foreground">R$ 28.000</p>
-                </div>
-                <div className="p-2.5 text-center sm:text-left pl-3">
-                  <p className="text-[10px] uppercase font-semibold text-muted-foreground">Gasto</p>
-                  <p className="mt-0.5 text-xs xl:text-sm font-bold font-mono text-primary">R$ 17.400</p>
-                </div>
-                <div className="p-2.5 text-center sm:text-left pl-3">
-                  <p className="text-[10px] uppercase font-semibold text-muted-foreground">Pendente</p>
-                  <p className="mt-0.5 text-xs xl:text-sm font-bold font-mono text-foreground">R$ 10.600</p>
-                </div>
+            <div className="flex items-start gap-3.5">
+              <div className="h-8 w-8 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary mt-0.5">
+                <Check className="h-4 w-4" />
               </div>
-
-              {/* Cômodos com mini progresso */}
-              <div className="grid grid-cols-3 gap-2 pt-1">
-                {[
-                  { name: "Cozinha", icon: ChefHat, pct: 66, itens: "22/34" },
-                  { name: "Sala", icon: Sofa, pct: 50, itens: "9/18" },
-                  { name: "Quarto", icon: Bed, pct: 76, itens: "16/21" },
-                ].map((c) => (
-                  <div key={c.name} className="p-2.5 rounded-[var(--radius-md)] border border-border/70 bg-card/60 space-y-1">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-                      <c.icon className="h-3.5 w-3.5 text-primary shrink-0" />
-                      <span className="truncate">{c.name}</span>
-                    </div>
-                    <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full" style={{ width: `${c.pct}%` }} />
-                    </div>
-                    <span className="text-[10px] text-muted-foreground block">{c.itens}</span>
-                  </div>
-                ))}
+              <div>
+                <p className="text-sm font-semibold text-foreground">Divisão transparente de despesas</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                  Controle individual ou conjunto, separando pagamentos em dinheiro e vales (VR/VA).
+                </p>
               </div>
+            </div>
 
-              {/* Itens Recentes com Badges de Status */}
-              <div className="rounded-[var(--radius-md)] bg-muted/30 p-2.5 space-y-1.5 border border-border/50">
-                <p className="text-[11px] font-semibold text-foreground">Próximas compras</p>
-                <div className="space-y-1 text-xs">
-                  <div className="flex items-center justify-between gap-2 p-1.5 rounded bg-card border border-border/40">
-                    <span className="font-medium truncate text-[11px]">Jogo de panelas inox</span>
-                    <span className="text-[10px] font-mono font-semibold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded">
-                      Comprado • R$ 789
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between gap-2 p-1.5 rounded bg-card border border-border/40">
-                    <span className="font-medium truncate text-[11px]">Air fryer 5L</span>
-                    <span className="text-[10px] font-mono font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-                      Pendente • R$ 459
-                    </span>
-                  </div>
-                </div>
+            <div className="flex items-start gap-3.5">
+              <div className="h-8 w-8 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary mt-0.5">
+                <Check className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Lista de presentes sem complicação</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                  Compartilhem um link público para amigos e padrinhos presentearem no chá de casa nova.
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Rodapé do Painel Esquerdo: Depoimento / Reafirmação */}
-        <div className="pt-4 border-t border-border/60 flex items-center justify-between gap-4 text-xs text-muted-foreground relative z-10">
-          <p className="italic max-w-sm">
-            "Menos planilhas soltas, mais clareza sobre o enxoval e as finanças da nossa casa."
-          </p>
-          <div className="flex items-center gap-1.5 text-primary font-medium shrink-0">
-            <ShieldCheck className="h-4 w-4" />
-            <span>Dados 100% privados</span>
-          </div>
+        {/* Rodapé esquerdo */}
+        <div className="text-xs text-muted-foreground">
+          Gestão prática para a sua vida a dois.
         </div>
       </div>
 
@@ -234,7 +165,7 @@ function LoginPage() {
           {/* Cabeçalho do Form */}
           <div className="space-y-2 text-center sm:text-left">
             <div className="lg:hidden inline-flex items-center gap-2 font-bold mb-3">
-              <span className="grid h-8 w-8 place-items-center rounded-[var(--radius-md)] bg-primary text-primary-foreground shadow-glow">
+              <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground shadow-sm">
                 <Home className="h-4 w-4" />
               </span>
               <span className="font-display text-lg tracking-tight">Casal Planner</span>
@@ -330,9 +261,9 @@ function LoginPage() {
           )}
         </div>
 
-        {/* Rodapé Inferior Direito */}
-        <div className="pt-6 text-center text-xs text-muted-foreground/80 w-full max-w-md mx-auto">
-          Casal Planner © {new Date().getFullYear()} • Plataforma inteligente para o seu lar
+        {/* Rodapé */}
+        <div className="pt-6 text-center text-xs text-muted-foreground w-full max-w-md mx-auto">
+          Casal Planner © {new Date().getFullYear()} • Todos os direitos reservados.
         </div>
       </div>
     </div>

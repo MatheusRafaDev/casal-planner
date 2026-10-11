@@ -553,9 +553,26 @@ function PlanejamentoPage() {
                           <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
                             <Users className="w-3.5 h-3.5" /> Casal
                           </div>
-                          <span className="font-semibold text-sm text-foreground">
-                            {p1.split(' ')[0]}: {brl(totalP1)}
-                          </span>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-semibold text-foreground font-mono">
+                            <span>
+                              <span className="text-muted-foreground font-normal text-xs mr-1">{p1.split(' ')[0]}:</span>
+                              {brl(totalP1)}
+                            </span>
+                            <span className="text-muted-foreground/60">|</span>
+                            <span>
+                              <span className="text-muted-foreground font-normal text-xs mr-1">{p2.split(' ')[0]}:</span>
+                              {brl(totalP2)}
+                            </span>
+                            {totalConjunto > 0 && (
+                              <>
+                                <span className="text-muted-foreground/60">|</span>
+                                <span>
+                                  <span className="text-muted-foreground font-normal text-xs mr-1">Juntos:</span>
+                                  {brl(totalConjunto)}
+                                </span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -753,6 +770,29 @@ function PlanejamentoPage() {
                           {it.prioridade === "alta" && (
                             <Badge variant="outline" className="text-[9px] py-0 px-1.5 h-4 bg-red-500/10 text-red-600 border-red-200">
                               Urgente
+                            </Badge>
+                          )}
+                          {isCasal && (
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "text-[9px] py-0 px-1.5 h-4 font-mono font-medium border",
+                                it.divisaoPagamento
+                                  ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800"
+                                  : it.responsavelId === 1
+                                  ? "bg-primary/10 text-primary border-primary/20"
+                                  : it.responsavelId === 2
+                                  ? "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-200 dark:border-violet-800"
+                                  : "bg-muted/40 text-muted-foreground border-border"
+                              )}
+                            >
+                              {it.divisaoPagamento
+                                ? "50/50"
+                                : it.responsavelId === 1
+                                ? p1.split(" ")[0]
+                                : it.responsavelId === 2
+                                ? p2.split(" ")[0]
+                                : "Casal"}
                             </Badge>
                           )}
                         </div>

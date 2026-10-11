@@ -510,34 +510,34 @@ function InicioPage() {
       </motion.div>
 
       {semDados ? (
-        <motion.div variants={itemVariants} className="rounded-[var(--radius-lg)] border bg-card p-8 sm:p-12 text-center shadow-sm">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-[var(--radius-lg)] bg-primary/10 text-primary mb-6">
-            <Sparkles className="h-8 w-8" />
+        <motion.div variants={itemVariants} className="rounded-xl border border-border bg-card p-8 sm:p-12 text-center shadow-sm">
+          <div className="inline-flex items-center justify-center h-16 w-16 rounded-xl bg-primary/10 text-primary mb-6">
+            <ShoppingBag className="h-8 w-8" />
           </div>
           <h2 className="font-display text-2xl font-semibold tracking-tight mb-2">Comece o seu enxoval</h2>
-          <p className="text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed">
-            Adicione os itens que você planeja comprar para que possamos gerar análises financeiras inteligentes e o controle do seu orçamento.
+          <p className="text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed text-sm">
+            Adicione os itens do seu enxoval para começar a acompanhar o progresso dos cômodos e o orçamento da casa nova.
           </p>
-          <Button asChild size="lg" className="bg-primary">
+          <Button asChild size="lg" className="bg-primary shadow-sm">
             <Link to="/planejamento">Adicionar primeiro item</Link>
           </Button>
         </motion.div>
       ) : (
         <>
           {/* Faixa de Destaque (Gasto do Bolso) */}
-          <motion.div variants={itemVariants} className="rounded-[var(--radius-lg)] border border-primary/10 bg-primary/5 p-5 md:p-8 shadow-soft flex flex-col gap-6">
+          <motion.div variants={itemVariants} className="rounded-xl border border-border bg-card p-6 md:p-8 shadow-card flex flex-col gap-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <div className="text-sm font-medium text-muted-foreground mb-1">Gasto do Casal (Bolso)</div>
+                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground font-mono mb-1.5">Gasto Total Acumulado</div>
                 <div className="flex items-baseline gap-2">
-                  <span className="font-display text-5xl md:text-6xl font-bold tracking-tight text-foreground tabular-nums">
+                  <span className="font-display text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground font-mono tabular-nums">
                     {brl(r?.totalGeral).replace('R$', '').trim()}
                   </span>
-                  <span className="text-lg text-muted-foreground font-medium">BRL</span>
+                  <span className="text-base text-muted-foreground font-mono font-medium">BRL</span>
                 </div>
               </div>
               {meta > 0 && (
-                <div className="text-sm font-medium px-4 py-2 bg-background border rounded-full text-foreground shadow-sm">
+                <div className="text-xs font-medium px-3.5 py-1.5 bg-surface border border-border rounded-full text-foreground shadow-2xs font-mono">
                   <span className="text-primary font-bold">{pct.toFixed(0)}%</span> da meta de {brl(meta)}
                 </div>
               )}
@@ -545,10 +545,10 @@ function InicioPage() {
 
             {meta > 0 && (
               <div className="space-y-2">
-                <Progress value={pct} className="h-3 bg-primary/10 [&>div]:bg-primary" />
+                <Progress value={pct} className="h-2 bg-muted [&>div]:bg-primary" />
                 {meta - (r?.totalGeral ?? 0) > 0 && (
-                  <p className="text-xs text-muted-foreground font-medium text-right">
-                    Restam <span className="tabular-nums">{brl(meta - (r?.totalGeral ?? 0))}</span> livres
+                  <p className="text-xs text-muted-foreground font-medium text-right font-mono">
+                    Restam <span className="tabular-nums font-semibold text-foreground">{brl(meta - (r?.totalGeral ?? 0))}</span> livres
                   </p>
                 )}
               </div>
@@ -556,36 +556,45 @@ function InicioPage() {
             
             {/* Mini-Totais (Chips) */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <div className="flex items-center gap-2 bg-background border px-3 py-2 rounded-lg shadow-sm">
-                <div className="bg-mel/20 text-mel p-1.5 rounded-md"><ShoppingBag className="w-4 h-4"/></div>
+              <div className="flex items-center gap-2.5 bg-surface border border-border px-3 py-2 rounded-md shadow-2xs">
+                <div className="bg-amber-500/10 text-amber-600 dark:text-amber-400 p-1.5 rounded-md"><ShoppingBag className="w-4 h-4"/></div>
                 <div>
-                  <div className="text-[10px] font-medium text-muted-foreground">Dinheiro</div>
-                  <div className="text-sm font-bold tabular-nums leading-none">{brl(r?.totalNormal)}</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">Dinheiro</div>
+                  <div className="text-sm font-bold font-mono tabular-nums leading-none text-foreground">{brl(r?.totalNormal)}</div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 bg-background border px-3 py-2 rounded-lg shadow-sm">
-                <div className="bg-terracota/20 text-terracota p-1.5 rounded-md"><CreditCard className="w-4 h-4"/></div>
+              <div className="flex items-center gap-2.5 bg-surface border border-border px-3 py-2 rounded-md shadow-2xs">
+                <div className="bg-destructive/10 text-destructive p-1.5 rounded-md"><CreditCard className="w-4 h-4"/></div>
                 <div>
-                  <div className="text-[10px] font-medium text-muted-foreground">Parcelado</div>
-                  <div className="text-sm font-bold tabular-nums leading-none">{brl(totalParcelado)}</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">Parcelado</div>
+                  <div className="text-sm font-bold font-mono tabular-nums leading-none text-foreground">{brl(totalParcelado)}</div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 bg-background border px-3 py-2 rounded-lg shadow-sm">
-                <div className="bg-success/20 text-success p-1.5 rounded-md"><Wallet className="w-4 h-4"/></div>
+              <div className="flex items-center gap-2.5 bg-surface border border-border px-3 py-2 rounded-md shadow-2xs">
+                <div className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 p-1.5 rounded-md"><Wallet className="w-4 h-4"/></div>
                 <div>
-                  <div className="text-[10px] font-medium text-muted-foreground">VR/VA</div>
-                  <div className="text-sm font-bold tabular-nums leading-none">{brl(r?.totalVr)}</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">VR / VA</div>
+                  <div className="text-sm font-bold font-mono tabular-nums leading-none text-foreground">{brl(r?.totalVr)}</div>
                 </div>
               </div>
               {isCasal && (
-                <div className="flex items-center gap-2 bg-background border px-3 py-2 rounded-lg shadow-sm">
-                  <div className="bg-primary/20 text-primary p-1.5 rounded-md"><Target className="w-4 h-4"/></div>
+                <div className="flex items-center gap-2.5 bg-surface border border-border px-3 py-2 rounded-md shadow-2xs">
+                  <div className="bg-primary/10 text-primary p-1.5 rounded-md"><Target className="w-4 h-4"/></div>
                   <div>
-                    <div className="text-[10px] font-medium text-muted-foreground">Divisão</div>
-                    <div className="text-xs font-medium leading-tight mt-0.5">
-                      <span className="text-muted-foreground">{p1.split(' ')[0]}:</span> <span className="tabular-nums">{brl(r?.totalPessoa1)}</span>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">Divisão</div>
+                    <div className="text-xs font-mono leading-tight mt-0.5">
+                      <span className="text-muted-foreground">{p1.split(' ')[0]}:</span> <span className="tabular-nums font-semibold text-foreground">{brl(r?.totalPessoa1)}</span>
                       <span className="mx-1 text-muted-foreground">|</span>
-                      <span className="text-muted-foreground">{p2.split(' ')[0]}:</span> <span className="tabular-nums">{brl(r?.totalPessoa2)}</span>
+                      <span className="text-muted-foreground">{p2.split(' ')[0]}:</span> <span className="tabular-nums font-semibold text-foreground">{brl(r?.totalPessoa2)}</span>
+                      {(() => {
+                        const conj = Math.max(0, (r?.totalGeral ?? 0) - ((r?.totalPessoa1 ?? 0) + (r?.totalPessoa2 ?? 0)));
+                        return conj > 0 ? (
+                          <>
+                            <span className="mx-1 text-muted-foreground">|</span>
+                            <span className="text-muted-foreground">Juntos:</span> <span className="tabular-nums font-semibold text-foreground">{brl(conj)}</span>
+                          </>
+                        ) : null;
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -596,8 +605,8 @@ function InicioPage() {
           {/* Distribuição por Cômodo (Grid de Cards) */}
           <motion.div variants={itemVariants} className="space-y-4">
             <div>
-              <h3 className="font-display text-xl font-semibold tracking-tight">Por Cômodo</h3>
-              <p className="text-sm text-muted-foreground">Onde seu orçamento está sendo alocado</p>
+              <h3 className="font-display text-xl font-bold tracking-tight text-foreground">Por Cômodo</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">Onde seu orçamento está sendo alocado</p>
             </div>
             
             {r?.porCategoria && r.porCategoria.length > 0 ? (
@@ -608,21 +617,21 @@ function InicioPage() {
                   const IconComp = iconFor(c.icon);
                   
                   return (
-                    <div key={c.categoriaId} className="bg-card border rounded-[var(--radius-lg)] p-4 shadow-sm flex flex-col gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${c.cor ?? 'var(--primary)'}20`, color: c.cor ?? 'var(--primary)' }}>
-                          <IconComp className="h-5 w-5" />
+                    <div key={c.categoriaId} className="bg-card border border-border rounded-xl p-4 shadow-card flex flex-col justify-between hover:border-primary/40 transition-colors">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="h-9 w-9 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: `${c.cor ?? 'var(--primary)'}18`, color: c.cor ?? 'var(--primary)' }}>
+                          <IconComp className="h-4 w-4" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-sm text-foreground truncate">{c.categoriaNome}</p>
-                          <p className="text-xs text-muted-foreground">{c.totalItens} itens</p>
+                          <p className="font-semibold text-sm text-foreground truncate">{c.categoriaNome}</p>
+                          <p className="text-xs text-muted-foreground font-mono">{c.totalItens} itens</p>
                         </div>
                       </div>
                       
                       <div>
                         <div className="flex items-end justify-between mb-2">
-                          <span className="font-semibold text-lg text-foreground tabular-nums leading-none">{brl(c.totalGasto)}</span>
-                          {metaC > 0 && <span className="text-xs text-muted-foreground">de <span className="tabular-nums">{brl(metaC)}</span></span>}
+                          <span className="font-bold text-base text-foreground font-mono tabular-nums leading-none">{brl(c.totalGasto)}</span>
+                          {metaC > 0 && <span className="text-xs text-muted-foreground font-mono">de <span className="tabular-nums">{brl(metaC)}</span></span>}
                         </div>
                         <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                           <div className="h-full rounded-full transition-all duration-500" style={{ width: `${metaC > 0 ? pctC : 100}%`, backgroundColor: c.cor ?? 'var(--primary)' }} />
@@ -633,7 +642,7 @@ function InicioPage() {
                 })}
               </div>
             ) : (
-              <div className="rounded-[var(--radius-lg)] border bg-card p-8 text-center text-muted-foreground shadow-sm">
+              <div className="rounded-xl border border-border bg-card p-8 text-center text-muted-foreground shadow-card">
                 Nenhum cômodo com gastos associados.
               </div>
             )}
