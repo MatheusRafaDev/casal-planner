@@ -277,6 +277,7 @@ builder.Services.AddHttpClient("GoogleShoppingClient", client =>
 
 // ===== 7.3. DEMAIS SERVICES =====
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<ICacheService, RedisCacheService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IItemRepository, ItemRepository>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
@@ -309,7 +310,7 @@ if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddSwaggerGen(c =>
     {
-        c.SwaggerDoc("v1", new OpenApiInfo { Title = "Casal Planner API", Version = "v1" });
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "CasalPlanner API", Version = "v1" });
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
             Description = "JWT Authorization header. Ex: Bearer {token}",
@@ -413,7 +414,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapGet("/", () => Results.Ok("Casal Planner API está rodando! 🚀"));
+app.MapGet("/", () => Results.Ok("CasalPlanner API está rodando! 🚀"));
 app.MapGet("/api/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
 
 // ===== 10. SWAGGER =====
@@ -422,7 +423,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Casal Planner API v1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CasalPlanner API v1");
         c.RoutePrefix = "swagger";
     });
 }
@@ -531,7 +532,7 @@ catch (Exception ex)
 
 // ===== 12. INICIAR SERVIDOR =====
 Console.WriteLine("\n=========================================");
-Console.WriteLine("🚀 Casal Planner API Iniciada");
+Console.WriteLine("🚀 CasalPlanner API Iniciada");
 Console.WriteLine($"🔧 Ambiente: {app.Environment.EnvironmentName}");
 Console.WriteLine("=========================================");
 Console.WriteLine("📋 CORS - Origens permitidas:");

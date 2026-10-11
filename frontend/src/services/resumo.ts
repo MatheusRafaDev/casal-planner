@@ -1,5 +1,6 @@
 import { api } from "@/lib/api";
 import type { Categoria, Resumo, ResumoCategoria } from "./types";
+import { comodoColor } from "@/components/planejamento/icon-map";
 
 type RawResumo = Partial<Resumo> & {
   atual?: {
@@ -52,7 +53,7 @@ export function adaptarResumo(raw: RawResumo, categorias: Categoria[] = []): Res
         totalItens: Number(qtdDict[categoriaId] ?? 0),
         itensComprados: Number(compDict[categoriaId] ?? 0),
         metaOrcamento: cat?.metaOrcamento ?? null,
-        cor: cat?.bg ?? null,
+        cor: cat ? comodoColor(cat.bg, cat.nome) : null,
         icon: cat?.icon ?? null,
       };
     },
@@ -66,6 +67,10 @@ export function adaptarResumo(raw: RawResumo, categorias: Categoria[] = []): Res
     itensComprados: atual.totalComprados ?? 0,
     totalPessoa1: atual.totalPessoa1 ?? 0,
     totalPessoa2: atual.totalPessoa2 ?? 0,
+    totalConjunto: Math.max(
+      0,
+      (atual.totalGeral ?? 0) - ((atual.totalPessoa1 ?? 0) + (atual.totalPessoa2 ?? 0)),
+    ),
     metaGlobal: enxoval.metaGlobalEnxoval ?? null,
     percentualMeta: enxoval.percentualMetaGlobal ?? null,
     mesAtual: comparativo.mesAtual ?? 0,

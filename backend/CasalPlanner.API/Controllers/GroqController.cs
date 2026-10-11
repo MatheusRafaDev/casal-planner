@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CasalPlanner.API.Controllers;
 
 /// <summary>
-/// Endpoints de Inteligência Artificial para o Casal Planner.
+/// Endpoints de Inteligência Artificial para o CasalPlanner.
 /// Utiliza provedores de alto limite gratuito permanente (Groq, Gemini, OpenRouter)
 /// catalogados em https://github.com/mnfst/awesome-free-llm-apis.
 /// Suporta rotas legadas /api/groq/* e novas /api/ia/*.

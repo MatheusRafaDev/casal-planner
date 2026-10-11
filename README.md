@@ -1,4 +1,4 @@
-# 🏠 Casal Planner
+# 🏠 CasalPlanner
 
 <div align="center">
 
@@ -13,7 +13,7 @@ Aplicação full-stack para **planejamento de enxoval doméstico**, organizaçã
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge\&logo=typescript\&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge\&logo=tailwindcss\&logoColor=white)](https://tailwindcss.com/)
 
-**🌐 [Acessar o Casal Planner](https://casalplanner.vercel.app/)**
+**🌐 [Acessar o CasalPlanner](https://casalplanner.vercel.app/)**
 
 </div>
 
@@ -21,7 +21,7 @@ Aplicação full-stack para **planejamento de enxoval doméstico**, organizaçã
 
 ## 📌 Sobre o projeto
 
-O **Casal Planner** foi desenvolvido para facilitar a organização de pessoas que estão montando uma casa, permitindo transformar uma grande lista de compras em um planejamento estruturado por ambientes.
+O **CasalPlanner** foi desenvolvido para facilitar a organização de pessoas que estão montando uma casa, permitindo transformar uma grande lista de compras em um planejamento estruturado por ambientes.
 
 A aplicação centraliza:
 
@@ -144,7 +144,7 @@ A lista de compras possui filtros para facilitar o gerenciamento do enxoval:
 
 ## 🤖 Inteligência Artificial
 
-O Casal Planner utiliza **Groq + Llama 3.1** para automatizar tarefas relacionadas ao planejamento das compras.
+O CasalPlanner utiliza **Groq + Llama 3.1** para automatizar tarefas relacionadas ao planejamento das compras.
 
 | Recurso                     | Descrição                                           |
 | --------------------------- | --------------------------------------------------- |
@@ -251,7 +251,7 @@ O sistema possui autenticação baseada em JWT e suporte a login social.
 
 ## 📱 Experiência e PWA
 
-O Casal Planner foi desenvolvido com abordagem **mobile-first**.
+O CasalPlanner foi desenvolvido com abordagem **mobile-first**.
 
 ### PWA
 
@@ -690,7 +690,7 @@ O projeto possui algumas medidas voltadas à proteção da aplicação:
 
 # 💡 Destaques técnicos
 
-O Casal Planner combina diferentes tecnologias e conceitos modernos de desenvolvimento:
+O CasalPlanner combina diferentes tecnologias e conceitos modernos de desenvolvimento:
 
 * **Clean Architecture**
 * **REST API**
@@ -727,7 +727,7 @@ Desenvolvido por **Matheus Rafael**.
 
 ### ⭐ Gostou do projeto?
 
-Se o Casal Planner foi útil ou interessante, considere deixar uma estrela no repositório.
+Se o CasalPlanner foi útil ou interessante, considere deixar uma estrela no repositório.
 
 **Feito com ❤️ e código.**
 

@@ -7,7 +7,7 @@
  *  - Offline fallback → página HTML simples para navegação sem rede
  */
 
-const CACHE_NAME = "casal-planner-v1";
+const CACHE_NAME = "casal-planner-v2";
 const OFFLINE_URL = "/__offline";
 
 // Assets que queremos pré-cachear na instalação
@@ -15,9 +15,14 @@ const PRECACHE_URLS = [
   "/",
   "/manifest.json",
   "/favicon.ico",
+  "/favicon.png",
+  "/logo-icon.svg",
+  "/logo.svg",
   "/logo.png",
+  "/apple-touch-icon.png",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
+  "/icons/icon-512-maskable.png",
 ];
 
 // ─── Install ──────────────────────────────────────────────────────────────────

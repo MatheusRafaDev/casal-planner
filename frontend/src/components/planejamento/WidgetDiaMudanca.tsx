@@ -51,7 +51,7 @@ export function WidgetDiaMudanca() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [dataMudancaInput, setDataMudancaInput] = useState(
-    usuario?.dataMudanca ? usuario.dataMudanca.split("T")[0] : ""
+    usuario?.dataMudanca ? usuario.dataMudanca.split("T")[0] : "",
   );
   const [cidadeBusca, setCidadeBusca] = useState(usuario?.cidadeMudanca || "");
   const [cidadeSelecionada, setCidadeSelecionada] = useState<{
@@ -65,7 +65,7 @@ export function WidgetDiaMudanca() {
           latitude: usuario.latitudeMudanca,
           longitude: usuario.longitudeMudanca,
         }
-      : null
+      : null,
   );
 
   const [sugestoes, setSugestoes] = useState<CidadeSugerida[]>([]);
@@ -154,11 +154,7 @@ export function WidgetDiaMudanca() {
     const dataAlvoStr = usuario.dataMudanca.split("T")[0];
     const partes = dataAlvoStr.split("-");
     if (partes.length === 3) {
-      const dataAlvo = new Date(
-        parseInt(partes[0]),
-        parseInt(partes[1]) - 1,
-        parseInt(partes[2])
-      );
+      const dataAlvo = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
       dataAlvo.setHours(0, 0, 0, 0);
 
       const diffMs = dataAlvo.getTime() - hoje.getTime();
@@ -172,16 +168,13 @@ export function WidgetDiaMudanca() {
 
       // Tenta achar previsão exata para o dia da mudança
       if (previsao && previsao.dias) {
-        previsaoDiaMudanca =
-          previsao.dias.find((d) => d.data === dataAlvoStr) || null;
+        previsaoDiaMudanca = previsao.dias.find((d) => d.data === dataAlvoStr) || null;
       }
     }
   }
 
   const risco = analisarRiscoMudanca(previsaoDiaMudanca);
-  const infoClima = previsaoDiaMudanca
-    ? getDescricaoClima(previsaoDiaMudanca.weatherCode)
-    : null;
+  const infoClima = previsaoDiaMudanca ? getDescricaoClima(previsaoDiaMudanca.weatherCode) : null;
 
   const renderIconeClima = (icone?: string) => {
     switch (icone) {
@@ -202,30 +195,30 @@ export function WidgetDiaMudanca() {
   if (!usuario?.dataMudanca) {
     return (
       <>
-        <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-primary/20 bg-gradient-to-r from-primary/5 via-card to-background p-5 sm:p-6 shadow-sm">
+        <div className="card-sticker p-5 sm:p-6 bg-card relative overflow-hidden transition-all">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3.5">
-              <div className="h-11 w-11 rounded-[var(--radius-md)] bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <Truck className="h-5 w-5" />
+            <div className="flex items-start gap-4">
+              <div className="h-12 w-12 rounded-xl border-2 border-border bg-primary/10 text-primary flex items-center justify-center shrink-0 shadow-sticker-sm">
+                <Truck className="h-6 w-6" />
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-display font-semibold text-base text-foreground">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h3 className="font-display font-bold text-lg text-foreground">
                     Data da Mudança & Previsão do Tempo
                   </h3>
-                  <Badge variant="outline" className="border-primary/30 text-primary text-[10px] uppercase font-mono">
+                  <span className="px-2.5 py-0.5 rounded-full border-2 border-border text-primary text-[10px] uppercase font-mono font-bold bg-primary/10 shadow-sticker-sm">
                     Open-Meteo
-                  </Badge>
+                  </span>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground max-w-xl">
-                  Defina o dia do novo lar para ativar a contagem regressiva, alertas de chuva em tempo real e dicas logísticas para o transporte seguro do seu enxoval.
+                <p className="text-xs sm:text-sm text-muted-foreground max-w-xl leading-relaxed">
+                  Defina o dia do novo lar para ativar a contagem regressiva, alertas de chuva em
+                  tempo real e dicas logísticas para o transporte seguro do seu enxoval.
                 </p>
               </div>
             </div>
             <Button
               onClick={() => setModalOpen(true)}
-              className="bg-primary hover:bg-primary/90 text-white shrink-0 shadow-sm"
-              size="sm"
+              className="btn-sticker bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 h-10 px-4 font-bold"
             >
               <Calendar className="h-4 w-4 mr-2" />
               Definir Data da Mudança
@@ -240,157 +233,174 @@ export function WidgetDiaMudanca() {
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-[var(--radius-lg)] border bg-card p-5 sm:p-6 shadow-sm">
+      <div className="card-sticker p-5 sm:p-6 bg-card relative overflow-hidden transition-all">
         {/* Glow sutil de fundo */}
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          {/* Coluna 1: Contagem Regressiva e Local */}
-          <div className="flex items-start sm:items-center gap-4 sm:gap-5">
-            <div className="h-14 w-14 rounded-[var(--radius-lg)] bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0 shadow-inner">
-              <Truck className="h-7 w-7" />
+        {/* Barra Superior do Widget: Tags de Identificação & Ação Clara */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3.5 mb-4 border-b-2 border-border/40">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border-2 border-border text-primary text-xs font-bold uppercase tracking-wider font-mono shadow-sticker-sm">
+              <Truck className="h-3.5 w-3.5" />
+              <span>Dia da Mudança</span>
             </div>
-
-            <div>
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <span className="text-[11px] font-mono uppercase tracking-wider font-semibold text-primary">
-                  Data da Mudança
-                </span>
-                {usuario.cidadeMudanca && (
-                  <span className="inline-flex items-center text-xs text-muted-foreground gap-1">
-                    <MapPin className="h-3 w-3 text-muted-foreground/70" />
-                    {usuario.cidadeMudanca}
-                  </span>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setModalOpen(true)}
-                  className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-                  title="Alterar data ou local"
-                >
-                  <Edit2 className="h-3 w-3" />
-                </Button>
+            {usuario.cidadeMudanca && (
+              <div
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/60 border-2 border-border text-muted-foreground text-xs font-semibold shadow-sticker-sm max-w-[280px] sm:max-w-[360px] truncate"
+                title={usuario.cidadeMudanca}
+              >
+                <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                <span className="truncate">{usuario.cidadeMudanca}</span>
               </div>
-
-              {/* Status da Contagem */}
-              <div className="mt-1 flex items-baseline gap-2 flex-wrap">
-                {diasRestantes !== null && diasRestantes > 0 ? (
-                  <>
-                    <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                      Faltam{" "}
-                      <span className="text-primary font-mono">{diasRestantes}</span>{" "}
-                      {diasRestantes === 1 ? "dia" : "dias"}
-                    </h2>
-                    <span className="text-xs sm:text-sm text-muted-foreground">
-                      para o grande dia! ({dataMudancaFormatada})
-                    </span>
-                  </>
-                ) : diasRestantes === 0 ? (
-                  <>
-                    <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-emerald-500 flex items-center gap-2">
-                      É Hoje! Feliz Casa Nova! 🎉
-                    </h2>
-                    <span className="text-xs sm:text-sm text-muted-foreground">
-                      Dia de começar essa nova história!
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                      Mudança realizada! 🏠🥂
-                    </h2>
-                    <span className="text-xs sm:text-sm text-muted-foreground">
-                      ({dataMudancaFormatada})
-                    </span>
-                  </>
-                )}
-              </div>
-            </div>
+            )}
           </div>
 
-          {/* Coluna 2: Previsão do Tempo Open-Meteo & Alerta Logístico */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 bg-muted/30 border border-border/60 rounded-[var(--radius-md)] p-3 sm:px-4 sm:py-3">
-            {loadingClima ? (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground py-2 px-3">
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                Consultando Open-Meteo...
-              </div>
-            ) : previsaoDiaMudanca ? (
-              <>
-                <div className="flex items-center gap-3 pr-2 sm:border-r sm:border-border/60">
-                  <div className="p-2 bg-background rounded-[var(--radius-sm)] border border-border/40 shrink-0">
-                    {renderIconeClima(infoClima?.icone)}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5 font-mono font-bold text-sm">
-                      <span className="text-foreground">{previsaoDiaMudanca.tempMax}°C</span>
-                      <span className="text-xs text-muted-foreground font-normal">/ {previsaoDiaMudanca.tempMin}°C</span>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground capitalize">
-                      {infoClima?.descricao}
-                    </p>
-                  </div>
-                </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setModalOpen(true)}
+            className="btn-sticker text-xs h-8 px-3 gap-1.5 bg-background hover:bg-muted font-bold text-foreground shrink-0"
+          >
+            <Edit2 className="h-3.5 w-3.5 text-primary" />
+            <span>Alterar data</span>
+          </Button>
+        </div>
 
-                {/* Probabilidade de Chuva & Risco Logístico */}
-                <div className="flex flex-col gap-1 justify-center min-w-[150px]">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
-                      <CloudRain className="h-3 w-3 text-blue-500" />
-                      {previsaoDiaMudanca.probabilidadeChuva}% chuva
-                    </span>
+        {/* Grid Principal: Contagem em Destaque + Card de Meteorologia */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-center">
+          {/* Lado Esquerdo: Contagem Regressiva Ampla e Fluida */}
+          <div className="lg:col-span-7 flex flex-col justify-center">
+            {diasRestantes !== null && diasRestantes > 0 ? (
+              <div className="space-y-1">
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground whitespace-nowrap">
+                    Faltam <span className="text-primary font-mono">{diasRestantes}</span>{" "}
+                    {diasRestantes === 1 ? "dia" : "dias"}
+                  </h2>
+                </div>
+                <p className="text-sm sm:text-base text-muted-foreground font-medium flex items-center gap-2 flex-wrap">
+                  <span>para o grande dia!</span>
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
+                  <span className="font-semibold text-foreground">({dataMudancaFormatada})</span>
+                </p>
+              </div>
+            ) : diasRestantes === 0 ? (
+              <div className="space-y-1">
+                <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-emerald-600 flex items-center gap-2">
+                  É Hoje! Feliz Casa Nova! 🎉
+                </h2>
+                <p className="text-sm sm:text-base text-muted-foreground font-medium">
+                  Chegou o grande momento de começar essa nova etapa a dois! 🏠🥂
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground flex items-center gap-2">
+                  Mudança realizada! 🏠🥂
+                </h2>
+                <p className="text-sm text-muted-foreground font-medium">
+                  Celebrando o novo lar desde{" "}
+                  <span className="font-semibold text-foreground">{dataMudancaFormatada}</span>
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Lado Direito: Previsão do Tempo / Status Aberto Open-Meteo */}
+          <div className="lg:col-span-5">
+            <div className="rounded-xl border-2 border-border bg-muted/40 p-3.5 sm:p-4 shadow-sticker-sm">
+              {loadingClima ? (
+                <div className="flex items-center justify-center gap-2.5 text-xs text-muted-foreground py-3">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary shrink-0" />
+                  <span>Consultando previsão Open-Meteo...</span>
+                </div>
+              ) : previsaoDiaMudanca ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-card rounded-lg border-2 border-border shadow-sticker-sm shrink-0">
+                        {renderIconeClima(infoClima?.icone)}
+                      </div>
+                      <div>
+                        <div className="flex items-baseline gap-1.5 font-mono font-black text-base text-foreground">
+                          <span>{previsaoDiaMudanca.tempMax}°C</span>
+                          <span className="text-xs text-muted-foreground font-semibold">
+                            / {previsaoDiaMudanca.tempMin}°C
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground capitalize font-medium">
+                          {infoClima?.descricao}
+                        </p>
+                      </div>
+                    </div>
+
                     <Badge
                       variant="outline"
-                      className={`text-[10px] font-semibold uppercase px-1.5 py-0 ${
+                      className={`text-[10px] font-bold uppercase px-2 py-0.5 border-2 shadow-none ${
                         risco.nivel === "alto"
-                          ? "border-red-500/40 text-red-500 bg-red-500/10"
+                          ? "border-red-500/50 text-red-600 bg-red-500/10"
                           : risco.nivel === "medio"
-                          ? "border-amber-500/40 text-amber-500 bg-amber-500/10"
-                          : "border-emerald-500/40 text-emerald-500 bg-emerald-500/10"
+                            ? "border-amber-500/50 text-amber-600 bg-amber-500/10"
+                            : "border-emerald-500/50 text-emerald-600 bg-emerald-500/10"
                       }`}
                     >
                       {risco.badge}
                     </Badge>
                   </div>
-                  <p className="text-[10px] text-muted-foreground line-clamp-1">
-                    {risco.titulo}
-                  </p>
+
+                  <div className="flex items-center justify-between text-xs pt-2 border-t border-border/40 font-medium">
+                    <span className="flex items-center gap-1.5 text-foreground/80">
+                      <CloudRain className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                      {previsaoDiaMudanca.probabilidadeChuva}% chance de chuva
+                    </span>
+                    <span className="text-[11px] text-muted-foreground font-mono">
+                      {risco.titulo}
+                    </span>
+                  </div>
                 </div>
-              </>
-            ) : (
-              <div className="flex items-center gap-2.5 text-xs text-muted-foreground py-1 px-2">
-                <CloudSun className="h-4 w-4 text-primary shrink-0" />
-                <span>
-                  {usuario.cidadeMudanca
-                    ? "Previsão do tempo ativa até 16 dias da data."
-                    : "Defina sua cidade para previsão do tempo exata."}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setModalOpen(true)}
-                  className="h-6 text-[11px] ml-auto px-2"
-                >
-                  Configurar
-                </Button>
-              </div>
-            )}
+              ) : (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="p-2.5 rounded-lg bg-card border-2 border-border shadow-sticker-sm text-primary shrink-0">
+                      <CloudSun className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-foreground">
+                        {usuario.cidadeMudanca ? "Previsão Antecipada" : "Previsão do Tempo"}
+                      </p>
+                      <p className="text-xs text-muted-foreground leading-snug">
+                        {usuario.cidadeMudanca
+                          ? "A previsão detalhada fica ativa a até 16 dias da data."
+                          : "Defina sua cidade para previsão do tempo e alertas de chuva."}
+                      </p>
+                    </div>
+                  </div>
+                  {!usuario.cidadeMudanca && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setModalOpen(true)}
+                      className="btn-sticker text-xs h-7 px-2.5 shrink-0 bg-background hover:bg-muted font-bold"
+                    >
+                      Configurar
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Dicas logísticas contextuais */}
         {previsaoDiaMudanca && risco.dicas.length > 0 && (
-          <div className="mt-4 pt-3.5 border-t border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-muted-foreground">
-            <div className="flex items-center gap-2 text-foreground font-medium text-[11px]">
-              <Info className="h-3.5 w-3.5 text-primary shrink-0" />
-              <span>Dica de Logística do Dia:</span>
-              <span className="font-normal text-muted-foreground italic">
-                "{risco.dicas[0]}"
-              </span>
+          <div className="mt-4 pt-3 border-t-2 border-border/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2 text-foreground font-medium">
+              <Info className="h-4 w-4 text-primary shrink-0" />
+              <span className="font-bold">Dica Logística:</span>
+              <span className="text-muted-foreground italic">"{risco.dicas[0]}"</span>
             </div>
-            <span className="text-[10px] font-mono text-muted-foreground/80 self-end sm:self-auto">
-              Previsão sem custo via Open-Meteo API
+            <span className="text-[10px] font-mono text-muted-foreground/80 shrink-0">
+              Open-Meteo Weather API
             </span>
           </div>
         )}
@@ -403,21 +413,22 @@ export function WidgetDiaMudanca() {
   function renderModal() {
     return (
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-md bg-background border">
+        <DialogContent className="sm:max-w-md bg-card border-2 border-border shadow-sticker-modal rounded-2xl p-6">
           <DialogHeader>
-            <DialogTitle className="font-display text-xl flex items-center gap-2">
+            <DialogTitle className="font-display text-xl font-bold flex items-center gap-2">
               <Truck className="h-5 w-5 text-primary" />
               Configurar Data da Mudança
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Acompanhe a contagem regressiva e consulte as condições climáticas e risco de chuva para o transporte do enxoval.
+              Acompanhe a contagem regressiva e consulte as condições climáticas e risco de chuva
+              para o transporte do enxoval.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             {/* Campo de Data */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Data Prevista
               </Label>
               <div className="relative">
@@ -425,14 +436,14 @@ export function WidgetDiaMudanca() {
                   type="date"
                   value={dataMudancaInput}
                   onChange={(e) => setDataMudancaInput(e.target.value)}
-                  className="h-10 font-mono text-sm bg-card"
+                  className="h-10 font-mono text-sm bg-background border-2 border-border rounded-xl shadow-inner"
                 />
               </div>
             </div>
 
             {/* Campo de Cidade com Autocomplete Open-Meteo */}
             <div className="space-y-1.5 relative">
-              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Cidade da Casa Nova (para previsão do tempo)
               </Label>
               <div className="relative">
@@ -445,7 +456,7 @@ export function WidgetDiaMudanca() {
                     }
                   }}
                   placeholder="Ex: São Paulo, Campinas, Curitiba..."
-                  className="h-10 pl-9 bg-card"
+                  className="h-10 pl-9 bg-background border-2 border-border rounded-xl shadow-inner"
                 />
                 <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-3" />
                 {buscandoCidades && (
@@ -455,7 +466,7 @@ export function WidgetDiaMudanca() {
 
               {/* Sugestões de Cidade */}
               {sugestoes.length > 0 && !cidadeSelecionada && (
-                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border rounded-[var(--radius-md)] shadow-lg max-h-48 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border-2 border-border rounded-xl shadow-sticker-lg max-h-48 overflow-y-auto divide-y divide-border/50">
                   {sugestoes.map((cid) => (
                     <button
                       key={cid.id}
@@ -472,11 +483,11 @@ export function WidgetDiaMudanca() {
                         });
                         setSugestoes([]);
                       }}
-                      className="w-full text-left px-3 py-2 text-xs hover:bg-muted/50 transition-colors flex items-center justify-between border-b last:border-b-0"
+                      className="w-full text-left px-3.5 py-2.5 text-xs hover:bg-muted/70 transition-colors flex items-center justify-between"
                     >
                       <div className="flex items-center gap-2">
                         <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-                        <span className="font-medium text-foreground">{cid.name}</span>
+                        <span className="font-bold text-foreground">{cid.name}</span>
                         <span className="text-muted-foreground">
                           {cid.admin1} {cid.country ? `(${cid.country})` : ""}
                         </span>
@@ -488,13 +499,6 @@ export function WidgetDiaMudanca() {
                   ))}
                 </div>
               )}
-
-              {cidadeSelecionada && (
-                <div className="flex items-center gap-1.5 text-[11px] text-emerald-500 font-medium pt-1">
-                  <Check className="h-3 w-3" />
-                  Localização confirmada via Open-Meteo Geocoding
-                </div>
-              )}
             </div>
           </div>
 
@@ -504,7 +508,7 @@ export function WidgetDiaMudanca() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-destructive hover:bg-destructive/10 text-xs sm:mr-auto"
+                className="text-destructive hover:bg-destructive/10 text-xs sm:mr-auto font-bold"
                 onClick={() => {
                   setDataMudancaInput("");
                   setCidadeBusca("");
@@ -521,6 +525,7 @@ export function WidgetDiaMudanca() {
               type="button"
               variant="outline"
               size="sm"
+              className="btn-sticker font-bold"
               onClick={() => setModalOpen(false)}
             >
               Cancelar
@@ -529,13 +534,11 @@ export function WidgetDiaMudanca() {
             <Button
               type="button"
               size="sm"
-              className="bg-primary hover:bg-primary/90 text-white"
+              className="btn-sticker bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
               onClick={() => salvarMutation.mutate()}
               disabled={salvarMutation.isPending}
             >
-              {salvarMutation.isPending && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
+              {salvarMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Salvar Data & Local
             </Button>
           </DialogFooter>

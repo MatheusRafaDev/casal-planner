@@ -1,1 +1,382 @@
 @import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --background: #f6f1e9;
+    --foreground: #24302a;
+    --card: #ffffff;
+    --card-foreground: #24302a;
+    --popover: #ffffff;
+    --popover-foreground: #24302a;
+    --sidebar: #fbf9f5;
+    --sidebar-foreground: #24302a;
+    --border: #24302a;
+    --input: #ffffff;
+    --ring: #2f7d5b;
+
+    --muted: #eee8dd;
+    --muted-foreground: #66685c;
+    --muted-text: #4a4f45;
+
+    --primary: #2f7d5b;
+    --primary-foreground: #ffffff;
+    --primary-hover: #27694c;
+    --primary-tint: #e8f3ec;
+    --primary-tint-foreground: #1f5a41;
+
+    --gold: #e8b63c;
+    --gold-foreground: #24302a;
+    --gold-hover: #d9a42b;
+    --gold-tint: #fbefd2;
+    --gold-tint-foreground: #6b4a06;
+
+    --success-tint: #e3f3ea;
+    --success-tint-foreground: #16623a;
+
+    --destructive: #c2410c;
+    --destructive-foreground: #ffffff;
+    --destructive-tint: #fde3d8;
+    --destructive-tint-foreground: #8a2e08;
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
+
+    --shadow-sticker: 3px 3px 0 var(--border);
+    --shadow-sticker-sm: 2px 2px 0 var(--border);
+    --shadow-sticker-lg: 5px 5px 0 var(--border);
+    --shadow-sticker-modal: 6px 6px 0 var(--border);
+  }
+
+  /* ========================================================
+     SISTEMA DE CORES DO CASAL
+     - Pessoa 1 = Verde 🌿
+     - Pessoa 2 = Amarelo / Dourado ☀️
+     - Visitante / Não logado = Harmonização Verde & Amarelo
+     ======================================================== */
+
+  :root {
+    --p1-color: #2f7d5b;
+    --p1-foreground: #ffffff;
+    --p1-hover: #27694c;
+    --p1-tint: #e8f3ec;
+    --p1-tint-foreground: #1f5a41;
+
+    --p2-color: #e8b63c;
+    --p2-foreground: #24302a;
+    --p2-hover: #d9a42b;
+    --p2-tint: #fbefd2;
+    --p2-tint-foreground: #6b4a06;
+  }
+
+  .dark {
+    --p1-color: #4fb387;
+    --p1-foreground: #0e1712;
+    --p1-hover: #5ec496;
+    --p1-tint: #1c3328;
+    --p1-tint-foreground: #6ee7b7;
+
+    --p2-color: #f2c353;
+    --p2-foreground: #141a17;
+    --p2-hover: #ffd369;
+    --p2-tint: #382e14;
+    --p2-tint-foreground: #fde68a;
+  }
+
+  /* Quando Pessoa 2 está ativa: o sistema primário vira Amarelo */
+  :root[data-persona="p2"],
+  [data-persona="p2"] {
+    --primary: #e8b63c;
+    --primary-foreground: #24302a;
+    --primary-hover: #d9a42b;
+    --primary-tint: #fbefd2;
+    --primary-tint-foreground: #6b4a06;
+    --ring: #e8b63c;
+  }
+
+  .dark[data-persona="p2"],
+  .dark [data-persona="p2"] {
+    --primary: #f2c353;
+    --primary-foreground: #141a17;
+    --primary-hover: #ffd369;
+    --primary-tint: #382e14;
+    --primary-tint-foreground: #fde68a;
+    --ring: #f2c353;
+  }
+
+  /* Quando Pessoa 1 está ativa: o sistema primário é Verde */
+  :root[data-persona="p1"],
+  [data-persona="p1"] {
+    --primary: #2f7d5b;
+    --primary-foreground: #ffffff;
+    --primary-hover: #27694c;
+    --primary-tint: #e8f3ec;
+    --primary-tint-foreground: #1f5a41;
+    --ring: #2f7d5b;
+  }
+
+  .dark[data-persona="p1"],
+  .dark [data-persona="p1"] {
+    --primary: #4fb387;
+    --primary-foreground: #0e1712;
+    --primary-hover: #5ec496;
+    --primary-tint: #1c3328;
+    --primary-tint-foreground: #6ee7b7;
+    --ring: #4fb387;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@theme {
+  --font-display: "Fredoka", sans-serif;
+  --font-sans: "Nunito", system-ui, -apple-system, sans-serif;
+  --font-handwriting: "Caveat", cursive, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted-text: var(--muted-text);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-tint: var(--primary-tint);
+  --color-primary-tint-foreground: var(--primary-tint-foreground);
+
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-gold-hover: var(--gold-hover);
+  --color-gold-tint: var(--gold-tint);
+  --color-gold-tint-foreground: var(--gold-tint-foreground);
+
+  --color-p1: var(--p1-color);
+  --color-p1-foreground: var(--p1-foreground);
+  --color-p1-hover: var(--p1-hover);
+  --color-p1-tint: var(--p1-tint);
+  --color-p1-tint-foreground: var(--p1-tint-foreground);
+
+  --color-p2: var(--p2-color);
+  --color-p2-foreground: var(--p2-foreground);
+  --color-p2-hover: var(--p2-hover);
+  --color-p2-tint: var(--p2-tint);
+  --color-p2-tint-foreground: var(--p2-tint-foreground);
+
+  --color-success-tint: var(--success-tint);
+  --color-success-tint-foreground: var(--success-tint-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-tint: var(--destructive-tint);
+  --color-destructive-tint-foreground: var(--destructive-tint-foreground);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-full: var(--radius-full);
+}
+
+/* Utilities for Sticker Style */
+.shadow-sticker {
+  box-shadow: var(--shadow-sticker);
+}
+
+.shadow-sticker-sm {
+  box-shadow: var(--shadow-sticker-sm);
+}
+
+.shadow-sticker-lg {
+  box-shadow: var(--shadow-sticker-lg);
+}
+
+.shadow-sticker-modal {
+  box-shadow: var(--shadow-sticker-modal);
+}
+
+/* Sticker Button Base */
+.btn-sticker {
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sticker);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
+}
+
+.btn-sticker:hover:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-sticker-sm);
+}
+
+.btn-sticker:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--border);
+}
+
+/* Sticker Card */
+.card-sticker {
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sticker);
+  background-color: var(--card);
+}
+
+.card-sticker-lg {
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sticker-lg);
+  background-color: var(--card);
+}
+
+.modal-sticker {
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sticker-modal);
+  background-color: var(--card);
+}
+
+/* Focus Ring */
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+/* Handwriting & Notepad Styles */
+.font-handwriting {
+  font-family: var(--font-handwriting), "Caveat", cursive, sans-serif;
+}
+
+.paper-notepad {
+  background-color: #fdfaf2;
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 29px,
+    #e9e2cf 29px,
+    #e9e2cf 30px
+  );
+  border: 2px solid #24302A;
+  box-shadow: var(--shadow-sticker-lg);
+  color: #24302A;
+}
+
+.dark .paper-notepad {
+  background-color: #fdfaf2;
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 29px,
+    #e9e2cf 29px,
+    #e9e2cf 30px
+  );
+  border: 2px solid #24302A;
+  box-shadow: 6px 6px 0 #24302A;
+  color: #24302A;
+}
+
+.post-it {
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 3px 3px 0 var(--border);
+  transition: transform 0.15s ease;
+}
+
+/* ─── Animações Premium de Carregamento (Shimmer & Skeletons) ─── */
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--muted);
+  border-radius: 8px;
+}
+
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.45) 35%,
+    rgba(47, 125, 91, 0.08) 50%,
+    rgba(232, 182, 60, 0.12) 65%,
+    transparent 100%
+  );
+  animation: shimmer-sweep 1.8s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.skeleton-card {
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 var(--border);
+  background-color: var(--card);
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 30%,
+    rgba(47, 125, 91, 0.06) 50%,
+    rgba(232, 182, 60, 0.09) 70%,
+    transparent 100%
+  );
+  animation: shimmer-sweep 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+

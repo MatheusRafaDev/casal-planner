@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -93,7 +94,12 @@ export function ItemFormModal({
   const [scannerOpen, setScannerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleBarcodeDetectado = (prod: { nome?: string; marca?: string; fotoUrl?: string; quantidade?: string }) => {
+  const handleBarcodeDetectado = (prod: {
+    nome?: string;
+    marca?: string;
+    fotoUrl?: string;
+    quantidade?: string;
+  }) => {
     if (prod.nome) set("nome", prod.nome);
     if (prod.marca) set("marca", prod.marca);
     if (prod.fotoUrl && !form.fotoUrl && !form.fotoFile) {
@@ -124,9 +130,11 @@ export function ItemFormModal({
           dataCompra: item.dataCompra ? item.dataCompra.split("T")[0] : null,
         });
         setDividir(!!item.divisaoPagamento);
+        setShowLink(!!item.linkProduto);
       } else {
         setForm({ ...empty(categoriaId), ...initial });
         setDividir(false);
+        setShowLink(!!initial?.linkProduto);
       }
       setImageError(false);
     }
@@ -240,301 +248,604 @@ export function ItemFormModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
-        className="w-[95vw] sm:max-w-2xl max-h-[90dvh] overflow-y-auto flex flex-col p-0 gap-0 bg-background/95 backdrop-blur-md"
-        onPaste={handlePaste}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
-        <DialogHeader className="p-4 sm:p-6 pb-4 border-b bg-card shrink-0">
-          <DialogTitle className="font-display text-xl sm:text-2xl flex items-center gap-2">
-            {isEdit ? <Pencil className="h-5 w-5 text-primary" /> : <Sparkles className="h-5 w-5 text-primary" />}
-            {isEdit ? "Editar Item" : "Novo Item"}
-          </DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={submit} className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 space-y-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          
-          {/* Seção 1: Identificação Básica */}
-          <section className="flex flex-col sm:flex-row gap-6">
-            {/* Imagem */}
-            <div className="w-32 h-32 mx-auto sm:mx-0 shrink-0 relative group rounded-[var(--radius-lg)] overflow-hidden border bg-muted/20">
-              <input ref={fileInputRef} type="file" accept="image/jpeg, image/png, image/webp" className="hidden" onChange={(e) => { if (e.target.files?.[0]) { set("fotoFile", e.target.files[0]); setImageError(false); } }} />
-              
-              {form.fotoFile ? (
-                <>
-                  <div className="absolute inset-0 bg-cover bg-center opacity-30 blur-xl scale-125" style={{ backgroundImage: `url(${URL.createObjectURL(form.fotoFile)})` }} />
-                  <img src={URL.createObjectURL(form.fotoFile)} alt="" className="relative h-full w-full object-contain p-2" />
-                </>
-              ) : form.fotoUrl && !imageError ? (
-                <>
-                  <div className="absolute inset-0 bg-cover bg-center opacity-30 blur-xl scale-125" style={{ backgroundImage: `url(${form.fotoUrl})` }} />
-                  <img src={form.fotoUrl} alt="" className="relative h-full w-full object-contain p-2" onError={() => setImageError(true)} />
-                </>
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                  <Camera className="h-8 w-8 mb-1 opacity-50" />
-                  <span className="text-[10px] font-medium uppercase">Foto</span>
-                </div>
-              )}
-
-              {/* Hover Actions */}
-              {(form.fotoFile || (form.fotoUrl && !imageError)) && (
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 backdrop-blur-sm cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                  <Upload className="w-5 h-5 text-white" />
-                  <span className="text-white text-xs font-medium">Trocar</span>
-                  <button type="button" onClick={(e) => { e.stopPropagation(); set("fotoFile", undefined as unknown as File); set("fotoUrl", ""); }} className="absolute top-1 right-1 p-1 bg-black/50 hover:bg-red-500 rounded-full text-white transition-colors">
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Nome e Preços */}
-            <div className="flex-1 space-y-4">
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nome do Produto</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setScannerOpen(true)}
-                    className="h-6 text-[11px] gap-1 text-primary border-primary/30 hover:bg-primary/10"
-                  >
-                    <Barcode className="h-3 w-3" />
-                    EAN / Código de Barras
-                  </Button>
-                </div>
-                <div className="relative">
-                  <Input value={form.nome} onChange={(e) => set("nome", e.target.value)} autoFocus className="font-display text-lg font-semibold h-12 bg-card" placeholder="Ex: Geladeira Brastemp" />
-                  {!isEdit && dupQuery.data?.duplicata && (
-                    <div className="absolute top-full mt-1 z-10 w-full rounded-md border border-amber-500/40 bg-amber-500/10 p-2 flex gap-2 text-xs text-amber-800 dark:text-amber-200">
-                      <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
-                      <div>Já existe um item similar neste cômodo: <b>{dupQuery.data.itemSimilar}</b></div>
-                    </div>
-                  )}
-                </div>
+        <DialogContent
+          className="w-[96vw] max-w-5xl xl:max-w-6xl max-h-[92dvh] flex flex-col p-0 gap-0 bg-background/95 backdrop-blur-md overflow-hidden card-sticker"
+          onPaste={handlePaste}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          <DialogHeader className="px-5 py-4 sm:px-6 sm:py-4 border-b bg-card shrink-0 flex flex-row items-center justify-between">
+            <DialogTitle className="font-display text-xl sm:text-2xl flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 border border-primary/20">
+                {isEdit ? <Pencil className="h-4.5 w-4.5" /> : <Sparkles className="h-4.5 w-4.5" />}
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Preço Unitário</Label>
-                  <CurrencyInput value={form.preco} onValueChange={(v) => set("preco", v)} className="h-10 text-base font-semibold bg-card" placeholder="R$ 0,00" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Quantidade</Label>
-                  <Input type="number" min="1" value={form.quantidade} onChange={(e) => set("quantidade", Number(e.target.value))} className="h-10 text-base font-semibold bg-card [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                </div>
+              <div className="flex flex-col text-left">
+                <span>{isEdit ? "Editar Item" : "Novo Item"}</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  {isEdit ? "Atualize as informações, fotos e status do item" : "Adicione manualmente um item ao planejamento"}
+                </span>
               </div>
-            </div>
-          </section>
+            </DialogTitle>
+          </DialogHeader>
 
-          <hr className="border-border/60" />
-
-          {/* Seção 2: Classificação */}
-          <section className="space-y-4">
-            <h3 className="text-sm font-semibold flex items-center gap-2"><LayoutGrid className="w-4 h-4 text-primary" /> Classificação</h3>
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Cômodo</Label>
-                <Select value={form.categoriaId} onValueChange={(v) => set("categoriaId", v)}>
-                  <SelectTrigger className="bg-card"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {categorias.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Marca</Label>
-                <Input value={form.marca ?? ""} onChange={(e) => set("marca", e.target.value)} className="bg-card" placeholder="Opcional" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Loja</Label>
-                <Input value={form.loja ?? ""} onChange={(e) => set("loja", e.target.value)} className="bg-card" placeholder="Opcional" />
-              </div>
-            </div>
-            
-            <div className="space-y-1.5 sm:col-span-3">
-              <Label className="text-xs text-muted-foreground flex items-center justify-between">
-                <span>Link do Produto (URL)</span>
-                {form.linkProduto && (
-                  <a href={form.linkProduto} target="_blank" rel="noreferrer" className="text-[10px] flex items-center gap-1 text-primary hover:underline">
-                    <ExternalLink className="w-3 h-3" /> Testar link
-                  </a>
-                )}
-              </Label>
-              <Input value={form.linkProduto ?? ""} onChange={(e) => set("linkProduto", e.target.value)} className="bg-card text-sm" placeholder="https://..." />
-            </div>
-          </section>
-
-          <hr className="border-border/60" />
-
-          {/* Seção 3: Financeiro & Compra */}
-          <section className="space-y-5">
-            <div className="flex items-center justify-between bg-muted/20 p-3 rounded-lg border">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-full ${form.comprado ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                  <Check className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold">{form.comprado ? "Item Comprado" : "Pendente"}</h3>
-                  <p className="text-xs text-muted-foreground">O item já foi adquirido?</p>
-                </div>
-              </div>
-              <Switch checked={form.comprado} onCheckedChange={(c) => set("comprado", c)} />
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Origem</Label>
-                <Select value={form.origem ?? "comprado"} onValueChange={(v) => { set("origem", v as any); if(v==="ganho") set("parcelas", 1); }}>
-                  <SelectTrigger className="bg-card"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="comprado">Compra planejada</SelectItem>
-                    <SelectItem value="ganho">Presente / Ganho</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Prioridade</Label>
-                <Select value={form.prioridade} onValueChange={(v) => set("prioridade", v as any)}>
-                  <SelectTrigger className="bg-card"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="alta">Alta (Urgente)</SelectItem>
-                    <SelectItem value="media">Média</SelectItem>
-                    <SelectItem value="baixa">Baixa (Pode esperar)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">{form.comprado ? "Data da Compra" : "Previsão de Compra"}</Label>
-                <Input type="date" value={form.dataCompra ?? ""} onChange={(e) => set("dataCompra", e.target.value || null)} className="bg-card" />
-              </div>
-
-              {form.origem !== "ganho" && (
-                <>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Método de Pagamento</Label>
-                    <Select value={form.pagamento} onValueChange={(v) => { set("pagamento", v as any); if (v === "vr") set("parcelas", 1); }}>
-                      <SelectTrigger className="bg-card"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="normal">Dinheiro / Cartão</SelectItem>
-                        <SelectItem value="vr">VR / VA</SelectItem>
-                      </SelectContent>
-                    </Select>
+          <form
+            onSubmit={submit}
+            className="flex-1 overflow-y-auto lg:overflow-y-auto flex flex-col min-h-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-muted/30 [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full"
+          >
+            <div className="p-4 sm:p-6 lg:p-6 flex-1 lg:grid lg:grid-cols-12 lg:gap-6 space-y-5 lg:space-y-0">
+              {/* Coluna Esquerda: Mídia, Cômodo, Marca/Loja e Link */}
+              <div className="lg:col-span-5 space-y-4">
+                {/* Card de Foto e Drag & Drop */}
+                <div className="rounded-[var(--radius-lg)] border-2 border-border/80 bg-card p-4 space-y-2.5 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <Camera className="w-3.5 h-3.5 text-primary" /> Foto do Produto
+                    </Label>
+                    {(form.fotoFile || (form.fotoUrl && !imageError)) && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-[11px] text-destructive hover:bg-destructive/10 px-2"
+                        onClick={() => {
+                          set("fotoFile", undefined as unknown as File);
+                          set("fotoUrl", "");
+                        }}
+                      >
+                        Remover
+                      </Button>
+                    )}
                   </div>
-                  
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-xs text-muted-foreground">Parcelamento</Label>
-                      {(form.parcelas ?? 1) > 1 && (
-                        <span className="text-[10px] text-muted-foreground font-medium">{brl((form.preco*form.quantidade) / (form.parcelas ?? 1))}/mês</span>
-                      )}
-                    </div>
-                    <Select value={String(form.parcelas ?? 1)} onValueChange={(v) => set("parcelas", Number(v))} disabled={form.pagamento === "vr"}>
-                      <SelectTrigger className="bg-card"><SelectValue /></SelectTrigger>
+
+                  <div
+                    className="w-full h-36 relative group rounded-xl overflow-hidden border-2 border-dashed border-border/70 bg-muted/20 hover:border-primary/50 transition-colors cursor-pointer flex flex-col items-center justify-center"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg, image/png, image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          set("fotoFile", e.target.files[0]);
+                          setImageError(false);
+                        }
+                      }}
+                    />
+
+                    {form.fotoFile ? (
+                      <>
+                        <div
+                          className="absolute inset-0 bg-cover bg-center opacity-30 blur-xl scale-125"
+                          style={{ backgroundImage: `url(${URL.createObjectURL(form.fotoFile)})` }}
+                        />
+                        <img
+                          src={URL.createObjectURL(form.fotoFile)}
+                          alt=""
+                          className="relative h-full w-full object-contain p-2"
+                        />
+                      </>
+                    ) : form.fotoUrl && !imageError ? (
+                      <>
+                        <div
+                          className="absolute inset-0 bg-cover bg-center opacity-30 blur-xl scale-125"
+                          style={{ backgroundImage: `url(${form.fotoUrl})` }}
+                        />
+                        <img
+                          src={form.fotoUrl}
+                          alt=""
+                          className="relative h-full w-full object-contain p-2"
+                          onError={() => setImageError(true)}
+                        />
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-muted-foreground p-3 text-center">
+                        <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-1">
+                          <Upload className="h-4 w-4" />
+                        </div>
+                        <span className="text-xs font-bold text-foreground">Escolher Foto</span>
+                        <span className="text-[10px] text-muted-foreground">Arraste ou cole (Ctrl+V)</span>
+                      </div>
+                    )}
+
+                    {/* Hover Actions se tiver foto */}
+                    {(form.fotoFile || (form.fotoUrl && !imageError)) && (
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 backdrop-blur-sm text-white">
+                        <Upload className="w-4 h-4" />
+                        <span className="text-xs font-semibold">Trocar Imagem</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Card de Classificação */}
+                <div className="rounded-[var(--radius-lg)] border-2 border-border/80 bg-card p-4 space-y-3 shadow-sm">
+                  <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
+                    <LayoutGrid className="w-3.5 h-3.5 text-primary" /> Classificação
+                  </h4>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium text-muted-foreground">Cômodo</Label>
+                    <Select value={form.categoriaId} onValueChange={(v) => set("categoriaId", v)}>
+                      <SelectTrigger className="bg-background h-9 text-xs sm:text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((p) => (
-                          <SelectItem key={p} value={String(p)}>
-                            {p === 1 ? "À vista (1x)" : `${p}x sem juros`}
+                        {categorias.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.nome}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                </>
-              )}
-            </div>
-
-            {isCasal && form.origem !== "ganho" && (
-              <div className="mt-4 p-4 rounded-[var(--radius-lg)] border bg-muted/10 space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between gap-4">
-                  <div className="space-y-1">
-                    <Label className="text-sm font-semibold">Responsável Financeiro</Label>
-                    <p className="text-xs text-muted-foreground">Como o pagamento será feito ou dividido?</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">Marca</Label>
+                      <Input
+                        value={form.marca ?? ""}
+                        onChange={(e) => set("marca", e.target.value)}
+                        className="bg-background h-9 text-xs sm:text-sm"
+                        placeholder="Opcional"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">Loja</Label>
+                      <Input
+                        value={form.loja ?? ""}
+                        onChange={(e) => set("loja", e.target.value)}
+                        className="bg-background h-9 text-xs sm:text-sm"
+                        placeholder="Opcional"
+                      />
+                    </div>
                   </div>
-                  <Select
-                    value={dividir ? "dividir" : form.responsavelId === 1 ? "1" : form.responsavelId === 2 ? "2" : "conjunto"}
-                    onValueChange={(v) => {
-                      if (v === "dividir") {
-                        setDividir(true);
-                        set("responsavelId", null);
-                        const total = form.preco * form.quantidade;
-                        set("divisaoPagamento", { valorPessoa1: total / 2, valorPessoa2: total / 2 });
-                      } else if (v === "conjunto") {
-                        setDividir(false);
-                        set("responsavelId", null);
-                        set("divisaoPagamento", null);
-                      } else {
-                        setDividir(false);
-                        set("responsavelId", Number(v) as 1 | 2);
-                        set("divisaoPagamento", null);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="w-full sm:w-[220px] bg-card"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="conjunto">Conta Conjunta</SelectItem>
-                      <SelectItem value="1">{p1} paga 100%</SelectItem>
-                      <SelectItem value="2">{p2} paga 100%</SelectItem>
-                      <SelectItem value="dividir">Dividir valores específicos...</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
 
-                {dividir && form.divisaoPagamento && (
-                  <div className="pt-4 border-t border-dashed">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">{p1}</Label>
-                        <CurrencyInput value={form.divisaoPagamento.valorPessoa1} onValueChange={(v) => set("divisaoPagamento", { ...form.divisaoPagamento!, valorPessoa1: v })} className="bg-card h-9" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">{p2}</Label>
-                        <CurrencyInput value={form.divisaoPagamento.valorPessoa2} onValueChange={(v) => set("divisaoPagamento", { ...form.divisaoPagamento!, valorPessoa2: v })} className="bg-card h-9" />
+                {/* Card de Link do Produto */}
+                <div className="rounded-[var(--radius-lg)] border-2 border-border/80 bg-card p-3.5 space-y-2.5 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ExternalLink className="w-4 h-4 text-primary shrink-0" />
+                      <div>
+                        <Label htmlFor="toggle-link-produto" className="text-xs font-bold text-foreground cursor-pointer block">
+                          Link do Produto
+                        </Label>
+                        <p className="text-[11px] text-muted-foreground">
+                          Guardar endereço da loja para comprar depois
+                        </p>
                       </div>
                     </div>
-                    <div className="flex flex-wrap justify-between items-center gap-2 mt-3">
-                      <div className="text-xs font-medium">
-                        Soma: <span className={Math.abs((form.divisaoPagamento.valorPessoa1 + form.divisaoPagamento.valorPessoa2) - (form.preco * form.quantidade)) > 0.01 ? "text-destructive" : "text-emerald-500"}>
-                          {brl(form.divisaoPagamento.valorPessoa1 + form.divisaoPagamento.valorPessoa2)}
-                        </span> / {brl(form.preco * form.quantidade)}
-                      </div>
-                      <div className="flex gap-1.5">
-                        <Button type="button" variant="outline" size="sm" className="h-7 px-2 text-[10px] bg-background" onClick={() => set("divisaoPagamento", { valorPessoa1: form.preco*form.quantidade, valorPessoa2: 0 })}>100/0</Button>
-                        <Button type="button" variant="outline" size="sm" className="h-7 px-2 text-[10px] bg-background" onClick={() => set("divisaoPagamento", { valorPessoa1: (form.preco*form.quantidade)/2, valorPessoa2: (form.preco*form.quantidade)/2 })}>50/50</Button>
-                        <Button type="button" variant="outline" size="sm" className="h-7 px-2 text-[10px] bg-background" onClick={() => set("divisaoPagamento", { valorPessoa1: 0, valorPessoa2: form.preco*form.quantidade })}>0/100</Button>
+                    <Switch
+                      id="toggle-link-produto"
+                      checked={showLink}
+                      onCheckedChange={(checked) => {
+                        setShowLink(checked);
+                        if (!checked) set("linkProduto", "");
+                      }}
+                    />
+                  </div>
+
+                  <AnimatePresence>
+                    {showLink && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                        animate={{ opacity: 1, height: "auto", marginTop: 6 }}
+                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="space-y-1.5 overflow-hidden"
+                      >
+                        <div className="flex items-center gap-2 pt-1">
+                          <Input
+                            value={form.linkProduto ?? ""}
+                            onChange={(e) => set("linkProduto", e.target.value)}
+                            className="bg-background text-xs sm:text-sm flex-1 h-9"
+                            placeholder="https://..."
+                          />
+                          {form.linkProduto && form.linkProduto.trim().length > 0 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="btn-sticker shrink-0 h-9 px-2.5 flex items-center gap-1.5 font-bold text-xs bg-primary/10 hover:bg-primary/20 text-primary border-primary/40 cursor-pointer"
+                              asChild
+                            >
+                              <a
+                                href={
+                                  form.linkProduto.startsWith("http://") || form.linkProduto.startsWith("https://")
+                                    ? form.linkProduto
+                                    : `https://${form.linkProduto}`
+                                }
+                                target="_blank"
+                                rel="noreferrer"
+                                title="Abrir link em nova aba"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                <span>Ir para link</span>
+                              </a>
+                            </Button>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              {/* Coluna Direita: Identificação, Valores, Financeiro e Divisão */}
+              <div className="lg:col-span-7 space-y-4">
+                {/* Card de Identificação e Valores */}
+                <div className="rounded-[var(--radius-lg)] border-2 border-border/80 bg-card p-4 sm:p-5 space-y-3.5 shadow-sm">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                        Nome do Produto
+                      </Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setScannerOpen(true)}
+                        className="h-6 text-[11px] gap-1 text-primary border-primary/30 hover:bg-primary/10 font-bold"
+                      >
+                        <Barcode className="h-3 w-3" />
+                        EAN / Barcode
+                      </Button>
+                    </div>
+                    <div className="relative">
+                      <Input
+                        value={form.nome}
+                        onChange={(e) => set("nome", e.target.value)}
+                        autoFocus
+                        className="font-display text-base sm:text-lg font-bold h-11 bg-background"
+                        placeholder="Ex: Geladeira Brastemp Frost Free..."
+                      />
+                      {!isEdit && dupQuery.data?.duplicata && (
+                        <div className="absolute top-full mt-1 z-10 w-full rounded-md border border-amber-500/40 bg-amber-500/10 p-2 flex gap-2 text-xs text-amber-800 dark:text-amber-200 shadow-md">
+                          <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-500" />
+                          <div>
+                            Já existe um item similar neste cômodo: <b>{dupQuery.data.itemSimilar}</b>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 items-end pt-1">
+                    <div className="space-y-1">
+                      <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                        Preço Unitário
+                      </Label>
+                      <CurrencyInput
+                        value={form.preco}
+                        onValueChange={(v) => set("preco", v)}
+                        className="h-10 text-base font-bold bg-background text-primary"
+                        placeholder="R$ 0,00"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                        Quantidade
+                      </Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={form.quantidade}
+                        onChange={(e) => set("quantidade", Number(e.target.value))}
+                        className="h-10 text-base font-bold bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                    </div>
+                    <div className="col-span-2 sm:col-span-1 space-y-1">
+                      <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                        Total Previsto
+                      </Label>
+                      <div className="h-10 px-3 rounded-md border bg-muted/40 flex items-center font-display font-bold text-sm text-foreground">
+                        {brl(form.preco * form.quantidade)}
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
+
+                {/* Card Financeiro & Compra */}
+                <div className="rounded-[var(--radius-lg)] border-2 border-border/80 bg-card p-4 sm:p-5 space-y-3.5 shadow-sm">
+                  <div className="flex items-center justify-between bg-muted/20 p-2.5 rounded-lg border">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`p-1.5 rounded-md ${form.comprado ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}
+                      >
+                        <Check className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold leading-tight">
+                          {form.comprado ? "Item Comprado / Adquirido" : "Pendente na Lista"}
+                        </h4>
+                        <p className="text-[11px] text-muted-foreground leading-tight">
+                          {form.comprado ? "Já adquirido pelo casal" : "Ainda não comprado"}
+                        </p>
+                      </div>
+                    </div>
+                    <Switch checked={form.comprado} onCheckedChange={(c) => set("comprado", c)} />
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground font-medium">Origem</Label>
+                      <Select
+                        value={form.origem ?? "comprado"}
+                        onValueChange={(v) => {
+                          set("origem", v as ItemInputDTO["origem"]);
+                          if (v === "ganho") set("parcelas", 1);
+                        }}
+                      >
+                        <SelectTrigger className="bg-background h-9 text-xs sm:text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="comprado">Compra planejada</SelectItem>
+                          <SelectItem value="ganho">Presente / Ganho</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground font-medium">Prioridade</Label>
+                      <Select
+                        value={form.prioridade}
+                        onValueChange={(v) => set("prioridade", v as ItemInputDTO["prioridade"])}
+                      >
+                        <SelectTrigger className="bg-background h-9 text-xs sm:text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="alta">Alta (Urgente)</SelectItem>
+                          <SelectItem value="media">Média</SelectItem>
+                          <SelectItem value="baixa">Baixa (Pode esperar)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground font-medium">
+                        {form.comprado ? "Data da Compra" : "Previsão"}
+                      </Label>
+                      <Input
+                        type="date"
+                        value={form.dataCompra ?? ""}
+                        onChange={(e) => set("dataCompra", e.target.value || null)}
+                        className="bg-background h-9 text-xs sm:text-sm"
+                      />
+                    </div>
+
+                    {form.origem !== "ganho" && (
+                      <>
+                        <div className="space-y-1 sm:col-span-1">
+                          <Label className="text-xs text-muted-foreground font-medium">Pagamento</Label>
+                          <Select
+                            value={form.pagamento}
+                            onValueChange={(v) => {
+                              set("pagamento", v as ItemInputDTO["pagamento"]);
+                              if (v === "vr") set("parcelas", 1);
+                            }}
+                          >
+                            <SelectTrigger className="bg-background h-9 text-xs sm:text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="normal">Dinheiro / Cartão</SelectItem>
+                              <SelectItem value="vr">VR / VA</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-1 sm:col-span-2">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-xs text-muted-foreground font-medium">Parcelamento</Label>
+                            {(form.parcelas ?? 1) > 1 && (
+                              <span className="text-[10px] text-muted-foreground font-medium">
+                                {brl((form.preco * form.quantidade) / (form.parcelas ?? 1))}/mês
+                              </span>
+                            )}
+                          </div>
+                          <Select
+                            value={String(form.parcelas ?? 1)}
+                            onValueChange={(v) => set("parcelas", Number(v))}
+                            disabled={form.pagamento === "vr"}
+                          >
+                            <SelectTrigger className="bg-background h-9 text-xs sm:text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((p) => (
+                                <SelectItem key={p} value={String(p)}>
+                                  {p === 1 ? "À vista (1x)" : `${p}x sem juros`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {isCasal && form.origem !== "ganho" && (
+                    <div className="pt-3 border-t border-dashed space-y-3">
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                        <div>
+                          <Label className="text-xs font-bold">Responsável Financeiro</Label>
+                          <p className="text-[11px] text-muted-foreground">Quem pagará por este item?</p>
+                        </div>
+                        <Select
+                          value={
+                            dividir
+                              ? "dividir"
+                              : form.responsavelId === 1
+                                ? "1"
+                                : form.responsavelId === 2
+                                  ? "2"
+                                  : "conjunto"
+                          }
+                          onValueChange={(v) => {
+                            if (v === "dividir") {
+                              setDividir(true);
+                              set("responsavelId", null);
+                              const total = form.preco * form.quantidade;
+                              set("divisaoPagamento", {
+                                valorPessoa1: total / 2,
+                                valorPessoa2: total / 2,
+                              });
+                            } else if (v === "conjunto") {
+                              setDividir(false);
+                              set("responsavelId", null);
+                              set("divisaoPagamento", null);
+                            } else {
+                              setDividir(false);
+                              set("responsavelId", Number(v) as 1 | 2);
+                              set("divisaoPagamento", null);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-full sm:w-[220px] h-9 bg-background text-xs sm:text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="conjunto">Conta Conjunta</SelectItem>
+                            <SelectItem value="1">{p1} paga 100%</SelectItem>
+                            <SelectItem value="2">{p2} paga 100%</SelectItem>
+                            <SelectItem value="dividir">Dividir valores específicos...</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {dividir && form.divisaoPagamento && (
+                        <div className="p-3 rounded-lg border bg-muted/20 space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <Label className="text-xs">{p1}</Label>
+                              <CurrencyInput
+                                value={form.divisaoPagamento.valorPessoa1}
+                                onValueChange={(v) =>
+                                  set("divisaoPagamento", {
+                                    ...form.divisaoPagamento!,
+                                    valorPessoa1: v,
+                                  })
+                                }
+                                className="bg-background h-8 text-xs font-semibold"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">{p2}</Label>
+                              <CurrencyInput
+                                value={form.divisaoPagamento.valorPessoa2}
+                                onValueChange={(v) =>
+                                  set("divisaoPagamento", {
+                                    ...form.divisaoPagamento!,
+                                    valorPessoa2: v,
+                                  })
+                                }
+                                className="bg-background h-8 text-xs font-semibold"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap justify-between items-center gap-2">
+                            <div className="text-xs font-medium">
+                              Soma:{" "}
+                              <span
+                                className={
+                                  Math.abs(
+                                    form.divisaoPagamento.valorPessoa1 +
+                                      form.divisaoPagamento.valorPessoa2 -
+                                      form.preco * form.quantidade,
+                                  ) > 0.01
+                                    ? "text-destructive font-bold"
+                                    : "text-emerald-500 font-bold"
+                                }
+                              >
+                                {brl(
+                                  form.divisaoPagamento.valorPessoa1 +
+                                    form.divisaoPagamento.valorPessoa2,
+                                )}
+                              </span>{" "}
+                              / {brl(form.preco * form.quantidade)}
+                            </div>
+                            <div className="flex gap-1.5">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-6 px-2 text-[10px] bg-background"
+                                onClick={() =>
+                                  set("divisaoPagamento", {
+                                    valorPessoa1: form.preco * form.quantidade,
+                                    valorPessoa2: 0,
+                                  })
+                                }
+                              >
+                                100/0
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-6 px-2 text-[10px] bg-background"
+                                onClick={() =>
+                                  set("divisaoPagamento", {
+                                    valorPessoa1: (form.preco * form.quantidade) / 2,
+                                    valorPessoa2: (form.preco * form.quantidade) / 2,
+                                  })
+                                }
+                              >
+                                50/50
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-6 px-2 text-[10px] bg-background"
+                                onClick={() =>
+                                  set("divisaoPagamento", {
+                                    valorPessoa1: 0,
+                                    valorPessoa2: form.preco * form.quantidade,
+                                  })
+                                }
+                              >
+                                0/100
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
-          </section>
+            </div>
 
-          <DialogFooter className="pt-4 mt-6 border-t gap-2 sm:gap-0 sticky bottom-0 bg-background/95 pb-4 backdrop-blur-sm z-10">
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={mutation.isPending} className="bg-primary hover:bg-primary/90">
-              {mutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {mutation.isPending ? "Salvando..." : isEdit ? "Salvar Alterações" : "Criar Item"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <DialogFooter className="p-4 sm:px-6 border-t-2 border-border/80 bg-card shrink-0 flex items-center justify-between sm:justify-between gap-3">
+              <div className="text-xs text-muted-foreground hidden sm:flex items-center gap-1.5">
+                <span>💡 Cole fotos com <kbd className="px-1.5 py-0.5 rounded border bg-muted text-[10px] font-mono font-semibold">Ctrl+V</kbd> ou arraste para cá</span>
+              </div>
+              <div className="flex items-center gap-2.5 ml-auto">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={mutation.isPending}
+                  className="bg-primary hover:bg-primary/90 font-bold min-w-[130px]"
+                >
+                  {mutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  {mutation.isPending ? "Salvando..." : isEdit ? "Salvar Alterações" : "Criar Item"}
+                </Button>
+              </div>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-    <BarcodeScannerModal
-      open={scannerOpen}
-      onOpenChange={setScannerOpen}
-      onProdutoDetectado={handleBarcodeDetectado}
-    />
-  </>
+      <BarcodeScannerModal
+        open={scannerOpen}
+        onOpenChange={setScannerOpen}
+        onProdutoDetectado={handleBarcodeDetectado}
+      />
+    </>
   );
 }

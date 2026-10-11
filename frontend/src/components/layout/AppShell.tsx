@@ -1,22 +1,18 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, LayoutGrid, User, LogOut, Download, PieChart } from "lucide-react";
+import { LayoutGrid, User, LogOut, Download, PieChart } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-
 import { usePwa } from "@/hooks/use-pwa";
-import { useTheme } from "@/lib/theme-context";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Sun, Moon } from "lucide-react";
+import { BrandLogoBadge, BrandLogoText } from "@/components/ui/BrandLogo";
 
 const nav = [
   { to: "/inicio", label: "Dashboard", icon: PieChart },
   { to: "/planejamento", label: "Planejamento", icon: LayoutGrid },
-  { to: "/perfil", label: "Minha Conta", icon: User },
+  { to: "/perfil", label: "Minha conta", icon: User },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { usuario, logout } = useAuth();
-  const { theme, toggle } = useTheme();
   const { installPrompt, triggerInstall } = usePwa();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -26,71 +22,65 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const p1Primeiro = p1Nome.split(" ")[0];
   const p2Primeiro = p2Nome.split(" ")[0];
 
-  const logadoNome =
-    isCasal
-      ? usuario?.pessoaLogada === 2
-        ? p2Primeiro
-        : p1Primeiro
-      : usuario?.nomeCompleto?.split(" ")[0] || "Usuário";
+  const logadoNome = isCasal
+    ? usuario?.pessoaLogada === 2
+      ? p2Primeiro
+      : p1Primeiro
+    : usuario?.nomeCompleto?.split(" ")[0] || "Usuário";
 
   return (
-    <div className="min-h-screen flex flex-col bg-background md:pl-64 font-sans">
+    <div className="min-h-screen flex flex-col bg-background md:pl-64 font-sans text-foreground">
       {/* Mobile Top Header */}
-      <header className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 h-14 bg-card/95 backdrop-blur-md text-foreground border-b border-border shadow-xs">
-        <div className="flex items-center gap-2.5">
-          <span className="grid h-7 w-7 place-items-center rounded-md bg-primary text-primary-foreground text-xs shadow-xs">
-            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
-              <path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />
-            </svg>
-          </span>
+      <header className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 h-16 bg-card border-b-2 border-border shadow-[0_2px_0_var(--border)]">
+        <Link to="/inicio" className="flex items-center gap-2.5">
+          <BrandLogoBadge size="sm" />
           <div className="flex flex-col">
-            <span className="font-display font-bold text-sm tracking-tight text-foreground leading-tight">Casal Planner</span>
-            {isCasal && (
-              <span className="text-[10px] font-mono font-medium text-muted-foreground leading-none">
-                {p1Primeiro} & {p2Primeiro}
-              </span>
-            )}
+            <BrandLogoText size="sm" />
+            <span className="text-[10px] font-bold text-muted-foreground leading-none mt-0.5">
+              {isCasal ? `${p1Primeiro} & ${p2Primeiro}` : "Gestão do lar"}
+            </span>
           </div>
-        </div>
+        </Link>
         <div className="flex items-center gap-2">
-          <button onClick={toggle} className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-muted transition-colors" title="Alternar tema">
-            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
           {installPrompt && (
             <button
               onClick={triggerInstall}
-              className="text-primary p-1.5 rounded-md bg-primary/10 hover:bg-primary/20 transition-colors"
+              className="p-2 rounded-xl border-2 border-border bg-primary text-primary-foreground shadow-[2px_2px_0_var(--border)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
               title="Instalar App"
             >
               <Download className="h-4 w-4" />
             </button>
           )}
-          <button onClick={logout} className="text-muted-foreground hover:text-destructive p-1.5 rounded-md hover:bg-destructive/10 transition-colors" title="Sair">
+          <button
+            onClick={logout}
+            className="p-2 rounded-xl border-2 border-border bg-card text-muted-foreground hover:text-destructive hover:bg-destructive/10 shadow-[2px_2px_0_var(--border)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
+            title="Sair"
+          >
             <LogOut className="h-4 w-4" />
           </button>
         </div>
       </header>
 
-      {/* Sidebar Desktop — Linear Precision */}
-      <aside className="hidden md:flex md:flex-col w-64 border-r border-border bg-sidebar text-sidebar-foreground fixed inset-y-0 left-0 z-50 overflow-hidden select-none">
+      {/* Sidebar Desktop */}
+      <aside className="hidden md:flex md:flex-col w-64 border-r-2 border-border bg-sidebar text-foreground fixed inset-y-0 left-0 z-50 overflow-hidden select-none">
         {/* Brand Header */}
-        <div className="p-5 pb-3">
-          <Link to="/inicio" className="flex items-center gap-2.5 transition-opacity hover:opacity-85 group">
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground shadow-xs transition-transform group-hover:scale-105">
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
-                <path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />
-              </svg>
-            </span>
+        <div className="p-6 pb-4">
+          <Link
+            to="/inicio"
+            className="flex items-center gap-3 transition-transform hover:scale-[1.02] group"
+          >
+            <BrandLogoBadge size="md" className="transition-transform group-hover:scale-105" />
             <div className="flex flex-col">
-              <span className="font-display text-base font-bold tracking-tight text-foreground leading-tight">Casal Planner</span>
-              <span className="text-[10px] font-semibold text-muted-foreground font-mono uppercase tracking-wider">Gestão do Lar</span>
+              <BrandLogoText size="md" />
+              <span className="text-[11px] font-bold text-muted-foreground mt-0.5">
+                {isCasal ? `${p1Primeiro} & ${p2Primeiro}` : "Gestão do lar"}
+              </span>
             </div>
           </Link>
         </div>
 
         {/* Navigation Items */}
-        <div className="px-3 py-4 space-y-1">
-          <p className="px-2.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 font-mono">Menu</p>
+        <div className="px-4 py-4 space-y-2">
           {nav.map((n) => {
             const active = pathname.startsWith(n.to);
             return (
@@ -98,57 +88,82 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={n.to}
                 to={n.to}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition-all duration-150 h-9",
+                  "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition-all duration-150 h-11 border-2",
                   active
-                    ? "bg-primary/10 text-primary font-semibold shadow-2xs border-l-2 border-primary"
-                    : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+                    ? "bg-primary text-primary-foreground border-border shadow-[2px_2px_0_var(--border)]"
+                    : "border-transparent text-foreground hover:bg-muted/70 hover:border-border/40",
                 )}
               >
-                <n.icon className={cn("h-4 w-4 shrink-0", active ? "text-primary" : "text-muted-foreground")} />
+                <n.icon
+                  className={cn(
+                    "h-4 w-4 shrink-0",
+                    active ? "text-primary-foreground" : "text-foreground",
+                  )}
+                />
                 <span>{n.label}</span>
               </Link>
             );
           })}
         </div>
 
-        {/* Portal for Category Filters (when on Planejamento) */}
-        <div className="flex-1 overflow-y-auto px-3">
-          <div id="sidebar-categories-portal" className="flex flex-col gap-1" />
+        {/* Categories Portal for Planning Page */}
+        <div className="flex-1 overflow-y-auto px-3.5 py-1 space-y-1.5 min-h-0">
+          <div id="sidebar-categories-portal" className="flex flex-col gap-1.5" />
         </div>
 
         {/* Footer User Profile Card */}
-        <div className="p-3 mt-auto border-t border-border bg-card/50">
-          <div className="flex flex-col gap-2.5">
-            <Link to="/perfil" className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-muted/60 transition-colors group">
-              <div className="h-8 w-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary font-bold text-xs font-mono tracking-tighter">
-                {isCasal
-                  ? `${p1Primeiro.charAt(0)}${p2Primeiro.charAt(0)}`
-                  : (logadoNome.charAt(0).toUpperCase() ?? "U")}
-              </div>
+        <div className="p-4 mt-auto space-y-3">
+          <div className="card-sticker p-3 bg-card flex flex-col gap-3">
+            <Link
+              to="/perfil"
+              className="flex items-center gap-3 hover:opacity-85 transition-opacity"
+            >
+              {isCasal ? (
+                <div className="flex items-center -space-x-2 shrink-0">
+                  <div
+                    className={cn(
+                      "h-7 w-7 rounded-full border-2 border-border flex items-center justify-center font-bold text-xs shadow-xs",
+                      usuario?.pessoaLogada === 1
+                        ? "bg-[#2F7D5B] text-white z-10"
+                        : "bg-[#2F7D5B]/70 text-white",
+                    )}
+                    title={p1Primeiro}
+                  >
+                    {p1Primeiro.charAt(0)}
+                  </div>
+                  <div
+                    className={cn(
+                      "h-7 w-7 rounded-full border-2 border-border flex items-center justify-center font-bold text-xs shadow-xs",
+                      usuario?.pessoaLogada === 2
+                        ? "bg-[#E8B63C] text-[#24302A] z-10"
+                        : "bg-[#E8B63C]/70 text-[#24302A]",
+                    )}
+                    title={p2Primeiro}
+                  >
+                    {p2Primeiro.charAt(0)}
+                  </div>
+                </div>
+              ) : (
+                <div className="h-8 w-8 rounded-xl border-2 border-border bg-primary/20 text-primary flex items-center justify-center shrink-0 font-bold text-sm shadow-xs">
+                  {logadoNome.charAt(0).toUpperCase()}
+                </div>
+              )}
               <div className="flex flex-col overflow-hidden min-w-0">
-                <span className="text-xs font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-                  {isCasal ? `${p1Primeiro} & ${p2Primeiro}` : (usuario?.nomeCompleto ?? "Usuário")}
+                <span className="text-xs font-bold text-foreground truncate">
+                  {usuario?.nomeCompleto || (isCasal ? `${p1Primeiro} & ${p2Primeiro}` : "Usuário")}
                 </span>
-                <span className="text-[10px] text-muted-foreground truncate font-mono">
-                  {isCasal ? `Ativo: ${logadoNome}` : "Minha Conta"}
+                <span className="text-[11px] text-muted-foreground truncate font-medium">
+                  {isCasal ? `${p1Primeiro} & ${p2Primeiro}` : "Conta individual"}
                 </span>
               </div>
             </Link>
-            
+
             {/* Quick Actions Bar */}
-            <div className="flex items-center justify-between gap-1 px-1 pt-1 border-t border-border/60">
-              <button
-                onClick={toggle}
-                className="flex items-center justify-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
-                title="Alternar tema"
-              >
-                {theme === "dark" ? <Sun className="h-3.5 w-3.5 text-amber-400" /> : <Moon className="h-3.5 w-3.5 text-primary" />}
-                <span className="text-[11px]">{theme === "dark" ? "Claro" : "Escuro"}</span>
-              </button>
+            <div className="flex items-center justify-end gap-1 pt-2 border-t-2 border-border/20">
               {installPrompt && (
                 <button
                   onClick={triggerInstall}
-                  className="flex items-center justify-center gap-1 py-1 px-2 rounded-md text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                  className="flex items-center justify-center gap-1 py-1 px-2 rounded-lg text-[11px] font-bold text-primary hover:bg-primary-tint transition-colors cursor-pointer"
                   title="Instalar como aplicativo"
                 >
                   <Download className="h-3.5 w-3.5" /> App
@@ -156,7 +171,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               )}
               <button
                 onClick={logout}
-                className="flex items-center justify-center gap-1 py-1 px-2 rounded-md text-[11px] font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-1 py-1 px-2 rounded-lg text-[11px] font-bold text-muted-foreground hover:text-destructive hover:bg-destructive-tint transition-colors cursor-pointer"
                 title="Encerrar sessão"
               >
                 <LogOut className="h-3.5 w-3.5" /> Sair
@@ -167,18 +182,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 min-w-0 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0">
-        <div className="h-full w-full max-w-7xl mx-auto md:p-6 lg:p-8">
-          {children}
-        </div>
+      <main className="flex-1 min-w-0 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-8">
+        <div className="w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 py-6 lg:py-8">{children}</div>
       </main>
 
       {/* Bottom Nav Mobile */}
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 bg-background/90 backdrop-blur-md border-t z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.02)]"
+        className="md:hidden fixed bottom-0 inset-x-0 bg-card border-t-2 border-border z-50 shadow-[0_-3px_0_var(--border)]"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
-        <div className="flex h-[3.5rem] items-center justify-around px-2">
+        <div className="flex h-16 items-center justify-around px-2">
           {nav.map((n) => {
             const active = pathname.startsWith(n.to);
             return (
@@ -186,22 +199,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={n.to}
                 to={n.to}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 w-full h-full transition-colors",
-                  active ? "text-primary" : "text-sidebar-foreground/70 hover:text-sidebar-foreground",
+                  "flex flex-col items-center justify-center gap-1 w-full h-full transition-all",
+                  active
+                    ? "text-primary font-bold"
+                    : "text-muted-foreground hover:text-foreground font-semibold",
                 )}
                 aria-current={active ? "page" : undefined}
               >
                 <div
                   className={cn(
-                    "flex items-center justify-center h-8 w-12 rounded-full transition-colors",
-                    active ? "bg-primary/10" : "bg-transparent",
+                    "flex items-center justify-center h-8 w-12 rounded-full transition-all",
+                    active
+                      ? "bg-primary-tint text-primary-tint-foreground border-2 border-border"
+                      : "bg-transparent",
                   )}
                 >
-                  <n.icon className="h-5 w-5" />
+                  <n.icon className="h-4 w-4" />
                 </div>
-                <span className={cn("text-[10px]", active ? "font-bold" : "font-medium")}>
-                  {n.label}
-                </span>
+                <span className="text-[11px] leading-none">{n.label}</span>
               </Link>
             );
           })}

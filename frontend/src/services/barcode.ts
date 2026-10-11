@@ -38,11 +38,7 @@ export async function consultarCodigoBarras(codigo: string): Promise<ProdutoBarc
 
         if (nome.trim()) {
           const marca = p.brands?.split(",")?.[0]?.trim() || undefined;
-          const fotoUrl =
-            p.image_front_url ||
-            p.image_url ||
-            p.image_front_small_url ||
-            undefined;
+          const fotoUrl = p.image_front_url || p.image_url || p.image_front_small_url || undefined;
 
           return {
             codigo: code,
@@ -68,13 +64,30 @@ export async function consultarCodigoBarras(codigo: string): Promise<ProdutoBarc
 
 function mapearCategoria(categoriasTexto: string): string | undefined {
   const c = categoriasTexto.toLowerCase();
-  if (c.includes("limpeza") || c.includes("detergent") || c.includes("laundry") || c.includes("lavanderia")) {
+  if (
+    c.includes("limpeza") ||
+    c.includes("detergent") ||
+    c.includes("laundry") ||
+    c.includes("lavanderia")
+  ) {
     return "Lavanderia";
   }
-  if (c.includes("higiene") || c.includes("soap") || c.includes("shampoo") || c.includes("bath") || c.includes("banheiro")) {
+  if (
+    c.includes("higiene") ||
+    c.includes("soap") ||
+    c.includes("shampoo") ||
+    c.includes("bath") ||
+    c.includes("banheiro")
+  ) {
     return "Banheiro";
   }
-  if (c.includes("food") || c.includes("aliment") || c.includes("cozinha") || c.includes("snack") || c.includes("beverage")) {
+  if (
+    c.includes("food") ||
+    c.includes("aliment") ||
+    c.includes("cozinha") ||
+    c.includes("snack") ||
+    c.includes("beverage")
+  ) {
     return "Cozinha";
   }
   return undefined;

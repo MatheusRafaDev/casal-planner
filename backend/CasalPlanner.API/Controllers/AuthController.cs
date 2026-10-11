@@ -23,19 +23,28 @@ namespace CasalPlanner.API.Controllers
         private readonly ILogger<AuthController> _logger;
         private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _environment;
+        private readonly IResumoService _resumoService;
+        private readonly IItemService _itemService;
+        private readonly ICacheService _cacheService;
 
         public AuthController(
             IAuthService authService,
             MongoDbContext context,
             ILogger<AuthController> logger,
             IConfiguration configuration,
-            IWebHostEnvironment environment)
+            IWebHostEnvironment environment,
+            IResumoService resumoService,
+            IItemService itemService,
+            ICacheService cacheService)
         {
             _authService = authService;
             _context = context;
             _logger = logger;
             _configuration = configuration;
             _environment = environment;
+            _resumoService = resumoService;
+            _itemService = itemService;
+            _cacheService = cacheService;
         }
 
         // Hash BCrypt fixo (workFactor 12) usado só para igualar o tempo de resposta.
@@ -133,6 +142,8 @@ namespace CasalPlanner.API.Controllers
 
             _logger.LogInformation("Login realizado com sucesso: {Email}", dto.Email);
 
+            DispararPreaquecimentoCache(usuario.Id!);
+
             var usuarioMapeado = isCasal
                 ? UsuarioMapper.MapearCasal(usuario, pessoa)
                 : UsuarioMapper.MapearIndividual(usuario);
@@ -217,11 +228,48 @@ namespace CasalPlanner.API.Controllers
 
             SetTokenCookie(token, refreshTokenResult.Token, isMobile);
 
+            DispararPreaquecimentoCache(usuario.Id!);
+
             var usuarioMapeado = isCasal
                 ? UsuarioMapper.MapearCasal(usuario, pessoa)
                 : UsuarioMapper.MapearIndividual(usuario);
 
             return Ok(new { success = true, message = "Login realizado com sucesso", usuario = usuarioMapeado });
+        }
+
+        private void DispararPreaquecimentoCache(string usuarioId)
+        {
+            if (string.IsNullOrWhiteSpace(usuarioId)) return;
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var taskResumo = _resumoService.ObterResumo(usuarioId);
+                    var taskItens = _itemService.GetItensByUsuarioId(usuarioId);
+
+                    async Task AquecerCategorias()
+                    {
+                        var filter = Builders<Categoria>.Filter.Or(
+                            Builders<Categoria>.Filter.Eq(c => c.UsuarioId, null),
+                            Builders<Categoria>.Filter.Eq(c => c.UsuarioId, usuarioId)
+                        );
+                        var cats = await _context.Categorias
+                            .Find(filter)
+                            .SortByDescending(c => c.IsPadrao)
+                            .ThenBy(c => c.Nome)
+                            .ToListAsync();
+                        await _cacheService.SetAsync($"casal:categorias:{usuarioId}", cats, TimeSpan.FromHours(24));
+                    }
+
+                    await Task.WhenAll(taskResumo, taskItens, AquecerCategorias());
+                    _logger.LogInformation("✅ [REDIS PRE-WARM] Cache 100% pronto no Redis para usuário {UsuarioId}!", usuarioId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Aviso no pré-aquecimento não-bloqueante de cache para {UsuarioId}", usuarioId);
+                }
+            });
         }
 
         [Authorize]

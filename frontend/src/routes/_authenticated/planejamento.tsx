@@ -9,29 +9,19 @@ import {
   Pencil,
   Trash2,
   MoreVertical,
-  Sparkles,
   Check,
   ExternalLink,
-  Wallet,
-  Wand2,
   Loader2,
-  ArrowUp,
-  ArrowDown,
   Package,
-  AlertTriangle,
-  Share2,
-  FileText,
-  Download,
-  User,
   Users,
-  Gift,
+  Wallet,
+  AlertTriangle,
 } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -68,9 +58,10 @@ import { brl, toTitleCase } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 
-import { iconFor } from "@/components/planejamento/icon-map";
+import { iconFor, comodoColor } from "@/components/planejamento/icon-map";
 import { CategoriaFormModal } from "@/components/planejamento/CategoriaFormModal";
 import { ItemFormModal } from "@/components/planejamento/ItemFormModal";
+import { PlanejamentoSkeleton, ItemCardSkeleton } from "@/components/ui/LoadingSkeletons";
 
 const AddItemWizard = lazy(() =>
   import("@/components/planejamento/AddItemWizard").then(({ AddItemWizard }) => ({
@@ -79,6 +70,9 @@ const AddItemWizard = lazy(() =>
 );
 
 export const Route = createFileRoute("/_authenticated/planejamento")({
+  validateSearch: (search: Record<string, unknown>): { comodo?: string } => ({
+    comodo: typeof search.comodo === "string" ? search.comodo : undefined,
+  }),
   head: () => ({
     meta: [{ title: "CasalPlanner - Planejamento" }, { name: "robots", content: "noindex" }],
   }),
@@ -87,7 +81,15 @@ export const Route = createFileRoute("/_authenticated/planejamento")({
 
 function PlanejamentoPage() {
   const qc = useQueryClient();
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState<string | null>(null);
+  const { comodo } = Route.useSearch();
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState<string>(() => comodo ?? "tudo");
+
+  useEffect(() => {
+    if (comodo) {
+      setCategoriaSelecionada(comodo);
+    }
+  }, [comodo]);
+
   const [busca, setBusca] = useState("");
   const buscaDebounced = useDeferredValue(busca);
   const [filtroStatus, setFiltroStatus] = useState<
@@ -106,7 +108,6 @@ function PlanejamentoPage() {
   const [excluindoCategoria, setExcluindoCategoria] = useState<Categoria | null>(null);
   const [adicionandoItem, setAdicionandoItem] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
-  const [modalCompartilharOpen, setModalCompartilharOpen] = useState(false);
   const [editandoItem, setEditandoItem] = useState<Item | null>(null);
   const [imagemAmpliada, setImagemAmpliada] = useState<Item | null>(null);
   const [excluindoItem, setExcluindoItem] = useState<Item | null>(null);
@@ -122,9 +123,9 @@ function PlanejamentoPage() {
     queryFn: () => categoriasService.listar(),
   });
 
-  const categorias = categoriasQ.data ?? [];
-  const catAtualId = categoriaSelecionada ?? "tudo";
-  const catAtual = categorias.find((c) => c.id === catAtualId) ?? null;
+  const categorias = useMemo(() => categoriasQ.data ?? [], [categoriasQ.data]);
+  const catAtualId = categoriaSelecionada || "tudo";
+  const catAtual = catAtualId === "tudo" ? null : (categorias.find((c) => c.id === catAtualId) ?? null);
 
   const itensQ = useInfiniteQuery({
     queryKey: [
@@ -151,42 +152,48 @@ function PlanejamentoPage() {
     initialPageParam: 1,
   });
 
-  // Lista plana de todos os itens das páginas carregadas
   const itensFiltrados = useMemo(
     () => itensQ.data?.pages.flatMap((p) => p.items) ?? [],
     [itensQ.data],
   );
 
-  const namesToResolve = useMemo(() => {
-    const names = new Set<string>();
-    itensFiltrados.forEach((it) => {
-      if (it.marca) names.add(it.marca);
-      if (it.loja) names.add(it.loja);
-    });
-    return Array.from(names);
-  }, [itensFiltrados]);
-
-  // Query separada para totais da sidebar (traz tudo sem filtro de busca/status)
   const todosItensQ = useQuery({
     queryKey: ["itens"],
     queryFn: () => itensService.listar(),
     staleTime: 60_000,
   });
-  const todosItens = todosItensQ.data ?? [];
+  const todosItens = useMemo(() => todosItensQ.data ?? [], [todosItensQ.data]);
 
-  const resolvedDomains = {};
+  // Totais globais
+  const totalGastoGeral = useMemo(() => {
+    return todosItens
+      .filter((i) => !["ganho", "presente", "prometido"].includes(i.origem ?? ""))
+      .reduce((s, i) => s + i.preco * i.quantidade, 0);
+  }, [todosItens]);
 
-  const itensCategoria = todosItens.filter(
-    (i) => catAtualId === "tudo" || i.categoriaId === catAtualId,
-  );
-  const totalCategoria = itensCategoria
-    .filter((i) => !["ganho", "presente", "prometido"].includes(i.origem ?? ""))
-    .reduce((s, i) => s + i.preco * i.quantidade, 0);
-  const economiaCategoria = itensCategoria
-    .filter((i) => ["ganho", "presente", "prometido"].includes(i.origem ?? ""))
-    .reduce((s, i) => s + i.preco * i.quantidade, 0);
-  const compradosCategoria = itensCategoria.filter((i) => i.comprado).length;
+  const metaGeral = useMemo(() => {
+    if (usuario?.metaGlobalEnxoval && usuario.metaGlobalEnxoval > 0) {
+      return usuario.metaGlobalEnxoval;
+    }
+    return categorias.reduce((s, c) => s + (c.metaOrcamento || 0), 0);
+  }, [usuario, categorias]);
 
+  // Itens da categoria selecionada ou todos
+  const itensCategoria = useMemo(() => {
+    return todosItens.filter((i) => catAtualId === "tudo" || i.categoriaId === catAtualId);
+  }, [todosItens, catAtualId]);
+
+  const totalCategoria = useMemo(() => {
+    return itensCategoria
+      .filter((i) => !["ganho", "presente", "prometido"].includes(i.origem ?? ""))
+      .reduce((s, i) => s + i.preco * i.quantidade, 0);
+  }, [itensCategoria]);
+
+  const compradosCategoria = useMemo(() => {
+    return itensCategoria.filter((i) => i.comprado).length;
+  }, [itensCategoria]);
+
+  // Divisão de gastos por pessoa
   let totalP1 = 0;
   let totalP2 = 0;
   let totalConjunto = 0;
@@ -206,20 +213,25 @@ function PlanejamentoPage() {
     }
   });
 
-  const percentComprado = itensCategoria.length
-    ? (compradosCategoria / itensCategoria.length) * 100
-    : 0;
-  const percentMeta =
-    catAtual?.metaOrcamento && catAtual.metaOrcamento > 0
-      ? Math.min(100, (totalCategoria / catAtual.metaOrcamento) * 100)
-      : null;
+  const totalDinheiro = useMemo(() => {
+    const totalVr = itensCategoria
+      .filter(
+        (i) =>
+          i.pagamento === "vr" && !["ganho", "presente", "prometido"].includes(i.origem ?? ""),
+      )
+      .reduce((s, i) => s + i.preco * i.quantidade, 0);
+    return Math.max(0, totalCategoria - totalVr);
+  }, [itensCategoria, totalCategoria]);
+
+  const metaAtual = catAtual?.metaOrcamento || (catAtualId === "tudo" ? metaGeral : 0);
+  const restanteAtual = Math.max(0, metaAtual - totalCategoria);
+  const estourouAtual = metaAtual > 0 && totalCategoria > metaAtual;
 
   const toggleComprado = useMutation({
     mutationFn: ({ id, comprado }: { id: string; comprado: boolean }) =>
       itensService.toggleComprado(id, comprado),
     onMutate: async ({ id, comprado }) => {
       await qc.cancelQueries({ queryKey: ["itens-paginado"] });
-      // Optimistic update nas páginas do infinite query
       qc.setQueriesData({ queryKey: ["itens-paginado"] }, (old: unknown) => {
         if (!old || typeof old !== "object") return old;
         const data = old as { pages: Array<{ items: Item[] }> };
@@ -259,33 +271,372 @@ function PlanejamentoPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["categorias"] });
       setExcluindoCategoria(null);
-      setCategoriaSelecionada(null);
+      setCategoriaSelecionada("tudo");
       toast.success("Cômodo removido");
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  // Estimativa de comodo não disponível nessa versão do backend
+  if (categoriasQ.isLoading && categorias.length === 0) {
+    return <PlanejamentoSkeleton />;
+  }
 
   return (
-    <div className="p-4 md:p-8 w-full max-w-[1600px] space-y-6">
-      <header className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <h1 className="font-display text-2xl md:text-4xl font-semibold leading-tight">
+    <div className="w-full space-y-6">
+      {/* Sidebar categories portaled into AppShell desktop sidebar */}
+      {portalTarget &&
+        createPortal(
+          <div className="flex flex-col gap-1.5 w-full shrink-0">
+            {/* Card Todos Os Itens */}
+            <div
+              onClick={() => setCategoriaSelecionada("tudo")}
+              className={cn(
+                "group flex items-center gap-3 rounded-xl p-2.5 transition-all cursor-pointer border-2 select-none",
+                catAtualId === "tudo"
+                  ? "bg-primary/10 border-primary text-foreground shadow-[2px_2px_0_var(--border)] font-bold"
+                  : "bg-card border-border/70 hover:bg-muted/60 text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <span className="grid place-items-center h-8 w-8 rounded-lg text-white shrink-0 bg-primary shadow-xs">
+                <Package className="h-4 w-4" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-xs sm:text-sm truncate text-foreground">Todos Os Itens</div>
+                <div className="text-[11px] font-semibold text-muted-foreground mt-0.5">
+                  <span>
+                    {todosItens.filter((i) => i.comprado).length}/{todosItens.length} -{" "}
+                    <span className="tabular-nums font-bold text-foreground">
+                      {brl(totalGastoGeral)}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Cômodos */}
+            {categorias.map((c) => {
+              const I = iconFor(c.icon);
+              const ativo = c.id === catAtualId;
+              const cItens = todosItens.filter((it) => it.categoriaId === c.id);
+              const cComprados = cItens.filter((it) => it.comprado).length;
+              const cGasto = cItens
+                .filter((it) => !["ganho", "presente", "prometido"].includes(it.origem ?? ""))
+                .reduce((s, it) => s + it.preco * it.quantidade, 0);
+
+              return (
+                <div
+                  key={c.id}
+                  onClick={() => setCategoriaSelecionada(c.id)}
+                  className={cn(
+                    "group flex items-center gap-3 rounded-xl p-2.5 transition-all cursor-pointer border-2 select-none",
+                    ativo
+                      ? "bg-primary/10 border-primary text-foreground shadow-[2px_2px_0_var(--border)] font-bold"
+                      : "bg-card border-border/70 hover:bg-muted/60 text-muted-foreground hover:text-foreground",
+                    c.metaOrcamento && cGasto > c.metaOrcamento && !ativo && "border-destructive/40 bg-destructive/5",
+                  )}
+                >
+                  <span
+                    className="grid place-items-center h-8 w-8 rounded-lg text-white shrink-0 shadow-xs"
+                    style={{ backgroundColor: comodoColor(c.bg, c.nome) }}
+                  >
+                    <I className="h-4 w-4" />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-xs sm:text-sm truncate flex items-center gap-1.5 capitalize text-foreground">
+                      {c.nome}
+                      {c.metaOrcamento && cGasto > c.metaOrcamento && (
+                        <span title="Orçamento estourado" className="inline-flex shrink-0">
+                          <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] font-semibold text-muted-foreground mt-0.5">
+                      <span>
+                        {cComprados}/{cItens.length} -{" "}
+                        <span className="tabular-nums font-bold text-foreground">
+                          {brl(cGasto)}
+                        </span>
+                      </span>
+                      {c.metaOrcamento ? (
+                        <div className="mt-1 h-1 w-full bg-muted rounded-full overflow-hidden border border-border/40">
+                          <div
+                            className={cn(
+                              "h-full rounded-full transition-all",
+                              cGasto / c.metaOrcamento < 0.8
+                                ? "bg-emerald-500"
+                                : cGasto / c.metaOrcamento <= 1
+                                  ? "bg-amber-500"
+                                  : "bg-destructive",
+                            )}
+                            style={{
+                              width: `${Math.min(100, (cGasto / c.metaOrcamento) * 100)}%`,
+                            }}
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        className="p-1 rounded-md text-muted-foreground hover:text-foreground opacity-30 group-hover:opacity-100 transition-opacity"
+                        title="Opções do cômodo"
+                      >
+                        <MoreVertical className="h-3.5 w-3.5" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setEditandoCategoria(c)}>
+                        <Pencil className="h-4 w-4 mr-2" /> Editar cômodo
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => setExcluindoCategoria(c)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" /> Excluir cômodo
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              );
+            })}
+          </div>,
+          portalTarget,
+        )}
+
+      {/* Page Header */}
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
             Planejamento
           </h1>
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="flex flex-wrap items-center gap-2"></div>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="hidden sm:inline-flex"
-              onClick={() => setNovaCategoria(true)}
+          <p className="text-xs sm:text-sm font-semibold text-muted-foreground mt-0.5">
+            Organize os itens por cômodo e controle o orçamento.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5 shrink-0">
+          <Button
+            variant="outline"
+            className="btn-sticker bg-card text-foreground font-bold text-xs sm:text-sm"
+            onClick={() => setNovaCategoria(true)}
+          >
+            <Plus className="h-3.5 w-3.5 mr-1" /> Novo cômodo
+          </Button>
+          <Button
+            className="btn-sticker bg-primary text-primary-foreground font-bold text-xs sm:text-sm"
+            onClick={() => {
+              if (categorias.length === 0) {
+                toast.info("Crie seu primeiro cômodo para organizar os itens!");
+                setNovaCategoria(true);
+              } else {
+                setWizardOpen(true);
+              }
+            }}
+          >
+            <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar item
+          </Button>
+        </div>
+      </header>
+
+      {/* Mobile Selector for Rooms (md:hidden) */}
+      <div className="md:hidden">
+        <Select
+          value={catAtualId}
+          onValueChange={(v) => setCategoriaSelecionada(v === "tudo" ? "tudo" : v)}
+        >
+          <SelectTrigger className="w-full card-sticker">
+            <SelectValue placeholder="Selecione um cômodo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="tudo">Todos os itens ({todosItens.length})</SelectItem>
+            {categorias.map((c) => {
+              const count = todosItens.filter((it) => it.categoriaId === c.id).length;
+              return (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.nome} ({count})
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Summary Card exactly matching media_1791749066370.png */}
+      <div className="card-sticker p-4 sm:p-5 bg-card flex flex-col lg:flex-row lg:items-center justify-between gap-5 shadow-[3px_3px_0_var(--border)]">
+        {/* Left: Category Icon & Title */}
+        <div className="flex items-center gap-3.5">
+          <span
+            className="grid place-items-center h-12 w-12 rounded-xl text-white shrink-0 border-2 border-border/20 shadow-sm"
+            style={{ backgroundColor: catAtual ? comodoColor(catAtual.bg, catAtual.nome) : "#2F7D5B" }}
+          >
+            {(() => {
+              const I = catAtual ? iconFor(catAtual.icon) : Package;
+              return <I className="h-6 w-6" />;
+            })()}
+          </span>
+          <div>
+            <div className="font-display text-lg sm:text-xl font-bold flex items-center gap-2 capitalize text-foreground">
+              {catAtual ? catAtual.nome : "Todos Os Itens"}
+              {catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento && (
+                <span title="Orçamento estourado" className="inline-flex">
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                </span>
+              )}
+            </div>
+            <div className="text-xs text-muted-foreground font-semibold">
+              {compradosCategoria} comprados de {itensCategoria.length} itens
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Metrics (Total Gasto, Dinheiro, Casal) */}
+        <div className="flex items-center gap-6 sm:gap-8 flex-wrap">
+          <div className="flex flex-col">
+            <span className="text-xs text-muted-foreground font-semibold mb-0.5">Total gasto</span>
+            <span
+              className={cn(
+                "font-display text-xl sm:text-2xl font-bold leading-none tabular-nums",
+                ((catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento) ||
+                (!catAtual && usuario?.metaGlobalEnxoval && totalCategoria > usuario.metaGlobalEnxoval))
+                  ? "text-destructive"
+                  : "text-foreground",
+              )}
             >
-              <Plus className="h-4 w-4 mr-1" /> Novo cômodo
-            </Button>
+              {brl(totalCategoria)}
+            </span>
+            {(catAtual?.metaOrcamento || (!catAtual && usuario?.metaGlobalEnxoval)) ? (
+              <span className="text-[11px] text-muted-foreground mt-1 font-semibold">
+                meta: {brl(catAtual?.metaOrcamento || usuario?.metaGlobalEnxoval || 0)}
+              </span>
+            ) : null}
+          </div>
+
+          <div className="h-8 w-px bg-border/60 hidden sm:block" />
+
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
+              <Wallet className="w-3.5 h-3.5" /> Dinheiro
+            </div>
+            <span className="font-bold text-sm text-foreground tabular-nums">
+              {brl(totalDinheiro)}
+            </span>
+          </div>
+
+          {isCasal && (
+            <>
+              <div className="h-8 w-px bg-border/60 hidden sm:block" />
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
+                  <Users className="w-3.5 h-3.5" /> Casal
+                </div>
+                <div className="text-xs font-bold text-muted-foreground flex items-center gap-2 flex-wrap">
+                  <span>
+                    {p1.split(" ")[0]}: <span className="text-foreground tabular-nums">{brl(totalP1)}</span>
+                  </span>
+                  <span>|</span>
+                  <span>
+                    {p2.split(" ")[0]}: <span className="text-foreground tabular-nums">{brl(totalP2)}</span>
+                  </span>
+                  {totalConjunto > 0 && (
+                    <>
+                      <span>|</span>
+                      <span>
+                        Juntos: <span className="text-foreground tabular-nums">{brl(totalConjunto)}</span>
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="flex flex-col sm:flex-row items-center gap-2.5">
+        <div className="relative w-full sm:flex-1">
+          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <Input
+            className="pl-9 h-10 text-xs sm:text-sm card-sticker w-full"
+            placeholder="Buscar item ou marca..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+          <Select
+            value={filtroStatus}
+            onValueChange={(v) => setFiltroStatus(v as typeof filtroStatus)}
+          >
+            <SelectTrigger className="h-10 text-xs sm:text-sm card-sticker w-28 sm:w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="faltando">Faltando</SelectItem>
+              <SelectItem value="comprados">Comprados</SelectItem>
+              <SelectItem value="presentes">Presentes</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={filtroPagamento}
+            onValueChange={(v) => setFiltroPagamento(v as typeof filtroPagamento)}
+          >
+            <SelectTrigger className="h-10 text-xs sm:text-sm card-sticker w-32 sm:w-36">
+              <SelectValue placeholder="Pagamento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Pagamento</SelectItem>
+              <SelectItem value="normal">Dinheiro</SelectItem>
+              <SelectItem value="vr">VR / VA</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {isCasal && (
+            <Select
+              value={filtroResponsavel}
+              onValueChange={(v) => setFiltroResponsavel(v as typeof filtroResponsavel)}
+            >
+              <SelectTrigger className="h-10 text-xs sm:text-sm card-sticker w-32 sm:w-36">
+                <SelectValue placeholder="Responsável" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Responsável</SelectItem>
+                <SelectItem value="1">{p1.split(" ")[0]}</SelectItem>
+                <SelectItem value="2">{p2.split(" ")[0]}</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+      </div>
+
+      {/* Horizontal Items List matching media_1791749066370.png */}
+      <motion.div layout className="flex flex-col gap-2.5">
+        {itensQ.isLoading && (
+          <div className="flex flex-col gap-2.5">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <ItemCardSkeleton key={i} />
+            ))}
+          </div>
+        )}
+
+        {!itensQ.isLoading && itensFiltrados.length === 0 && (
+          <div className="card-sticker p-12 text-center bg-card">
+            <Package className="h-10 w-10 mx-auto text-muted-foreground/60 mb-3" />
+            <h3 className="font-display font-bold text-lg text-foreground mb-1">
+              Nenhum item encontrado
+            </h3>
+            <p className="text-xs font-semibold text-muted-foreground mb-5 max-w-sm mx-auto">
+              Tente ajustar os filtros ou adicione um novo produto.
+            </p>
             <Button
-              size="sm"
+              className="btn-sticker bg-primary text-primary-foreground font-bold"
               onClick={() => {
                 if (categorias.length === 0) {
                   toast.info("Crie seu primeiro cômodo para organizar os itens!");
@@ -295,639 +646,290 @@ function PlanejamentoPage() {
                 }
               }}
             >
-              <Plus className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">Adicionar item</span>
-              <span className="sm:hidden">Item</span>
+              <Plus className="h-4 w-4 mr-1.5" /> Adicionar item
             </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="sm:hidden" aria-label="Mais ações">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setNovaCategoria(true)}>
-                  <Plus className="h-4 w-4" /> Novo cômodo
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
-        </div>
-        <p className="text-muted-foreground mt-1 text-sm md:text-base max-w-xl">
-          Organize os itens por cômodo e controle o orçamento.
-        </p>
-      </header>
+        )}
 
-      {/* Mobile: Select dropdown for rooms */}
-      <div className="lg:hidden">
-        <Select
-          value={catAtualId}
-          onValueChange={(v) => setCategoriaSelecionada(v === "tudo" ? "tudo" : v)}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Selecione um cômodo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="tudo">Todos os Itens</SelectItem>
-            {categorias.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
-                {c.nome} {c.metaOrcamento ? `(Meta: ${brl(c.metaOrcamento)})` : ""}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+        <AnimatePresence mode="popLayout">
+          {itensFiltrados.map((it) => {
+            const itemCategoria = categorias.find((c) => c.id === it.categoriaId);
+            const Icon = iconFor(itemCategoria?.icon ?? "package");
+            const isPresente = ["ganho", "presente"].includes(it.origem ?? "");
+            const isPrometido = it.origem === "prometido";
+            const responsavelNum = it.responsavelId;
 
-      <div className="flex flex-col lg:flex-row gap-4">
-        {/* Desktop: Sidebar with rooms */}
-        {portalTarget &&
-          createPortal(
-            <aside className="hidden lg:flex flex-col gap-1.5 w-full shrink-0">
-              <hr className="border-border/50 mb-2 -mx-3" />
-              {categoriasQ.isLoading && (
-                <div className="text-sm text-muted-foreground px-3">Carregando...</div>
-              )}
-              <div
+            const nomeResponsavel =
+              responsavelNum === 1
+                ? p1.split(" ")[0]
+                : responsavelNum === 2
+                  ? p2.split(" ")[0]
+                  : "Casal";
+
+            return (
+              <motion.div
+                layout
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.15 }}
+                key={it.id}
                 className={cn(
-                  "group flex items-center gap-3 rounded-lg p-2.5 transition-all cursor-pointer",
-                  catAtualId === "tudo"
-                    ? "border border-primary/20 bg-primary/5"
-                    : "border border-transparent hover:bg-accent/40",
+                  "group card-sticker p-3 sm:p-4 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[2px_2px_0_var(--border)] transition-all",
+                  it.comprado && "bg-muted/30 border-border/60 shadow-none",
                 )}
-                onClick={() => setCategoriaSelecionada("tudo")}
               >
-                <span className="grid place-items-center h-8 w-8 rounded-lg text-white shrink-0 bg-primary/80 shadow-sm">
-                  <Package className="h-4 w-4" />
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">Todos os Itens</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">
-                    <div className="flex justify-between items-center">
-                      <span>
-                        {todosItens.filter((i) => i.comprado).length}/{todosItens.length} -{" "}
-                        <span
-                          className={cn(catAtualId === "tudo" ? "text-foreground font-medium" : "")}
+                {/* Left: Checkbox + Thumbnail + Info */}
+                <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
+                  {/* Checkbox */}
+                  <Checkbox
+                    className={cn(
+                      "h-5 w-5 rounded-md border-2 shrink-0 cursor-pointer",
+                      it.comprado && "data-[state=checked]:bg-[#2F7D5B] data-[state=checked]:border-[#2F7D5B]",
+                    )}
+                    checked={it.comprado}
+                    onCheckedChange={() =>
+                      toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
+                    }
+                    aria-label={it.comprado ? "Desmarcar comprado" : "Marcar como comprado"}
+                  />
+
+                  {/* Thumbnail / Room Icon */}
+                  {it.fotoUrl && !imageErrors[it.id] ? (
+                    <button
+                      type="button"
+                      onClick={() => setImagemAmpliada(it)}
+                      className={cn(
+                        "h-12 w-12 rounded-xl border-2 border-border overflow-hidden shrink-0 bg-background transition-transform hover:scale-105",
+                        it.comprado && "opacity-60 grayscale",
+                      )}
+                      title="Ver foto do item"
+                    >
+                      <img
+                        src={it.fotoUrl}
+                        alt={it.nome}
+                        className="h-full w-full object-cover"
+                        onError={() => setImageErrors((prev) => ({ ...prev, [it.id]: true }))}
+                      />
+                    </button>
+                  ) : (
+                    <div
+                      className={cn(
+                        "h-12 w-12 rounded-xl border-2 border-border/60 grid place-items-center text-white shrink-0 shadow-xs",
+                        it.comprado && "opacity-60 grayscale",
+                      )}
+                      style={{
+                        backgroundColor: itemCategoria
+                          ? comodoColor(itemCategoria.bg, itemCategoria.nome)
+                          : "#2F7D5B",
+                      }}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+                  )}
+
+                  {/* Main Title & Subtitle Info */}
+                  <div className="flex-1 min-w-0 py-0.5">
+                    {/* Title + Badges */}
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <button
+                        type="button"
+                        onClick={() => setEditandoItem(it)}
+                        className={cn(
+                          "font-bold text-sm sm:text-base text-foreground hover:text-primary transition-colors text-left truncate max-w-full block",
+                          it.comprado && "line-through text-muted-foreground",
+                        )}
+                        title={it.nome}
+                      >
+                        {toTitleCase(it.nome)}
+                      </button>
+
+                      {/* Badge Origem (Ganho/Presente/Prometido) */}
+                      {isPresente && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] py-0 px-2 h-4.5 font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300"
                         >
-                          {brl(
-                            todosItens
-                              .filter(
-                                (i) => !["ganho", "presente", "prometido"].includes(i.origem ?? ""),
-                              )
-                              .reduce((s, i) => s + i.preco * i.quantidade, 0),
+                          Ganho
+                        </Badge>
+                      )}
+                      {isPrometido && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] py-0 px-2 h-4.5 font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300"
+                        >
+                          Prometido
+                        </Badge>
+                      )}
+
+                      {/* Badge Prioridade Alta / Urgente */}
+                      {it.prioridade === "alta" && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] py-0 px-2 h-4.5 font-bold bg-destructive/10 text-destructive border-destructive/30"
+                        >
+                          Urgente
+                        </Badge>
+                      )}
+
+                      {/* Badge Responsável / Casal */}
+                      {isCasal && (
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "text-[10px] py-0 px-2 h-4.5 font-bold border",
+                            responsavelNum === 1
+                              ? "bg-[#2F7D5B]/10 text-[#2F7D5B] border-[#2F7D5B]/30"
+                              : responsavelNum === 2
+                                ? "bg-[#E8B63C]/15 text-[#976D04] dark:text-[#E8B63C] border-[#E8B63C]/40"
+                                : "bg-muted text-muted-foreground border-border",
                           )}
-                        </span>
-                      </span>
+                        >
+                          {nomeResponsavel}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Subtitle details: Cômodo • Forma Pagto • Marca • Loja */}
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap font-medium">
+                      <span className="truncate">{itemCategoria?.nome ?? "Sem cômodo"}</span>
+                      <span>•</span>
+                      <span>{it.pagamento === "vr" ? "VR/VA" : "Dinheiro"}</span>
+
+                      {it.marca && (
+                        <>
+                          <span>•</span>
+                          <span className="text-foreground/80 font-semibold">{toTitleCase(it.marca)}</span>
+                        </>
+                      )}
+
+                      {it.loja && (
+                        <>
+                          <span>•</span>
+                          <div className="flex items-center gap-1 text-foreground/85 font-semibold">
+                            <LogoBadge
+                              urls={getLogoUrls(it.loja, it.linkProduto)}
+                              className="w-3.5 h-3.5 rounded object-contain shrink-0"
+                            />
+                            <span>em {toTitleCase(it.loja)}</span>
+                            {it.linkProduto && (
+                              <a
+                                href={it.linkProduto}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-muted-foreground hover:text-primary transition-colors ml-0.5"
+                                title="Abrir no site da loja"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <ExternalLink className="h-3 w-3 inline" />
+                              </a>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
-              </div>
-              {categorias.map((c) => {
-                const I = iconFor(c.icon);
-                const ativo = c.id === catAtualId;
-                const cItens = todosItens.filter((it) => it.categoriaId === c.id);
-                const cComprados = cItens.filter((it) => it.comprado).length;
-                const cGasto = cItens
-                  .filter((it) => !["ganho", "presente", "prometido"].includes(it.origem ?? ""))
-                  .reduce((s, it) => s + it.preco * it.quantidade, 0);
 
-                return (
-                  <div
-                    key={c.id}
-                    className={cn(
-                      "group flex items-center gap-3 rounded-lg p-2.5 transition-all cursor-pointer",
-                      ativo
-                        ? "border border-primary/20 bg-primary/5"
-                        : "border border-transparent hover:bg-accent/40",
-                      c.metaOrcamento && cGasto > c.metaOrcamento && !ativo && "bg-destructive/5",
-                    )}
-                    onClick={() => setCategoriaSelecionada(c.id)}
-                  >
-                    <span
-                      className="grid place-items-center h-8 w-8 rounded-md text-white shrink-0"
-                      style={{ backgroundColor: c.bg }}
+                {/* Right: Price + Installments + Menu */}
+                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 sm:pl-3 sm:border-l sm:border-border/30">
+                  <div className="text-left sm:text-right">
+                    <div
+                      className={cn(
+                        "font-display font-bold text-base sm:text-lg tabular-nums leading-none",
+                        it.comprado ? "text-muted-foreground" : "text-foreground",
+                      )}
                     >
-                      <I className="h-4 w-4" />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate flex items-center gap-2 capitalize">
-                        {c.nome}
-                        {c.metaOrcamento && cGasto > c.metaOrcamento && (
-                          <span className="text-destructive" title="Orçamento estourado">
-                            <AlertTriangle className="h-3.5 w-3.5" />
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">
-                        <div className="flex justify-between items-center">
-                          <span>
-                            {cComprados}/{cItens.length} -{" "}
-                            <span
-                              className={cn(
-                                ativo && "text-foreground font-medium",
-                                c.metaOrcamento && cGasto > c.metaOrcamento && "text-destructive",
-                              )}
-                            >
-                              {brl(cGasto)}
-                            </span>
-                          </span>
-                        </div>
-                        {c.metaOrcamento ? (
-                          <div className="mt-1 space-y-1">
-                            <div className="h-0.5 w-full bg-border rounded-full overflow-hidden">
-                              <div
-                                className={cn(
-                                  "h-full rounded-full transition-all",
-                                  cGasto / c.metaOrcamento < 0.8
-                                    ? "bg-emerald-500"
-                                    : cGasto / c.metaOrcamento <= 1
-                                      ? "bg-amber-500"
-                                      : "bg-destructive",
-                                )}
-                                style={{
-                                  width: `${Math.min(100, (cGasto / c.metaOrcamento) * 100)}%`,
-                                }}
-                              />
-                            </div>
-                          </div>
-                        ) : null}
-                      </div>
+                      {brl(it.preco * it.quantidade)}
                     </div>
+                    <div className="text-[11px] text-muted-foreground font-semibold mt-1">
+                      {it.quantidade > 1 ? (
+                        <span>
+                          {it.quantidade}x {brl(it.preco)}
+                        </span>
+                      ) : (
+                        <span>1x {brl(it.preco)}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Menu Actions */}
+                  <div className="shrink-0">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuTrigger asChild>
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="ghost"
-                          className="h-6 w-6 p-0 md:opacity-0 md:group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                          title="Opções"
                         >
-                          <MoreVertical className="h-3 w-3" />
+                          <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenuItem onClick={() => setEditandoCategoria(c)}>
-                          <Pencil className="h-4 w-4 mr-2" /> Editar
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => setEditandoItem(it)}>
+                          <Pencil className="h-4 w-4 mr-2" /> Editar item
                         </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
+                          }
+                        >
+                          <Check className="h-4 w-4 mr-2" />
+                          {it.comprado ? "Marcar pendente" : "Marcar comprado"}
+                        </DropdownMenuItem>
+                        {it.linkProduto && (
+                          <DropdownMenuItem asChild>
+                            <a href={it.linkProduto} target="_blank" rel="noreferrer">
+                              <ExternalLink className="h-4 w-4 mr-2" /> Abrir no site
+                            </a>
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => setExcluindoCategoria(c)}
+                          onClick={() => setExcluindoItem(it)}
                         >
                           <Trash2 className="h-4 w-4 mr-2" /> Remover
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                );
-              })}
-
-              {!categoriasQ.isLoading && categorias.length === 0 && (
-                <div className="rounded-[var(--radius-lg)] border border-dashed p-4 mx-3 mt-2 text-center text-xs text-muted-foreground">
-                  Nenhum cômodo ainda. Crie o primeiro para começar.
                 </div>
-              )}
-            </aside>,
-            portalTarget,
-          )}
-
-        {/* Painel principal */}
-        <section className="flex-1 space-y-4 min-w-0">
-          {catAtualId === "tudo" || catAtual ? (
-            <>
-              <div className="flex flex-col gap-4 mb-6">
-                {/* Resumo da Categoria */}
-                <div className="flex flex-col lg:flex-row gap-4 lg:items-center justify-between rounded-[var(--radius-lg)] bg-card border p-4 shadow-sm">
-                  {/* Info da Categoria */}
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="grid place-items-center h-12 w-12 rounded-lg text-white shrink-0"
-                      style={{ backgroundColor: catAtual ? catAtual.bg : "#27272a" }}
-                    >
-                      {(() => {
-                        const I = catAtual ? iconFor(catAtual.icon) : Package;
-                        return <I className="h-6 w-6" />;
-                      })()}
-                    </span>
-                    <div>
-                      <div className="font-display text-lg font-semibold flex items-center gap-2 capitalize">
-                        {catAtual ? catAtual.nome : "Todos os itens"}
-                        {catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento && (
-                          <span title="Orçamento estourado">
-                            <AlertTriangle className="h-4 w-4 text-destructive" />
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-muted-foreground font-medium">
-                        {compradosCategoria} comprados de {itensCategoria.length} itens
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Financeiro */}
-                  <div className="flex items-center gap-6 divide-x">
-                    <div className="flex flex-col">
-                      <span className="text-xs text-muted-foreground font-medium mb-0.5">Total gasto</span>
-                      <span className={cn(
-                        "font-display text-xl font-bold leading-none",
-                        ((catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento) ||
-                        (!catAtual && usuario?.metaGlobalEnxoval && totalCategoria > usuario.metaGlobalEnxoval))
-                          ? "text-destructive"
-                          : "text-primary"
-                      )}>
-                        {brl(totalCategoria)}
-                      </span>
-                      {(catAtual?.metaOrcamento || (!catAtual && usuario?.metaGlobalEnxoval)) ? (
-                        <span className="text-[10px] text-muted-foreground mt-1">
-                          meta: {brl(catAtual?.metaOrcamento || usuario?.metaGlobalEnxoval || 0)}
-                        </span>
-                      ) : null}
-                    </div>
-
-                    <div className="flex gap-4 pl-6">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                          <Wallet className="w-3.5 h-3.5" /> Dinheiro
-                        </div>
-                        <span className="font-semibold text-sm">{brl(totalCategoria - (itensCategoria.filter(i => i.pagamento === 'vr').reduce((s, i) => s + i.preco * i.quantidade, 0)))}</span>
-                      </div>
-                      {isCasal && (
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                            <Users className="w-3.5 h-3.5" /> Casal
-                          </div>
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-semibold text-foreground font-mono">
-                            <span>
-                              <span className="text-muted-foreground font-normal text-xs mr-1">{p1.split(' ')[0]}:</span>
-                              {brl(totalP1)}
-                            </span>
-                            <span className="text-muted-foreground/60">|</span>
-                            <span>
-                              <span className="text-muted-foreground font-normal text-xs mr-1">{p2.split(' ')[0]}:</span>
-                              {brl(totalP2)}
-                            </span>
-                            {totalConjunto > 0 && (
-                              <>
-                                <span className="text-muted-foreground/60">|</span>
-                                <span>
-                                  <span className="text-muted-foreground font-normal text-xs mr-1">Juntos:</span>
-                                  {brl(totalConjunto)}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progress Bar (se houver meta) */}
-                {(percentMeta !== null || (!catAtual && usuario?.metaGlobalEnxoval)) && (
-                  <div className="px-1">
-                    <Progress
-                      value={percentMeta !== null ? percentMeta : (totalCategoria / (usuario?.metaGlobalEnxoval || 1)) * 100}
-                      className="h-1.5"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Filtros */}
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-                <div className="relative w-full lg:flex-1">
-                  <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    className="pl-9"
-                    placeholder="Buscar item ou marca..."
-                    value={busca}
-                    onChange={(e) => setBusca(e.target.value)}
-                  />
-                </div>
-                <div
-                  className={cn(
-                    "grid gap-2 w-full lg:w-auto",
-                    isCasal ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2",
-                  )}
-                >
-                  <Select
-                    value={filtroStatus}
-                    onValueChange={(v) => setFiltroStatus(v as typeof filtroStatus)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos</SelectItem>
-                      <SelectItem value="faltando">Faltando</SelectItem>
-                      <SelectItem value="comprados">Comprados</SelectItem>
-                      <SelectItem value="presentes">Presentes</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={filtroPagamento}
-                    onValueChange={(v) => setFiltroPagamento(v as typeof filtroPagamento)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Pagamento</SelectItem>
-                      <SelectItem value="normal">Dinheiro</SelectItem>
-                      <SelectItem value="vr">VR / VA</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {isCasal && (
-                    <Select
-                      value={filtroResponsavel}
-                      onValueChange={(v) => setFiltroResponsavel(v as typeof filtroResponsavel)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todos">Responsável</SelectItem>
-                        <SelectItem value="1">{p1}</SelectItem>
-                        <SelectItem value="2">{p2}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-              </div>
-
-              {/* Itens */}
-              {/* Itens */}
-              <motion.div layout className="flex flex-col gap-2.5">
-                {itensQ.isLoading && (
-                  <div className="py-8 text-sm text-center text-muted-foreground">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 opacity-50" />
-                    Carregando itens...
-                  </div>
-                )}
-                {!itensQ.isLoading && itensFiltrados.length === 0 && (
-                  <div className="rounded-[var(--radius-lg)] border border-dashed p-12 text-center bg-muted/10">
-                    <Package className="h-10 w-10 mx-auto text-primary/40 mb-3" />
-                    <p className="text-sm font-medium text-foreground">
-                      Nenhum item encontrado.
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1 mb-4">
-                      Tente ajustar os filtros ou adicione um novo produto.
-                    </p>
-                    <Button
-                      onClick={() => {
-                        if (categorias.length === 0) {
-                          toast.info("Crie seu primeiro cômodo para organizar os itens!");
-                          setNovaCategoria(true);
-                        } else {
-                          setWizardOpen(true);
-                        }
-                      }}
-                    >
-                      <Plus className="h-4 w-4 mr-1" /> Adicionar item
-                    </Button>
-                  </div>
-                )}
-
-                <AnimatePresence mode="popLayout">
-                  {itensFiltrados.map((it) => (
-                    <motion.div
-                      layout
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.98 }}
-                      transition={{ duration: 0.2 }}
-                      key={it.id}
-                      className={cn(
-                        "group flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-[var(--radius-lg)] border bg-card transition-colors hover:border-primary/40 shadow-sm relative overflow-hidden",
-                        it.comprado && "bg-muted/30 border-transparent shadow-none"
-                      )}
-                    >
-                      {/* Checkbox and Image */}
-                      <div className="flex items-center gap-3 shrink-0">
-                        <Checkbox
-                          className={cn("h-5 w-5", it.comprado && "rounded-full opacity-50")}
-                          checked={it.comprado}
-                          onCheckedChange={() =>
-                            toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
-                          }
-                        />
-                        {it.fotoUrl && !imageErrors[it.id] ? (
-                          <button
-                            type="button"
-                            onClick={() => setImagemAmpliada(it)}
-                            className={cn(
-                              "h-12 w-12 shrink-0 rounded-lg overflow-hidden border bg-background transition-opacity",
-                              it.comprado && "opacity-50 grayscale"
-                            )}
-                          >
-                            <img
-                              src={it.fotoUrl}
-                              alt={it.nome}
-                              className="h-full w-full object-cover hover:scale-110 transition-transform"
-                              onError={() => setImageErrors((prev) => ({ ...prev, [it.id]: true }))}
-                            />
-                          </button>
-                        ) : (
-                          <div
-                            className={cn(
-                              "h-12 w-12 rounded-lg grid place-items-center text-white shrink-0",
-                              it.comprado && "opacity-50 grayscale"
-                            )}
-                            style={{
-                              backgroundColor: categorias.find((c) => c.id === it.categoriaId)?.bg ?? "#27272a",
-                            }}
-                          >
-                            {(() => {
-                              const I = iconFor(categorias.find((c) => c.id === it.categoriaId)?.icon ?? "package");
-                              return <I className="h-5 w-5" />;
-                            })()}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Main Info */}
-                      <div className="flex-1 min-w-0 py-1">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <button
-                            type="button"
-                            onClick={() => setEditandoItem(it)}
-                            className={cn(
-                              "font-semibold text-sm truncate hover:text-primary hover:underline transition-colors focus:outline-none",
-                              it.comprado ? "text-muted-foreground line-through" : "text-foreground"
-                            )}
-                          >
-                            {toTitleCase(it.nome)}
-                          </button>
-                          
-                          {/* Status Badge */}
-                          {(it.origem === "ganho" || it.origem === "presente" || it.origem === "prometido" || it.origem === "desejo") && (
-                            <Badge variant="outline" className={cn(
-                              "text-[9px] py-0 px-1.5 h-4 capitalize border",
-                              it.origem === "ganho" || it.origem === "presente" ? "bg-emerald-500/10 text-emerald-600 border-emerald-200" :
-                              it.origem === "prometido" ? "bg-amber-500/10 text-amber-600 border-amber-200" :
-                              "bg-purple-500/10 text-purple-600 border-purple-200"
-                            )}>
-                              {it.origem}
-                            </Badge>
-                          )}
-                          {it.prioridade === "alta" && (
-                            <Badge variant="outline" className="text-[9px] py-0 px-1.5 h-4 bg-red-500/10 text-red-600 border-red-200">
-                              Urgente
-                            </Badge>
-                          )}
-                          {isCasal && (
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                "text-[9px] py-0 px-1.5 h-4 font-mono font-medium border",
-                                it.divisaoPagamento
-                                  ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800"
-                                  : it.responsavelId === 1
-                                  ? "bg-primary/10 text-primary border-primary/20"
-                                  : it.responsavelId === 2
-                                  ? "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-200 dark:border-violet-800"
-                                  : "bg-muted/40 text-muted-foreground border-border"
-                              )}
-                            >
-                              {it.divisaoPagamento
-                                ? "50/50"
-                                : it.responsavelId === 1
-                                ? p1.split(" ")[0]
-                                : it.responsavelId === 2
-                                ? p2.split(" ")[0]
-                                : "Casal"}
-                            </Badge>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span className="truncate max-w-[120px] font-medium">
-                            {categorias.find((c) => c.id === it.categoriaId)?.nome || "Sem cômodo"}
-                          </span>
-                          <span className="opacity-50">•</span>
-                          <span>{it.pagamento === "vr" ? "VR/VA" : "Dinheiro"}</span>
-                          
-                          {(it.marca || it.loja) && (
-                            <>
-                              <span className="opacity-50">•</span>
-                              <div className="flex gap-1.5 items-center truncate">
-                                {it.marca && <span className="font-medium text-foreground/80">{toTitleCase(it.marca)}</span>}
-                                {it.loja && (
-                                  <span className="flex items-center gap-1.5 font-medium text-foreground/90">
-                                    <LogoBadge urls={getLogoUrls(it.loja, it.linkProduto)} className="w-3.5 h-3.5 rounded-[var(--radius-sm)] shrink-0 object-contain" />
-                                    em {toTitleCase(it.loja)}
-                                    {it.linkProduto && <ExternalLink className="h-3 w-3 opacity-50" />}
-                                  </span>
-                                )}
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Pricing and Actions */}
-                      <div className="flex items-center gap-4 sm:pl-4 sm:border-l sm:ml-auto">
-                        <div className="text-right shrink-0">
-                          <div className={cn(
-                            "font-display font-bold text-base leading-none",
-                            it.comprado ? "text-muted-foreground" : "text-foreground"
-                          )}>
-                            {brl(it.preco * it.quantidade)}
-                          </div>
-                          <div className="text-[10px] text-muted-foreground mt-1">
-                            {it.quantidade}x {brl(it.preco)}
-                          </div>
-                        </div>
-
-                        {/* Quick Actions Hover/Dropdown */}
-                        <div className="sm:opacity-0 group-hover:opacity-100 transition-opacity shrink-0 flex items-center">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuItem onClick={() => setEditandoItem(it)}>
-                                <Pencil className="h-4 w-4 mr-2" /> Editar item
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => toggleComprado.mutate({ id: it.id, comprado: !it.comprado })}
-                              >
-                                <Check className="h-4 w-4 mr-2" />
-                                {it.comprado ? "Marcar como pendente" : "Marcar como comprado"}
-                              </DropdownMenuItem>
-                              {it.linkProduto && (
-                                <DropdownMenuItem asChild>
-                                  <a href={it.linkProduto} target="_blank" rel="noreferrer">
-                                    <ExternalLink className="h-4 w-4 mr-2" /> Abrir no site
-                                  </a>
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                                onClick={() => setExcluindoItem(it)}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" /> Remover
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-
-                {/* Carregar mais / paginação */}
-                {itensQ.hasNextPage && (
-                  <div className="col-span-full pt-2 flex justify-center">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => itensQ.fetchNextPage()}
-                      disabled={itensQ.isFetchingNextPage}
-                      className="w-full sm:w-auto"
-                    >
-                      {itensQ.isFetchingNextPage ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Carregando...
-                        </>
-                      ) : (
-                        "Carregar mais itens"
-                      )}
-                    </Button>
-                  </div>
-                )}
-                {!itensQ.hasNextPage && itensFiltrados.length > 0 && (
-                  <p className="col-span-full text-center text-xs text-muted-foreground pt-2">
-                    {itensFiltrados.length} {itensFiltrados.length !== 1 ? "itens" : "item"} exibido
-                    {itensFiltrados.length !== 1 ? "s" : ""}
-                    {itensQ.data?.pages[0]?.totalCount
-                      ? ` de ${itensQ.data.pages[0].totalCount} total`
-                      : ""}
-                  </p>
-                )}
               </motion.div>
-            </>
-          ) : (
-            <div className="rounded-md border border-dashed p-16 text-center bg-muted/30">
-              <Plus className="h-8 w-8 mx-auto text-primary mb-3" />
-              <p className="text-muted-foreground">
-                Crie seu primeiro cômodo para começar o planejamento.
-              </p>
-              <Button className="mt-4" onClick={() => setNovaCategoria(true)}>
-                <Plus className="h-4 w-4 mr-1" /> Novo cômodo
-              </Button>
-            </div>
-          )}
-        </section>
-      </div>
+            );
+          })}
+        </AnimatePresence>
 
-      {/* Modais */}
+        {/* Pagination / Load more */}
+        {itensQ.hasNextPage && (
+          <div className="pt-4 flex justify-center">
+            <Button
+              variant="outline"
+              className="btn-sticker"
+              onClick={() => itensQ.fetchNextPage()}
+              disabled={itensQ.isFetchingNextPage}
+            >
+              {itensQ.isFetchingNextPage ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Carregando...
+                </>
+              ) : (
+                "Carregar mais itens"
+              )}
+            </Button>
+          </div>
+        )}
+      </motion.div>
+
+      {/* Modals & Dialogs (All original features preserved) */}
       <CategoriaFormModal open={novaCategoria} onOpenChange={setNovaCategoria} />
       <CategoriaFormModal
         open={!!editandoCategoria}
         onOpenChange={(o) => !o && setEditandoCategoria(null)}
         categoria={editandoCategoria}
       />
+
       {wizardOpen && (
         <Suspense fallback={null}>
           <AddItemWizard
@@ -938,6 +940,7 @@ function PlanejamentoPage() {
           />
         </Suspense>
       )}
+
       <ItemFormModal
         open={adicionandoItem}
         onOpenChange={setAdicionandoItem}
@@ -947,31 +950,38 @@ function PlanejamentoPage() {
         }
         item={null}
       />
+
       {catAtualId && (
         <ItemFormModal
           open={!!editandoItem}
           onOpenChange={(o) => !o && setEditandoItem(null)}
           categorias={categorias}
-          categoriaId={catAtualId}
+          categoriaId={
+            catAtualId === "tudo" && editandoItem ? editandoItem.categoriaId : catAtualId
+          }
           item={editandoItem}
         />
       )}
 
+      {/* Image Preview Dialog */}
       <Dialog open={!!imagemAmpliada} onOpenChange={(open) => !open && setImagemAmpliada(null)}>
-        <DialogContent className="max-w-4xl p-4">
+        <DialogContent className="max-w-2xl p-4 card-sticker">
           <DialogHeader>
-            <DialogTitle className="pr-8">{imagemAmpliada?.nome}</DialogTitle>
+            <DialogTitle className="font-display font-bold text-lg">
+              {imagemAmpliada?.nome}
+            </DialogTitle>
           </DialogHeader>
           {imagemAmpliada?.fotoUrl && (
             <img
               src={imagemAmpliada.fotoUrl}
               alt={imagemAmpliada.nome}
-              className="max-h-[75dvh] w-full rounded-lg object-contain"
+              className="max-h-[70dvh] w-full rounded-xl object-contain border-2 border-border"
             />
           )}
         </DialogContent>
       </Dialog>
 
+      {/* Delete Category AlertDialog */}
       <AlertDialog
         open={!!excluindoCategoria}
         onOpenChange={(o) => !o && setExcluindoCategoria(null)}
@@ -987,6 +997,7 @@ function PlanejamentoPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => excluindoCategoria && excluirCategoria.mutate(excluindoCategoria.id)}
             >
               Remover
@@ -995,6 +1006,7 @@ function PlanejamentoPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Delete Item AlertDialog */}
       <AlertDialog open={!!excluindoItem} onOpenChange={(o) => !o && setExcluindoItem(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

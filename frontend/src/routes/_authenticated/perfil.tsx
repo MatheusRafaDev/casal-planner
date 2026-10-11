@@ -8,7 +8,6 @@ import {
   KeyRound,
   Target,
   Save,
-  ChevronDown,
   Share2,
   Copy,
   Check,
@@ -18,11 +17,8 @@ import {
   Bell,
   BellOff,
   ExternalLink,
-  Sun,
-  Moon,
-  Monitor,
+  Calendar,
 } from "lucide-react";
-import { useTheme } from "@/lib/theme-context";
 import { usePwa } from "@/hooks/use-pwa";
 import { useAuth } from "@/lib/auth-context";
 
@@ -50,271 +46,327 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { maskDate, brToIsoDate, formatDate, brl } from "@/lib/formatters";
+import { motion, type Variants } from "framer-motion";
+import { PerfilSkeleton } from "@/components/ui/LoadingSkeletons";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
-    meta: [{ title: "CasalPlanner - Perfil" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "CasalPlanner - Minha conta" }, { name: "robots", content: "noindex" }],
   }),
   component: PerfilPage,
 });
 
-function PerfilPage() {
-  const { usuario, refresh, logout } = useAuth();
-  const { installPrompt, triggerInstall } = usePwa();
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05,
+    },
+  },
+};
 
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
+
+function PerfilPage() {
+  const { usuario, refresh, logout, loading } = useAuth();
+  const { installPrompt, triggerInstall } = usePwa();
   const navigate = useNavigate();
-  const [emailParceiro, setEmailParceiro] = useState("");
 
   const isCasal = usuario?.tipoConta === "Casal";
 
-  const convitesQuery = useQuery({
-    queryKey: ["meus-convites"],
-    queryFn: () => conviteService.buscarMeusConvites(),
-    enabled: !isCasal,
-  });
-
-  const aceitarMutation = useMutation({
-    mutationFn: (token: string) => conviteService.aceitar({ token, migrarDados: true }),
-    onSuccess: async (data) => {
-      toast.success("Convite aceito! Contas vinculadas.");
-      await refresh();
-      navigate({ to: "/" });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const conviteMutation = useMutation({
-    mutationFn: () => conviteService.criar({ emailParceiro }),
-    onSuccess: () => {
-      toast.success("Convite enviado com sucesso!");
-      setEmailParceiro("");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  if (!usuario) return null;
+  if (loading || !usuario) {
+    return <PerfilSkeleton />;
+  }
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500 pb-20">
-      <div className="flex items-center justify-between pb-6 border-b border-border/50">
+    <motion.div
+      className="w-full space-y-6 pb-12 font-sans"
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+    >
+      {/* Header matching Page 7 */}
+      <motion.header
+        variants={itemVariants}
+        className="flex flex-col sm:flex-row sm:items-end justify-between gap-4"
+      >
         <div>
-          <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight">Configurações da Conta</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Gerencie suas informações, preferências e dados {isCasal ? "do casal" : "pessoais"}.
-          </p>
+          <span className="text-xs md:text-sm font-bold text-muted-foreground block mb-1">
+            {isCasal ? "Conta de casal" : "Conta individual"}
+          </span>
+          <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+            Minha conta
+          </h1>
         </div>
+
         {installPrompt && (
-          <Button variant="outline" size="sm" onClick={triggerInstall} className="rounded-full shadow-sm bg-background">
-            <Download className="h-4 w-4 mr-2" /> Instalar App
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={triggerInstall}
+            className="btn-sticker self-start sm:self-auto"
+          >
+            <Download className="h-4 w-4 mr-1.5" /> Instalar App
           </Button>
         )}
-      </div>
+      </motion.header>
 
-      <div className="flex flex-col gap-10 divide-y divide-border/50">
-        
-        {/* SEC 1: Dados Pessoais / Casal */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 first:pt-0">
-          <div className="md:col-span-1 space-y-1">
-            <h2 className="font-semibold text-lg flex items-center gap-2"><User className="w-5 h-5 text-primary" /> Perfil</h2>
-            <p className="text-sm text-muted-foreground">
-              Atualize suas informações pessoais e notificações.
-            </p>
-          </div>
-          <div className="md:col-span-2">
-            <div className="bg-card rounded-[var(--radius-lg)] border p-5 shadow-sm">
-              {isCasal ? (
-                <Tabs defaultValue="p1" className="w-full">
-                  <TabsList className="grid grid-cols-2 mb-6 p-1 bg-muted/50">
-                    <TabsTrigger value="p1" className="rounded-md">{usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}</TabsTrigger>
-                    <TabsTrigger value="p2" className="rounded-md">{usuario.casalInfo?.pessoa2.nome ?? "Pessoa 2"}</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="p1" className="mt-0">
-                    <PessoaForm
-                      key="p1"
-                      dados={{
-                        nome: usuario.casalInfo?.pessoa1.nome ?? "",
-                        email: usuario.casalInfo?.pessoa1.email ?? "",
-                        dataNascimento: usuario.casalInfo?.pessoa1.dataNascimento ?? "",
-                        receberNotificacoes: usuario.casalInfo?.pessoa1.receberNotificacoes ?? true,
-                      }}
-                      bloquearEmailCpf
-                      somenteLeitura={usuario.pessoaLogada !== 1}
-                      onSave={async (dto) => {
-                        await usuarioService.atualizarPerfilCasal(usuario.id, 1, { nome: dto.nome, dataNascimento: dto.dataNascimento ?? null });
-                        await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true, 1);
-                        await refresh();
-                      }}
-                    />
-                  </TabsContent>
-                  <TabsContent value="p2" className="mt-0">
-                    <PessoaForm
-                      key="p2"
-                      dados={{
-                        nome: usuario.casalInfo?.pessoa2.nome ?? "",
-                        email: usuario.casalInfo?.pessoa2.email ?? "",
-                        dataNascimento: usuario.casalInfo?.pessoa2.dataNascimento ?? "",
-                        receberNotificacoes: usuario.casalInfo?.pessoa2.receberNotificacoes ?? true,
-                      }}
-                      bloquearEmailCpf
-                      somenteLeitura={usuario.pessoaLogada !== 2}
-                      onSave={async (dto) => {
-                        await usuarioService.atualizarPerfilCasal(usuario.id, 2, { nome: dto.nome, dataNascimento: dto.dataNascimento ?? null });
-                        await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true, 2);
-                        await refresh();
-                      }}
-                    />
-                  </TabsContent>
-                </Tabs>
-              ) : (
-                <PessoaForm
-                  dados={{
-                    nome: usuario.nomeCompleto ?? "",
-                    email: usuario.email ?? "",
-                    dataNascimento: usuario.dataNascimento ?? "",
-                    receberNotificacoes: usuario.receberNotificacoes ?? true,
-                  }}
-                  bloquearEmailCpf
-                  onSave={async (dto) => {
-                    await usuarioService.atualizarPerfil({ nomeCompleto: dto.nome, email: dto.email, dataNascimento: dto.dataNascimento ?? undefined });
-                    await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true);
-                    await refresh();
-                  }}
-                />
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* SEC 2: Parcerias e Convites (Só Individual) */}
-        {!isCasal && (
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10">
-            <div className="md:col-span-1 space-y-1">
-              <h2 className="font-semibold text-lg flex items-center gap-2"><MailOpen className="w-5 h-5 text-primary" /> Família & Casal</h2>
-              <p className="text-sm text-muted-foreground">
-                Vincule sua conta com seu parceiro(a) para planejarem juntos.
-              </p>
-            </div>
-            <div className="md:col-span-2 space-y-6">
-              
-              {/* Convites Recebidos */}
-              {convitesQuery.data && convitesQuery.data.length > 0 && (
-                <div className="bg-primary/5 border border-primary/20 rounded-[var(--radius-lg)] p-5 space-y-4">
-                  <h3 className="font-medium text-primary flex items-center gap-2"><Bell className="w-4 h-4" /> Convites Recebidos</h3>
-                  {convitesQuery.data.map((convite) => (
-                    <div key={convite.token} className="bg-background rounded-[var(--radius-lg)] p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between border shadow-sm">
-                      <div className="flex-1">
-                        <p className="font-medium text-sm"><strong>{convite.nomeConvidante}</strong> convidou você.</p>
-                        <p className="text-xs text-muted-foreground mt-1">Ao aceitar, seus dados atuais serão migrados para uma conta conjunta.</p>
-                      </div>
-                      <Button onClick={() => aceitarMutation.mutate(convite.token)} disabled={aceitarMutation.isPending} size="sm" className="w-full sm:w-auto shrink-0 bg-primary">
-                        <Check className="h-4 w-4 mr-2" /> {aceitarMutation.isPending ? "Processando..." : "Aceitar Convite"}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Enviar Convite */}
-              <div className="bg-card rounded-[var(--radius-lg)] border p-5 shadow-sm space-y-4">
-                <div className="space-y-1">
-                  <h3 className="font-medium">Convidar Parceiro(a)</h3>
-                  <p className="text-sm text-muted-foreground">Insira o e-mail do seu parceiro para enviar um convite de união de contas.</p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Input 
-                    type="email" 
-                    placeholder="parceiro@email.com" 
-                    value={emailParceiro} 
-                    onChange={(e) => setEmailParceiro(e.target.value)} 
-                    className="flex-1 bg-muted/30"
+      {/* Main Grid: 2 columns matching Page 7 */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Perfil, Segurança, Meta */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Card: Perfil */}
+          <motion.div variants={itemVariants} className="card-sticker p-5 md:p-6 bg-card space-y-5">
+            {isCasal ? (
+              <Tabs defaultValue={usuario.pessoaLogada === 2 ? "p2" : "p1"} className="w-full">
+                <TabsList className="grid grid-cols-2 mb-5">
+                  <TabsTrigger value="p1">
+                    {usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}
+                  </TabsTrigger>
+                  <TabsTrigger value="p2">
+                    {usuario.casalInfo?.pessoa2.nome ?? "Pessoa 2"}
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="p1" className="mt-0">
+                  <PessoaForm
+                    key="p1"
+                    dados={{
+                      nome: usuario.casalInfo?.pessoa1.nome ?? "",
+                      email: usuario.casalInfo?.pessoa1.email ?? "",
+                      dataNascimento: usuario.casalInfo?.pessoa1.dataNascimento ?? "",
+                      receberNotificacoes: usuario.casalInfo?.pessoa1.receberNotificacoes ?? true,
+                    }}
+                    iniciais="P1"
+                    avatarColor="bg-primary text-primary-foreground"
+                    bloquearEmailCpf
+                    somenteLeitura={usuario.pessoaLogada !== 1}
+                    onSave={async (dto) => {
+                      await usuarioService.atualizarPerfilCasal(usuario.id, 1, {
+                        nome: dto.nome,
+                        dataNascimento: dto.dataNascimento ?? null,
+                      });
+                      await usuarioService.atualizarNotificacoes(
+                        dto.receberNotificacoes ?? true,
+                        1,
+                      );
+                      await refresh();
+                    }}
                   />
-                  <Button onClick={() => conviteMutation.mutate()} disabled={!emailParceiro || conviteMutation.isPending} className="shrink-0 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors">
-                    <Share2 className="h-4 w-4 mr-2" /> {conviteMutation.isPending ? "Enviando..." : "Enviar Convite"}
-                  </Button>
+                </TabsContent>
+                <TabsContent value="p2" className="mt-0">
+                  <PessoaForm
+                    key="p2"
+                    dados={{
+                      nome: usuario.casalInfo?.pessoa2.nome ?? "",
+                      email: usuario.casalInfo?.pessoa2.email ?? "",
+                      dataNascimento: usuario.casalInfo?.pessoa2.dataNascimento ?? "",
+                      receberNotificacoes: usuario.casalInfo?.pessoa2.receberNotificacoes ?? true,
+                    }}
+                    iniciais="P2"
+                    avatarColor="bg-gold text-gold-foreground"
+                    bloquearEmailCpf
+                    somenteLeitura={usuario.pessoaLogada !== 2}
+                    onSave={async (dto) => {
+                      await usuarioService.atualizarPerfilCasal(usuario.id, 2, {
+                        nome: dto.nome,
+                        dataNascimento: dto.dataNascimento ?? null,
+                      });
+                      await usuarioService.atualizarNotificacoes(
+                        dto.receberNotificacoes ?? true,
+                        2,
+                      );
+                      await refresh();
+                    }}
+                  />
+                </TabsContent>
+              </Tabs>
+            ) : (
+              <PessoaForm
+                dados={{
+                  nome: usuario.nomeCompleto ?? "",
+                  email: usuario.email ?? "",
+                  dataNascimento: usuario.dataNascimento ?? "",
+                  receberNotificacoes: usuario.receberNotificacoes ?? true,
+                }}
+                iniciais={usuario.nomeCompleto?.charAt(0).toUpperCase() || "U"}
+                avatarColor="bg-primary text-primary-foreground"
+                bloquearEmailCpf
+                onSave={async (dto) => {
+                  await usuarioService.atualizarPerfil({
+                    nomeCompleto: dto.nome,
+                    email: dto.email,
+                    dataNascimento: dto.dataNascimento ?? undefined,
+                  });
+                  await usuarioService.atualizarNotificacoes(dto.receberNotificacoes ?? true);
+                  await refresh();
+                }}
+              />
+            )}
+          </motion.div>
+
+          {/* Card: Segurança matching Page 7 */}
+          <motion.div variants={itemVariants} className="card-sticker p-5 md:p-6 bg-card space-y-4">
+            <h2 className="font-display font-bold text-xl text-foreground">Segurança</h2>
+            <p className="text-sm font-semibold text-muted-foreground">
+              Troque a senha de acesso sempre que precisar.
+            </p>
+            <TrocarSenhaCard />
+          </motion.div>
+
+          {/* Card: Meta Financeira Global */}
+          <motion.div variants={itemVariants} className="card-sticker p-5 md:p-6 bg-card space-y-4">
+            <div className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              <h2 className="font-display font-bold text-xl text-foreground">
+                Meta do orçamento da casa
+              </h2>
+            </div>
+            <p className="text-sm font-semibold text-muted-foreground">
+              Defina o valor limite que vocês planejam gastar com a casa nova.
+            </p>
+            <MetaEnxovalCard metaUsuario={usuario.metaGlobalEnxoval ?? null} onSaved={refresh} />
+          </motion.div>
+        </div>
+
+        {/* Right Column: Nosso Casal, Lista Pública, Sessão e Dados */}
+        <div className="lg:col-span-5 space-y-6">
+          {/* Card: Nosso Casal matching Page 7 */}
+          <motion.div variants={itemVariants}>
+            {isCasal ? (
+              <div className="card-sticker p-5 md:p-6 bg-card space-y-4">
+                <h2 className="font-display font-bold text-xl text-foreground">Nosso casal</h2>
+
+                {/* Member 1 */}
+                <div className="card-sticker p-3.5 bg-primary-tint/30 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="h-8 w-8 rounded-full bg-[#2F7D5B] border-2 border-border grid place-items-center text-white font-bold text-xs shrink-0 shadow-xs">
+                      {usuario.casalInfo?.pessoa1.nome?.charAt(0).toUpperCase() || "1"}
+                    </span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-bold text-sm text-foreground truncate">
+                        {usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}
+                      </span>
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        {usuario.pessoaLogada === 1 ? "Você está conectado" : "Conta vinculada"}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold px-2.5 py-1 rounded-full border border-[#2F7D5B]/30 bg-[#2F7D5B]/15 text-[#16623A] shrink-0">
+                    Parceiro(a) 1
+                  </span>
+                </div>
+
+                {/* Member 2 */}
+                <div className="card-sticker p-3.5 bg-[#E8B63C]/15 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="h-8 w-8 rounded-full bg-[#E8B63C] border-2 border-border grid place-items-center text-[#24302A] font-bold text-xs shrink-0 shadow-xs">
+                      {usuario.casalInfo?.pessoa2.nome?.charAt(0).toUpperCase() || "2"}
+                    </span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-bold text-sm text-foreground truncate">
+                        {usuario.casalInfo?.pessoa2.nome ?? "Pessoa 2"}
+                      </span>
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        {usuario.pessoaLogada === 2 ? "Você está conectado" : "Conta vinculada"}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold px-2.5 py-1 rounded-full border border-[#E8B63C]/40 bg-[#E8B63C]/20 text-[#8A5A00] shrink-0">
+                    Parceiro(a) 2
+                  </span>
                 </div>
               </div>
-            </div>
-          </section>
-        )}
+            ) : (
+              <ConvidarParceiroCard />
+            )}
+          </motion.div>
 
-        {/* SEC 3: Preferências e Exportação */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10">
-          <div className="md:col-span-1 space-y-1">
-            <h2 className="font-semibold text-lg flex items-center gap-2"><Target className="w-5 h-5 text-primary" /> Preferências</h2>
-            <p className="text-sm text-muted-foreground">
-              Configure sua meta financeira, lista pública e exporte seus dados.
-            </p>
-          </div>
-          <div className="md:col-span-2 space-y-6">
-            <TemaCard />
+          {/* Card: Dia da Mudança */}
+          <motion.div variants={itemVariants}>
             <WidgetDiaMudanca />
-            <MetaEnxovalCard metaUsuario={usuario.metaGlobalEnxoval ?? null} onSaved={refresh} />
+          </motion.div>
+
+          {/* Card: Lista Pública */}
+          <motion.div variants={itemVariants}>
             <ListaPublicaCard />
+          </motion.div>
+
+          {/* Card: Exportar Planejamento */}
+          <motion.div variants={itemVariants}>
             <ExportarCard />
-          </div>
-        </section>
+          </motion.div>
 
-        {/* SEC 4: Segurança */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10">
-          <div className="md:col-span-1 space-y-1">
-            <h2 className="font-semibold text-lg text-destructive flex items-center gap-2"><KeyRound className="w-5 h-5" /> Segurança</h2>
-            <p className="text-sm text-muted-foreground">
-              Proteja sua conta ou remova seus dados permanentemente.
+          {/* Card: Sessão e dados matching Page 7 */}
+          <motion.div variants={itemVariants} className="card-sticker p-5 md:p-6 bg-card space-y-4">
+            <h2 className="font-display font-bold text-xl text-foreground">Sessão e dados</h2>
+            <p className="text-sm font-semibold text-muted-foreground">
+              Sair deste aparelho ou limpar os dados salvos no navegador.
             </p>
-          </div>
-          <div className="md:col-span-2 space-y-6">
-            <TrocarSenhaCard />
-            
-            <div className="bg-destructive/5 border border-destructive/20 rounded-[var(--radius-lg)] p-5 shadow-sm">
-              <h3 className="font-medium text-destructive mb-1">Zona de Risco</h3>
-              <p className="text-sm text-destructive/80 mb-5">
-                Encerrar sua sessão neste dispositivo ou deletar toda a sua conta do CasalPlanner.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button variant="outline" onClick={logout} className="flex-1 bg-background border-destructive/30 text-destructive hover:bg-destructive/10">
-                  <LogOut className="h-4 w-4 mr-2" /> Sair da conta
-                </Button>
 
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" className="flex-1">
-                      <Trash2 className="h-4 w-4 mr-2" /> Excluir conta
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Excluir conta permanentemente?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Todos os cômodos, itens, metas e configurações serão apagados. Essa ação não pode ser desfeita.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        onClick={async () => {
-                          try {
-                            await usuarioService.excluirConta(usuario.id);
-                            toast.success("Conta excluída com sucesso.");
-                            logout();
-                            navigate({ to: "/" });
-                          } catch (e) {
-                            toast.error(e instanceof Error ? e.message : "Erro ao excluir conta");
-                          }
-                        }}
-                      >
-                        Excluir agora
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="outline"
+                onClick={logout}
+                className="btn-sticker text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="h-4 w-4 mr-1.5" /> Sair
+              </Button>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="btn-sticker text-destructive border-destructive/40 hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1.5" /> Excluir conta
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir conta permanentemente?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Todos os cômodos, itens, metas e configurações serão apagados. Essa ação não
+                      pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={async () => {
+                        try {
+                          await usuarioService.excluirConta(usuario.id);
+                          toast.success("Conta excluída com sucesso.");
+                          logout();
+                          navigate({ to: "/" });
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : "Erro ao excluir conta");
+                        }
+                      }}
+                    >
+                      Excluir agora
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
-          </div>
-        </section>
-
+          </motion.div>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -328,11 +380,15 @@ interface PessoaDados {
 function PessoaForm({
   dados,
   onSave,
+  iniciais,
+  avatarColor,
   bloquearEmailCpf = false,
   somenteLeitura = false,
 }: {
   dados: PessoaDados;
   onSave: (dto: PessoaDados) => Promise<void>;
+  iniciais: string;
+  avatarColor: string;
   bloquearEmailCpf?: boolean;
   somenteLeitura?: boolean;
 }) {
@@ -370,25 +426,46 @@ function PessoaForm({
 
   return (
     <form
-      className="space-y-5"
+      className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
         mut.mutate();
       }}
     >
-      <div className="grid md:grid-cols-2 gap-5">
-        <div className="space-y-1.5">
-          <Label className="text-muted-foreground font-medium">Nome</Label>
+      {/* Top Avatar + Name Summary matching Page 7 */}
+      <div className="flex items-center gap-3.5 pb-2">
+        <div
+          className={cn(
+            "h-12 w-12 rounded-full border-2 border-border grid place-items-center font-display font-bold text-base shadow-xs shrink-0",
+            avatarColor,
+          )}
+        >
+          {iniciais}
+        </div>
+        <div className="min-w-0">
+          <span className="font-display font-bold text-lg text-foreground block truncate">
+            {nome || "Seu nome"}
+          </span>
+          <span className="text-xs font-semibold text-muted-foreground block truncate">
+            {email || "[e-mail]"}
+          </span>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <Label className="text-xs font-bold text-foreground">Nome completo</Label>
           <Input
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             required
             disabled={somenteLeitura}
-            className="h-11 rounded-[var(--radius-lg)]"
+            placeholder="Nome completo"
           />
         </div>
-        <div className="space-y-1.5">
-          <Label className="text-muted-foreground font-medium">E-mail</Label>
+
+        <div className="space-y-1">
+          <Label className="text-xs font-bold text-foreground">E-mail</Label>
           <Input
             type="email"
             value={email}
@@ -396,56 +473,46 @@ function PessoaForm({
             required
             disabled={bloquearEmailCpf || somenteLeitura}
             readOnly={bloquearEmailCpf || somenteLeitura}
-            className="h-11 rounded-[var(--radius-lg)]"
+            placeholder="seu@email.com"
           />
-          {bloquearEmailCpf && (
-            <p className="text-xs text-muted-foreground">
-              O e-mail não pode ser alterado no momento.
-            </p>
-          )}
         </div>
 
-        <div className="space-y-1.5">
-          <Label className="text-muted-foreground font-medium">Data de nascimento</Label>
+        <div className="space-y-1">
+          <Label className="text-xs font-bold text-foreground">Data de nascimento</Label>
           <Input
             value={nasc}
             onChange={(e) => setNasc(maskDate(e.target.value))}
             placeholder="dd/mm/aaaa"
             disabled={somenteLeitura}
-            className="h-11 rounded-[var(--radius-lg)]"
           />
         </div>
 
-        <div className="flex items-center justify-between col-span-full pt-4 border-t border-border/50">
-          <div className="flex flex-col space-y-1">
-            <Label className="flex items-center gap-2 text-base">
+        <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-col">
+            <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
               {notif ? (
-                <Bell className="h-5 w-5 text-primary" />
+                <Bell className="h-3.5 w-3.5 text-primary" />
               ) : (
-                <BellOff className="h-5 w-5 text-muted-foreground" />
+                <BellOff className="h-3.5 w-3.5 text-muted-foreground" />
               )}
               Receber Notificações
             </Label>
-            <p className="text-sm text-muted-foreground">
-              Avisos sobre itens marcados como comprados pelo parceiro.
-            </p>
+            <span className="text-[11px] font-semibold text-muted-foreground">
+              Avisos sobre compras e alterações feitas na casa.
+            </span>
           </div>
-          <Switch
-            checked={notif}
-            onCheckedChange={setNotif}
-            disabled={somenteLeitura}
-            className="scale-110"
-          />
+          <Switch checked={notif} onCheckedChange={setNotif} disabled={somenteLeitura} />
         </div>
       </div>
+
       {!somenteLeitura && (
         <div className="pt-2">
           <Button
             type="submit"
             disabled={mut.isPending}
-            className="w-full sm:w-auto h-11 px-8 rounded-full bg-primary shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
+            className="btn-sticker bg-primary text-primary-foreground hover:bg-primary/95"
           >
-            <Save className="h-4 w-4 mr-2" />
+            <Save className="h-4 w-4 mr-1.5" />
             {mut.isPending ? "Salvando..." : "Salvar alterações"}
           </Button>
         </div>
@@ -454,65 +521,6 @@ function PessoaForm({
   );
 }
 
-function TemaCard() {
-  const { theme, setTheme } = useTheme();
-
-  return (
-    <section className="rounded-[var(--radius-lg)] border bg-card p-5 md:p-6 shadow-sm">
-      <div className="flex items-center gap-2 mb-4">
-        {theme === "light" ? (
-          <Sun className="h-5 w-5 text-primary" />
-        ) : theme === "dark" ? (
-          <Moon className="h-5 w-5 text-primary" />
-        ) : (
-          <Monitor className="h-5 w-5 text-primary" />
-        )}
-        <h2 className="font-display text-xl font-semibold">Aparência do Sistema</h2>
-      </div>
-      <p className="text-sm text-muted-foreground mb-5">
-        Escolha entre o modo claro, escuro ou siga a preferência do seu dispositivo.
-      </p>
-
-      <div className="grid grid-cols-3 gap-3">
-        <button
-          onClick={() => setTheme("light")}
-          className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 p-4 transition-all ${
-            theme === "light"
-              ? "border-primary bg-primary/5 text-primary font-medium"
-              : "border-border bg-background text-muted-foreground hover:bg-muted/50"
-          }`}
-        >
-          <Sun className="h-6 w-6" />
-          <span className="text-sm">Claro</span>
-        </button>
-
-        <button
-          onClick={() => setTheme("dark")}
-          className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 p-4 transition-all ${
-            theme === "dark"
-              ? "border-primary bg-primary/5 text-primary font-medium"
-              : "border-border bg-background text-muted-foreground hover:bg-muted/50"
-          }`}
-        >
-          <Moon className="h-6 w-6" />
-          <span className="text-sm">Escuro</span>
-        </button>
-
-        <button
-          onClick={() => setTheme("system")}
-          className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 p-4 transition-all ${
-            theme === "system"
-              ? "border-primary bg-primary/5 text-primary font-medium"
-              : "border-border bg-background text-muted-foreground hover:bg-muted/50"
-          }`}
-        >
-          <Monitor className="h-6 w-6" />
-          <span className="text-sm">Sistema</span>
-        </button>
-      </div>
-    </section>
-  );
-}
 
 function MetaEnxovalCard({
   metaUsuario,
@@ -531,7 +539,9 @@ function MetaEnxovalCard({
       ?.metaGlobalEnxoval ?? null;
   const meta = metaUsuario ?? metaResumo;
   const [valor, setValor] = useState<number>(meta != null ? Number(meta) : 0);
+
   useEffect(() => setValor(meta != null ? Number(meta) : 0), [meta]);
+
   const mut = useMutation({
     mutationFn: () => usuarioService.atualizarMetaEnxoval(valor),
     onSuccess: async () => {
@@ -542,25 +552,24 @@ function MetaEnxovalCard({
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
   });
+
   return (
-    <section className="rounded-[var(--radius-lg)] border bg-card p-5 md:p-6 shadow-sm">
-      <div className="flex items-center gap-2 mb-4">
-        <Target className="h-5 w-5 text-primary" />
-        <h2 className="font-display text-xl font-semibold">Meta total do enxoval</h2>
-      </div>
-      <form
-        className="flex gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          mut.mutate();
-        }}
+    <form
+      className="flex gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        mut.mutate();
+      }}
+    >
+      <CurrencyInput value={valor} onValueChange={setValor} placeholder="R$ 0,00" />
+      <Button
+        type="submit"
+        disabled={mut.isPending}
+        className="btn-sticker bg-primary text-primary-foreground hover:bg-primary/95 shrink-0"
       >
-        <CurrencyInput value={valor} onValueChange={setValor} placeholder="R$ 0,00" />
-        <Button type="submit" disabled={mut.isPending} className="bg-primary">
-          Salvar
-        </Button>
-      </form>
-    </section>
+        Salvar
+      </Button>
+    </form>
   );
 }
 
@@ -586,37 +595,97 @@ function TrocarSenhaCard() {
   });
 
   return (
-    <section className="rounded-[var(--radius-lg)] border bg-card p-5 md:p-6 shadow-sm">
-      <div className="flex items-center gap-2 mb-5">
-        <KeyRound className="h-5 w-5 text-primary" />
-        <h2 className="font-display text-xl font-semibold">Segurança e Senha</h2>
-      </div>
+    <Button
+      type="button"
+      variant="outline"
+      onClick={() => mut.mutate()}
+      disabled={mut.isPending}
+      className="btn-sticker"
+    >
+      <KeyRound className="h-4 w-4 mr-1.5" />
+      {mut.isPending ? "Enviando e-mail..." : "Trocar senha"}
+    </Button>
+  );
+}
 
-      <p className="text-sm text-muted-foreground mb-4">
-        Para sua segurança, enviaremos um link por e-mail para você redefinir sua senha. O processo
-        é idêntico ao "Esqueci minha senha" sem precisar informar a senha atual.
+function ConvidarParceiroCard() {
+  const { refresh } = useAuth();
+  const [emailParceiro, setEmailParceiro] = useState("");
+  const navigate = useNavigate();
+
+  const convitesQuery = useQuery({
+    queryKey: ["meus-convites"],
+    queryFn: () => conviteService.buscarMeusConvites(),
+  });
+
+  const aceitarMutation = useMutation({
+    mutationFn: (token: string) => conviteService.aceitar({ token, migrarDados: true }),
+    onSuccess: async () => {
+      toast.success("Convite aceito! Contas vinculadas.");
+      await refresh();
+      navigate({ to: "/inicio" });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const conviteMutation = useMutation({
+    mutationFn: () => conviteService.criar({ emailParceiro }),
+    onSuccess: () => {
+      toast.success("Convite enviado com sucesso!");
+      setEmailParceiro("");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div className="card-sticker p-5 md:p-6 bg-card space-y-4">
+      <div className="flex items-center gap-2">
+        <MailOpen className="h-5 w-5 text-primary" />
+        <h2 className="font-display font-bold text-xl text-foreground">Conectar com parceiro(a)</h2>
+      </div>
+      <p className="text-xs font-semibold text-muted-foreground">
+        Vincule sua conta para planejarem a casa juntos em tempo real.
       </p>
 
-      <div className="bg-muted/50 rounded-lg p-4 mb-4 text-sm">
-        <p className="font-semibold mb-2">Como funciona:</p>
-        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-          <li>Clique no botão abaixo</li>
-          <li>
-            Acesse o link enviado para <strong>{emailDaConta}</strong>
-          </li>
-          <li>Escolha uma nova senha com pelo menos 8 caracteres</li>
-        </ul>
-      </div>
+      {convitesQuery.data && convitesQuery.data.length > 0 && (
+        <div className="space-y-2">
+          {convitesQuery.data.map((c) => (
+            <div
+              key={c.token}
+              className="card-sticker p-3 bg-primary-tint/20 flex items-center justify-between gap-2"
+            >
+              <span className="text-xs font-bold text-foreground">
+                {c.nomeConvidante} convidou você
+              </span>
+              <Button
+                size="sm"
+                className="btn-sticker bg-primary text-primary-foreground text-xs"
+                onClick={() => aceitarMutation.mutate(c.token)}
+                disabled={aceitarMutation.isPending}
+              >
+                Aceitar
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
 
-      <Button
-        type="button"
-        onClick={() => mut.mutate()}
-        disabled={mut.isPending}
-        className="w-full sm:w-auto bg-primary"
-      >
-        {mut.isPending ? "Enviando..." : "Enviar link de redefinição"}
-      </Button>
-    </section>
+      <div className="flex gap-2">
+        <Input
+          type="email"
+          placeholder="parceiro@email.com"
+          value={emailParceiro}
+          onChange={(e) => setEmailParceiro(e.target.value)}
+        />
+        <Button
+          onClick={() => conviteMutation.mutate()}
+          disabled={!emailParceiro || conviteMutation.isPending}
+          className="btn-sticker bg-primary text-primary-foreground shrink-0"
+        >
+          Convidar
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -640,17 +709,17 @@ function ListaPublicaCard() {
     },
   });
 
-  const link = `${window.location.origin}/lista/${usuario?.slugListaPublica || ""}`;
+  const link = `${typeof window !== "undefined" ? window.location.origin : ""}/lista/${usuario?.slugListaPublica || ""}`;
 
   const shareLink = () => {
     if (navigator.share) {
       navigator
         .share({
           title: "Nossa Lista de Desejos",
-          text: "Confira nossa lista de desejos!",
+          text: "Confira nossa lista de desejos do CasalPlanner!",
           url: link,
         })
-        .catch((e) => console.log(e));
+        .catch(() => { });
     } else {
       navigator.clipboard.writeText(link);
       toast.success("Link copiado!");
@@ -658,79 +727,57 @@ function ListaPublicaCard() {
   };
 
   return (
-    <section className="rounded-[var(--radius-lg)] border bg-card p-5 md:p-6 shadow-sm">
-      <div className="flex items-center gap-2 mb-5">
-        <Share2 className="h-5 w-5 text-primary" />
-        <h2 className="font-display text-xl font-semibold">Sua Lista Pública</h2>
+    <div className="card-sticker p-5 md:p-6 bg-card space-y-4">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Share2 className="h-5 w-5 text-primary" />
+          <h2 className="font-display font-bold text-xl text-foreground">Lista pública</h2>
+        </div>
+        <Switch
+          id="lista-ativa"
+          checked={ativa}
+          onCheckedChange={(val) => {
+            setAtiva(val);
+            mut.mutate(val);
+          }}
+          disabled={mut.isPending}
+        />
       </div>
 
-      <p className="text-sm text-muted-foreground mb-4">
-        Crie uma página pública com os itens que você deseja adquirir para compartilhar com seus
-        amigos e familiares. O link é gerado automaticamente pelo sistema.
+      <p className="text-xs font-semibold text-muted-foreground">
+        Compartilhe seus itens desejados com amigos e familiares por um endereço público.
       </p>
 
-      <div className="space-y-4">
-        <div
-          className={`flex items-center justify-between ${usuario?.listaPublicaAtiva ? "border-b pb-4" : ""}`}
-        >
-          <Label className="font-medium cursor-pointer" htmlFor="lista-ativa">
-            Ativar Lista Pública
-          </Label>
-          <Switch
-            id="lista-ativa"
-            checked={ativa}
-            onCheckedChange={(val) => {
-              setAtiva(val);
-              mut.mutate(val);
-            }}
-            disabled={mut.isPending}
-          />
-        </div>
-
-        {usuario?.listaPublicaAtiva && usuario?.slugListaPublica && (
-          <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-            <Label>Seu link exclusivo</Label>
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-[var(--radius-lg)] border">
-                <p className="text-sm font-medium truncate flex-1">{link}</p>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0 h-8 w-8"
-                  onClick={() => {
-                    navigator.clipboard.writeText(link);
-                    toast.success("Link copiado!");
-                  }}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                <Button
-                  variant="outline"
-                  className="w-full rounded-[var(--radius-lg)] hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-colors"
-                  asChild
-                >
-                  <a href={link} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Acessar Lista
-                  </a>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full rounded-[var(--radius-lg)] hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-colors"
-                  onClick={shareLink}
-                >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Compartilhar
-                </Button>
-              </div>
-            </div>
+      {usuario?.listaPublicaAtiva && usuario?.slugListaPublica && (
+        <div className="space-y-3 pt-2">
+          <div className="card-sticker p-2.5 bg-muted/30 flex items-center justify-between gap-2">
+            <span className="text-xs font-bold text-foreground truncate">{link}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 shrink-0"
+              onClick={() => {
+                navigator.clipboard.writeText(link);
+                toast.success("Link copiado!");
+              }}
+            >
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
           </div>
-        )}
-      </div>
-    </section>
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" className="btn-sticker text-xs" asChild>
+              <a href={link} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Acessar
+              </a>
+            </Button>
+            <Button variant="outline" className="btn-sticker text-xs" onClick={shareLink}>
+              <Share2 className="h-3.5 w-3.5 mr-1.5" /> Compartilhar
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -777,7 +824,8 @@ function ExportarCard() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (e) {
+      toast.success("CSV exportado!");
+    } catch {
       toast.error("Erro ao exportar CSV");
     } finally {
       setExportando(false);
@@ -800,37 +848,17 @@ function ExportarCard() {
       const totalRestante = itensNaoComprados
         .filter((it) => !["ganho", "presente", "prometido"].includes(it.origem ?? ""))
         .reduce((s, it) => s + it.preco * it.quantidade, 0);
-      const totalEconomia = todosItens
-        .filter((it) => ["ganho", "presente", "prometido"].includes(it.origem ?? ""))
-        .reduce((s, it) => s + it.preco * it.quantidade, 0);
 
       const doc = new jsPDF();
-
-      // Header
       doc.setFontSize(20);
-      doc.setTextColor(139, 92, 246);
-      doc.text("Lista de Casamento", 14, 20);
-
-      doc.setFontSize(12);
-      doc.setTextColor(100);
-      doc.text("CasalPlanner", 14, 28);
-
-      // Info section
-      doc.setFontSize(14);
-      doc.setTextColor(0);
-      doc.text("Todos os cômodos", 14, 45);
+      doc.setTextColor(47, 125, 91);
+      doc.text("CasalPlanner - Lista de Itens", 14, 20);
 
       doc.setFontSize(11);
-      doc.text(`Total gasto: ${brl(totalGasto)}`, 14, 55);
-      doc.text(`Pendente: ${brl(totalRestante)}`, 14, 62);
-      if (totalEconomia > 0) doc.text(`Economia (ganhos): ${brl(totalEconomia)}`, 14, 69);
-      doc.text(
-        `Itens comprados: ${todosItens.filter((it) => it.comprado).length}/${todosItens.length}`,
-        14,
-        totalEconomia > 0 ? 76 : 69,
-      );
+      doc.setTextColor(36, 48, 42);
+      doc.text(`Total gasto: ${brl(totalGasto)}`, 14, 30);
+      doc.text(`Pendente: ${brl(totalRestante)}`, 14, 37);
 
-      // Table data
       const tableData = itensNaoComprados.map((it, i) => [
         i + 1,
         it.nome,
@@ -841,38 +869,21 @@ function ExportarCard() {
         brl(it.preco * it.quantidade),
       ]);
 
-      // Generate table
       autoTable(doc, {
-        startY: 80,
+        startY: 45,
         head: [["#", "Item", "Marca", "Loja", "Qtd", "Preço", "Total"]],
         body: tableData,
         theme: "grid",
         headStyles: {
-          fillColor: [139, 92, 246],
+          fillColor: [47, 125, 91],
           textColor: 255,
           fontStyle: "bold",
         },
-        alternateRowStyles: {
-          fillColor: [245, 245, 250],
-        },
       });
 
-      // Footer
-      const pageCount = doc.getNumberOfPages();
-      doc.setFontSize(10);
-      doc.setTextColor(150);
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.text(
-          `Página ${i} de ${pageCount} - Gerado em ${new Date().toLocaleDateString("pt-BR")}`,
-          14,
-          doc.internal.pageSize.height - 10,
-        );
-      }
-
-      doc.save(`lista-casamento-todos.pdf`);
-      toast.success("PDF gerado com sucesso!");
-    } catch (e) {
+      doc.save("planejamento-casal-planner.pdf");
+      toast.success("PDF gerado!");
+    } catch {
       toast.error("Erro ao gerar PDF");
     } finally {
       setExportando(false);
@@ -880,35 +891,33 @@ function ExportarCard() {
   };
 
   return (
-    <section className="rounded-[var(--radius-lg)] border bg-card overflow-hidden p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <Download className="h-4 w-4 text-primary" />
-        <h2 className="font-display text-lg font-semibold">Exportar Planejamento</h2>
+    <div className="card-sticker p-5 md:p-6 bg-card space-y-4">
+      <div className="flex items-center gap-2">
+        <Download className="h-5 w-5 text-primary" />
+        <h2 className="font-display font-bold text-xl text-foreground">Exportar dados</h2>
       </div>
-      <p className="text-sm text-muted-foreground mb-4">
-        Baixe um arquivo contendo toda a sua lista de enxoval. Ideal para enviar para as lojas ou
-        arquivar.
+      <p className="text-xs font-semibold text-muted-foreground">
+        Baixe sua lista de itens em planilha ou documento PDF.
       </p>
-      <div className="flex flex-col gap-2">
+
+      <div className="grid grid-cols-2 gap-2">
         <Button
           variant="outline"
-          className="w-full rounded-[var(--radius-lg)]"
+          className="btn-sticker text-xs"
           onClick={handleExportarCSV}
           disabled={exportando}
         >
-          <Download className="h-4 w-4 mr-2" />
-          Exportar para CSV (Excel)
+          CSV (Excel)
         </Button>
         <Button
           variant="outline"
-          className="w-full rounded-[var(--radius-lg)]"
+          className="btn-sticker text-xs"
           onClick={handleExportarPDF}
           disabled={exportando}
         >
-          <Download className="h-4 w-4 mr-2" />
-          Exportar para PDF
+          PDF
         </Button>
       </div>
-    </section>
+    </div>
   );
 }

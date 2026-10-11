@@ -19,11 +19,7 @@ export function LogoBadge({
   }, [urls]);
 
   if (!urls || urls.length === 0 || errorIndex >= urls.length) {
-    return fallback ? (
-      <>{fallback}</>
-    ) : (
-      <Store className="w-3.5 h-3.5 opacity-50 shrink-0" />
-    );
+    return fallback ? <>{fallback}</> : <Store className="w-3.5 h-3.5 opacity-50 shrink-0" />;
   }
 
   return (

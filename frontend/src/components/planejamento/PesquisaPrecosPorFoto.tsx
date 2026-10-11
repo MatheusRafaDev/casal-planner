@@ -1,5 +1,14 @@
 import { useRef, useState } from "react";
-import { Camera, Loader2, UploadCloud, X, Check, AlertCircle, ImageIcon, Search } from "lucide-react";
+import {
+  Camera,
+  Loader2,
+  UploadCloud,
+  X,
+  Check,
+  AlertCircle,
+  ImageIcon,
+  Search,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,7 +121,7 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
     setEstado("processing");
     setEtapaTexto("Analisando a foto com IA...");
     setErroMsg("");
-    
+
     try {
       const imagemBase64 = await toBase64(file);
       let res = await registroPrecoService.analisar(imagemBase64);
@@ -130,7 +139,8 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
       setResultado(res);
       setEstado("success");
     } catch (error) {
-      const mensagem = error instanceof Error ? error.message : "Não conseguimos extrair as informações da foto.";
+      const mensagem =
+        error instanceof Error ? error.message : "Não conseguimos extrair as informações da foto.";
       setErroMsg(mensagem);
       setEstado("error");
       onFalha();
@@ -152,7 +162,9 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); };
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     if (disabled || estado === "processing") return;
@@ -162,7 +174,7 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
 
   if (estado === "idle" || estado === "error") {
     return (
-      <div 
+      <div
         className="w-full flex flex-col items-center justify-center p-6 sm:p-8 rounded-[var(--radius-lg)] border-2 border-dashed bg-muted/10 hover:bg-muted/30 transition-colors cursor-pointer text-center group"
         onClick={() => !disabled && inputRef.current?.click()}
         onDragOver={handleDragOver}
@@ -177,7 +189,7 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
           onChange={(e) => handleFile(e.target.files?.[0])}
           disabled={disabled}
         />
-        
+
         <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform mb-4">
           <Camera className="h-6 w-6" />
         </div>
@@ -202,7 +214,7 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
         <div className="absolute top-0 left-0 w-full h-1 bg-muted">
           <div className="h-full bg-primary animate-pulse w-1/2 rounded-full" />
         </div>
-        
+
         <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded-[var(--radius-lg)] overflow-hidden border bg-black/5 relative">
           {preview && (
             <img src={preview} alt="Preview" className="w-full h-full object-cover opacity-50" />
@@ -227,7 +239,7 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
         <div className="flex flex-col sm:flex-row p-4 sm:p-6 gap-6 bg-muted/10 border-b">
           <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded-[var(--radius-lg)] overflow-hidden border bg-background relative group">
             {preview && <img src={preview} alt="Preview" className="w-full h-full object-cover" />}
-            <button 
+            <button
               onClick={resetar}
               className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-medium gap-1"
             >
@@ -239,61 +251,75 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
               <Check className="w-3 h-3 mr-1" /> Produto Identificado
             </Badge>
             <h3 className="text-lg font-semibold leading-tight">{resultado.produtoNome}</h3>
-            <p className="text-sm text-muted-foreground">Confirme os dados extraídos antes de pesquisar os preços.</p>
+            <p className="text-sm text-muted-foreground">
+              Confirme os dados extraídos antes de pesquisar os preços.
+            </p>
           </div>
         </div>
 
         {/* Formulário de Confirmação */}
         <div className="p-4 sm:p-6 grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Nome do Produto</Label>
-            <Input 
-              value={resultado.produtoNome} 
-              onChange={e => setResultado({...resultado, produtoNome: e.target.value})} 
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+              Nome do Produto
+            </Label>
+            <Input
+              value={resultado.produtoNome}
+              onChange={(e) => setResultado({ ...resultado, produtoNome: e.target.value })}
               className="font-medium bg-muted/30"
             />
           </div>
-          
+
           <div className="space-y-1.5">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Marca</Label>
-            <Input 
-              value={resultado.marca ?? ""} 
-              onChange={e => setResultado({...resultado, marca: e.target.value})}
-              placeholder="Desconhecida" 
-            />
-          </div>
-          
-          <div className="space-y-1.5">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Modelo</Label>
-            <Input 
-              value={resultado.modelo ?? ""} 
-              onChange={e => setResultado({...resultado, modelo: e.target.value})}
-              placeholder="Desconhecido" 
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+              Marca
+            </Label>
+            <Input
+              value={resultado.marca ?? ""}
+              onChange={(e) => setResultado({ ...resultado, marca: e.target.value })}
+              placeholder="Desconhecida"
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Loja / Mercado</Label>
-            <Input 
-              value={resultado.nomeMercado ?? ""} 
-              onChange={e => setResultado({...resultado, nomeMercado: e.target.value})}
-              placeholder="Desconhecida" 
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+              Modelo
+            </Label>
+            <Input
+              value={resultado.modelo ?? ""}
+              onChange={(e) => setResultado({ ...resultado, modelo: e.target.value })}
+              placeholder="Desconhecido"
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Tamanho / Unidade</Label>
-            <Input 
-              value={resultado.unidade ?? ""} 
-              onChange={e => setResultado({...resultado, unidade: e.target.value})}
-              placeholder="Ex: 500g, 1L" 
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+              Loja / Mercado
+            </Label>
+            <Input
+              value={resultado.nomeMercado ?? ""}
+              onChange={(e) => setResultado({ ...resultado, nomeMercado: e.target.value })}
+              placeholder="Desconhecida"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+              Tamanho / Unidade
+            </Label>
+            <Input
+              value={resultado.unidade ?? ""}
+              onChange={(e) => setResultado({ ...resultado, unidade: e.target.value })}
+              placeholder="Ex: 500g, 1L"
             />
           </div>
         </div>
 
         {/* Footer Actions */}
         <div className="p-4 sm:p-6 pt-0 flex flex-col sm:flex-row justify-end gap-3">
-          <Button variant="ghost" onClick={resetar}>Descartar e Tentar Novamente</Button>
+          <Button variant="ghost" onClick={resetar}>
+            Descartar e Tentar Novamente
+          </Button>
           <Button onClick={confirmar} className="gap-2">
             <Search className="w-4 h-4" /> Buscar Preços
           </Button>

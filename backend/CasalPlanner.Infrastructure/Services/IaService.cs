@@ -92,7 +92,7 @@ public class IaService : IIaService
                     headersCustom: new Dictionary<string, string>
                     {
                         { "HTTP-Referer", "https://casalplanner.vercel.app" },
-                        { "X-Title", "Casal Planner" }
+                        { "X-Title", "CasalPlanner" }
                     });
 
                 if (!string.IsNullOrWhiteSpace(resposta))

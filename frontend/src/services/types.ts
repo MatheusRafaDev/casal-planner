@@ -105,6 +105,7 @@ export interface Resumo {
   itensComprados: number;
   totalPessoa1: number;
   totalPessoa2: number;
+  totalConjunto?: number;
   metaGlobal?: number | null;
   percentualMeta?: number | null;
   mesAtual: number;

@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" width="48" height="48">
+  <!-- Casinha de fundo com telhado protetor -->
+  <path
+    d="M7 19 L24 5 L41 19 V41 C41 42.6569 39.6569 44 38 44 H10 C8.34315 44 7 42.6569 7 41 Z"
+    fill="#FFFDF8"
+    stroke="#24302A"
+    stroke-width="2.5"
+    stroke-linejoin="round"
+  />
+
+  <!-- Telhado charmoso destacado -->
+  <path
+    d="M4 20 L24 4 L44 20"
+    stroke="#24302A"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M24 7 L39 19 H9 Z"
+    fill="#E8B63C"
+  />
+
+  <!-- Coração do casal no alto do telhado -->
+  <path
+    d="M24 12 C23 10.5 20.8 10.5 20.8 12.2 C20.8 14 24 16 24 16 C24 16 27.2 14 27.2 12.2 C27.2 10.5 25 10.5 24 12 Z"
+    fill="#E0531C"
+    stroke="#24302A"
+    stroke-width="1.2"
+    stroke-linejoin="round"
+  />
+
+  <!-- Boneco Verde (Pessoa 1 - Esquerda) -->
+  <g id="boneco-verde">
+    <!-- Cabeça -->
+    <circle
+      cx="17"
+      cy="24"
+      r="4.2"
+      fill="#2F7D5B"
+      stroke="#24302A"
+      stroke-width="2"
+    />
+    <!-- Corpo -->
+    <path
+      d="M11 44 C11 35 13.5 30.5 17 30.5 C20.5 30.5 23 35 23 44 Z"
+      fill="#2F7D5B"
+      stroke="#24302A"
+      stroke-width="2"
+      stroke-linejoin="round"
+    />
+  </g>
+
+  <!-- Boneco Amarelo (Pessoa 2 - Direita) -->
+  <g id="boneco-amarelo">
+    <!-- Cabeça -->
+    <circle
+      cx="31"
+      cy="24"
+      r="4.2"
+      fill="#E8B63C"
+      stroke="#24302A"
+      stroke-width="2"
+    />
+    <!-- Corpo -->
+    <path
+      d="M25 44 C25 35 27.5 30.5 31 30.5 C34.5 30.5 37 35 37 44 Z"
+      fill="#E8B63C"
+      stroke="#24302A"
+      stroke-width="2"
+      stroke-linejoin="round"
+    />
+  </g>
+</svg>

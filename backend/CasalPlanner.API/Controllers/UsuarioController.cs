@@ -21,19 +21,22 @@ public class UsuarioController : ControllerBase
     private readonly MongoDbContext _context;
     private readonly IEmailService _emailService;
     private readonly IWebHostEnvironment _environment;
+    private readonly CasalPlanner.Application.Interfaces.ICacheService _cacheService;
 
     public UsuarioController(
-    IAuthService authService,
-    ILogger<UsuarioController> logger,
-    MongoDbContext context,
-    IWebHostEnvironment environment,
-    IEmailService emailService) // ADICIONE ESTE PARÂMETRO
+        IAuthService authService,
+        ILogger<UsuarioController> logger,
+        MongoDbContext context,
+        IWebHostEnvironment environment,
+        IEmailService emailService,
+        CasalPlanner.Application.Interfaces.ICacheService cacheService)
     {
         _authService = authService;
         _logger = logger;
         _context = context;
         _environment = environment;
-        _emailService = emailService; // ADICIONE ESTA LINHA
+        _emailService = emailService;
+        _cacheService = cacheService;
     }
 
     private void SetAuthCookies(string token, string refreshToken, bool isMobile)
@@ -67,7 +70,7 @@ public class UsuarioController : ControllerBase
         {
             new() {
                 Nome = "Cozinha",
-                Bg = "#2c5e2c",
+                Bg = "#2F7D5B",
                 Icon = "Utensils",
                 IsPadrao = true,
                 UsuarioId = usuarioId,
@@ -75,7 +78,7 @@ public class UsuarioController : ControllerBase
             },
             new() {
                 Nome = "Sala",
-                Bg = "#b84a2c",
+                Bg = "#C85A32",
                 Icon = "Armchair",
                 IsPadrao = true,
                 UsuarioId = usuarioId,
@@ -83,7 +86,7 @@ public class UsuarioController : ControllerBase
             },
             new() {
                 Nome = "Quarto",
-                Bg = "#2c5280",
+                Bg = "#386877",
                 Icon = "BedDouble",
                 IsPadrao = true,
                 UsuarioId = usuarioId,
@@ -91,7 +94,7 @@ public class UsuarioController : ControllerBase
             },
             new() {
                 Nome = "Banheiro",
-                Bg = "#6b5ea8",
+                Bg = "#4A7C59",
                 Icon = "Bath",
                 IsPadrao = true,
                 UsuarioId = usuarioId,
@@ -99,7 +102,7 @@ public class UsuarioController : ControllerBase
             },
             new() {
                 Nome = "Lavanderia",
-                Bg = "#97266d",
+                Bg = "#D49B2A",
                 Icon = "Droplet",
                 IsPadrao = true,
                 UsuarioId = usuarioId,
@@ -491,6 +494,8 @@ public class UsuarioController : ControllerBase
             update.Combine(updates)
         );
 
+        await _cacheService.InvalidateUsuarioCacheAsync(usuarioId);
+
         var usuarioAtualizado = await _context.Usuarios
             .Find(u => u.Id == usuarioId)
             .FirstOrDefaultAsync();
@@ -517,6 +522,7 @@ public class UsuarioController : ControllerBase
             .Set(u => u.LongitudeMudanca, dto.LongitudeMudanca);
 
         await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioId, update);
+        await _cacheService.InvalidateUsuarioCacheAsync(usuarioId);
 
         var usuarioAtualizado = await _context.Usuarios.Find(u => u.Id == usuarioId).FirstOrDefaultAsync();
         if (usuarioAtualizado == null) return NotFound();

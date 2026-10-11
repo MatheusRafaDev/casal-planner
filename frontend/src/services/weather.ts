@@ -42,12 +42,12 @@ export async function buscarCidades(query: string): Promise<CidadeSugerida[]> {
   try {
     const res = await fetch(
       `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-        query.trim()
-      )}&count=6&language=pt&format=json`
+        query.trim(),
+      )}&count=6&language=pt&format=json`,
     );
     if (!res.ok) return [];
     const data = await res.json();
-    return (data.results || []).map((r: any) => ({
+    return (data.results || []).map((r: Record<string, unknown>) => ({
       id: r.id,
       name: r.name,
       admin1: r.admin1,
@@ -65,7 +65,7 @@ export async function buscarCidades(query: string): Promise<CidadeSugerida[]> {
  */
 export async function buscarPrevisaoTempo(
   latitude: number,
-  longitude: number
+  longitude: number,
 ): Promise<PrevisaoResponse | null> {
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&timezone=auto&forecast_days=16`;
@@ -143,11 +143,12 @@ export function analisarRiscoMudanca(previsao?: PrevisaoDia | null): InfoRiscoMu
       nivel: "indefinido",
       titulo: "Previsão em breve",
       badge: "Aguardando",
-      mensagem: "A previsão detalhada do Open-Meteo estará visível conforme a data se aproximar (até 16 dias de antecedência).",
+      mensagem:
+        "A previsão detalhada do Open-Meteo estará visível conforme a data se aproximar (até 16 dias de antecedência).",
       dicas: [
         "Faça o checklist de caixas etiquetadas por cômodo com antecedência.",
         "Confirme a reserva do caminhão ou frete para o dia marcado.",
-        "Separe uma 'caixa de sobrevivência' com itens de primeira necessidade para a primeira noite."
+        "Separe uma 'caixa de sobrevivência' com itens de primeira necessidade para a primeira noite.",
       ],
     };
   }

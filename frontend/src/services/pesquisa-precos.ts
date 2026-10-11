@@ -9,22 +9,29 @@ interface PesquisaPrecoRespostaBruta {
     loja?: string;
     preco?: number | null;
     precoAntigo?: number | null;
-    // A API de pesquisa expõe a URL como `url`. `link` é mantido como
-    // compatibilidade para respostas antigas.
+    precoOriginal?: number | null;
     url?: string;
     link?: string;
     imagem?: string;
     logo_loja?: string;
+    logoLoja?: string;
     logo_marca?: string;
+    logoMarca?: string;
     is_trusted?: boolean;
+    isTrusted?: boolean;
     is_marketplace?: boolean;
+    isMarketplace?: boolean;
     is_used?: boolean;
+    isUsed?: boolean;
     marca?: string;
     parcelamento?: string | null;
   }>;
   marca_identificada?: string;
+  marcaIdentificada?: string;
   nome_validado?: string;
+  nomeValidado?: string;
   query_utilizada?: string;
+  queryUtilizada?: string;
   total?: number;
 }
 
@@ -33,9 +40,9 @@ function mapearResposta(
   queryOriginal: string,
 ): PesquisaPrecoResposta {
   return {
-    query: raw.query_utilizada ?? queryOriginal,
-    marcaDetectada: raw.marca_identificada,
-    nomeCorrigido: raw.nome_validado,
+    query: raw.queryUtilizada ?? raw.query_utilizada ?? queryOriginal,
+    marcaDetectada: raw.marcaIdentificada ?? raw.marca_identificada,
+    nomeCorrigido: raw.nomeValidado ?? raw.nome_validado,
     resultados: (raw.produtos ?? []).map((produto) => ({
       titulo: produto.nome ?? "",
       loja: produto.loja ?? "",
@@ -44,11 +51,11 @@ function mapearResposta(
       link: produto.url ?? produto.link ?? "",
       thumbnail: produto.imagem,
       parcelamento: produto.parcelamento ?? undefined,
-      isTrusted: Boolean(produto.is_trusted),
-      isMarketplace: Boolean(produto.is_marketplace),
-      isUsed: Boolean(produto.is_used),
-      lojaLogo: produto.logo_loja,
-      marcaLogo: produto.logo_marca,
+      isTrusted: Boolean(produto.isTrusted ?? produto.is_trusted),
+      isMarketplace: Boolean(produto.isMarketplace ?? produto.is_marketplace),
+      isUsed: Boolean(produto.isUsed ?? produto.is_used),
+      lojaLogo: produto.logoLoja ?? produto.logo_loja,
+      marcaLogo: produto.logoMarca ?? produto.logo_marca,
       marca: produto.marca,
     })),
   };
@@ -70,6 +77,18 @@ export const pesquisaPrecosService = {
       preco?: number;
       url?: string;
       imagem?: string;
+      marca?: string;
+      parcelamento?: string | null;
+      logoLoja?: string;
+      logo_loja?: string;
+      logoMarca?: string;
+      logo_marca?: string;
+      isTrusted?: boolean;
+      is_trusted?: boolean;
+      isMarketplace?: boolean;
+      is_marketplace?: boolean;
+      isUsed?: boolean;
+      is_used?: boolean;
     }
 
     const produto = await api<ExtracaoResposta>("/api/pesquisaprecos/extrair-link", {
@@ -84,9 +103,13 @@ export const pesquisaPrecosService = {
       precoFormatado: brl(Number(produto.preco ?? 0)),
       link: produto.url ?? url,
       thumbnail: produto.imagem,
-      isTrusted: true,
-      isMarketplace: false,
-      isUsed: false,
+      marca: produto.marca,
+      parcelamento: produto.parcelamento ?? undefined,
+      lojaLogo: produto.logoLoja ?? produto.logo_loja,
+      marcaLogo: produto.logoMarca ?? produto.logo_marca,
+      isTrusted: Boolean(produto.isTrusted ?? produto.is_trusted ?? true),
+      isMarketplace: Boolean(produto.isMarketplace ?? produto.is_marketplace),
+      isUsed: Boolean(produto.isUsed ?? produto.is_used),
     };
   },
 };

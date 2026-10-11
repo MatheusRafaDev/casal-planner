@@ -10,6 +10,7 @@ import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { maskDate, brToIsoDate } from "@/lib/formatters";
 import { CurrencyInput } from "@/components/ui/currency-input";
+import { cn } from "@/lib/utils";
 
 interface PessoaForm {
   nome: string;
@@ -29,19 +30,42 @@ function PessoaFields({
   value,
   onChange,
   label,
+  numero,
 }: {
   value: PessoaForm;
   onChange: (v: PessoaForm) => void;
   label: string;
+  numero: 1 | 2;
 }) {
   const [mostrarSenha, setMostrarSenha] = useState(false);
+  const isP1 = numero === 1;
+
   return (
     <div className="space-y-4 pt-4 border-t first:border-0 first:pt-0">
-      <div className="flex items-center gap-2 font-semibold text-sm text-foreground">
-        <div className="h-6 w-6 rounded-md bg-primary/10 text-primary flex items-center justify-center">
-          <Heart className="h-3.5 w-3.5" />
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 font-bold text-sm text-foreground">
+          <div
+            className={cn(
+              "h-7 w-7 rounded-lg border-2 border-border flex items-center justify-center shrink-0 shadow-xs",
+              isP1
+                ? "bg-[#2F7D5B] text-white"
+                : "bg-[#E8B63C] text-[#24302A]",
+            )}
+          >
+            <Heart className={cn("h-3.5 w-3.5", isP1 ? "fill-white" : "fill-[#24302A]")} />
+          </div>
+          <span>{label}</span>
         </div>
-        {label}
+        <span
+          className={cn(
+            "text-xs px-2.5 py-0.5 rounded-full border-2 border-border font-bold shadow-xs",
+            isP1
+              ? "bg-[#E8F3EC] text-[#16623A]"
+              : "bg-[#FBEFD2] text-[#6B4A06]",
+          )}
+        >
+          {isP1 ? "Parceiro(a) 1" : "Parceiro(a) 2"}
+        </span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5 sm:col-span-2">
@@ -172,8 +196,8 @@ export function RegistroCasal() {
   return (
     <form onSubmit={submit} className="space-y-6">
       <div className="space-y-6">
-        <PessoaFields label="Primeiro parceiro" value={p1} onChange={setP1} />
-        <PessoaFields label="Segundo parceiro" value={p2} onChange={setP2} />
+        <PessoaFields label="Primeiro parceiro" numero={1} value={p1} onChange={setP1} />
+        <PessoaFields label="Segundo parceiro" numero={2} value={p2} onChange={setP2} />
       </div>
       <div className="space-y-2 pt-4 border-t">
         <Label>Meta do Enxoval (R$)</Label>
@@ -187,7 +211,11 @@ export function RegistroCasal() {
           />
         </div>
       </div>
-      <Button type="submit" className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold shadow-glow transition-all active:scale-[0.99]" disabled={loading}>
+      <Button
+        type="submit"
+        className="w-full h-11 bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-base shadow-[3px_3px_0_var(--border)] border-2 border-border transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+        disabled={loading}
+      >
         {loading ? "Criando..." : "Criar conta do casal"}
       </Button>
     </form>

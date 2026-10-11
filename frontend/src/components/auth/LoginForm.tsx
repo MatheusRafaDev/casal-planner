@@ -194,7 +194,7 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="senha">Senha</Label>
-          <Link to="/recuperar-senha" className="text-xs text-primary hover:underline">
+          <Link to="/recuperar-senha" className="text-xs font-bold text-primary hover:underline hover:text-primary-hover">
             Esqueci minha senha
           </Link>
         </div>
@@ -222,9 +222,10 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
           </button>
         </div>
       </div>
+
       <Button
         type="submit"
-        className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold shadow-glow transition-all active:scale-[0.99]"
+        className="w-full h-11 bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-base shadow-[3px_3px_0_var(--border)] border-2 border-border transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
         disabled={loading || googleLoading}
       >
         {loading ? "Entrando..." : "Entrar na conta"}
@@ -232,7 +233,7 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
 
       {googleClientId && !googleError && (
         <div className="space-y-3">
-          <div className="flex items-center justify-center gap-3 text-xs uppercase text-muted-foreground">
+          <div className="flex items-center justify-center gap-3 text-xs font-bold uppercase text-foreground/60 dark:text-[#9bb0a4]">
             <span className="h-px flex-1 bg-border" />
             <span>ou</span>
             <span className="h-px flex-1 bg-border" />
@@ -243,44 +244,7 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
             onClick={handleGoogleClick}
             disabled={!googleReady || googleLoading || loading}
             aria-label="Entrar com Google"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "0.625rem",
-              width: "100%",
-              height: "2.75rem",
-              borderRadius: "var(--radius)",
-              border: "1px solid var(--border)",
-              background: "white",
-              color: "#3c4043",
-              fontFamily: "Inter, sans-serif",
-              fontSize: "0.9rem",
-              fontWeight: 500,
-              letterSpacing: "0.01em",
-              cursor: !googleReady || googleLoading || loading ? "not-allowed" : "pointer",
-              opacity: !googleReady || googleLoading || loading ? 0.6 : 1,
-              boxShadow: "0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.05)",
-              transition: "box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease",
-              outline: "none",
-              userSelect: "none",
-            }}
-            onMouseEnter={(e) => {
-              if (googleReady && !googleLoading && !loading) {
-                e.currentTarget.style.boxShadow =
-                  "0 4px 12px 0 rgb(0 0 0 / 0.12), 0 2px 4px -1px rgb(0 0 0 / 0.08)";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow =
-                "0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.05)";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
-            onMouseDown={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 1px 3px 0 rgb(0 0 0 / 0.08)";
-            }}
+            className="flex items-center justify-center gap-2.5 w-full h-11 rounded-xl border-2 border-border bg-white dark:bg-[#233028] text-[#3c4043] dark:text-[#f3efe6] font-semibold text-sm shadow-[2px_2px_0_var(--border)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_var(--border)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           >
             {googleLoading ? (
               <svg

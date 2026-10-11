@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" width="64" height="64">
+  <!-- Sombra neo-brutalista -->
+  <rect x="5.5" y="5.5" width="53" height="53" rx="14" fill="#24302A" />
+
+  <!-- Badge principal adesivo -->
+  <rect x="3" y="3" width="53" height="53" rx="14" fill="#FFFDF8" stroke="#24302A" stroke-width="2.5" />
+
+  <!-- Casinha CasalPlanner com Casal e Checkmark -->
+  <g transform="translate(8, 8) scale(1)">
+    <!-- Chaminé -->
+    <path
+      d="M12 16 V10 H17 V13.5"
+      fill="#E8B63C"
+      stroke="#24302A"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <!-- Estrutura da casa -->
+    <path
+      d="M9 20 L24 7 L39 20 V40 C39 41.65 37.65 43 36 43 H12 C10.35 43 9 41.65 9 40 Z"
+      fill="#FFFDF8"
+      stroke="#24302A"
+      stroke-width="2.5"
+      stroke-linejoin="round"
+    />
+
+    <!-- Telhado verde floresta -->
+    <path
+      d="M6 21 L24 6 L42 21"
+      stroke="#2F7D5B"
+      stroke-width="3.2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <!-- Coração no ápice -->
+    <path
+      d="M24 11.5 C23.2 10.5 21.8 10.5 21.8 11.7 C21.8 13 24 14.5 24 14.5 C24 14.5 26.2 13 26.2 11.7 C26.2 10.5 24.8 10.5 24 11.5 Z"
+      fill="#E0531C"
+      stroke="#24302A"
+      stroke-width="1"
+      stroke-linejoin="round"
+    />
+
+    <!-- Pessoa 1 - Verde (Matheus) -->
+    <circle cx="18" cy="23" r="3.5" fill="#2F7D5B" stroke="#24302A" stroke-width="1.8" />
+    <path
+      d="M12.5 36 C12.5 29.5 15 28 18 28 C21 28 23.5 29.5 23.5 36 Z"
+      fill="#2F7D5B"
+      stroke="#24302A"
+      stroke-width="1.8"
+      stroke-linejoin="round"
+    />
+
+    <!-- Pessoa 2 - Amarelo (Rayane) -->
+    <circle cx="28.5" cy="24" r="3.5" fill="#E8B63C" stroke="#24302A" stroke-width="1.8" />
+    <path
+      d="M23.5 36 C23.5 29.5 25.5 28 28.5 28 C31.5 28 34.5 29.5 34.5 36 Z"
+      fill="#E8B63C"
+      stroke="#24302A"
+      stroke-width="1.8"
+      stroke-linejoin="round"
+    />
+
+    <!-- Checkmark marcante do Planner cruzando à frente -->
+    <path
+      d="M16 34 L23.5 40.5 L38.5 23"
+      stroke="#24302A"
+      stroke-width="5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M16 34 L23.5 40.5 L38.5 23"
+      stroke="#E8B63C"
+      stroke-width="3"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </g>
+</svg>

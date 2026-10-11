@@ -16,11 +16,16 @@ public class CategoriasController : ControllerBase
 {
     private readonly MongoDbContext _context;
     private readonly ILogger<CategoriasController> _logger;
+    private readonly CasalPlanner.Application.Interfaces.ICacheService _cacheService;
 
-    public CategoriasController(MongoDbContext context, ILogger<CategoriasController> logger)
+    public CategoriasController(
+        MongoDbContext context,
+        ILogger<CategoriasController> logger,
+        CasalPlanner.Application.Interfaces.ICacheService cacheService)
     {
         _context = context;
         _logger = logger;
+        _cacheService = cacheService;
     }
 
     private string? GetUsuarioId() =>
@@ -37,6 +42,14 @@ public class CategoriasController : ControllerBase
             return Unauthorized(new { message = "Usuário não autenticado" });
         }
 
+        var cacheKey = $"casal:categorias:{usuarioId}";
+        var cached = await _cacheService.GetAsync<List<Categoria>>(cacheKey);
+        if (cached != null)
+        {
+            _logger.LogInformation("⚡ [CACHE HIT] Categorias retornadas do Redis para {UsuarioId}", usuarioId);
+            return Ok(cached);
+        }
+
         var filter = Builders<Categoria>.Filter.Or(
             Builders<Categoria>.Filter.Eq(c => c.UsuarioId, null),
             Builders<Categoria>.Filter.Eq(c => c.UsuarioId, usuarioId)
@@ -48,6 +61,7 @@ public class CategoriasController : ControllerBase
             .ThenBy(c => c.Nome)
             .ToListAsync();
 
+        await _cacheService.SetAsync(cacheKey, categoriasOrdenadas, TimeSpan.FromHours(24));
         return Ok(categoriasOrdenadas);
     }
 
@@ -91,6 +105,7 @@ public class CategoriasController : ControllerBase
         };
 
         await _context.Categorias.InsertOneAsync(categoria);
+        await _cacheService.InvalidateUsuarioCacheAsync(usuarioId);
         return CreatedAtAction(nameof(GetCategoria), new { id = categoria.Id }, categoria);
     }
 
@@ -153,6 +168,7 @@ public class CategoriasController : ControllerBase
         if (categoriaAtualizada == null)
             return NotFound(new { message = "Categoria não encontrada" });
 
+        await _cacheService.InvalidateUsuarioCacheAsync(usuarioId);
         return Ok(new { message = "Categoria atualizada com sucesso", categoria = categoriaAtualizada });
     }
 
@@ -175,6 +191,7 @@ public class CategoriasController : ControllerBase
             _context.Categorias.DeleteOneAsync(c => c.Id == id && c.UsuarioId == usuarioId)
         );
 
+        await _cacheService.InvalidateUsuarioCacheAsync(usuarioId);
         return NoContent();
     }
 
@@ -215,6 +232,7 @@ public class CategoriasController : ControllerBase
         ).ToList<WriteModel<Categoria>>();
 
         await _context.Categorias.BulkWriteAsync(writes, new BulkWriteOptions { IsOrdered = false });
+        await _cacheService.InvalidateUsuarioCacheAsync(usuarioId);
 
         return Ok();
     }

@@ -1,4 +1,4 @@
-﻿using CasalPlanner.Application.DTOs;
+using CasalPlanner.Application.DTOs;
 using CasalPlanner.Application.Interfaces;
 using System;
 using System.Threading.Tasks;
@@ -11,16 +11,32 @@ namespace CasalPlanner.Application.Services
         private readonly IItemRepository _itemRepository;
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly ILogger<ResumoService> _logger;
+        private readonly ICacheService? _cacheService;
 
-        public ResumoService(IItemRepository itemRepository, IUsuarioRepository usuarioRepository, ILogger<ResumoService> logger)
+        public ResumoService(
+            IItemRepository itemRepository,
+            IUsuarioRepository usuarioRepository,
+            ILogger<ResumoService> logger,
+            ICacheService? cacheService = null)
         {
             _itemRepository = itemRepository;
             _usuarioRepository = usuarioRepository;
             _logger = logger;
+            _cacheService = cacheService;
         }
 
         public async Task<ResumoResponseDto> ObterResumo(string usuarioId)
         {
+            var cacheKey = $"casal:resumo:{usuarioId}";
+            if (_cacheService != null)
+            {
+                var cached = await _cacheService.GetAsync<ResumoResponseDto>(cacheKey);
+                if (cached != null)
+                {
+                    _logger.LogInformation("⚡ [CACHE HIT] Resumo carregado instantaneamente do Redis para {UsuarioId}", usuarioId);
+                    return cached;
+                }
+            }
             try
             {
                 var (resumoDto, comparativoDto) = await _itemRepository.ObterResumoAgregadoAsync(usuarioId);
@@ -39,12 +55,19 @@ namespace CasalPlanner.Application.Services
                     TotalItensPendentes = resumoDto.TotalItens - resumoDto.TotalComprados
                 };
 
-                return new ResumoResponseDto
+                var resultado = new ResumoResponseDto
                 {
                     Atual = resumoDto,
                     Comparativo = comparativoDto,
                     Enxoval = resumoEnxovalDto
                 };
+
+                if (_cacheService != null)
+                {
+                    await _cacheService.SetAsync(cacheKey, resultado, TimeSpan.FromHours(24));
+                }
+
+                return resultado;
             }
             catch (Exception ex)
             {

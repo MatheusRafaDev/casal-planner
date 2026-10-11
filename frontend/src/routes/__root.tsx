@@ -15,24 +15,27 @@ import { ThemeProvider } from "@/lib/theme-context";
 import { Toaster } from "@/components/ui/sonner";
 import { clearAppData } from "@/lib/clear-app-data";
 import { api } from "@/lib/api";
+import { BrandLogoBadge } from "@/components/ui/BrandLogo";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <img src="/logo.png" alt="CasalPlanner" className="h-10 w-10 rounded-lg" />
-          <span className="font-display text-lg font-semibold">CasalPlanner</span>
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 font-sans">
+      <div className="card-sticker-lg max-w-md w-full text-center p-8 bg-card shadow-[5px_5px_0_var(--border)]">
+        <div className="flex items-center justify-center gap-2.5 mb-6">
+          <BrandLogoBadge size="lg" />
+          <span className="font-display text-xl font-bold">CasalPlanner</span>
         </div>
-        <h1 className="text-7xl font-display font-semibold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold">Página não encontrada</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <h1 className="text-7xl font-display font-bold text-primary">404</h1>
+        <h2 className="mt-4 text-2xl font-display font-bold text-foreground">
+          Página não encontrada
+        </h2>
+        <p className="mt-2 text-base text-muted-foreground font-medium">
           O endereço acessado não existe ou foi movido.
         </p>
         <div className="mt-6">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="btn-sticker inline-flex items-center justify-center bg-primary text-primary-foreground px-6 py-2.5 text-base font-bold"
           >
             Voltar ao início
           </Link>
@@ -42,32 +45,30 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: any; reset: () => void }) {
-  // IMPORTANTE: sem hooks de router aqui.
-  // O error boundary do root pode renderizar antes do RouterContext estar
-  // disponível (ex: se o RootComponent crashar). Chamar useRouter() aqui
-  // causaria um crash secundário em loop.
+function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold">Esta página não carregou</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 font-sans">
+      <div className="card-sticker-lg max-w-md w-full text-center p-8 bg-card shadow-[5px_5px_0_var(--border)]">
+        <h1 className="text-2xl font-display font-bold text-foreground">
+          Esta página não carregou
+        </h1>
+        <p className="mt-2 text-base text-muted-foreground font-medium">
           Algo deu errado. Tente novamente ou volte para o início.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
           <button
             onClick={reset}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            className="btn-sticker inline-flex items-center justify-center bg-primary text-primary-foreground px-5 py-2.5 text-sm font-bold cursor-pointer"
           >
             Tentar novamente
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
+            className="btn-sticker inline-flex items-center justify-center bg-card text-foreground px-5 py-2.5 text-sm font-bold"
           >
             Início
           </a>
@@ -98,22 +99,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       // PWA
-      { name: "theme-color", content: "#5E6AD2" },
+      { name: "theme-color", content: "#2F7D5B" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "CasalPlanner" },
-      { name: "mobile-web-app-capable", content: "yes" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
-      { rel: "apple-touch-icon", href: "/icons/icon-192.png" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "shortcut icon", href: "/favicon.ico" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.json" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap",
       },
     ],
     scripts: [
@@ -139,12 +141,9 @@ function RootShell({ children }: { children: ReactNode }) {
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                var theme = localStorage.getItem('cp_theme');
-                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                  document.documentElement.classList.add('dark');
-                } else {
-                  document.documentElement.classList.remove('dark');
-                }
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+                localStorage.removeItem('cp_theme');
               } catch (e) {}
             `,
           }}
@@ -165,7 +164,7 @@ function RootComponent() {
     // Keep-alive: ping no backend a cada 14 minutos para evitar cold starts (ex: Render) enquanto a aba estiver aberta
     const keepAliveInterval = setInterval(
       () => {
-        api("/api/health").catch(() => {});
+        api("/api/health").catch(() => { });
       },
       14 * 60 * 1000,
     );

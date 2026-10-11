@@ -49,6 +49,8 @@ namespace CasalPlanner.Application.DTOs
         public int? ResponsavelId { get; set; }
         public DivisaoPagamentoDto? DivisaoPagamento { get; set; }
         public DateTime? DataCompra { get; set; }
+        [JsonPropertyName("comprado")]
+        public bool Comprado { get; set; } = false;
     }
 
     public class UpdateCompradoDto

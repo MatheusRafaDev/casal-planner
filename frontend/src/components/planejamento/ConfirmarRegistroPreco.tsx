@@ -162,7 +162,11 @@ export function ConfirmarRegistroPreco({ open, onOpenChange, itemId, dados, onSa
           <Button variant="ghost" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
             Cancelar
           </Button>
-          <Button disabled={salvando} onClick={confirmar} className="w-full sm:w-auto gap-2 bg-primary hover:bg-primary/90">
+          <Button
+            disabled={salvando}
+            onClick={confirmar}
+            className="w-full sm:w-auto gap-2 bg-primary hover:bg-primary/90"
+          >
             {salvando ? (
               <>
                 <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />

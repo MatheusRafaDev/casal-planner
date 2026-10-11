@@ -136,7 +136,11 @@ export function RegistroIndividual({ returnUrl }: { returnUrl?: string }) {
         </div>
       </div>
 
-      <Button type="submit" className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold shadow-glow transition-all active:scale-[0.99]" disabled={loading}>
+      <Button
+        type="submit"
+        className="w-full h-11 bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-base shadow-[3px_3px_0_var(--border)] border-2 border-border transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+        disabled={loading}
+      >
         {loading ? "Criando..." : "Criar minha conta"}
       </Button>
     </form>

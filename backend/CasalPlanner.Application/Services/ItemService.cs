@@ -18,6 +18,7 @@ namespace CasalPlanner.Application.Services
         private readonly IEmailService _emailService;
         private readonly IMemoryCache _cache;
         private readonly IScrapeDoService _scrapeDoService;
+        private readonly ICacheService? _cacheService;
 
         public ItemService(
             IItemRepository itemRepository,
@@ -26,7 +27,8 @@ namespace CasalPlanner.Application.Services
             ILogger<ItemService> logger,
             IEmailService emailService,
             IMemoryCache cache,
-            IScrapeDoService scrapeDoService)
+            IScrapeDoService scrapeDoService,
+            ICacheService? cacheService = null)
         {
             _itemRepository = itemRepository;
             _usuarioRepository = usuarioRepository;
@@ -35,11 +37,28 @@ namespace CasalPlanner.Application.Services
             _emailService = emailService;
             _cache = cache;
             _scrapeDoService = scrapeDoService;
+            _cacheService = cacheService;
         }
 
         public async Task<List<Item>> GetItensByUsuarioId(string usuarioId)
         {
-            return await _itemRepository.GetByUsuarioIdAsync(usuarioId);
+            var cacheKey = $"casal:itens:{usuarioId}";
+            if (_cacheService != null)
+            {
+                var cached = await _cacheService.GetAsync<List<Item>>(cacheKey);
+                if (cached != null)
+                {
+                    _logger.LogInformation("⚡ [CACHE HIT] Itens retornados do Redis para {UsuarioId}", usuarioId);
+                    return cached;
+                }
+            }
+
+            var itens = await _itemRepository.GetByUsuarioIdAsync(usuarioId);
+            if (_cacheService != null && itens != null)
+            {
+                await _cacheService.SetAsync(cacheKey, itens, TimeSpan.FromHours(24));
+            }
+            return itens;
         }
 
         public async Task<PagedResult<Item>> GetItensPaginated(string usuarioId, string? categoriaId, string? busca, string? status, string? pagamento, int? responsavelId, int page, int pageSize)
@@ -100,7 +119,7 @@ namespace CasalPlanner.Application.Services
                 Pagamento = dto.Pagamento ?? string.Empty,
                 Prioridade = dto.Prioridade ?? "normal",
                 UsuarioId = usuarioId,
-                Comprado = false,
+                Comprado = dto.Comprado,
                 CreatedAt = DateTime.UtcNow,
                 Loja = dto.Loja ?? string.Empty,
                 LinkProduto = linkProdutoFinal,
@@ -137,6 +156,11 @@ namespace CasalPlanner.Application.Services
                     item);
             }
 
+            if (_cacheService != null)
+            {
+                await _cacheService.InvalidateUsuarioCacheAsync(usuarioId);
+            }
+
             return item;
         }
 
@@ -156,7 +180,12 @@ namespace CasalPlanner.Application.Services
                 }
             }
 
-            return await _itemRepository.UpdateAsync(id, usuarioId, dto, itemAtual);
+            var atualizado = await _itemRepository.UpdateAsync(id, usuarioId, dto, itemAtual);
+            if (atualizado != null && _cacheService != null)
+            {
+                await _cacheService.InvalidateUsuarioCacheAsync(usuarioId);
+            }
+            return atualizado;
         }
 
         public async Task<Item?> AtualizarComprado(string id, bool comprado, string usuarioId, string emailAutenticado)
@@ -187,21 +216,29 @@ namespace CasalPlanner.Application.Services
                 itemResult = await _itemRepository.UpdateCompradoAsync(id, usuarioId, comprado);
             }
 
-            if (itemResult != null && comprado)
+            if (itemResult != null)
             {
-                var usuario = await _usuarioRepository.GetByIdAsync(usuarioId);
-                if (usuario != null && usuario.IsCasal)
+                if (_cacheService != null)
                 {
-                    int currentPessoaId = (usuario.CasalInfo?.EmailPessoa2 == emailAutenticado) ? 2 : 1;
-                    var itemNome = itemResult.Nome;
-                    await NotificarParceiroAsync(
-                        usuario, 
-                        currentPessoaId, 
-                        "Item Comprado", 
-                        "O item '" + itemNome + "' foi marcado como comprado.", 
-                        "email_throttle", 
-                        itemNome,
-                        itemResult);
+                    await _cacheService.InvalidateUsuarioCacheAsync(usuarioId);
+                }
+
+                if (comprado)
+                {
+                    var usuario = await _usuarioRepository.GetByIdAsync(usuarioId);
+                    if (usuario != null && usuario.IsCasal)
+                    {
+                        int currentPessoaId = (usuario.CasalInfo?.EmailPessoa2 == emailAutenticado) ? 2 : 1;
+                        var itemNome = itemResult.Nome;
+                        await NotificarParceiroAsync(
+                            usuario, 
+                            currentPessoaId, 
+                            "Item Comprado", 
+                            "O item '" + itemNome + "' foi marcado como comprado.", 
+                            "email_throttle", 
+                            itemNome,
+                            itemResult);
+                    }
                 }
             }
 
@@ -210,7 +247,12 @@ namespace CasalPlanner.Application.Services
 
         public async Task<bool> DeletarItem(string id, string usuarioId)
         {
-            return await _itemRepository.DeleteAsync(id, usuarioId);
+            var deletado = await _itemRepository.DeleteAsync(id, usuarioId);
+            if (deletado && _cacheService != null)
+            {
+                await _cacheService.InvalidateUsuarioCacheAsync(usuarioId);
+            }
+            return deletado;
         }
 
         public async Task<List<Item>> GetItensByCategoria(string categoriaId, string usuarioId)

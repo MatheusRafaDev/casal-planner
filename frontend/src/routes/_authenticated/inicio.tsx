@@ -1,40 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, Variants } from "framer-motion";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   Wallet,
   ShoppingBag,
   Target,
-  Sparkles,
-  ArrowRight,
+  Plus,
   CreditCard,
-  RefreshCw,
-  Bot,
   FileText,
   Gift,
   CheckCircle,
+  AlertTriangle,
 } from "lucide-react";
-import {
-  Pie,
-  PieChart,
-  Cell,
-  Bar,
-  BarChart,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { resumoService } from "@/services/resumo";
 import { brl } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { iconFor } from "@/components/planejamento/icon-map";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useState, useMemo } from "react";
+import { iconFor, comodoColor } from "@/components/planejamento/icon-map";
+import { useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
-import type { Item } from "@/services/types";
 import { WidgetDiaMudanca } from "@/components/planejamento/WidgetDiaMudanca";
+import { InicioSkeleton } from "@/components/ui/LoadingSkeletons";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   head: () => ({
@@ -44,14 +31,13 @@ export const Route = createFileRoute("/_authenticated/inicio")({
 });
 
 const FALLBACK_COLORS = [
-  "#8b5cf6",
-  "#ec4899",
-  "#f59e0b",
-  "#10b981",
-  "#3b82f6",
-  "#f43f5e",
-  "#06b6d4",
-  "#a855f7",
+  "#2F7D5B", // verde
+  "#E8B63C", // dourado
+  "#E2725B", // coral
+  "#2A7F8E", // azul-petróleo
+  "#8A9A3B", // oliva
+  "#B4532E", // argila
+  "#24302A", // grafite
 ];
 
 function InicioPage() {
@@ -59,6 +45,8 @@ function InicioPage() {
   const isCasal = usuario?.tipoConta === "Casal";
   const p1 = usuario?.casalInfo?.pessoa1?.nome || "Pessoa 1";
   const p2 = usuario?.casalInfo?.pessoa2?.nome || "Pessoa 2";
+  const p1Primeiro = p1.split(" ")[0];
+  const p2Primeiro = p2.split(" ")[0];
 
   const { data: categorias = [] } = useQuery({
     queryKey: ["categorias"],
@@ -80,8 +68,6 @@ function InicioPage() {
     if (!itens || itens.length === 0) return [];
 
     const mesesMap = new Map<string, number>();
-    // Inclui itens comprados E itens com data prevista de compra (para projeção futura)
-    // Ignora itens que já foram comprados e não estão parcelados (pagamento à vista já liquidado)
     const itensRelevantes = itens.filter(
       (i) =>
         i.origem !== "ganho" &&
@@ -91,7 +77,6 @@ function InicioPage() {
     );
 
     itensRelevantes.forEach((item) => {
-      // Se não tem data, pula (não projeta sem data)
       if (!item.dataCompra && !item.comprado) return;
       const dataStr = item.dataCompra || new Date().toISOString();
       const dataBase = new Date(dataStr);
@@ -111,26 +96,18 @@ function InicioPage() {
 
     return Array.from(mesesMap.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([key, valor]) => {
+      .map(([key, valor], index) => {
         const [ano, mes] = key.split("-");
         const data = new Date(parseInt(ano), parseInt(mes) - 1, 1);
         const mesStr = data.toLocaleDateString("pt-BR", { month: "short" });
         return {
-          name: `${mesStr.charAt(0).toUpperCase() + mesStr.slice(1)}/${ano}`,
+          name: mesStr.charAt(0).toUpperCase() + mesStr.slice(1).replace(".", ""),
+          fullLabel: `${mesStr.charAt(0).toUpperCase() + mesStr.slice(1)}/${ano}`,
           valor: valor,
+          fill: index % 2 === 0 ? "#2F7D5B" : "#E8B63C",
         };
       });
   }, [itens]);
-
-  if (isLoading) {
-    return (
-      <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-32 rounded-[var(--radius-lg)] bg-muted animate-pulse" />
-        ))}
-      </div>
-    );
-  }
 
   const validItens = itens.filter(
     (i) => !["ganho", "presente", "prometido"].includes(i.origem ?? ""),
@@ -146,6 +123,7 @@ function InicioPage() {
 
   let realTotalP1 = 0;
   let realTotalP2 = 0;
+  let realTotalConjunto = 0;
   validItens.forEach((i) => {
     const valorTotal = i.preco * i.quantidade;
     if (i.divisaoPagamento) {
@@ -155,151 +133,61 @@ function InicioPage() {
       realTotalP1 += valorTotal;
     } else if (i.responsavelId === 2) {
       realTotalP2 += valorTotal;
+    } else {
+      realTotalConjunto += valorTotal;
     }
   });
 
   const r = resumo
     ? {
-        ...resumo,
-        totalGeral: realTotalGeral,
-        totalNormal: realTotalNormal,
-        totalVr: realTotalVr,
-        itensComprados: realTotalComprados,
-        totalItens: validItens.length,
-        totalPessoa1: realTotalP1,
-        totalPessoa2: realTotalP2,
-      }
+      ...resumo,
+      totalGeral: realTotalGeral,
+      totalNormal: realTotalNormal,
+      totalVr: realTotalVr,
+      itensComprados: realTotalComprados,
+      totalItens: validItens.length,
+      totalPessoa1: realTotalP1,
+      totalPessoa2: realTotalP2,
+      totalConjunto: realTotalConjunto,
+    }
     : null;
 
   const meta = r?.metaGlobal ?? 0;
   const pct = meta > 0 ? Math.min(100, ((r?.totalGeral ?? 0) / meta) * 100) : 0;
+  const valorRestante = meta > 0 ? Math.max(0, meta - (r?.totalGeral ?? 0)) : 0;
 
-  const dadosCategoria =
-    r?.porCategoria?.map((c, i) => ({
-      nome: c.categoriaNome,
-      nomeBase: c.categoriaNome,
-      icon: c.icon ?? null,
-      valor: c.totalGasto,
-      cor: c.cor ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length],
-    })) ?? [];
+  const parcelasDesteMes = useMemo(() => {
+    const agora = new Date();
+    let soma = 0;
+    itens.forEach((it) => {
+      if (it.origem === "ganho" || it.pagamento === "vr") return;
+      const parcelas = Math.max(1, it.parcelas ?? 1);
+      if (parcelas <= 1 && it.comprado) return;
+      const dataBase = it.dataCompra ? new Date(it.dataCompra) : new Date(it.createdAt);
+      const diffMeses =
+        (agora.getFullYear() - dataBase.getFullYear()) * 12 +
+        (agora.getMonth() - dataBase.getMonth());
+      if (diffMeses >= 0 && diffMeses < parcelas) {
+        soma += (it.preco * it.quantidade) / parcelas;
+      }
+    });
+    return soma;
+  }, [itens]);
 
-  const chartConfig = dadosCategoria.reduce(
-    (acc, c, i) => {
-      acc[c.nomeBase] = {
-        label: c.nome,
-        color: c.cor,
-      };
-      return acc;
-    },
-    {} as Record<string, { label: string; color: string }>,
-  );
+  const totalParcelado = itens
+    .filter((i) => (i.parcelas ?? 1) > 1 && i.origem !== "ganho" && i.comprado)
+    .reduce((s, i) => s + i.preco * i.quantidade, 0);
 
-  const dadosVrNormal = [
-    { nome: "Dinheiro", valor: r?.totalNormal ?? 0 },
-    { nome: "VR/VA", valor: r?.totalVr ?? 0 },
-  ].filter((d) => d.valor > 0);
-
-  const temMensais =
-    (r?.mesAtual ?? 0) > 0 || (r?.mesPassado ?? 0) > 0 || (r?.mesRetrasado ?? 0) > 0;
-
-  const semDados = categorias.length === 0 && (!r || (r.totalItens ?? 0) === 0);
-
-  const totalParcelado =
-    itens.length > 0
-      ? itens
-          .filter((i) => (i.parcelas ?? 1) > 1 && i.origem !== "ganho" && i.comprado)
-          .reduce((s, i) => s + i.preco * i.quantidade, 0)
-      : 0;
-
-  // Total economizado com presentes/ganhos
-  const totalEconomizadoGanhos =
-    itens.length > 0
-      ? itens.filter((i) => i.origem === "ganho").reduce((s, i) => s + i.preco * i.quantidade, 0)
-      : 0;
+  const totalEconomizadoGanhos = itens
+    .filter((i) => i.origem === "ganho")
+    .reduce((s, i) => s + i.preco * i.quantidade, 0);
   const qtdGanhos = itens.filter((i) => i.origem === "ganho").length;
 
-  // Bar chart mensal — com nomes reais dos meses e cálculo manual
   const hoje = new Date();
-  const inicioMesAtual = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-  const inicioMesPassado = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
-  const inicioMesRetrasado = new Date(hoje.getFullYear(), hoje.getMonth() - 2, 1);
-  const inicioProximoMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1);
+  const mesAtualFormatado = hoje.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const mesCapitalizado = mesAtualFormatado.charAt(0).toUpperCase() + mesAtualFormatado.slice(1);
 
-  let atualComprado = 0;
-  let atualPrevisao = 0;
-  let passadoComprado = 0;
-  let passadoPrevisao = 0;
-  let retrasadoComprado = 0;
-  let retrasadoPrevisao = 0;
-
-  itens.forEach((i) => {
-    if (["ganho", "presente", "prometido"].includes(i.origem ?? "")) return;
-
-    const dataRefStr = i.dataCompra || i.createdAt;
-    if (!dataRefStr) return;
-
-    // Tratando a data de referência para evitar problemas de timezone
-    // Vamos apenas focar no ano/mês que a string (YYYY-MM-DD) ou timestamp indica
-    const dataRef = new Date(dataRefStr);
-
-    const valorTotal = i.preco * i.quantidade;
-
-    if (dataRef >= inicioMesAtual && dataRef < inicioProximoMes) {
-      if (i.comprado) atualComprado += valorTotal;
-      else atualPrevisao += valorTotal;
-    } else if (dataRef >= inicioMesPassado && dataRef < inicioMesAtual) {
-      if (i.comprado) passadoComprado += valorTotal;
-      else passadoPrevisao += valorTotal;
-    } else if (dataRef >= inicioMesRetrasado && dataRef < inicioMesPassado) {
-      if (i.comprado) retrasadoComprado += valorTotal;
-      else retrasadoPrevisao += valorTotal;
-    }
-  });
-
-  const MESES_PT = [
-    "Jan",
-    "Fev",
-    "Mar",
-    "Abr",
-    "Mai",
-    "Jun",
-    "Jul",
-    "Ago",
-    "Set",
-    "Out",
-    "Nov",
-    "Dez",
-  ];
-  const mesAtualNome = MESES_PT[hoje.getMonth()];
-  const mesPassadoNome = MESES_PT[(hoje.getMonth() + 11) % 12];
-  const mesRetrasadoNome = MESES_PT[(hoje.getMonth() + 10) % 12];
-
-  const dadosMensais = [
-    {
-      mes: mesRetrasadoNome,
-      comprado: retrasadoComprado,
-      previsao: retrasadoPrevisao,
-      total: retrasadoComprado + retrasadoPrevisao,
-    },
-    {
-      mes: mesPassadoNome,
-      comprado: passadoComprado,
-      previsao: passadoPrevisao,
-      total: passadoComprado + passadoPrevisao,
-    },
-    {
-      mes: mesAtualNome,
-      comprado: atualComprado,
-      previsao: atualPrevisao,
-      total: atualComprado + atualPrevisao,
-    },
-  ];
-
-  // Variação % do mês atual em relação ao passado (considerando o total projetado)
-  const passadoTotal = passadoComprado + passadoPrevisao;
-  const atualTotal = atualComprado + atualPrevisao;
-  const variacaoAtual =
-    passadoTotal > 0 ? ((atualTotal - passadoTotal) / passadoTotal) * 100 : null;
+  const semDados = categorias.length === 0 && (!r || (r.totalItens ?? 0) === 0);
 
   // ─── Gerador de Relatório PDF Financeiro ───────────────────────────────────
   const gerarRelatorioFinanceiro = async () => {
@@ -308,7 +196,6 @@ function InicioPage() {
       import("jspdf-autotable"),
     ]);
     const doc = new jsPDF();
-    const hoje = new Date();
     const dataStr = hoje.toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "long",
@@ -316,8 +203,8 @@ function InicioPage() {
     });
     const nomesCasal = isCasal ? `${p1} & ${p2}` : (usuario?.nomeCompleto ?? "CasalPlanner");
 
-    // ── Cabeçalho ──
-    doc.setFillColor(139, 92, 246);
+    // Cabeçalho
+    doc.setFillColor(47, 125, 91);
     doc.rect(0, 0, 210, 35, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
@@ -327,8 +214,8 @@ function InicioPage() {
     doc.setFont("helvetica", "normal");
     doc.text(`${nomesCasal}  •  ${dataStr}`, 14, 27);
 
-    // ── Métricas principais ──
-    doc.setTextColor(50, 50, 50);
+    // Resumo Geral
+    doc.setTextColor(36, 48, 42);
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
     doc.text("Resumo Geral", 14, 48);
@@ -338,9 +225,6 @@ function InicioPage() {
     const totalComprados = r?.itensComprados ?? 0;
     const metaVal = r?.metaGlobal ?? 0;
     const pctMeta = metaVal > 0 ? Math.min(100, (totalGeral / metaVal) * 100) : null;
-    const totalParcelado = itens
-      .filter((i: Item) => (i.parcelas ?? 1) > 1)
-      .reduce((s: number, i: Item) => s + i.preco * i.quantidade, 0);
 
     const metricas = [
       ["Gasto do Casal (Bolso)", brl(totalGeral)],
@@ -380,18 +264,18 @@ function InicioPage() {
       head: [["Métrica", "Valor"]],
       body: metricas,
       theme: "grid",
-      headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: "bold" },
-      alternateRowStyles: { fillColor: [248, 245, 255] },
+      headStyles: { fillColor: [47, 125, 91], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [246, 241, 233] },
       columnStyles: { 1: { halign: "right", fontStyle: "bold" } },
       styles: { fontSize: 10 },
     });
 
-    // ── Por Categoria ──
+    // Gastos por Cômodo
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const afterMetricas = (doc as any).lastAutoTable?.finalY ?? 115;
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(50, 50, 50);
+    doc.setTextColor(36, 48, 42);
     doc.text("Gastos por Cômodo", 14, afterMetricas + 12);
 
     const porCategoria = (r?.porCategoria ?? []).map((c) => [
@@ -404,49 +288,16 @@ function InicioPage() {
     autoTable(doc, {
       startY: afterMetricas + 17,
       head: [["Cômodo", "Gasto", "Itens", "Meta"]],
-      body: porCategoria.length > 0 ? porCategoria : [["Nenhuma categoria", "—", "—", "—"]],
+      body: porCategoria.length > 0 ? porCategoria : [["Nenhum cômodo", "—", "—", "—"]],
       theme: "striped",
-      headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: "bold" },
+      headStyles: { fillColor: [47, 125, 91], textColor: 255, fontStyle: "bold" },
       columnStyles: { 1: { halign: "right" }, 3: { halign: "right" } },
       styles: { fontSize: 9 },
     });
 
-    // ── Top Itens por Valor ──
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const afterCat = (doc as any).lastAutoTable?.finalY ?? 180;
-    if (afterCat < 240) {
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(50, 50, 50);
-      doc.text("Top 10 Itens por Valor", 14, afterCat + 12);
-
-      const topItens = [...itens]
-        .sort((a: Item, b: Item) => b.preco * b.quantidade - a.preco * a.quantidade)
-        .slice(0, 10)
-        .map((i: Item) => [
-          i.nome,
-          i.marca ?? "—",
-          brl(i.preco),
-          `×${i.quantidade}`,
-          brl(i.preco * i.quantidade),
-          i.comprado ? "✓" : "○",
-        ]);
-
-      autoTable(doc, {
-        startY: afterCat + 17,
-        head: [["Item", "Marca", "Preço", "Qtd", "Total", "Comprado"]],
-        body: topItens.length > 0 ? topItens : [["Nenhum item", "—", "—", "—", "—", "—"]],
-        theme: "striped",
-        headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: "bold" },
-        columnStyles: { 2: { halign: "right" }, 4: { halign: "right" }, 5: { halign: "center" } },
-        styles: { fontSize: 8 },
-      });
-    }
-
-    // ── Rodapé ──
     const pages = doc.getNumberOfPages();
     doc.setFontSize(8);
-    doc.setTextColor(160);
+    doc.setTextColor(100);
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
       doc.text(
@@ -463,270 +314,546 @@ function InicioPage() {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 },
+      transition: { staggerChildren: 0.08 },
     },
   };
 
   const itemVariants: Variants = {
     hidden: { opacity: 0, y: 15 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
+    show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
   };
+
+  if (isLoading) {
+    return <InicioSkeleton />;
+  }
+
+  // Porcentagens das pessoas e conjunto para a barra empilhada
+  const totalBolso =
+    (r?.totalPessoa1 ?? 0) + (r?.totalPessoa2 ?? 0) + (r?.totalConjunto ?? 0) ||
+    (r?.totalGeral ?? 1);
+  const p1Pct = totalBolso > 0 ? ((r?.totalPessoa1 ?? 0) / totalBolso) * 100 : 0;
+  const p2Pct = totalBolso > 0 ? ((r?.totalPessoa2 ?? 0) / totalBolso) * 100 : 0;
+  const conjPct = totalBolso > 0 ? ((r?.totalConjunto ?? 0) / totalBolso) * 100 : 0;
 
   return (
     <motion.div
-      className="p-4 md:p-6 lg:p-8 w-full max-w-[1200px] mx-auto space-y-6 md:space-y-8"
+      className="w-full space-y-6 md:space-y-8 font-sans"
       variants={containerVariants}
       initial="hidden"
       animate="show"
     >
-      {/* Cabeçalho */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
+      {/* ─── Topo: Mês & Título & Botão Adicionar ─────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl md:text-3xl font-semibold tracking-tight text-foreground">Visão Geral</h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">
-            {isCasal ? `Enxoval de ${p1.split(' ')[0]} e ${p2.split(' ')[0]}.` : 'O progresso financeiro do seu enxoval.'}
-          </p>
+          <span className="text-xs md:text-sm font-semibold text-muted-foreground block mb-1">
+            {mesCapitalizado}
+          </span>
+          <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+            {isCasal ? "Resumo do nosso lar" : "Resumo do meu lar"}
+          </h1>
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
             onClick={gerarRelatorioFinanceiro}
-            className="flex-1 sm:flex-none h-10 border-border text-foreground hover:bg-muted"
+            className="btn-sticker flex-1 sm:flex-none h-11 px-4 bg-card text-foreground font-bold"
           >
             <FileText className="h-4 w-4 mr-2" /> PDF
           </Button>
-          <Button asChild size="sm" className="flex-1 sm:flex-none h-10 bg-primary">
+          <Button
+            asChild
+            size="sm"
+            className="btn-sticker flex-1 sm:flex-none h-11 px-5 bg-primary text-primary-foreground font-bold"
+          >
             <Link to="/planejamento">
-              Planejar <ArrowRight className="h-4 w-4 ml-2" />
+              <Plus className="h-4 w-4 mr-1.5" /> Adicionar item
             </Link>
           </Button>
         </div>
       </div>
 
-      {/* Widget Data da Mudança & Previsão do Tempo Open-Meteo */}
+      {/* ─── Widget Data da Mudança & Previsão ─────────────────────────────────── */}
       <motion.div variants={itemVariants}>
         <WidgetDiaMudanca />
       </motion.div>
 
       {semDados ? (
-        <motion.div variants={itemVariants} className="rounded-xl border border-border bg-card p-8 sm:p-12 text-center shadow-sm">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-xl bg-primary/10 text-primary mb-6">
+        <motion.div
+          variants={itemVariants}
+          className="card-sticker-lg p-8 sm:p-12 text-center bg-card shadow-[5px_5px_0_var(--border)]"
+        >
+          <div className="inline-flex items-center justify-center h-16 w-16 rounded-xl border-2 border-border bg-primary-tint text-primary-tint-foreground mb-6 shadow-[2px_2px_0_var(--border)]">
             <ShoppingBag className="h-8 w-8" />
           </div>
-          <h2 className="font-display text-2xl font-semibold tracking-tight mb-2">Comece o seu enxoval</h2>
-          <p className="text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed text-sm">
-            Adicione os itens do seu enxoval para começar a acompanhar o progresso dos cômodos e o orçamento da casa nova.
+          <h2 className="font-display text-2xl font-bold tracking-tight mb-2">
+            Comece o seu enxoval
+          </h2>
+          <p className="text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed text-sm font-medium">
+            Adicione os itens do seu enxoval para acompanhar o progresso dos cômodos e o orçamento
+            da casa nova.
           </p>
-          <Button asChild size="lg" className="bg-primary shadow-sm">
+          <Button
+            asChild
+            size="lg"
+            className="btn-sticker bg-primary text-primary-foreground font-bold"
+          >
             <Link to="/planejamento">Adicionar primeiro item</Link>
           </Button>
         </motion.div>
       ) : (
         <>
-          {/* Faixa de Destaque (Gasto do Bolso) */}
-          <motion.div variants={itemVariants} className="rounded-xl border border-border bg-card p-6 md:p-8 shadow-card flex flex-col gap-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* ─── Grid Principal: Card Grande Orçamento + 2 Cards Menores ────────── */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Card Grande: Orçamento da Casa */}
+            <motion.div
+              variants={itemVariants}
+              className="lg:col-span-2 card-sticker p-6 md:p-8 bg-card shadow-[4px_4px_0_var(--border)] flex flex-col justify-between gap-6"
+            >
               <div>
-                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground font-mono mb-1.5">Gasto Total Acumulado</div>
-                <div className="flex items-baseline gap-2">
-                  <span className="font-display text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground font-mono tabular-nums">
-                    {brl(r?.totalGeral).replace('R$', '').trim()}
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
+                  Orçamento da casa
+                </span>
+
+                <div className="flex flex-wrap items-baseline gap-2">
+                  <span className="font-display text-4xl sm:text-5xl font-bold tracking-tight text-foreground tabular-nums">
+                    {meta > 0 ? brl(valorRestante) : brl(r?.totalGeral)}
                   </span>
-                  <span className="text-base text-muted-foreground font-mono font-medium">BRL</span>
+                  <span className="text-sm sm:text-base text-muted-foreground font-medium">
+                    {meta > 0
+                      ? `ainda disponíveis de ${brl(meta)}`
+                      : "gasto total acumulado no enxoval"}
+                  </span>
                 </div>
               </div>
-              {meta > 0 && (
-                <div className="text-xs font-medium px-3.5 py-1.5 bg-surface border border-border rounded-full text-foreground shadow-2xs font-mono">
-                  <span className="text-primary font-bold">{pct.toFixed(0)}%</span> da meta de {brl(meta)}
-                </div>
-              )}
-            </div>
 
-            {meta > 0 && (
-              <div className="space-y-2">
-                <Progress value={pct} className="h-2 bg-muted [&>div]:bg-primary" />
-                {meta - (r?.totalGeral ?? 0) > 0 && (
-                  <p className="text-xs text-muted-foreground font-medium text-right font-mono">
-                    Restam <span className="tabular-nums font-semibold text-foreground">{brl(meta - (r?.totalGeral ?? 0))}</span> livres
-                  </p>
-                )}
-              </div>
-            )}
-            
-            {/* Mini-Totais (Chips) */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <div className="flex items-center gap-2.5 bg-surface border border-border px-3 py-2 rounded-md shadow-2xs">
-                <div className="bg-amber-500/10 text-amber-600 dark:text-amber-400 p-1.5 rounded-md"><ShoppingBag className="w-4 h-4"/></div>
-                <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">Dinheiro</div>
-                  <div className="text-sm font-bold font-mono tabular-nums leading-none text-foreground">{brl(r?.totalNormal)}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5 bg-surface border border-border px-3 py-2 rounded-md shadow-2xs">
-                <div className="bg-destructive/10 text-destructive p-1.5 rounded-md"><CreditCard className="w-4 h-4"/></div>
-                <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">Parcelado</div>
-                  <div className="text-sm font-bold font-mono tabular-nums leading-none text-foreground">{brl(totalParcelado)}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5 bg-surface border border-border px-3 py-2 rounded-md shadow-2xs">
-                <div className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 p-1.5 rounded-md"><Wallet className="w-4 h-4"/></div>
-                <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">VR / VA</div>
-                  <div className="text-sm font-bold font-mono tabular-nums leading-none text-foreground">{brl(r?.totalVr)}</div>
-                </div>
-              </div>
-              {isCasal && (
-                <div className="flex items-center gap-2.5 bg-surface border border-border px-3 py-2 rounded-md shadow-2xs">
-                  <div className="bg-primary/10 text-primary p-1.5 rounded-md"><Target className="w-4 h-4"/></div>
-                  <div>
-                    <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">Divisão</div>
-                    <div className="text-xs font-mono leading-tight mt-0.5">
-                      <span className="text-muted-foreground">{p1.split(' ')[0]}:</span> <span className="tabular-nums font-semibold text-foreground">{brl(r?.totalPessoa1)}</span>
-                      <span className="mx-1 text-muted-foreground">|</span>
-                      <span className="text-muted-foreground">{p2.split(' ')[0]}:</span> <span className="tabular-nums font-semibold text-foreground">{brl(r?.totalPessoa2)}</span>
-                      {(() => {
-                        const conj = Math.max(0, (r?.totalGeral ?? 0) - ((r?.totalPessoa1 ?? 0) + (r?.totalPessoa2 ?? 0)));
-                        return conj > 0 ? (
-                          <>
-                            <span className="mx-1 text-muted-foreground">|</span>
-                            <span className="text-muted-foreground">Juntos:</span> <span className="tabular-nums font-semibold text-foreground">{brl(conj)}</span>
-                          </>
-                        ) : null;
-                      })()}
+              {/* Barra Empilhada com as cores de Pessoa 1, Pessoa 2 e Conjunto */}
+              <div className="space-y-3">
+                <div className="h-4 w-full rounded-full border-2 border-border bg-white dark:bg-card overflow-hidden flex">
+                  {isCasal ? (
+                    <div
+                      className="h-full flex transition-all duration-500 overflow-hidden"
+                      style={{ width: `${meta > 0 ? pct : 100}%` }}
+                    >
+                      {(r?.totalPessoa1 ?? 0) > 0 && (
+                        <div
+                          className="h-full bg-[#2F7D5B] dark:bg-[#4FB387] transition-all duration-500"
+                          style={{ width: `${p1Pct}%` }}
+                          title={`${p1Primeiro} (Verde): ${brl(r?.totalPessoa1)} (${p1Pct.toFixed(1)}%)`}
+                        />
+                      )}
+                      {(r?.totalPessoa2 ?? 0) > 0 && (
+                        <div
+                          className="h-full bg-[#E8B63C] transition-all duration-500"
+                          style={{ width: `${p2Pct}%` }}
+                          title={`${p2Primeiro} (Amarelo): ${brl(r?.totalPessoa2)} (${p2Pct.toFixed(1)}%)`}
+                        />
+                      )}
+                      {(r?.totalConjunto ?? 0) > 0 && (
+                        <div
+                          className="h-full bg-[#2A7F8E] transition-all duration-500"
+                          style={{ width: `${conjPct}%` }}
+                          title={`Conjunto (Azul): ${brl(r?.totalConjunto)} (${conjPct.toFixed(1)}%)`}
+                        />
+                      )}
                     </div>
-                  </div>
+                  ) : (
+                    <div
+                      className="h-full bg-primary transition-all duration-500"
+                      style={{ width: `${meta > 0 ? pct : 100}%` }}
+                    />
+                  )}
                 </div>
-              )}
-            </div>
-          </motion.div>
 
-          {/* Distribuição por Cômodo (Grid de Cards) */}
-          <motion.div variants={itemVariants} className="space-y-4">
-            <div>
-              <h3 className="font-display text-xl font-bold tracking-tight text-foreground">Por Cômodo</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">Onde seu orçamento está sendo alocado</p>
+                <div className="flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm font-bold">
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                    {isCasal ? (
+                      <>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <span className="w-3 h-3 rounded-full border border-border bg-[#2F7D5B] dark:bg-[#4FB387] inline-block shrink-0 shadow-xs" />
+                          <span className="text-muted-foreground">{p1Primeiro} (Verde):</span>
+                          <span className="text-foreground tabular-nums">
+                            {brl(r?.totalPessoa1)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <span className="w-3 h-3 rounded-full border border-border bg-[#E8B63C] inline-block shrink-0 shadow-xs" />
+                          <span className="text-muted-foreground">{p2Primeiro} (Amarelo):</span>
+                          <span className="text-foreground tabular-nums">
+                            {brl(r?.totalPessoa2)}
+                          </span>
+                        </div>
+                        {(r?.totalConjunto ?? 0) > 0 && (
+                          <div className="flex items-center gap-1.5 sm:gap-2">
+                            <span className="w-3 h-3 rounded-full border border-border bg-[#2A7F8E] inline-block shrink-0 shadow-xs" />
+                            <span className="text-muted-foreground">Conjunto (Azul):</span>
+                            <span className="text-foreground tabular-nums">
+                              {brl(r?.totalConjunto)}
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full border border-border bg-primary inline-block shrink-0" />
+                        <span className="text-muted-foreground">Total:</span>
+                        <span className="text-foreground tabular-nums">{brl(r?.totalGeral)}</span>
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-muted-foreground font-semibold">
+                    {meta > 0
+                      ? `${pct.toFixed(0)}% do orçamento usado`
+                      : `${validItens.length} itens listados`}
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Coluna Direita: 2 Cards Menores */}
+            <div className="flex flex-col gap-6">
+              {/* Card 1: Parcelas deste mês */}
+              <motion.div
+                variants={itemVariants}
+                className="card-sticker p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between flex-1"
+              >
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
+                  Parcelas deste mês
+                </span>
+                <span className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-foreground tabular-nums">
+                  {brl(parcelasDesteMes > 0 ? parcelasDesteMes : totalParcelado)}
+                </span>
+                <span className="text-xs text-muted-foreground font-medium mt-1">
+                  {totalParcelado > 0
+                    ? `${brl(totalParcelado)} em parcelas ativas`
+                    : "Nenhum parcelamento no mês"}
+                </span>
+              </motion.div>
+
+              {/* Card 2: Itens comprados */}
+              <motion.div
+                variants={itemVariants}
+                className="card-sticker p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between flex-1"
+              >
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
+                  Itens comprados
+                </span>
+                <span className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-foreground tabular-nums">
+                  {r?.itensComprados}{" "}
+                  <span className="text-2xl sm:text-3xl font-semibold text-muted-foreground">
+                    de {r?.totalItens}
+                  </span>
+                </span>
+                <span className="text-xs text-muted-foreground font-medium mt-1">
+                  {r?.totalItens && r.totalItens > 0
+                    ? `${Math.round(((r.itensComprados ?? 0) / r.totalItens) * 100)}% das compras concluídas`
+                    : "Comece adicionando itens"}
+                </span>
+              </motion.div>
             </div>
-            
+          </div>
+
+          {/* ─── Seção Cômodos ─────────────────────────────────────────────────── */}
+          <motion.div variants={itemVariants} className="space-y-4">
+            <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
+              Cômodos
+            </h2>
+
             {r?.porCategoria && r.porCategoria.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {r.porCategoria.map((c) => {
                   const metaC = c.metaOrcamento ?? 0;
-                  const pctC = metaC > 0 ? Math.min(100, (c.totalGasto / metaC) * 100) : 0;
+                  const estourou = metaC > 0 && c.totalGasto > metaC;
+                  const pctC = metaC > 0 ? Math.min(100, (c.totalGasto / metaC) * 100) : 100;
                   const IconComp = iconFor(c.icon);
-                  
+                  const corComodo = comodoColor(c.cor, c.categoriaNome);
+
                   return (
-                    <div key={c.categoriaId} className="bg-card border border-border rounded-xl p-4 shadow-card flex flex-col justify-between hover:border-primary/40 transition-colors">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="h-9 w-9 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: `${c.cor ?? 'var(--primary)'}18`, color: c.cor ?? 'var(--primary)' }}>
-                          <IconComp className="h-4 w-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-sm text-foreground truncate">{c.categoriaNome}</p>
-                          <p className="text-xs text-muted-foreground font-mono">{c.totalItens} itens</p>
-                        </div>
-                      </div>
-                      
+                    <Link
+                      key={c.categoriaId}
+                      to="/planejamento"
+                      search={{ comodo: c.categoriaId }}
+                      className="card-sticker p-5 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between gap-4 transition-transform hover:translate-x-[1px] hover:translate-y-[1px] group block cursor-pointer"
+                    >
                       <div>
-                        <div className="flex items-end justify-between mb-2">
-                          <span className="font-bold text-base text-foreground font-mono tabular-nums leading-none">{brl(c.totalGasto)}</span>
-                          {metaC > 0 && <span className="text-xs text-muted-foreground font-mono">de <span className="tabular-nums">{brl(metaC)}</span></span>}
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div
+                              className="h-8 w-8 rounded-lg border-2 border-border flex items-center justify-center shrink-0 shadow-xs"
+                              style={{
+                                backgroundColor: `${corComodo}25`,
+                                color: corComodo,
+                              }}
+                            >
+                              <IconComp className="h-4 w-4" />
+                            </div>
+                            <span className="font-bold text-base text-foreground truncate group-hover:text-primary transition-colors">
+                              {c.categoriaNome}
+                            </span>
+                          </div>
+                          {estourou && (
+                            <span className="border-2 border-border rounded-full px-2 py-0.5 text-[10px] font-bold bg-destructive-tint text-destructive-tint-foreground shrink-0 shadow-xs">
+                              Estourou
+                            </span>
+                          )}
                         </div>
-                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${metaC > 0 ? pctC : 100}%`, backgroundColor: c.cor ?? 'var(--primary)' }} />
+
+                        <div className="text-xs font-semibold text-muted-foreground mt-2">
+                          <span className="tabular-nums font-bold text-foreground">
+                            {brl(c.totalGasto)}
+                          </span>{" "}
+                          {metaC > 0 ? `de ${brl(metaC)}` : `(${c.totalItens} itens)`}
                         </div>
                       </div>
-                    </div>
+
+                      <div className="h-3 w-full rounded-full border-2 border-border bg-white dark:bg-card overflow-hidden">
+                        <div
+                          className="h-full transition-all duration-500"
+                          style={{
+                            width: `${pctC}%`,
+                            backgroundColor: estourou
+                              ? "var(--destructive)"
+                              : corComodo,
+                          }}
+                        />
+                      </div>
+                    </Link>
                   );
                 })}
               </div>
             ) : (
-              <div className="rounded-xl border border-border bg-card p-8 text-center text-muted-foreground shadow-card">
-                Nenhum cômodo com gastos associados.
+              <div className="card-sticker p-8 text-center text-muted-foreground font-semibold bg-card shadow-[3px_3px_0_var(--border)]">
+                Nenhum cômodo cadastrado ainda. Crie cômodos na página de Planejamento.
               </div>
             )}
           </motion.div>
 
-          {/* Duas colunas finais: Próximas Compras e Projeção */}
+          {/* ─── Seção Gráfico: Faturas dos Próximos Meses (Largura Total) ──────── */}
+          <motion.div
+            variants={itemVariants}
+            className="card-sticker p-6 md:p-8 bg-card shadow-[4px_4px_0_var(--border)] space-y-6"
+          >
+            <div>
+              <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
+                Faturas dos próximos meses
+              </h2>
+              <p className="text-xs sm:text-sm text-muted-foreground font-medium mt-0.5">
+                Projeção mês a mês de compras parceladas
+              </p>
+            </div>
+
+            <div className="w-full h-[220px]">
+              {faturasMensais.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground font-medium">
+                  <p className="text-sm">Nenhuma fatura futura parcelada registrada.</p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={faturasMensais}
+                    margin={{ top: 10, right: 10, bottom: 0, left: 10 }}
+                  >
+                    <XAxis
+                      dataKey="name"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 13, fontWeight: 700, fill: "var(--foreground)" }}
+                      dy={10}
+                    />
+                    <YAxis hide />
+                    <Tooltip
+                      cursor={{ fill: "var(--muted)", opacity: 0.5 }}
+                      contentStyle={{
+                        borderRadius: "12px",
+                        border: "2px solid var(--border)",
+                        boxShadow: "3px 3px 0 var(--border)",
+                        backgroundColor: "var(--card)",
+                        color: "var(--foreground)",
+                        fontWeight: 700,
+                      }}
+                      formatter={(v: number) => [
+                        <span key="val" className="font-bold text-foreground tabular-nums">
+                          {brl(v)}
+                        </span>,
+                        "Fatura",
+                      ]}
+                      labelFormatter={(label) => `Mês: ${label}`}
+                    />
+                    <Bar
+                      dataKey="valor"
+                      fill="var(--primary)"
+                      stroke="var(--border)"
+                      strokeWidth={2}
+                      radius={[6, 6, 0, 0]}
+                      maxBarSize={55}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </motion.div>
+
+          {/* ─── Seção Inferior: Mini Totais + Próximas Compras ─────────────────── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
             {/* Próximas Compras */}
-            <motion.div variants={itemVariants} className="rounded-[var(--radius-lg)] border-none bg-muted/30 p-5 md:p-6 flex flex-col">
-              <h3 className="font-display text-lg font-semibold tracking-tight mb-1">Próximas compras</h3>
-              <p className="text-sm text-muted-foreground mb-6">Pendências no planejamento</p>
-              
-              <div className="flex-1 space-y-3">
-                {validItens.filter(i => !i.comprado).length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-8">
-                    <CheckCircle className="h-8 w-8 text-success/40 mb-3" />
-                    <p className="text-sm font-medium text-foreground">Tudo comprado!</p>
-                    <p className="text-xs mt-1">Nenhuma pendência.</p>
-                  </div>
-                ) : (
-                  validItens.filter(i => !i.comprado).slice(0, 4).map((item, idx) => {
-                    const cat = categorias.find(c => c.id === item.categoriaId);
-                    return (
-                      <div key={idx} className="flex items-center justify-between p-3.5 rounded-[var(--radius-lg)] bg-background border shadow-sm">
-                        <div className="flex items-center gap-3 overflow-hidden">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                            <ShoppingBag className="h-4 w-4" />
+            <motion.div
+              variants={itemVariants}
+              className="card-sticker p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between"
+            >
+              <div>
+                <h3 className="font-display text-xl font-bold tracking-tight text-foreground mb-1">
+                  Próximas compras
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground font-medium mb-4">
+                  Pendências prioritárias no seu planejamento
+                </p>
+
+                <div className="space-y-3">
+                  {validItens.filter((i) => !i.comprado).length === 0 ? (
+                    <div className="py-8 text-center text-muted-foreground font-medium flex flex-col items-center justify-center">
+                      <CheckCircle className="h-8 w-8 text-primary mb-2" />
+                      <p className="text-sm font-bold text-foreground">Tudo comprado!</p>
+                      <p className="text-xs">Nenhum item pendente no momento.</p>
+                    </div>
+                  ) : (
+                    validItens
+                      .filter((i) => !i.comprado)
+                      .slice(0, 4)
+                      .map((item, idx) => {
+                        const cat = categorias.find((c) => c.id === item.categoriaId);
+                        return (
+                          <div
+                            key={idx}
+                            className="card-sticker p-3 bg-card shadow-[2px_2px_0_var(--border)] flex items-center justify-between"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="h-8 w-8 rounded-lg border-2 border-border bg-primary-tint text-primary-tint-foreground flex items-center justify-center shrink-0">
+                                <ShoppingBag className="h-4 w-4" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-bold text-foreground truncate">
+                                  {item.nome}
+                                </p>
+                                <p className="text-xs text-muted-foreground font-medium truncate">
+                                  {cat?.nome ?? "Sem cômodo"}
+                                </p>
+                              </div>
+                            </div>
+                            <span className="text-sm font-bold tabular-nums text-foreground shrink-0 ml-3">
+                              {brl(item.preco)}
+                            </span>
                           </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">{item.nome}</p>
-                            <p className="text-xs text-muted-foreground truncate">{cat?.nome ?? "Sem cômodo"}</p>
-                          </div>
-                        </div>
-                        <div className="text-sm font-semibold text-foreground shrink-0 ml-3 tabular-nums">
-                          {brl(item.preco)}
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
+                        );
+                      })
+                  )}
+                </div>
               </div>
-              
-              <Button asChild variant="ghost" className="w-full mt-6 text-primary hover:text-primary hover:bg-primary/5">
+
+              <Button
+                asChild
+                variant="outline"
+                className="btn-sticker w-full mt-6 bg-card text-foreground font-bold"
+              >
                 <Link to="/planejamento">Ver planejamento completo</Link>
               </Button>
             </motion.div>
 
-            {/* Gráfico: Projeção de Faturas */}
-            <motion.div variants={itemVariants} className="rounded-[var(--radius-lg)] border bg-card p-5 md:p-6 shadow-sm flex flex-col">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h3 className="font-display text-lg font-semibold tracking-tight">Projeção de Faturas</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Evolução futura de gastos parcelados</p>
+            {/* Divisão e Meios de Pagamento */}
+            <motion.div
+              variants={itemVariants}
+              className="card-sticker p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between"
+            >
+              <div>
+                <h3 className="font-display text-xl font-bold tracking-tight text-foreground mb-1">
+                  Formas de pagamento
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground font-medium mb-4">
+                  Distribuição dos recursos investidos
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="card-sticker p-3.5 bg-card shadow-[2px_2px_0_var(--border)] flex items-center gap-3">
+                    <div className="p-2 rounded-lg border-2 border-border bg-gold-tint text-gold-tint-foreground">
+                      <ShoppingBag className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                        Dinheiro / Pix
+                      </span>
+                      <span className="text-base font-bold tabular-nums text-foreground">
+                        {brl(r?.totalNormal)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="card-sticker p-3.5 bg-card shadow-[2px_2px_0_var(--border)] flex items-center gap-3">
+                    <div className="p-2 rounded-lg border-2 border-border bg-destructive-tint text-destructive-tint-foreground">
+                      <CreditCard className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                        Cartão Parcelado
+                      </span>
+                      <span className="text-base font-bold tabular-nums text-foreground">
+                        {brl(totalParcelado)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="card-sticker p-3.5 bg-card shadow-[2px_2px_0_var(--border)] flex items-center gap-3">
+                    <div className="p-2 rounded-lg border-2 border-border bg-primary-tint text-primary-tint-foreground">
+                      <Wallet className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                        Vale VR / VA
+                      </span>
+                      <span className="text-base font-bold tabular-nums text-foreground">
+                        {brl(r?.totalVr)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="card-sticker p-3.5 bg-card shadow-[2px_2px_0_var(--border)] flex items-center gap-3">
+                    <div className="p-2 rounded-lg border-2 border-border bg-gold-tint text-gold-tint-foreground">
+                      <Gift className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                        Economia Presentes
+                      </span>
+                      <span className="text-base font-bold tabular-nums text-foreground">
+                        {brl(totalEconomizadoGanhos)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex-1 min-h-[220px]">
-                {faturasMensais.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
-                    <p className="text-sm">Sem parcelamentos registrados.</p>
+              {isCasal && (
+                <div className="mt-6 pt-4 border-t-2 border-border/20">
+                  <div className="flex items-center justify-between text-xs sm:text-sm font-bold flex-wrap gap-2">
+                    <span className="text-muted-foreground">Divisão do casal:</span>
+                    <span className="flex items-center gap-2 flex-wrap">
+                      <span className="text-primary">
+                        {p1Primeiro}: {brl(r?.totalPessoa1)}
+                      </span>
+                      <span className="text-muted-foreground">•</span>
+                      <span className="text-[#8A5A00] font-bold">
+                        {p2Primeiro}: {brl(r?.totalPessoa2)}
+                      </span>
+                      {(r?.totalConjunto ?? 0) > 0 && (
+                        <>
+                          <span className="text-muted-foreground">•</span>
+                          <span className="text-[#2A7F8E] font-bold">
+                            Conjunto: {brl(r?.totalConjunto)}
+                          </span>
+                        </>
+                      )}
+                    </span>
                   </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={faturasMensais} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                      <XAxis
-                        dataKey="name"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
-                        dy={10}
-                      />
-                      <YAxis hide />
-                      <Tooltip
-                        cursor={{ fill: 'var(--muted)', opacity: 0.5 }}
-                        contentStyle={{ borderRadius: '12px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}
-                        formatter={(v: number) => [<span className="font-semibold text-foreground tabular-nums">{brl(v)}</span>, <span className="text-muted-foreground">Fatura</span>]}
-                        labelStyle={{ fontWeight: 600, color: 'var(--foreground)', marginBottom: '4px' }}
-                      />
-                      <Bar dataKey="valor" fill="var(--primary)" radius={[4, 4, 0, 0]} maxBarSize={45} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
+                </div>
+              )}
             </motion.div>
           </div>
         </>

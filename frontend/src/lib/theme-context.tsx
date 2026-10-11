@@ -3,66 +3,84 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { useAuth } from "./auth-context";
 
 type Theme = "light" | "dark" | "system";
-const STORAGE_KEY = "cp_theme";
+export type Persona = 1 | 2 | null;
+const THEME_STORAGE_KEY = "cp_theme";
+const PERSONA_STORAGE_KEY = "cp_persona_ativa";
 
 interface ThemeCtx {
   theme: Theme;
   actualTheme: "light" | "dark";
   setTheme: (t: Theme) => void;
   toggle: () => void;
+  persona: Persona;
+  setPersona: (p: Persona) => void;
+  alternarPersona: () => void;
 }
 
 const ThemeContext = createContext<ThemeCtx | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const { usuario, isAuthenticated } = useAuth();
+
   const [theme, setThemeState] = useState<Theme>(
-    () => (typeof window !== "undefined" ? (localStorage.getItem(STORAGE_KEY) as Theme) : "light") || "light"
+    () =>
+      (typeof window !== "undefined"
+        ? (localStorage.getItem(THEME_STORAGE_KEY) as Theme)
+        : "light") || "light",
   );
   const [actualTheme, setActualTheme] = useState<"light" | "dark">("light");
 
+  // Persona é estritamente vinculada ao usuário logado (não pode mudar manualmente)
+  const persona: Persona = !isAuthenticated || !usuario
+    ? null
+    : usuario.tipoConta === "Casal"
+      ? (usuario.pessoaLogada === 2 ? 2 : 1)
+      : 1;
+
+  // Garante modo claro e sincroniza data-persona com o usuário autenticado
   useEffect(() => {
     const root = window.document.documentElement;
-    const isSystemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    
-    const applyTheme = theme === "system" ? (isSystemDark ? "dark" : "light") : theme;
-
-    root.classList.remove("light", "dark");
-    root.classList.add(applyTheme);
-    setActualTheme(applyTheme);
-
-  }, [theme]);
-
-  // Listener for system preference changes
-  useEffect(() => {
-    if (theme !== "system") return;
-    
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = (e: MediaQueryListEvent) => {
-      const root = window.document.documentElement;
-      const newTheme = e.matches ? "dark" : "light";
-      root.classList.remove("light", "dark");
-      root.classList.add(newTheme);
-      setActualTheme(newTheme);
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [theme]);
-
-  const setTheme = (newTheme: Theme) => {
+    root.classList.remove("dark");
+    root.classList.add("light");
     if (typeof window !== "undefined") {
-      localStorage.setItem(STORAGE_KEY, newTheme);
+      localStorage.removeItem(THEME_STORAGE_KEY);
+      localStorage.removeItem(PERSONA_STORAGE_KEY);
     }
-    setThemeState(newTheme);
+    setActualTheme("light");
+
+    if (!isAuthenticated || !usuario) {
+      root.removeAttribute("data-persona");
+    } else if (usuario.tipoConta === "Casal") {
+      root.setAttribute("data-persona", usuario.pessoaLogada === 2 ? "p2" : "p1");
+    } else {
+      root.setAttribute("data-persona", "p1");
+    }
+  }, [isAuthenticated, usuario]);
+
+  // Funções de troca bloqueadas: cada um usa estritamente sua própria conta logada
+  const setPersona = (_p: Persona) => {};
+  const alternarPersona = () => {};
+
+  const setTheme = (_newTheme: Theme) => {
+    setThemeState("light");
   };
 
   const toggle = () => {
-    const current = actualTheme;
-    setTheme(current === "dark" ? "light" : "dark");
+    setThemeState("light");
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, actualTheme, setTheme, toggle }}>
+    <ThemeContext.Provider
+      value={{
+        theme,
+        actualTheme,
+        setTheme,
+        toggle,
+        persona,
+        setPersona,
+        alternarPersona,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );

@@ -1,6 +1,10 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { authService } from "@/services/auth";
+import { resumoService } from "@/services/resumo";
+import { categoriasService } from "@/services/categorias";
+import { itensService } from "@/services/itens";
 import { clearAppData } from "@/lib/clear-app-data";
 import type { Usuario } from "@/services/types";
 
@@ -67,6 +71,17 @@ export function normalizarUsuario(raw: unknown): Usuario {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuarioState] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+
+  const preaquecerQueries = useCallback(() => {
+    // Pré-carrega no React Query em paralelo com o pré-aquecimento do Redis
+    qc.prefetchQuery({ queryKey: ["resumo"], queryFn: () => resumoService.obter() });
+    qc.prefetchQuery({ queryKey: ["categorias"], queryFn: () => categoriasService.listar() });
+    qc.prefetchQuery({
+      queryKey: ["itens-paginado", "tudo", "", "todos", "todos", "todos"],
+      queryFn: () => itensService.listarPaginado({ page: 1, pageSize: 20 }),
+    });
+  }, [qc]);
 
   const refresh = useCallback(async () => {
     if (typeof window === "undefined") return;
@@ -84,25 +99,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refresh();
   }, [refresh]);
 
-  const login = useCallback(async (email: string, senha: string) => {
-    const res = await authService.login(email, senha);
-    const u = normalizarUsuario(res.usuario);
-    setUsuarioState(u);
-    return u;
-  }, []);
+  const login = useCallback(
+    async (email: string, senha: string) => {
+      const res = await authService.login(email, senha);
+      const u = normalizarUsuario(res.usuario);
+      setUsuarioState(u);
+      preaquecerQueries();
+      return u;
+    },
+    [preaquecerQueries],
+  );
 
-  const loginComGoogle = useCallback(async (token: string) => {
-    const res = await authService.loginComGoogle(token);
-    const u = normalizarUsuario(res.usuario);
-    setUsuarioState(u);
-    return u;
-  }, []);
+  const loginComGoogle = useCallback(
+    async (token: string) => {
+      const res = await authService.loginComGoogle(token);
+      const u = normalizarUsuario(res.usuario);
+      setUsuarioState(u);
+      preaquecerQueries();
+      return u;
+    },
+    [preaquecerQueries],
+  );
 
   const logout = useCallback(() => {
     clearAppData();
+    qc.clear();
     setUsuarioState(null);
     authService.logout().catch(() => {});
-  }, []);
+  }, [qc]);
 
   const setUsuario = useCallback(
     (u: Usuario | null | ((prev: Usuario | null) => Usuario | null)) => {

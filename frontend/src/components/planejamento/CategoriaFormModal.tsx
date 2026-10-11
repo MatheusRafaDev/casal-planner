@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { categoriasService, type CategoriaInputDTO } from "@/services/categorias";
 import type { Categoria } from "@/services/types";
-import { ICON_MAP, ICON_NAMES, CATEGORIA_COLORS, iconFor } from "./icon-map";
+import { ICON_MAP, ICON_NAMES, CATEGORIA_COLORS, iconFor, comodoColor, COMODO_DEFAULT_COLORS } from "./icon-map";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -35,7 +35,7 @@ export function CategoriaFormModal({ open, onOpenChange, categoria }: Props) {
     if (open) {
       setNome(categoria?.nome ?? "");
       setIcon(categoria?.icon ?? "Sofa");
-      setBg(categoria?.bg ?? CATEGORIA_COLORS[0]);
+      setBg(categoria ? comodoColor(categoria.bg, categoria.nome) : CATEGORIA_COLORS[0]);
       setMeta(categoria?.metaOrcamento ? String(categoria.metaOrcamento) : "");
     }
   }, [open, categoria]);
@@ -124,8 +124,10 @@ export function CategoriaFormModal({ open, onOpenChange, categoria }: Props) {
                   type="button"
                   onClick={() => setBg(c)}
                   className={cn(
-                    "h-8 w-8 rounded-full border-2 transition-transform",
-                    bg === c ? "border-foreground scale-110" : "border-transparent",
+                    "h-8 w-8 rounded-full border-2 transition-all cursor-pointer shadow-xs",
+                    bg === c
+                      ? "border-[#24302A] scale-110 shadow-[2px_2px_0_var(--border)] ring-2 ring-primary/40"
+                      : "border-border/40 hover:scale-105 hover:border-border",
                   )}
                   style={{ backgroundColor: c }}
                   aria-label={`Cor ${c}`}

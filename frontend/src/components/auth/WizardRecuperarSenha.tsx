@@ -80,7 +80,7 @@ export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: Wizar
         {[
           { num: 1, label: "E-mail" },
           { num: 2, label: "Código" },
-          { num: 3, label: "Senha" }
+          { num: 3, label: "Senha" },
         ].map((step, idx) => (
           <div key={step.num} className="flex flex-col items-center gap-2 flex-1 relative">
             <div
@@ -92,7 +92,9 @@ export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: Wizar
             >
               {step.num}
             </div>
-            <span className={`text-xs font-medium ${passo >= step.num ? "text-foreground" : "text-muted-foreground"}`}>
+            <span
+              className={`text-xs font-medium ${passo >= step.num ? "text-foreground" : "text-muted-foreground"}`}
+            >
               {step.label}
             </span>
             {idx < 2 && (
@@ -105,28 +107,48 @@ export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: Wizar
       </div>
 
       {passo === 1 && (
-        <form onSubmit={enviarCodigo} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-          <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 text-sm text-muted-foreground">
+        <form
+          onSubmit={enviarCodigo}
+          className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300"
+        >
+          <div className="flex items-start gap-3 p-3.5 rounded-xl bg-muted/60 border-2 border-border text-sm font-medium text-foreground">
             <Mail className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-            <p>Informe o endereço de e-mail associado à sua conta para receber um código de verificação.</p>
+            <p>
+              Informe o endereço de e-mail associado à sua conta para receber um código de
+              verificação.
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">E-mail</Label>
-            <Input id="email" type="email" placeholder="voce@exemplo.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input
+              id="email"
+              type="email"
+              placeholder="voce@exemplo.com"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
-          <Button className="w-full bg-primary" disabled={loading}>
+          <Button
+            type="submit"
+            className="w-full h-11 bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-base shadow-[3px_3px_0_var(--border)] border-2 border-border transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+            disabled={loading}
+          >
             {loading ? "Enviando..." : "Enviar código"}
           </Button>
         </form>
       )}
 
       {passo === 2 && (
-        <form onSubmit={validar} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-          <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 text-sm text-muted-foreground">
+        <form
+          onSubmit={validar}
+          className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300"
+        >
+          <div className="flex items-start gap-3 p-3.5 rounded-xl bg-muted/60 border-2 border-border text-sm font-medium text-foreground">
             <KeyRound className="h-5 w-5 text-primary mt-0.5 shrink-0" />
             <p>
               Digite o código numérico de 6 dígitos enviado para{" "}
-              <strong className="text-foreground font-medium">{email}</strong>.
+              <strong className="text-foreground font-bold">{email}</strong>.
             </p>
           </div>
           <div className="flex justify-center">
@@ -138,17 +160,29 @@ export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: Wizar
               </InputOTPGroup>
             </InputOTP>
           </div>
-          <Button className="w-full bg-primary" disabled={loading || codigo.length < 6}>
+          <Button
+            type="submit"
+            className="w-full h-11 bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-base shadow-[3px_3px_0_var(--border)] border-2 border-border transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+            disabled={loading || codigo.length < 6}
+          >
             {loading ? "Validando..." : "Validar código"}
           </Button>
-          <Button type="button" variant="ghost" className="w-full" onClick={() => setPasso(1)}>
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full font-bold text-foreground hover:bg-muted"
+            onClick={() => setPasso(1)}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" /> Trocar e-mail
           </Button>
         </form>
       )}
 
       {passo === 3 && (
-        <form onSubmit={redefinir} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+        <form
+          onSubmit={redefinir}
+          className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300"
+        >
           <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 text-sm text-muted-foreground">
             <Lock className="h-5 w-5 text-primary mt-0.5 shrink-0" />
             <p>Crie uma nova senha segura. Ela deve ter pelo menos 6 caracteres.</p>
@@ -197,7 +231,11 @@ export function WizardRecuperarSenha({ initialEmail = "", startStep = 1 }: Wizar
               </button>
             </div>
           </div>
-          <Button className="w-full bg-primary" disabled={loading}>
+          <Button
+            type="submit"
+            className="w-full h-11 bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-base shadow-[3px_3px_0_var(--border)] border-2 border-border transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+            disabled={loading}
+          >
             {loading ? "Salvando..." : "Redefinir senha"}
           </Button>
         </form>
