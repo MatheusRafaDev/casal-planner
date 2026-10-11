@@ -22,7 +22,9 @@ import {
   Pencil,
   Sparkles,
   Loader2,
+  Barcode,
 } from "lucide-react";
+import { BarcodeScannerModal } from "./BarcodeScannerModal";
 import {
   Dialog,
   DialogContent,
@@ -88,7 +90,17 @@ export function ItemFormModal({
   const [showLink, setShowLink] = useState(false);
   const [dividir, setDividir] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleBarcodeDetectado = (prod: { nome?: string; marca?: string; fotoUrl?: string; quantidade?: string }) => {
+    if (prod.nome) set("nome", prod.nome);
+    if (prod.marca) set("marca", prod.marca);
+    if (prod.fotoUrl && !form.fotoUrl && !form.fotoFile) {
+      set("fotoUrl", prod.fotoUrl);
+      setImageError(false);
+    }
+  };
 
   useEffect(() => {
     if (open) {
@@ -226,7 +238,8 @@ export function ItemFormModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
         className="w-[95vw] sm:max-w-2xl max-h-[90dvh] overflow-y-auto flex flex-col p-0 gap-0 bg-background/95 backdrop-blur-md"
         onPaste={handlePaste}
@@ -280,7 +293,19 @@ export function ItemFormModal({
             {/* Nome e Preços */}
             <div className="flex-1 space-y-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nome do Produto</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nome do Produto</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setScannerOpen(true)}
+                    className="h-6 text-[11px] gap-1 text-primary border-primary/30 hover:bg-primary/10"
+                  >
+                    <Barcode className="h-3 w-3" />
+                    EAN / Código de Barras
+                  </Button>
+                </div>
                 <div className="relative">
                   <Input value={form.nome} onChange={(e) => set("nome", e.target.value)} autoFocus className="font-display text-lg font-semibold h-12 bg-card" placeholder="Ex: Geladeira Brastemp" />
                   {!isEdit && dupQuery.data?.duplicata && (
@@ -504,5 +529,12 @@ export function ItemFormModal({
         </form>
       </DialogContent>
     </Dialog>
+
+    <BarcodeScannerModal
+      open={scannerOpen}
+      onOpenChange={setScannerOpen}
+      onProdutoDetectado={handleBarcodeDetectado}
+    />
+  </>
   );
 }

@@ -19,7 +19,10 @@ import {
   Wallet,
   Pencil,
   Trash2,
+  ScanBarcode,
 } from "lucide-react";
+import { BarcodeScannerModal } from "./BarcodeScannerModal";
+import type { ProdutoBarcodeInfo } from "@/services/barcode";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
@@ -165,6 +168,20 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   const [analisandoFoto, setAnalisandoFoto] = useState(false);
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoPreviewUrl, setFotoPreviewUrl] = useState<string | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+
+  const handleBarcodeDetectado = (produto: ProdutoBarcodeInfo) => {
+    handleNomeChange(produto.nome);
+    if (produto.marca) setMarca(produto.marca);
+    if (produto.categoriaSugerida) {
+      const cat = categorias.find((c) =>
+        c.nome.toLowerCase().includes(produto.categoriaSugerida!.toLowerCase()),
+      );
+      if (cat) setCategoriaId(cat.id);
+    }
+    setQueryBusca(produto.nome);
+    setStep(2);
+  };
 
   const reset = () => {
     setStep(1);
@@ -481,7 +498,8 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   );
 
   return (
-    <Dialog
+    <>
+      <Dialog
       open={open}
       onOpenChange={(o) => {
         onOpenChange(o);
@@ -588,21 +606,34 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                   </button>
                 )}
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  className={cn(
-                    "w-full rounded-[var(--radius-lg)] transition-all",
-                    !fotoPreviewUrl
-                      ? "h-12 border-dashed border-primary/50 text-primary hover:bg-primary/5 hover:text-primary"
-                      : "h-10 text-muted-foreground",
-                  )}
-                  disabled={analisandoFoto || extrairLink.isPending}
-                  onClick={() => cameraInputRef.current?.click()}
-                >
-                  <Camera className={cn("mr-2", !fotoPreviewUrl ? "h-5 w-5" : "h-4 w-4")} />
-                  {!fotoPreviewUrl ? "Tirar foto com a câmera" : "Tirar nova foto com a câmera"}
-                </Button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      "w-full rounded-[var(--radius-md)] transition-all",
+                      !fotoPreviewUrl
+                        ? "h-11 border-dashed border-primary/50 text-primary hover:bg-primary/5 hover:text-primary"
+                        : "h-9 text-muted-foreground",
+                    )}
+                    disabled={analisandoFoto || extrairLink.isPending}
+                    onClick={() => cameraInputRef.current?.click()}
+                  >
+                    <Camera className={cn("mr-2", !fotoPreviewUrl ? "h-4 w-4" : "h-3.5 w-3.5")} />
+                    {!fotoPreviewUrl ? "Tirar foto do produto" : "Tirar nova foto"}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-11 sm:h-auto rounded-[var(--radius-md)] border-dashed border-primary/50 text-primary hover:bg-primary/5 hover:text-primary transition-all font-medium"
+                    disabled={analisandoFoto || extrairLink.isPending}
+                    onClick={() => setScannerOpen(true)}
+                  >
+                    <ScanBarcode className="mr-2 h-4 w-4" />
+                    Ler Código de Barras (EAN)
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -1009,5 +1040,12 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         </div>
       </DialogContent>
     </Dialog>
+
+    <BarcodeScannerModal
+      open={scannerOpen}
+      onOpenChange={setScannerOpen}
+      onProdutoDetectado={handleBarcodeDetectado}
+    />
+  </>
   );
 }

@@ -36,6 +36,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
+import { WidgetDiaMudanca } from "@/components/planejamento/WidgetDiaMudanca";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   AlertDialog,
@@ -246,6 +247,7 @@ function PerfilPage() {
           </div>
           <div className="md:col-span-2 space-y-6">
             <TemaCard />
+            <WidgetDiaMudanca />
             <MetaEnxovalCard metaUsuario={usuario.metaGlobalEnxoval ?? null} onSaved={refresh} />
             <ListaPublicaCard />
             <ExportarCard />

@@ -8,7 +8,14 @@ dist/
 .vercel/
 *.dll
 test-results/
+# Agent & Design specs
+.impeccable/
+.agents/
+DESIGN.md
+violet-issue-DESIGN.md
+PRODUCT.md
 
+.github/
 # Security & Debug
 *.local.js
 fix.js

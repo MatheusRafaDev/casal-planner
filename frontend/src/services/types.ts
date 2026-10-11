@@ -17,6 +17,10 @@ export interface Usuario {
   isCasal: boolean;
   modoEscuro: boolean;
   metaGlobalEnxoval?: number | null;
+  dataMudanca?: string | null;
+  cidadeMudanca?: string | null;
+  latitudeMudanca?: number | null;
+  longitudeMudanca?: number | null;
   casalInfo?: {
     pessoa1: Pessoa;
     pessoa2: Pessoa;

@@ -471,6 +471,18 @@ public class UsuarioController : ControllerBase
         if (dto.MetaGlobalEnxoval.HasValue)
             updates.Add(update.Set(u => u.MetaGlobalEnxoval, dto.MetaGlobalEnxoval.Value));
 
+        if (dto.DataMudanca.HasValue)
+            updates.Add(update.Set(u => u.DataMudanca, dto.DataMudanca.Value));
+
+        if (dto.CidadeMudanca != null)
+            updates.Add(update.Set(u => u.CidadeMudanca, dto.CidadeMudanca));
+
+        if (dto.LatitudeMudanca.HasValue)
+            updates.Add(update.Set(u => u.LatitudeMudanca, dto.LatitudeMudanca.Value));
+
+        if (dto.LongitudeMudanca.HasValue)
+            updates.Add(update.Set(u => u.LongitudeMudanca, dto.LongitudeMudanca.Value));
+
         if (!updates.Any())
             return Ok(new { message = "Nenhum campo para atualizar" });
 
@@ -484,6 +496,32 @@ public class UsuarioController : ControllerBase
             .FirstOrDefaultAsync();
 
         var usuarioMapeado = usuarioAtualizado!.TipoConta == TipoConta.Casal
+            ? UsuarioMapper.MapearCasal(usuarioAtualizado, User.FindFirst("PessoaLogada")?.Value)
+            : UsuarioMapper.MapearIndividual(usuarioAtualizado);
+
+        return Ok(usuarioMapeado);
+    }
+
+    [Authorize]
+    [HttpPut("data-mudanca")]
+    public async Task<IActionResult> AtualizarDataMudanca([FromBody] AtualizarDataMudancaDto dto)
+    {
+        var usuarioId = GetUsuarioId();
+        if (string.IsNullOrEmpty(usuarioId))
+            return Unauthorized();
+
+        var update = Builders<Usuario>.Update
+            .Set(u => u.DataMudanca, dto.DataMudanca)
+            .Set(u => u.CidadeMudanca, dto.CidadeMudanca)
+            .Set(u => u.LatitudeMudanca, dto.LatitudeMudanca)
+            .Set(u => u.LongitudeMudanca, dto.LongitudeMudanca);
+
+        await _context.Usuarios.UpdateOneAsync(u => u.Id == usuarioId, update);
+
+        var usuarioAtualizado = await _context.Usuarios.Find(u => u.Id == usuarioId).FirstOrDefaultAsync();
+        if (usuarioAtualizado == null) return NotFound();
+
+        var usuarioMapeado = usuarioAtualizado.TipoConta == TipoConta.Casal
             ? UsuarioMapper.MapearCasal(usuarioAtualizado, User.FindFirst("PessoaLogada")?.Value)
             : UsuarioMapper.MapearIndividual(usuarioAtualizado);
 

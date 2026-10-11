@@ -8,6 +8,8 @@ namespace CasalPlanner.API.Helpers
         {
             string? dataNascimento = usuario.DataNascimento?.ToString("yyyy-MM-dd");
 
+            string? dataMudanca = usuario.DataMudanca?.ToString("yyyy-MM-dd");
+
             return new
             {
                 id = usuario.Id,
@@ -19,6 +21,10 @@ namespace CasalPlanner.API.Helpers
                 modoEscuro = usuario.ModoEscuro,
                 receberNotificacoes = usuario.ReceberNotificacoes,
                 metaGlobalEnxoval = usuario.MetaGlobalEnxoval,
+                dataMudanca = dataMudanca,
+                cidadeMudanca = usuario.CidadeMudanca,
+                latitudeMudanca = usuario.LatitudeMudanca,
+                longitudeMudanca = usuario.LongitudeMudanca,
                 createdAt = usuario.CreatedAt,
                 lastLoginAt = usuario.LastLoginAt,
                 slugListaPublica = usuario.SlugListaPublica,
@@ -29,8 +35,8 @@ namespace CasalPlanner.API.Helpers
         public static object MapearCasal(Usuario usuario, string? pessoaQueLogou = null)
         {
             string? dataNascimentoPessoa1 = usuario.CasalInfo?.DataNascimentoPessoa1?.ToString("yyyy-MM-dd");
-
             string? dataNascimentoPessoa2 = usuario.CasalInfo?.DataNascimentoPessoa2?.ToString("yyyy-MM-dd");
+            string? dataMudanca = usuario.DataMudanca?.ToString("yyyy-MM-dd");
 
             if (pessoaQueLogou != null)
             {
@@ -42,6 +48,10 @@ namespace CasalPlanner.API.Helpers
                     isCasal = true,
                     modoEscuro = usuario.ModoEscuro,
                     metaGlobalEnxoval = usuario.MetaGlobalEnxoval,
+                    dataMudanca = dataMudanca,
+                    cidadeMudanca = usuario.CidadeMudanca,
+                    latitudeMudanca = usuario.LatitudeMudanca,
+                    longitudeMudanca = usuario.LongitudeMudanca,
                     createdAt = usuario.CreatedAt,
                     lastLoginAt = usuario.LastLoginAt,
                     slugListaPublica = usuario.SlugListaPublica,
@@ -75,6 +85,10 @@ namespace CasalPlanner.API.Helpers
                     isCasal = true,
                     modoEscuro = usuario.ModoEscuro,
                     metaGlobalEnxoval = usuario.MetaGlobalEnxoval,
+                    dataMudanca = dataMudanca,
+                    cidadeMudanca = usuario.CidadeMudanca,
+                    latitudeMudanca = usuario.LatitudeMudanca,
+                    longitudeMudanca = usuario.LongitudeMudanca,
                     createdAt = usuario.CreatedAt,
                     lastLoginAt = usuario.LastLoginAt,
                     slugListaPublica = usuario.SlugListaPublica,

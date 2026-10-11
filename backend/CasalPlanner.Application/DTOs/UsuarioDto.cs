@@ -27,6 +27,11 @@ namespace CasalPlanner.Application.DTOs
 
         public string? SlugListaPublica { get; set; }
         public bool ListaPublicaAtiva { get; set; }
+
+        public DateTime? DataMudanca { get; set; }
+        public string? CidadeMudanca { get; set; }
+        public double? LatitudeMudanca { get; set; }
+        public double? LongitudeMudanca { get; set; }
     }
 
     public class CasalInfoDto
@@ -60,6 +65,10 @@ namespace CasalPlanner.Application.DTOs
         [StringLength(200)]
         public string? EnderecoNovaCasa { get; set; }
 
+        public DateTime? DataMudanca { get; set; }
+        public string? CidadeMudanca { get; set; }
+        public double? LatitudeMudanca { get; set; }
+        public double? LongitudeMudanca { get; set; }
     }
 
 
@@ -83,6 +92,19 @@ namespace CasalPlanner.Application.DTOs
 
         [StringLength(200)]
         public string? EnderecoNovaCasa { get; set; }
+
+        public DateTime? DataMudanca { get; set; }
+        public string? CidadeMudanca { get; set; }
+        public double? LatitudeMudanca { get; set; }
+        public double? LongitudeMudanca { get; set; }
+    }
+
+    public class AtualizarDataMudancaDto
+    {
+        public DateTime? DataMudanca { get; set; }
+        public string? CidadeMudanca { get; set; }
+        public double? LatitudeMudanca { get; set; }
+        public double? LongitudeMudanca { get; set; }
     }
 
     public class AlterarSenhaDto

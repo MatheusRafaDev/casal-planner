@@ -34,6 +34,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { useState, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import type { Item } from "@/services/types";
+import { WidgetDiaMudanca } from "@/components/planejamento/WidgetDiaMudanca";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   head: () => ({
@@ -502,6 +503,11 @@ function InicioPage() {
           </Button>
         </div>
       </div>
+
+      {/* Widget Data da Mudança & Previsão do Tempo Open-Meteo */}
+      <motion.div variants={itemVariants}>
+        <WidgetDiaMudanca />
+      </motion.div>
 
       {semDados ? (
         <motion.div variants={itemVariants} className="rounded-[var(--radius-lg)] border bg-card p-8 sm:p-12 text-center shadow-sm">

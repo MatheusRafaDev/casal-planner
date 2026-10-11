@@ -11,6 +11,7 @@
   --color-popover-foreground: var(--popover-foreground);
 
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -42,138 +43,162 @@
 
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
 
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 4px);
-  --radius-sm: calc(var(--radius) - 6px);
+  --radius-xl: var(--radius-xl);
+  --radius-lg: var(--radius-lg);
+  --radius-md: var(--radius-md);
+  --radius-sm: var(--radius-sm);
 
-  --font-sans: "Manrope", sans-serif;
-  --font-display: "Fraunces", serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 
   --shadow-soft: var(--shadow-soft);
   --shadow-card: var(--shadow-card);
+  --shadow-modal: var(--shadow-modal);
+  --shadow-violet-glow: var(--shadow-violet-glow);
 }
 
 @custom-variant dark (&:is(.dark *));
-
 @custom-variant xs (@media (width >= 360px));
 
 /*
- * CasalPlanner — Design System
- * Paleta: creme, sálvia, terracota, mel. Tudo em oklch.
- * Fonts: Fraunces (display) + Manrope (body), carregadas via <link> em __root.
+ * Violet Issue — Design System
+ * Inspired by Linear's precision engineering:
+ * - Primary: Linear Violet (#5E6AD2)
+ * - Dark mode: #101014 base, #1B1B25 cards, #1F1F2E surface, #F1F1F4 text
+ * - White mode: #F7F8FA base, #FFFFFF cards/surface, #111218 text, #E2E4E9 borders
+ * - Typography: Inter (Display & Body), JetBrains Mono (Code)
  */
 
 :root {
-  --radius: 0.875rem;
+  --radius: 0.5rem;      /* 8px: Cards, panels, sidebar items */
+  --radius-xl: 0.75rem;  /* 12px: Modals, command palette */
+  --radius-lg: 0.5rem;   /* 8px */
+  --radius-md: 0.375rem; /* 6px: Buttons, inputs */
+  --radius-sm: 0.25rem;  /* 4px: Chips, inline badges */
 
-  --background: oklch(0.975 0.008 85);
-  --foreground: oklch(0.24 0.02 60);
+  /* White Mode (Crisp, clean Linear daylight counterpart) */
+  --background: #F7F8FA;
+  --foreground: #111218;
 
-  --card: oklch(0.995 0.003 85);
-  --card-foreground: oklch(0.24 0.02 60);
-  
-  --popover: oklch(0.995 0.003 85);
-  --popover-foreground: oklch(0.24 0.02 60);
+  --card: #FFFFFF;
+  --card-foreground: #111218;
 
-  --primary: oklch(0.52 0.2 295);
-  --primary-foreground: oklch(0.98 0 0);
+  --popover: #FFFFFF;
+  --popover-foreground: #111218;
 
-  --secondary: oklch(0.94 0.01 85);
-  --secondary-foreground: oklch(0.24 0.02 60);
+  --primary: #5E6AD2;
+  --primary-hover: #4E5BBF;
+  --primary-foreground: #FFFFFF;
 
-  --muted: oklch(0.955 0.01 85);
-  --muted-foreground: oklch(0.5 0.02 60);
+  --secondary: #F0F2FA;
+  --secondary-foreground: #343C82;
 
-  --accent: oklch(0.955 0.01 85);
-  --accent-foreground: oklch(0.24 0.02 60);
+  --muted: #F2F4F8;
+  --muted-foreground: #686E7B;
 
-  --destructive: oklch(0.6 0.18 20);
-  --destructive-foreground: oklch(0.98 0 0);
+  --accent: #F0F2FA;
+  --accent-foreground: #111218;
 
-  --border: oklch(0.91 0.012 80);
-  --input: oklch(0.91 0.012 80);
-  --ring: oklch(0.52 0.2 295);
+  --destructive: #EB5757;
+  --destructive-foreground: #FFFFFF;
 
-  --sidebar: oklch(0.96 0.012 85);
-  --sidebar-foreground: oklch(0.24 0.02 60);
-  --sidebar-primary: oklch(0.52 0.2 295);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.94 0.01 85);
-  --sidebar-accent-foreground: oklch(0.24 0.02 60);
-  --sidebar-border: oklch(0.91 0.012 80);
-  --sidebar-ring: oklch(0.52 0.2 295);
+  --border: #E2E4E9;
+  --input: #E2E4E9;
+  --ring: #5E6AD2;
 
-  --terracota: oklch(0.65 0.15 35);
-  --terracota-foreground: oklch(0.98 0 0);
-  --mel: oklch(0.75 0.14 75);
-  --mel-foreground: oklch(0.2 0.02 60);
-  --success: oklch(0.62 0.09 150);
-  --success-foreground: oklch(0.98 0 0);
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #686E7B;
+  --sidebar-primary: #5E6AD2;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F2F4F8;
+  --sidebar-accent-foreground: #111218;
+  --sidebar-border: #E2E4E9;
+  --sidebar-ring: #5E6AD2;
 
-  --chart-1: oklch(0.52 0.2 295);
-  --chart-2: oklch(0.65 0.15 35);
-  --chart-3: oklch(0.75 0.14 75);
-  --chart-4: oklch(0.62 0.09 150);
-  --chart-5: oklch(0.6 0.05 250);
+  --success: #10B981;
+  --success-foreground: #FFFFFF;
+  --warning: #D97706;
+  --warning-foreground: #FFFFFF;
+  --terracota: #EB5757;
+  --terracota-foreground: #FFFFFF;
+  --mel: #D97706;
+  --mel-foreground: #FFFFFF;
 
-  --shadow-soft: 0 4px 20px -2px rgba(90, 80, 70, 0.05);
-  --shadow-card: 0 8px 30px -4px rgba(90, 80, 70, 0.08);
+  --chart-1: #5E6AD2;
+  --chart-2: #6E79D6;
+  --chart-3: #10B981;
+  --chart-4: #D97706;
+  --chart-5: #686E7B;
+
+  --shadow-soft: 0 2px 10px -2px rgba(16, 16, 20, 0.05);
+  --shadow-card: 0 0 0 1px #E2E4E9, 0 2px 8px -2px rgba(16, 16, 20, 0.04);
+  --shadow-modal: 0 20px 40px -8px rgba(16, 16, 20, 0.12), 0 0 0 1px #E2E4E9;
+  --shadow-violet-glow: 0 0 20px rgba(94, 106, 210, 0.2);
 }
 
 .dark {
-  --background: oklch(0.2 0.015 295);
-  --foreground: oklch(0.95 0.01 295);
+  /* Dark Mode (The signature Violet Issue experience) */
+  --background: #101014;
+  --foreground: #F1F1F4;
 
-  --card: oklch(0.24 0.018 295);
-  --card-foreground: oklch(0.95 0.01 295);
-  
-  --popover: oklch(0.24 0.018 295);
-  --popover-foreground: oklch(0.95 0.01 295);
+  --card: #1B1B25;
+  --card-foreground: #F1F1F4;
 
-  --primary: oklch(0.72 0.15 295);
-  --primary-foreground: oklch(0.2 0.015 295);
+  --popover: #1F1F2E;
+  --popover-foreground: #F1F1F4;
 
-  --secondary: oklch(0.28 0.02 295);
-  --secondary-foreground: oklch(0.95 0.01 295);
+  --primary: #5E6AD2;
+  --primary-hover: #4E5BBF;
+  --primary-foreground: #FFFFFF;
 
-  --muted: oklch(0.28 0.02 295);
-  --muted-foreground: oklch(0.7 0.02 295);
+  --secondary: #1F1F2E;
+  --secondary-foreground: #F1F1F4;
 
-  --accent: oklch(0.28 0.02 295);
-  --accent-foreground: oklch(0.95 0.01 295);
+  --muted: #1F1F2E;
+  --muted-foreground: #8A8F98;
 
-  --destructive: oklch(0.6 0.18 20);
-  --destructive-foreground: oklch(0.98 0 0);
+  --accent: #1F1F2E;
+  --accent-foreground: #F1F1F4;
 
-  --border: oklch(1 0 0 / 0.09);
-  --input: oklch(1 0 0 / 0.12);
-  --ring: oklch(0.72 0.15 295);
+  --destructive: #EB5757;
+  --destructive-foreground: #FFFFFF;
 
-  --sidebar: oklch(0.22 0.02 295);
-  --sidebar-foreground: oklch(0.9 0.01 295);
-  --sidebar-primary: oklch(0.72 0.15 295);
-  --sidebar-primary-foreground: oklch(0.2 0.015 295);
-  --sidebar-accent: oklch(0.26 0.02 295);
-  --sidebar-accent-foreground: oklch(0.95 0.01 295);
-  --sidebar-border: oklch(1 0 0 / 0.09);
-  --sidebar-ring: oklch(0.72 0.15 295);
+  --border: #2C2C3A;
+  --input: #2C2C3A;
+  --ring: #5E6AD2;
 
-  --terracota: oklch(0.65 0.15 35);
-  --terracota-foreground: oklch(0.98 0 0);
-  --mel: oklch(0.75 0.14 75);
-  --mel-foreground: oklch(0.2 0.02 60);
-  --success: oklch(0.62 0.09 150);
-  --success-foreground: oklch(0.98 0 0);
+  --sidebar: #1B1B25;
+  --sidebar-foreground: #8A8F98;
+  --sidebar-primary: #5E6AD2;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #1F1F2E;
+  --sidebar-accent-foreground: #F1F1F4;
+  --sidebar-border: #2C2C3A;
+  --sidebar-ring: #5E6AD2;
 
-  --chart-1: oklch(0.72 0.15 295);
-  --chart-2: oklch(0.7 0.15 35);
-  --chart-3: oklch(0.8 0.14 75);
-  --chart-4: oklch(0.7 0.09 150);
-  --chart-5: oklch(0.65 0.05 250);
+  --success: #3DD68C;
+  --success-foreground: #101014;
+  --warning: #F0C000;
+  --warning-foreground: #101014;
+  --terracota: #EB5757;
+  --terracota-foreground: #FFFFFF;
+  --mel: #F0C000;
+  --mel-foreground: #101014;
 
-  --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.2);
-  --shadow-card: 0 8px 30px -4px rgba(0, 0, 0, 0.3);
+  --chart-1: #5E6AD2;
+  --chart-2: #6E79D6;
+  --chart-3: #3DD68C;
+  --chart-4: #F0C000;
+  --chart-5: #8A8F98;
+
+  --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 0 0 1px #2C2C3A;
+  --shadow-modal: 0 24px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px #2C2C3A;
+  --shadow-violet-glow: 0 0 24px rgba(94, 106, 210, 0.15);
 }
 
 @layer base {
@@ -193,6 +218,7 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
     max-width: 100vw;
   }
@@ -203,21 +229,29 @@
   h4,
   .font-display {
     font-family: var(--font-display);
+    letter-spacing: -0.03em;
   }
 
-  /* Utility for currency */
+  /* Monospace for code, IDs and shortcuts */
+  code,
+  kbd,
+  samp,
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  /* Tabular numbers for financial precision */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
 
-  /* Ajuste para inputs com preenchimento automático do navegador (autofill) */
+  /* Browser autofill styling to match Violet Issue */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
   input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px var(--color-background) inset !important;
+    -webkit-box-shadow: 0 0 0 30px var(--color-card) inset !important;
     -webkit-text-fill-color: var(--color-foreground) !important;
     caret-color: var(--color-foreground) !important;
   }
 }
-

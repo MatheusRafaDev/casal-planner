@@ -205,15 +205,26 @@ builder.Services.AddCors(options =>
 
 // ===== 7. SERVICES =====
 builder.Services.AddHttpClient();
-// Visão: Gemini (primário)
+// Visão: Gemini (primário) e Groq Vision (fallback)
 builder.Services.AddHttpClient<GeminiVisionService>(client =>
 {
     client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
     client.Timeout = TimeSpan.FromSeconds(60);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
-// NOTE: GeminiVisionService is already registered as typed
+builder.Services.AddHttpClient<GroqVisionService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
 builder.Services.AddScoped<IVisionAnalysisService, VisionAnalysisService>();
+
+// LLM Multi-Provider 100% gratuito sem cartão (Groq 14.4k RPD, Gemini 1.5k RPD, OpenRouter :free)
+builder.Services.AddHttpClient<IIaService, IaService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
 builder.Services.AddHttpClient<GeocodingService>(client =>
 {
     client.BaseAddress = new Uri("https://nominatim.openstreetmap.org/");

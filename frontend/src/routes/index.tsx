@@ -50,11 +50,10 @@ function Home_() {
               title="Alternar tema"
             >
               {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </button>
-            <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
+            </button>            <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1">
               Entrar
             </Link>
-            <Button asChild className="h-9 px-5 rounded-md text-sm font-medium">
+            <Button asChild className="h-9 px-4 sm:px-5 rounded-md text-sm font-medium">
               <Link to="/login" search={{ registrar: 1 }}>
                 Começar
               </Link>
@@ -64,9 +63,24 @@ function Home_() {
       </header>
 
       {/* Hero Section - Editorial Split Layout */}
-      <section className="relative pt-16 md:pt-28 pb-20 px-6 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 lg:gap-24 overflow-hidden">
+      <section className="relative pt-16 md:pt-28 pb-20 px-6 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+        {/* Decorative background glows */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-primary/15 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute top-1/3 right-10 w-[450px] h-[300px] bg-secondary/20 rounded-full blur-3xl pointer-events-none -z-10" />
+
         {/* Left Side: Copy */}
         <div className="flex-1 w-full max-w-2xl lg:max-w-none flex flex-col justify-center">
+          <motion.div
+            {...useMotionProps({
+              initial: { opacity: 0, y: 10 },
+              animate: { opacity: 1, y: 0 },
+              transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
+            })}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 text-xs font-medium w-fit mb-6"
+          >
+            <span>✨ Planejamento descomplicado para o seu novo lar</span>
+          </motion.div>
+
           <motion.h1
             {...useMotionProps({
               initial: { opacity: 0, y: 20 },
@@ -77,7 +91,7 @@ function Home_() {
           >
             A casa nova,<br className="hidden lg:block" /> com as contas em dia.
           </motion.h1>
-          
+
           <motion.p
             {...useMotionProps({
               initial: { opacity: 0, y: 20 },
@@ -88,7 +102,7 @@ function Home_() {
           >
             Organize o enxoval por cômodos, saiba exatamente onde seu dinheiro está sendo gasto e mantenha tudo sincronizado com o seu parceiro em tempo real.
           </motion.p>
-          
+
           <motion.div
             {...useMotionProps({
               initial: { opacity: 0, y: 20 },
@@ -115,21 +129,22 @@ function Home_() {
             animate: { opacity: 1, y: 0 },
             transition: { duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.3 },
           })}
-          className="flex-1 w-full max-w-2xl relative"
+          className="flex-1 w-full max-w-2xl relative select-none pointer-events-none"
         >
           {/* Main App Mockup */}
           <div className="bg-card border rounded-[var(--radius)] shadow-card p-6 md:p-8 relative z-10 w-full overflow-hidden flex flex-col">
             <div className="flex items-center justify-between mb-8">
               <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full inline-block mb-1">Exemplo ao vivo</span>
                 <h3 className="text-2xl font-display font-semibold tracking-tight">Cozinha</h3>
-                <p className="text-sm text-muted-foreground mt-1">12 de 18 itens comprados</p>
+                <p className="text-sm text-muted-foreground mt-0.5">12 de 18 itens comprados</p>
               </div>
               <div className="text-right">
                 <div className="text-xl font-semibold tracking-tight">R$ 4.250</div>
                 <p className="text-sm text-muted-foreground">de R$ 6.500</p>
               </div>
             </div>
-            
+
             {/* Progress Bar */}
             <div className="h-2.5 w-full bg-muted rounded-full overflow-hidden mb-8">
               <div className="h-full bg-primary w-[65%] rounded-full"></div>
@@ -171,7 +186,7 @@ function Home_() {
               <UserPlus className="h-5 w-5" />
             </div>
             <div className="pr-2">
-              <p className="text-sm font-semibold text-foreground">Julia comprou um item</p>
+              <p className="text-sm font-semibold text-foreground">Ana comprou um item</p>
               <p className="text-xs text-muted-foreground mt-0.5">Micro-ondas 20L Inox</p>
             </div>
           </div>
@@ -183,7 +198,7 @@ function Home_() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-16 md:mb-24 max-w-3xl">
             <h2 className="text-4xl md:text-5xl font-display font-semibold tracking-tight leading-[1.1] mb-6">
-              Não é só uma lista.<br/>É o controle financeiro do seu enxoval.
+              Não é só uma lista.<br />É o controle financeiro do seu enxoval.
             </h2>
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
               Sabemos que mobiliar uma casa custa caro. Por isso, o CasalPlanner foi desenhado para te dar clareza absoluta sobre para onde seu dinheiro está indo, sem a complexidade de planilhas infinitas.
@@ -192,27 +207,31 @@ function Home_() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             {/* Box 1 (Grande) */}
-            <motion.div {...fadeUp} className="md:col-span-2 bg-background border p-8 md:p-10 rounded-[var(--radius)] flex flex-col h-full shadow-soft">
-              <LayoutDashboard className="h-8 w-8 text-primary mb-6" />
+            <motion.div {...fadeUp} className="md:col-span-2 bg-card border border-border p-8 md:p-10 rounded-[var(--radius-lg)] flex flex-col h-full shadow-card relative overflow-hidden">
+              <div className="h-10 w-10 rounded-[var(--radius-md)] bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-6">
+                <LayoutDashboard className="h-5 w-5" />
+              </div>
               <h3 className="text-2xl font-display font-semibold tracking-tight mb-3">Organização por Cômodos</h3>
               <p className="text-muted-foreground text-lg leading-relaxed flex-1">
                 Divida suas compras entre Cozinha, Quarto, Sala, e defina uma meta de gastos para cada área. Descubra rapidamente onde você está estourando o orçamento.
               </p>
             </motion.div>
-            
+
             {/* Box 2 (Menor) */}
-            <motion.div {...fadeUp} transition={{ delay: 0.1, duration: 0.8 }} className="bg-background border p-8 md:p-10 rounded-[var(--radius)] flex flex-col h-full shadow-soft">
-              <Wallet className="h-8 w-8 text-primary mb-6" />
+            <motion.div {...fadeUp} transition={{ delay: 0.1, duration: 0.8 }} className="bg-card border border-border p-8 md:p-10 rounded-[var(--radius-lg)] flex flex-col h-full shadow-card relative overflow-hidden">
+              <div className="h-10 w-10 rounded-[var(--radius-md)] bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-6">
+                <Wallet className="h-5 w-5" />
+              </div>
               <h3 className="text-xl font-display font-semibold tracking-tight mb-3">Vale ou Dinheiro?</h3>
               <p className="text-muted-foreground leading-relaxed flex-1">
                 Marque o item na plataforma. O sistema separa automaticamente o que sai da sua conta corrente do que sai dos benefícios.
               </p>
             </motion.div>
-            
+
             {/* Box 3 (Horizontal Full) */}
             <motion.div {...fadeUp} transition={{ delay: 0.2, duration: 0.8 }} className="md:col-span-3 bg-background border p-8 md:p-10 rounded-[var(--radius)] flex flex-col md:flex-row items-center gap-8 shadow-soft">
-              <div className="h-16 w-16 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
-                <Users className="h-8 w-8 text-primary" />
+              <div className="h-16 w-16 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                <Users className="h-8 w-8" />
               </div>
               <div>
                 <h3 className="text-2xl font-display font-semibold tracking-tight mb-3">Sincronia a Dois</h3>
@@ -237,7 +256,7 @@ function Home_() {
           <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto leading-relaxed">
             Foi convidado para um chá de casa nova ou casamento? Digite o código fornecido pelos anfitriões para acessar a lista pública.
           </p>
-          
+
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -254,7 +273,7 @@ function Home_() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 name="codigo"
-                placeholder="Ex: marcos-e-julia"
+                placeholder="Ex: marcos-e-ana"
                 className="pl-12 h-14 bg-muted/50 text-base rounded-md border-transparent focus-visible:border-primary"
                 required
               />

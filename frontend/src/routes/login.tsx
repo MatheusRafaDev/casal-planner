@@ -47,10 +47,14 @@ function LoginPage() {
   }, [loading, isAuthenticated, navigate, router.history, returnUrl]);
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-background selection:bg-primary/20">
-      <div className="w-full max-w-[420px] bg-card rounded-[var(--radius-lg)] border shadow-sm p-6 sm:p-10">
+    <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-background selection:bg-primary/20 relative overflow-hidden">
+      {/* Decorative background glows */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-primary/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-0 translate-x-1/3 translate-y-1/3 w-[500px] h-[300px] bg-secondary/20 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-[420px] bg-card/90 backdrop-blur-md rounded-[var(--radius-xl)] border border-border shadow-modal p-6 sm:p-10 relative z-10">
         <div className="flex flex-col items-center text-center space-y-6 mb-8">
-          <Link to="/" className="inline-flex items-center justify-center h-12 w-12 rounded-[var(--radius-lg)] bg-primary/10 mb-2">
+          <Link to="/" className="inline-flex items-center justify-center h-12 w-12 rounded-[var(--radius-md)] bg-primary/10 border border-primary/20 mb-2 transition-transform hover:scale-105">
             <Heart className="h-6 w-6 text-primary" />
           </Link>
           <div className="space-y-2">

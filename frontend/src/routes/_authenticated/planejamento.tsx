@@ -41,6 +41,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { LogoBadge } from "@/components/ui/LogoBadge";
+import { getLogoUrls } from "@/lib/logos";
 import {
   Select,
   SelectContent,
@@ -70,7 +71,6 @@ import { useAuth } from "@/lib/auth-context";
 import { iconFor } from "@/components/planejamento/icon-map";
 import { CategoriaFormModal } from "@/components/planejamento/CategoriaFormModal";
 import { ItemFormModal } from "@/components/planejamento/ItemFormModal";
-import { getLogoUrls } from "@/lib/logos";
 
 const AddItemWizard = lazy(() =>
   import("@/components/planejamento/AddItemWizard").then(({ AddItemWizard }) => ({
@@ -768,7 +768,8 @@ function PlanejamentoPage() {
                               <div className="flex gap-1.5 items-center truncate">
                                 {it.marca && <span className="font-medium text-foreground/80">{toTitleCase(it.marca)}</span>}
                                 {it.loja && (
-                                  <span className="flex items-center gap-0.5">
+                                  <span className="flex items-center gap-1.5 font-medium text-foreground/90">
+                                    <LogoBadge urls={getLogoUrls(it.loja, it.linkProduto)} className="w-3.5 h-3.5 rounded-[var(--radius-sm)] shrink-0 object-contain" />
                                     em {toTitleCase(it.loja)}
                                     {it.linkProduto && <ExternalLink className="h-3 w-3 opacity-50" />}
                                   </span>

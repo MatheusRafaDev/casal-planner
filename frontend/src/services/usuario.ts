@@ -92,4 +92,14 @@ export const usuarioService = {
       method: "PUT",
       body: { ativa },
     }),
+  atualizarDataMudanca: (dto: {
+    dataMudanca?: string | null;
+    cidadeMudanca?: string | null;
+    latitudeMudanca?: number | null;
+    longitudeMudanca?: number | null;
+  }) =>
+    api<Usuario>("/api/usuario/data-mudanca", {
+      method: "PUT",
+      body: dto,
+    }),
 };

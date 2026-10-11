@@ -38,6 +38,12 @@ namespace CasalPlanner.Domain.Entities
 
         public decimal? MetaGlobalEnxoval { get; set; }
 
+        // Data da Mudança & Localização para previsão do tempo (Open-Meteo)
+        public DateTime? DataMudanca { get; set; }
+        public string? CidadeMudanca { get; set; }
+        public double? LatitudeMudanca { get; set; }
+        public double? LongitudeMudanca { get; set; }
+
         public bool ModoEscuro { get; set; } = true;
         public bool ReceberNotificacoes { get; set; } = true;
 
