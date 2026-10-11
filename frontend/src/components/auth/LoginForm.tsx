@@ -224,10 +224,10 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
       </div>
       <Button
         type="submit"
-        className="w-full bg-primary"
+        className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold shadow-glow transition-all active:scale-[0.99]"
         disabled={loading || googleLoading}
       >
-        {loading ? "Entrando..." : "Entrar"}
+        {loading ? "Entrando..." : "Entrar na conta"}
       </Button>
 
       {googleClientId && !googleError && (
