@@ -257,7 +257,7 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
           <div className="space-y-1.5">
             <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Marca</Label>
             <Input 
-              value={resultado.marca} 
+              value={resultado.marca ?? ""} 
               onChange={e => setResultado({...resultado, marca: e.target.value})}
               placeholder="Desconhecida" 
             />
@@ -266,7 +266,7 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
           <div className="space-y-1.5">
             <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Modelo</Label>
             <Input 
-              value={resultado.modelo} 
+              value={resultado.modelo ?? ""} 
               onChange={e => setResultado({...resultado, modelo: e.target.value})}
               placeholder="Desconhecido" 
             />
@@ -275,7 +275,7 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
           <div className="space-y-1.5">
             <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Loja / Mercado</Label>
             <Input 
-              value={resultado.nomeMercado} 
+              value={resultado.nomeMercado ?? ""} 
               onChange={e => setResultado({...resultado, nomeMercado: e.target.value})}
               placeholder="Desconhecida" 
             />
@@ -284,7 +284,7 @@ export function PesquisaPrecosPorFoto({ disabled = false, onResultado, onFalha }
           <div className="space-y-1.5">
             <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Tamanho / Unidade</Label>
             <Input 
-              value={resultado.unidade} 
+              value={resultado.unidade ?? ""} 
               onChange={e => setResultado({...resultado, unidade: e.target.value})}
               placeholder="Ex: 500g, 1L" 
             />

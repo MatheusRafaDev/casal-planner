@@ -510,7 +510,9 @@ function PlanejamentoPage() {
                       <div className="font-display text-lg font-semibold flex items-center gap-2 capitalize">
                         {catAtual ? catAtual.nome : "Todos os itens"}
                         {catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento && (
-                          <AlertTriangle className="h-4 w-4 text-destructive" title="Orçamento estourado" />
+                          <span title="Orçamento estourado">
+                            <AlertTriangle className="h-4 w-4 text-destructive" />
+                          </span>
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground font-medium">
