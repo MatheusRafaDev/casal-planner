@@ -132,7 +132,8 @@ function PlanejamentoPage() {
 
   const categorias = useMemo(() => categoriasQ.data ?? [], [categoriasQ.data]);
   const catAtualId = categoriaSelecionada || "tudo";
-  const catAtual = catAtualId === "tudo" ? null : (categorias.find((c) => c.id === catAtualId) ?? null);
+  const catAtual =
+    catAtualId === "tudo" ? null : (categorias.find((c) => c.id === catAtualId) ?? null);
 
   const itensQ = useInfiniteQuery({
     queryKey: [
@@ -237,8 +238,7 @@ function PlanejamentoPage() {
   const totalDinheiro = useMemo(() => {
     const totalVr = itensCategoria
       .filter(
-        (i) =>
-          i.pagamento === "vr" && !["ganho", "presente", "prometido"].includes(i.origem ?? ""),
+        (i) => i.pagamento === "vr" && !["ganho", "presente", "prometido"].includes(i.origem ?? ""),
       )
       .reduce((s, i) => s + i.preco * i.quantidade, 0);
     return Math.max(0, totalCategoria - totalVr);
@@ -263,7 +263,11 @@ function PlanejamentoPage() {
             ...page,
             items: page.items.map((i: Item) =>
               i.id === id
-                ? { ...i, comprado, dataCompra: comprado ? (i.dataCompra || new Date().toISOString()) : null }
+                ? {
+                    ...i,
+                    comprado,
+                    dataCompra: comprado ? i.dataCompra || new Date().toISOString() : null,
+                  }
                 : i,
             ),
           })),
@@ -273,7 +277,11 @@ function PlanejamentoPage() {
         if (!old) return old;
         return old.map((i) =>
           i.id === id
-            ? { ...i, comprado, dataCompra: comprado ? (i.dataCompra || new Date().toISOString()) : null }
+            ? {
+                ...i,
+                comprado,
+                dataCompra: comprado ? i.dataCompra || new Date().toISOString() : null,
+              }
             : i,
         );
       });
@@ -338,7 +346,9 @@ function PlanejamentoPage() {
                 <Package className="h-4 w-4" />
               </span>
               <div className="flex-1 min-w-0">
-                <div className="font-bold text-xs sm:text-sm truncate text-foreground">Todos Os Itens</div>
+                <div className="font-bold text-xs sm:text-sm truncate text-foreground">
+                  Todos Os Itens
+                </div>
                 <div className="text-[11px] font-semibold text-muted-foreground mt-0.5">
                   <span>
                     {todosItens.filter((i) => i.comprado).length}/{todosItens.length} -{" "}
@@ -369,7 +379,10 @@ function PlanejamentoPage() {
                     ativo
                       ? "bg-primary/10 border-primary text-foreground shadow-[2px_2px_0_var(--border)] font-bold"
                       : "bg-card border-border/70 hover:bg-muted/60 text-muted-foreground hover:text-foreground",
-                    c.metaOrcamento && cGasto > c.metaOrcamento && !ativo && "border-destructive/40 bg-destructive/5",
+                    c.metaOrcamento &&
+                      cGasto > c.metaOrcamento &&
+                      !ativo &&
+                      "border-destructive/40 bg-destructive/5",
                   )}
                 >
                   <span
@@ -508,7 +521,9 @@ function PlanejamentoPage() {
         <div className="flex items-center gap-3.5">
           <span
             className="grid place-items-center h-12 w-12 rounded-xl text-white shrink-0 border-2 border-border/20 shadow-sm"
-            style={{ backgroundColor: catAtual ? comodoColor(catAtual.bg, catAtual.nome) : "#2F7D5B" }}
+            style={{
+              backgroundColor: catAtual ? comodoColor(catAtual.bg, catAtual.nome) : "#2F7D5B",
+            }}
           >
             {(() => {
               const I = catAtual ? iconFor(catAtual.icon) : Package;
@@ -539,15 +554,17 @@ function PlanejamentoPage() {
             <span
               className={cn(
                 "font-display text-xl sm:text-2xl font-bold leading-none tabular-nums",
-                ((catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento) ||
-                (!catAtual && usuario?.metaGlobalEnxoval && totalCategoria > usuario.metaGlobalEnxoval))
+                (catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento) ||
+                  (!catAtual &&
+                    usuario?.metaGlobalEnxoval &&
+                    totalCategoria > usuario.metaGlobalEnxoval)
                   ? "text-destructive"
                   : "text-foreground",
               )}
             >
               {brl(totalCategoria)}
             </span>
-            {(catAtual?.metaOrcamento || (!catAtual && usuario?.metaGlobalEnxoval)) ? (
+            {catAtual?.metaOrcamento || (!catAtual && usuario?.metaGlobalEnxoval) ? (
               <span className="text-[11px] text-muted-foreground mt-1 font-semibold">
                 meta: {brl(catAtual?.metaOrcamento || usuario?.metaGlobalEnxoval || 0)}
               </span>
@@ -574,17 +591,20 @@ function PlanejamentoPage() {
                 </div>
                 <div className="text-xs font-bold text-muted-foreground flex items-center gap-2 flex-wrap">
                   <span>
-                    {p1.split(" ")[0]}: <span className="text-foreground tabular-nums">{brl(totalP1)}</span>
+                    {p1.split(" ")[0]}:{" "}
+                    <span className="text-foreground tabular-nums">{brl(totalP1)}</span>
                   </span>
                   <span>|</span>
                   <span>
-                    {p2.split(" ")[0]}: <span className="text-foreground tabular-nums">{brl(totalP2)}</span>
+                    {p2.split(" ")[0]}:{" "}
+                    <span className="text-foreground tabular-nums">{brl(totalP2)}</span>
                   </span>
                   {totalConjunto > 0 && (
                     <>
                       <span>|</span>
                       <span>
-                        Juntos: <span className="text-foreground tabular-nums">{brl(totalConjunto)}</span>
+                        Juntos:{" "}
+                        <span className="text-foreground tabular-nums">{brl(totalConjunto)}</span>
                       </span>
                     </>
                   )}
@@ -728,198 +748,202 @@ function PlanejamentoPage() {
                 it.comprado && "bg-muted/30 border-border/60 shadow-none",
               )}
             >
-                {/* Left: Checkbox + Thumbnail + Info */}
-                <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
-                  {/* Checkbox */}
-                  <Checkbox
-                    className={cn(
-                      "h-5 w-5 rounded-md border-2 shrink-0 cursor-pointer",
-                      it.comprado && "data-[state=checked]:bg-[#2F7D5B] data-[state=checked]:border-[#2F7D5B]",
-                    )}
-                    checked={it.comprado}
-                    onCheckedChange={() =>
-                      toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
-                    }
-                    aria-label={
-                      it.comprado
-                        ? isPresente
-                          ? "Desmarcar ganhado"
-                          : "Desmarcar comprado"
-                        : isPresente
-                          ? "Marcar como ganhado"
-                          : "Marcar como comprado"
-                    }
-                  />
+              {/* Left: Checkbox + Thumbnail + Info */}
+              <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
+                {/* Checkbox */}
+                <Checkbox
+                  className={cn(
+                    "h-5 w-5 rounded-md border-2 shrink-0 cursor-pointer",
+                    it.comprado &&
+                      "data-[state=checked]:bg-[#2F7D5B] data-[state=checked]:border-[#2F7D5B]",
+                  )}
+                  checked={it.comprado}
+                  onCheckedChange={() =>
+                    toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
+                  }
+                  aria-label={
+                    it.comprado
+                      ? isPresente
+                        ? "Desmarcar ganhado"
+                        : "Desmarcar comprado"
+                      : isPresente
+                        ? "Marcar como ganhado"
+                        : "Marcar como comprado"
+                  }
+                />
 
-                  {/* Thumbnail / Room Icon */}
-                  {it.fotoUrl && !imageErrors[it.id] ? (
+                {/* Thumbnail / Room Icon */}
+                {it.fotoUrl && !imageErrors[it.id] ? (
+                  <button
+                    type="button"
+                    onClick={() => setImagemAmpliada(it)}
+                    className={cn(
+                      "h-12 w-12 rounded-xl border-2 border-border overflow-hidden shrink-0 bg-background transition-transform hover:scale-105",
+                      it.comprado && "opacity-60 grayscale",
+                    )}
+                    title="Ver foto do item"
+                  >
+                    <img
+                      src={it.fotoUrl}
+                      alt={it.nome}
+                      className="h-full w-full object-cover"
+                      onError={() => setImageErrors((prev) => ({ ...prev, [it.id]: true }))}
+                    />
+                  </button>
+                ) : (
+                  <div
+                    className={cn(
+                      "h-12 w-12 rounded-xl border-2 border-border/60 grid place-items-center text-white shrink-0 shadow-xs",
+                      it.comprado && "opacity-60 grayscale",
+                    )}
+                    style={{
+                      backgroundColor: itemCategoria
+                        ? comodoColor(itemCategoria.bg, itemCategoria.nome)
+                        : "#2F7D5B",
+                    }}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </div>
+                )}
+
+                {/* Main Title & Subtitle Info */}
+                <div className="flex-1 min-w-0 py-0.5">
+                  {/* Title + Badges */}
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
                     <button
                       type="button"
-                      onClick={() => setImagemAmpliada(it)}
+                      onClick={() => setEditandoItem(it)}
                       className={cn(
-                        "h-12 w-12 rounded-xl border-2 border-border overflow-hidden shrink-0 bg-background transition-transform hover:scale-105",
-                        it.comprado && "opacity-60 grayscale",
+                        "font-bold text-sm sm:text-base text-foreground hover:text-primary transition-colors text-left truncate max-w-full block",
+                        it.comprado && "line-through text-muted-foreground",
                       )}
-                      title="Ver foto do item"
+                      title={it.nome}
                     >
-                      <img
-                        src={it.fotoUrl}
-                        alt={it.nome}
-                        className="h-full w-full object-cover"
-                        onError={() => setImageErrors((prev) => ({ ...prev, [it.id]: true }))}
-                      />
+                      {toTitleCase(it.nome)}
                     </button>
-                  ) : (
-                    <div
-                      className={cn(
-                        "h-12 w-12 rounded-xl border-2 border-border/60 grid place-items-center text-white shrink-0 shadow-xs",
-                        it.comprado && "opacity-60 grayscale",
-                      )}
-                      style={{
-                        backgroundColor: itemCategoria
-                          ? comodoColor(itemCategoria.bg, itemCategoria.nome)
-                          : "#2F7D5B",
-                      }}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </div>
-                  )}
 
-                  {/* Main Title & Subtitle Info */}
-                  <div className="flex-1 min-w-0 py-0.5">
-                    {/* Title + Badges */}
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <button
-                        type="button"
-                        onClick={() => setEditandoItem(it)}
-                        className={cn(
-                          "font-bold text-sm sm:text-base text-foreground hover:text-primary transition-colors text-left truncate max-w-full block",
-                          it.comprado && "line-through text-muted-foreground",
-                        )}
-                        title={it.nome}
+                    {/* Badge Origem (Ganho/Presente/Prometido) */}
+                    {isPresente && (
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] py-0 px-2 h-4.5 font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300"
                       >
-                        {toTitleCase(it.nome)}
-                      </button>
+                        {it.comprado ? "Ganhado" : "Ganho"}
+                      </Badge>
+                    )}
+                    {isPrometido && (
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] py-0 px-2 h-4.5 font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300"
+                      >
+                        Prometido
+                      </Badge>
+                    )}
 
-                      {/* Badge Origem (Ganho/Presente/Prometido) */}
-                      {isPresente && (
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] py-0 px-2 h-4.5 font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300"
-                        >
-                          {it.comprado ? "Ganhado" : "Ganho"}
-                        </Badge>
-                      )}
-                      {isPrometido && (
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] py-0 px-2 h-4.5 font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300"
-                        >
-                          Prometido
-                        </Badge>
-                      )}
+                    {/* Badge Prioridade Alta / Urgente */}
+                    {it.prioridade === "alta" && (
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] py-0 px-2 h-4.5 font-bold bg-destructive/10 text-destructive border-destructive/30"
+                      >
+                        Urgente
+                      </Badge>
+                    )}
 
-                      {/* Badge Prioridade Alta / Urgente */}
-                      {it.prioridade === "alta" && (
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] py-0 px-2 h-4.5 font-bold bg-destructive/10 text-destructive border-destructive/30"
-                        >
-                          Urgente
-                        </Badge>
-                      )}
+                    {/* Badge Responsável / Casal */}
+                    {isCasal && (
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-[10px] py-0 px-2 h-4.5 font-bold border",
+                          responsavelNum === 1
+                            ? "bg-[#2F7D5B]/10 text-[#2F7D5B] border-[#2F7D5B]/30"
+                            : responsavelNum === 2
+                              ? "bg-[#E8B63C]/15 text-[#976D04] dark:text-[#E8B63C] border-[#E8B63C]/40"
+                              : "bg-muted text-muted-foreground border-border",
+                        )}
+                      >
+                        {nomeResponsavel}
+                      </Badge>
+                    )}
+                  </div>
 
-                      {/* Badge Responsável / Casal */}
-                      {isCasal && (
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-[10px] py-0 px-2 h-4.5 font-bold border",
-                            responsavelNum === 1
-                              ? "bg-[#2F7D5B]/10 text-[#2F7D5B] border-[#2F7D5B]/30"
-                              : responsavelNum === 2
-                                ? "bg-[#E8B63C]/15 text-[#976D04] dark:text-[#E8B63C] border-[#E8B63C]/40"
-                                : "bg-muted text-muted-foreground border-border",
+                  {/* Subtitle details: Cômodo • Forma Pagto • Marca • Loja */}
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap font-medium">
+                    <span className="truncate">{itemCategoria?.nome ?? "Sem cômodo"}</span>
+                    <span>•</span>
+                    <span>{it.pagamento === "vr" ? "VR/VA" : "Dinheiro"}</span>
+
+                    {it.marca && (
+                      <>
+                        <span>•</span>
+                        <span className="text-foreground/80 font-semibold">
+                          {toTitleCase(it.marca)}
+                        </span>
+                      </>
+                    )}
+
+                    {it.loja && (
+                      <>
+                        <span>•</span>
+                        <div className="flex items-center gap-1 text-foreground/85 font-semibold">
+                          <LogoBadge
+                            urls={getLogoUrls(it.loja, it.linkProduto)}
+                            className="w-3.5 h-3.5 rounded object-contain shrink-0"
+                          />
+                          <span>em {toTitleCase(it.loja)}</span>
+                          {it.linkProduto && (
+                            <a
+                              href={it.linkProduto}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-muted-foreground hover:text-primary transition-colors ml-0.5"
+                              title="Abrir no site da loja"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <ExternalLink className="h-3 w-3 inline" />
+                            </a>
                           )}
+                        </div>
+                      </>
+                    )}
+                    {it.dataCompra && (
+                      <>
+                        <span>•</span>
+                        <span
+                          className={
+                            it.comprado
+                              ? "text-emerald-700 dark:text-emerald-400 font-semibold"
+                              : "text-amber-700 dark:text-amber-400 font-semibold"
+                          }
                         >
-                          {nomeResponsavel}
-                        </Badge>
-                      )}
-                    </div>
-
-                    {/* Subtitle details: Cômodo • Forma Pagto • Marca • Loja */}
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap font-medium">
-                      <span className="truncate">{itemCategoria?.nome ?? "Sem cômodo"}</span>
-                      <span>•</span>
-                      <span>{it.pagamento === "vr" ? "VR/VA" : "Dinheiro"}</span>
-
-                      {it.marca && (
-                        <>
-                          <span>•</span>
-                          <span className="text-foreground/80 font-semibold">{toTitleCase(it.marca)}</span>
-                        </>
-                      )}
-
-                      {it.loja && (
-                        <>
-                          <span>•</span>
-                          <div className="flex items-center gap-1 text-foreground/85 font-semibold">
-                            <LogoBadge
-                              urls={getLogoUrls(it.loja, it.linkProduto)}
-                              className="w-3.5 h-3.5 rounded object-contain shrink-0"
-                            />
-                            <span>em {toTitleCase(it.loja)}</span>
-                            {it.linkProduto && (
-                              <a
-                                href={it.linkProduto}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-muted-foreground hover:text-primary transition-colors ml-0.5"
-                                title="Abrir no site da loja"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <ExternalLink className="h-3 w-3 inline" />
-                              </a>
-                            )}
-                          </div>
-                        </>
-                      )}
-                      {it.dataCompra && (
-                        <>
-                          <span>•</span>
-                          <span
-                            className={
-                              it.comprado
-                                ? "text-emerald-700 dark:text-emerald-400 font-semibold"
-                                : "text-amber-700 dark:text-amber-400 font-semibold"
-                            }
-                          >
-                            {it.comprado
-                              ? isPresente
-                                ? "Ganhado em "
-                                : "Comprado em "
-                              : "Previsão: "}
-                            {formatDate(it.dataCompra)}
-                          </span>
-                        </>
-                      )}
-                    </div>
+                          {it.comprado
+                            ? isPresente
+                              ? "Ganhado em "
+                              : "Comprado em "
+                            : "Previsão: "}
+                          {formatDate(it.dataCompra)}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
+              </div>
 
-                {/* Right: Price + Installments + Menu */}
-                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 sm:pl-3 sm:border-l sm:border-border/30">
-                  <div className="text-left sm:text-right">
-                    <div
-                      className={cn(
-                        "font-display font-bold text-base sm:text-lg tabular-nums leading-none",
-                        it.comprado ? "text-muted-foreground" : "text-foreground",
-                      )}
-                    >
-                      {brl(it.preco * it.quantidade)}
-                    </div>
-                    <div className="text-[11px] text-muted-foreground font-semibold mt-1">
-                      {(it.parcelas ?? 1) > 1 ? (() => {
+              {/* Right: Price + Installments + Menu */}
+              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 sm:pl-3 sm:border-l sm:border-border/30">
+                <div className="text-left sm:text-right">
+                  <div
+                    className={cn(
+                      "font-display font-bold text-base sm:text-lg tabular-nums leading-none",
+                      it.comprado ? "text-muted-foreground" : "text-foreground",
+                    )}
+                  >
+                    {brl(it.preco * it.quantidade)}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground font-semibold mt-1">
+                    {(it.parcelas ?? 1) > 1 ? (
+                      (() => {
                         const status = calcularStatusParcelas(it);
                         if (it.comprado && status.quitado) {
                           return (
@@ -938,9 +962,15 @@ function PlanejamentoPage() {
                           return (
                             <span>
                               {it.quantidade > 1 ? `${it.quantidade} un · ` : ""}
-                              <strong className="text-foreground">{status.parcelaAtualMes}ª de {it.parcelas}x</strong> de {brl(status.valorParcela)}
+                              <strong className="text-foreground">
+                                {status.parcelaAtualMes}ª de {it.parcelas}x
+                              </strong>{" "}
+                              de {brl(status.valorParcela)}
                               {status.parcelasRestantes > 1 && (
-                                <span className="text-muted-foreground font-normal"> ({status.parcelasRestantes} restantes)</span>
+                                <span className="text-muted-foreground font-normal">
+                                  {" "}
+                                  ({status.parcelasRestantes} restantes)
+                                </span>
                               )}
                               {(it.jurosMensal ?? 0) > 0 && " (com juros)"}
                             </span>
@@ -953,68 +983,67 @@ function PlanejamentoPage() {
                             {(it.jurosMensal ?? 0) > 0 && " (com juros)"}
                           </span>
                         );
-                      })() : it.quantidade > 1 ? (
-                        <span>
-                          {it.quantidade}x {brl(it.preco)}
-                        </span>
-                      ) : (
-                        <span>À vista</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Menu Actions */}
-                  <div className="shrink-0">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                          title="Opções"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem onClick={() => setEditandoItem(it)}>
-                          <Pencil className="h-4 w-4 mr-2" /> Editar item
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
-                          }
-                        >
-                          <Check className="h-4 w-4 mr-2" />
-                          {it.comprado
-                            ? isPresente
-                              ? "Desmarcar ganhado"
-                              : "Marcar pendente"
-                            : isPresente
-                              ? "Marcar como ganhado"
-                              : "Marcar comprado"}
-                        </DropdownMenuItem>
-                        {it.linkProduto && (
-                          <DropdownMenuItem asChild>
-                            <a href={it.linkProduto} target="_blank" rel="noreferrer">
-                              <ExternalLink className="h-4 w-4 mr-2" /> Abrir no site
-                            </a>
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => setExcluindoItem(it)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" /> Remover
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                      })()
+                    ) : it.quantidade > 1 ? (
+                      <span>
+                        {it.quantidade}x {brl(it.preco)}
+                      </span>
+                    ) : (
+                      <span>À vista</span>
+                    )}
                   </div>
                 </div>
-              </motion.div>
-            );
-          })}
+
+                {/* Menu Actions */}
+                <div className="shrink-0">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        title="Opções"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem onClick={() => setEditandoItem(it)}>
+                        <Pencil className="h-4 w-4 mr-2" /> Editar item
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => toggleComprado.mutate({ id: it.id, comprado: !it.comprado })}
+                      >
+                        <Check className="h-4 w-4 mr-2" />
+                        {it.comprado
+                          ? isPresente
+                            ? "Desmarcar ganhado"
+                            : "Marcar pendente"
+                          : isPresente
+                            ? "Marcar como ganhado"
+                            : "Marcar comprado"}
+                      </DropdownMenuItem>
+                      {it.linkProduto && (
+                        <DropdownMenuItem asChild>
+                          <a href={it.linkProduto} target="_blank" rel="noreferrer">
+                            <ExternalLink className="h-4 w-4 mr-2" /> Abrir no site
+                          </a>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => setExcluindoItem(it)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" /> Remover
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
 
         {/* Loading skeleton for next page */}
         {itensQ.isFetchingNextPage && (

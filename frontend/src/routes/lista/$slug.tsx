@@ -97,9 +97,9 @@ function ListaPublicaPage() {
       toast.success("Presente confirmado! O casal vai amar 💖", {
         action: resp.undoToken
           ? {
-            label: "Desfazer",
-            onClick: () => desfazerMut.mutate({ itemId, token: resp.undoToken! }),
-          }
+              label: "Desfazer",
+              onClick: () => desfazerMut.mutate({ itemId, token: resp.undoToken! }),
+            }
           : undefined,
         duration: 8000,
       });
@@ -253,8 +253,9 @@ function ListaPublicaPage() {
           {itensFiltrados.map((item) => (
             <div
               key={item.id}
-              className={`card-sticker p-4 bg-card flex flex-col justify-between transition-all duration-200 shadow-[3px_3px_0_var(--border)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_var(--border)] ${item.comprado ? "opacity-60 grayscale hover:grayscale-0" : ""
-                }`}
+              className={`card-sticker p-4 bg-card flex flex-col justify-between transition-all duration-200 shadow-[3px_3px_0_var(--border)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_var(--border)] ${
+                item.comprado ? "opacity-60 grayscale hover:grayscale-0" : ""
+              }`}
             >
               <div>
                 {/* Imagem Container */}

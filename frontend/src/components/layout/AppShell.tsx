@@ -160,9 +160,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               )}
               <div className="flex flex-col overflow-hidden min-w-0">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-xs font-bold text-foreground truncate">
-                    {logadoNome}
-                  </span>
+                  <span className="text-xs font-bold text-foreground truncate">{logadoNome}</span>
                   <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
                     Você
                   </span>

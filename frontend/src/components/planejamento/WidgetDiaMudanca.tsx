@@ -289,9 +289,7 @@ export function WidgetDiaMudanca() {
                   <Calendar className="h-4 w-4 text-primary shrink-0" />
                   <span>
                     Data prevista:{" "}
-                    <strong className="font-bold text-foreground">
-                      {dataMudancaFormatada}
-                    </strong>
+                    <strong className="font-bold text-foreground">{dataMudancaFormatada}</strong>
                   </span>
                 </div>
               </>
@@ -363,9 +361,7 @@ export function WidgetDiaMudanca() {
                     <CloudRain className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                     {previsaoDiaMudanca.probabilidadeChuva}% chance de chuva
                   </span>
-                  <span className="text-[11px] text-muted-foreground">
-                    {risco.titulo}
-                  </span>
+                  <span className="text-[11px] text-muted-foreground">{risco.titulo}</span>
                 </div>
               </div>
             ) : (
@@ -386,7 +382,6 @@ export function WidgetDiaMudanca() {
                 </p>
 
                 <div className="pt-2.5 border-t border-border/60 flex items-center justify-between text-[11px] text-muted-foreground font-semibold">
-
                   {!usuario.cidadeMudanca && (
                     <Button
                       variant="outline"
@@ -411,7 +406,6 @@ export function WidgetDiaMudanca() {
               <span className="font-bold text-foreground">Dica Logística:</span>
               <span className="text-muted-foreground italic">"{risco.dicas[0]}"</span>
             </div>
-
           </div>
         )}
       </div>

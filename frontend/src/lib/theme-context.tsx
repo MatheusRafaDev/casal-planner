@@ -31,11 +31,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [actualTheme, setActualTheme] = useState<"light" | "dark">("light");
 
   // Persona é estritamente vinculada ao usuário logado (não pode mudar manualmente)
-  const persona: Persona = !isAuthenticated || !usuario
-    ? null
-    : usuario.tipoConta === "Casal"
-      ? (usuario.pessoaLogada === 2 ? 2 : 1)
-      : 1;
+  const persona: Persona =
+    !isAuthenticated || !usuario
+      ? null
+      : usuario.tipoConta === "Casal"
+        ? usuario.pessoaLogada === 2
+          ? 2
+          : 1
+        : 1;
 
   // Garante modo claro e sincroniza data-persona com o usuário autenticado
   useEffect(() => {

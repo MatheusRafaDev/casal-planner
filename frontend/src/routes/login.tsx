@@ -58,7 +58,7 @@ function LoginPage() {
   }, [loading, isAuthenticated, navigate, router.history, returnUrl]);
 
   return (
-    <div className="min-h-screen lg:h-screen lg:max-h-screen lg:overflow-hidden w-full bg-background text-foreground flex flex-col lg:grid lg:grid-cols-[44%_56%] xl:grid-cols-[42%_58%] selection:bg-gold/30 relative font-sans">
+    <div className="min-h-screen lg:h-screen lg:max-h-screen lg:overflow-hidden overflow-x-clip w-full bg-background text-foreground flex flex-col lg:grid lg:grid-cols-[44%_56%] xl:grid-cols-[42%_58%] selection:bg-gold/30 relative font-sans">
       {/* =========================================
           PAINEL ESQUERDO: APRESENTAÇÃO EDITORIAL (Com animação suave de entrada)
       ========================================= */}
@@ -276,16 +276,10 @@ function LoginPage() {
                       </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent
-                      value="casal"
-                      className="m-0 focus-visible:outline-none"
-                    >
+                    <TabsContent value="casal" className="m-0 focus-visible:outline-none">
                       <RegistroCasal />
                     </TabsContent>
-                    <TabsContent
-                      value="individual"
-                      className="m-0 focus-visible:outline-none"
-                    >
+                    <TabsContent value="individual" className="m-0 focus-visible:outline-none">
                       <RegistroIndividual returnUrl={returnUrl} />
                     </TabsContent>
                   </Tabs>

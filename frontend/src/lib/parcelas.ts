@@ -10,7 +10,12 @@ export function valorParcela(total: number, parcelas: number, jurosMensalPct = 0
 export function parseDataReferencia(dataStr?: string | Date | null): Date {
   if (!dataStr) return new Date();
   if (dataStr instanceof Date) return dataStr;
-  if (typeof dataStr === "string" && dataStr.length >= 10 && dataStr[4] === "-" && dataStr[7] === "-") {
+  if (
+    typeof dataStr === "string" &&
+    dataStr.length >= 10 &&
+    dataStr[4] === "-" &&
+    dataStr[7] === "-"
+  ) {
     const ano = parseInt(dataStr.substring(0, 4), 10);
     const mes = parseInt(dataStr.substring(5, 7), 10) - 1;
     const dia = parseInt(dataStr.substring(8, 10), 10);
@@ -133,4 +138,3 @@ export function calcularStatusParcelas(
     ativo: true,
   };
 }
-

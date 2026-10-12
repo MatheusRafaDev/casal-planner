@@ -172,14 +172,9 @@ export function RegistroCasal() {
           )}
         >
           <span
-            className={cn(
-              "w-2 h-2 rounded-full",
-              p2Valido ? "bg-amber-500" : "bg-amber-500/50",
-            )}
+            className={cn("w-2 h-2 rounded-full", p2Valido ? "bg-amber-500" : "bg-amber-500/50")}
           />
-          <span className="truncate">
-            2. {p2.nome ? p2.nome.split(" ")[0] : "Seu amor (P2)"}
-          </span>
+          <span className="truncate">2. {p2.nome ? p2.nome.split(" ")[0] : "Seu amor (P2)"}</span>
           {p2Valido && <Check className="w-3 h-3 text-amber-600 ml-auto shrink-0" />}
         </button>
       </div>

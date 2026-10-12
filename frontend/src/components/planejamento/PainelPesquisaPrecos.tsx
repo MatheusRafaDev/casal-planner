@@ -143,7 +143,9 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
             <p className="text-sm font-medium text-destructive">
               Ocorreu um erro ao buscar os preços.
             </p>
-            <p className="text-xs text-destructive/70">Tente novamente ou modifique sua pesquisa.</p>
+            <p className="text-xs text-destructive/70">
+              Tente novamente ou modifique sua pesquisa.
+            </p>
           </div>
         )}
 
@@ -317,7 +319,9 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
             </div>
             <div className="space-y-1">
               <p className="text-sm font-bold">Nenhum resultado encontrado</p>
-              <p className="text-xs text-muted-foreground">Não encontramos ofertas para "{ativa}". Tente outros termos.</p>
+              <p className="text-xs text-muted-foreground">
+                Não encontramos ofertas para "{ativa}". Tente outros termos.
+              </p>
             </div>
           </div>
         )}

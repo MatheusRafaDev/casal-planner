@@ -196,7 +196,7 @@ function HomePage() {
           }
         });
       },
-      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" }
+      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" },
     );
 
     document.querySelectorAll(".reveal-section").forEach((el) => {
@@ -218,7 +218,7 @@ function HomePage() {
 
       window.scrollTo({
         top: offsetPosition,
-        behavior: "smooth",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
       });
 
       setHighlightedSection(id);
@@ -450,16 +450,31 @@ function HomePage() {
         .nav-section-link:hover::after {
           width: 100%;
         }
+
+        @media (prefers-reduced-motion: reduce) {
+          html {
+            scroll-behavior: auto;
+          }
+
+          .section-highlight,
+          :target {
+            animation: none;
+          }
+        }
       `}</style>
 
       {/* Header Sticky - fixo ao descer o scroll com efeito translúcido e borda sutil */}
       <header className="sticky top-0 z-50 w-full bg-[#FAF8F5]/90 dark:bg-[#11100F]/90 backdrop-blur-md border-b border-[#E8E3DA] dark:border-[#2A2724] transition-all">
-        <div className="max-w-[1120px] mx-auto px-6 sm:px-8 h-[76px] flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 group transition-transform hover:scale-[1.01]" aria-label="CasalPlanner">
+        <div className="max-w-[1120px] mx-auto px-4 sm:px-8 h-[76px] flex items-center justify-between gap-2">
+          <Link
+            to="/"
+            className="flex items-center gap-3 group transition-transform hover:scale-[1.01]"
+            aria-label="CasalPlanner"
+          >
             <BrandLogoBadge size="md" className="transition-transform group-hover:scale-105" />
-            <BrandLogoText size="lg" />
+            <BrandLogoText size="sm" />
           </Link>
-          <nav className="flex items-center gap-4 sm:gap-6" aria-label="Conta">
+          <nav className="flex items-center gap-2 sm:gap-6" aria-label="Conta">
             <a
               href="#enxoval"
               onClick={(e) => scrollToSection(e, "enxoval")}
@@ -485,7 +500,7 @@ function HomePage() {
               <Link
                 to="/login"
                 search={{ registrar: 1 }}
-                className="px-4 sm:px-5 py-2 rounded-full border border-primary text-primary hover:bg-primary/5 font-semibold text-sm transition-all whitespace-nowrap shadow-xs"
+                className="hidden sm:inline-flex px-4 sm:px-5 py-2 rounded-full border border-primary text-primary hover:bg-primary/5 font-semibold text-sm transition-all whitespace-nowrap shadow-xs"
               >
                 Cadastre-se agora
               </Link>
@@ -501,15 +516,12 @@ function HomePage() {
       </header>
 
       <div className="max-w-[1120px] mx-auto px-6 sm:px-8 box-border">
-
         {/* Hero Section */}
         <section className="flex gap-16 items-center flex-wrap pt-16 pb-24">
           <div className="flex-1 basis-[460px]">
             <h1 className="h1-anexo m-0 font-display font-extrabold text-[48px] sm:text-[62px] leading-[1.08] text-slate-900 tracking-tight">
               Planejar a dois é começar a casa com o{" "}
-              <span className="text-primary">
-                pé direito.
-              </span>
+              <span className="text-primary">pé direito.</span>
             </h1>
             <p className="p-anexo text-[19px] max-w-[500px] mt-6 text-slate-500">
               Cada cômodo, cada compra e o orçamento da casa nova num lugar só.
@@ -617,9 +629,7 @@ function HomePage() {
                   <span className="font-display font-bold text-sm text-slate-900 block">
                     Nosso novo cantinho 🏡
                   </span>
-                  <span className="text-xs text-slate-500">
-                    Orçamento e escolhas sincronizados
-                  </span>
+                  <span className="text-xs text-slate-500">Orçamento e escolhas sincronizados</span>
                 </div>
                 <span className="px-3 py-1 rounded-full border border-emerald-600/20 bg-emerald-50 text-emerald-800 font-semibold text-xs">
                   Tudo em ordem
@@ -629,9 +639,7 @@ function HomePage() {
 
             {/* Card de Economia & Saldo */}
             <div className="absolute -right-3 -bottom-3 rounded-2xl bg-white border border-slate-200 shadow-lg px-4 py-3 flex flex-col items-center justify-center text-center z-20">
-              <span className="text-xs font-semibold text-slate-500">
-                Orçamento restante
-              </span>
+              <span className="text-xs font-semibold text-slate-500">Orçamento restante</span>
               <span className="tabular-nums text-xl font-bold font-display text-primary">
                 R$ 2.650
               </span>
@@ -658,8 +666,8 @@ function HomePage() {
                 Do sofá à geladeira: o enxoval que vocês sonham
               </h2>
               <p className="p-anexo max-w-[650px] mt-3">
-                No CasalPlanner, cada produto ganha foto, preço real, prioridade, status
-                e divisão transparente de quem vai pagar. Veja alguns exemplos da nossa vitrine:
+                No CasalPlanner, cada produto ganha foto, preço real, prioridade, status e divisão
+                transparente de quem vai pagar. Veja alguns exemplos da nossa vitrine:
               </p>
             </div>
           </div>
@@ -735,7 +743,9 @@ function HomePage() {
                       <span className="font-display font-bold text-xl text-slate-900">
                         {item.preco}
                       </span>
-                      <span className="text-[11px] font-medium text-slate-500">{item.parcelas}</span>
+                      <span className="text-[11px] font-medium text-slate-500">
+                        {item.parcelas}
+                      </span>
                     </div>
 
                     <div className="flex items-center justify-between text-xs pt-1">
@@ -916,8 +926,8 @@ function HomePage() {
                   Montem os cômodos
                 </div>
                 <p className="flex-1 m-0 text-[16px] sm:text-[18px] leading-[1.55] text-slate-600">
-                  Cozinha, sala, quarto, lavanderia, ou o que fizer sentido para a casa de vocês. Cada
-                  cômodo recebe o seu orçamento.
+                  Cozinha, sala, quarto, lavanderia, ou o que fizer sentido para a casa de vocês.
+                  Cada cômodo recebe o seu orçamento.
                 </p>
               </div>
               <div className="row-anexo border-b border-slate-200">
@@ -928,8 +938,8 @@ function HomePage() {
                   Listem os itens
                 </div>
                 <p className="flex-1 m-0 text-[16px] sm:text-[18px] leading-[1.55] text-slate-600">
-                  Cada item tem preço, quantidade, forma de pagamento e status. Vocês veem o que falta
-                  e quanto custa.
+                  Cada item tem preço, quantidade, forma de pagamento e status. Vocês veem o que
+                  falta e quanto custa.
                 </p>
               </div>
               <div className="row-anexo border-b border-slate-200">
@@ -1000,7 +1010,9 @@ function HomePage() {
             </div>
             <div className="flex-1 basis-[380px] flex justify-center">
               <div className="st-anexo">
-                <div className="font-display font-semibold text-[22px] text-slate-900">Seus cômodos</div>
+                <div className="font-display font-semibold text-[22px] text-slate-900">
+                  Seus cômodos
+                </div>
                 <div className="rw-anexo">
                   <span className="w-[92px] text-slate-700">Cozinha</span>
                   <div className="bar-anexo">
@@ -1037,9 +1049,7 @@ function HomePage() {
           {/* Recurso 2: Itens */}
           <div className="blk-anexo flex-row-reverse">
             <div className="flex-1 basis-[380px]">
-              <div className="font-display font-semibold text-[18px] text-primary mb-2">
-                Itens
-              </div>
+              <div className="font-display font-semibold text-[18px] text-primary mb-2">Itens</div>
               <h3 className="h2-anexo text-[32px] sm:text-[34px]">Cada compra com seu status</h3>
               <p className="p-anexo">
                 Adicione um item com preço, quantidade e data prevista de compra. Marque como
@@ -1061,7 +1071,9 @@ function HomePage() {
                     className="w-10 h-10 object-contain rounded-lg border border-slate-200 bg-slate-50 p-0.5 shrink-0"
                   />
                   <span className="flex-1 font-semibold text-slate-800">Geladeira Duplex</span>
-                  <span className="tag-anexo bg-emerald-50 text-emerald-800 border-emerald-200">Comprado</span>
+                  <span className="tag-anexo bg-emerald-50 text-emerald-800 border-emerald-200">
+                    Comprado
+                  </span>
                 </div>
                 <div className="rw-anexo items-center">
                   <img
@@ -1070,7 +1082,9 @@ function HomePage() {
                     className="w-10 h-10 object-contain rounded-lg border border-slate-200 bg-slate-50 p-0.5 shrink-0"
                   />
                   <span className="flex-1 font-semibold text-slate-800">Air Fryer & Café</span>
-                  <span className="tag-anexo bg-amber-50 text-amber-800 border-amber-200">Presente</span>
+                  <span className="tag-anexo bg-amber-50 text-amber-800 border-amber-200">
+                    Presente
+                  </span>
                 </div>
                 <div className="rw-anexo items-center">
                   <img
@@ -1079,7 +1093,9 @@ function HomePage() {
                     className="w-10 h-10 object-contain rounded-lg border border-slate-200 bg-slate-50 p-0.5 shrink-0"
                   />
                   <span className="flex-1 font-semibold text-slate-800">Sofá Conforto</span>
-                  <span className="tag-anexo bg-emerald-50 text-emerald-800 border-emerald-200">Prometido</span>
+                  <span className="tag-anexo bg-emerald-50 text-emerald-800 border-emerald-200">
+                    Prometido
+                  </span>
                 </div>
                 <div className="rw-anexo items-center">
                   <img
@@ -1088,7 +1104,9 @@ function HomePage() {
                     className="w-10 h-10 object-contain rounded-lg border border-slate-200 bg-slate-50 p-0.5 shrink-0"
                   />
                   <span className="flex-1 font-semibold text-slate-800">Smart TV 55" 4K</span>
-                  <span className="tag-anexo bg-slate-100 text-slate-700 border-slate-200">Pendente</span>
+                  <span className="tag-anexo bg-slate-100 text-slate-700 border-slate-200">
+                    Pendente
+                  </span>
                 </div>
                 <div className="rw-anexo items-center">
                   <img
@@ -1097,7 +1115,9 @@ function HomePage() {
                     className="w-10 h-10 object-contain rounded-lg border border-slate-200 bg-slate-50 p-0.5 shrink-0"
                   />
                   <span className="flex-1 font-semibold text-slate-800">Cama Box Queen</span>
-                  <span className="tag-anexo bg-emerald-50 text-emerald-800 border-emerald-200">Comprado</span>
+                  <span className="tag-anexo bg-emerald-50 text-emerald-800 border-emerald-200">
+                    Comprado
+                  </span>
                 </div>
               </div>
             </div>
@@ -1109,9 +1129,12 @@ function HomePage() {
               <div className="font-display font-semibold text-[18px] text-primary mb-2">
                 Divisão entre os dois
               </div>
-              <h3 className="h2-anexo text-[32px] sm:text-[34px]">Quem pagou o quê, sem discussão</h3>
+              <h3 className="h2-anexo text-[32px] sm:text-[34px]">
+                Quem pagou o quê, sem discussão
+              </h3>
               <p className="p-anexo">
-                Acompanhem os gastos divididos entre vocês de forma transparente e visual. Saibam exatamente quanto cada pessoa investiu e quanto sobra para os próximos passos.
+                Acompanhem os gastos divididos entre vocês de forma transparente e visual. Saibam
+                exatamente quanto cada pessoa investiu e quanto sobra para os próximos passos.
               </p>
               <ul className="ls-anexo">
                 <li>Divisão proporcional ou personalizada entre o casal</li>
@@ -1122,7 +1145,9 @@ function HomePage() {
             </div>
             <div className="flex-1 basis-[380px] flex justify-center">
               <div className="st-anexo">
-                <div className="font-display font-semibold text-[22px] text-slate-900">Gastos até agora</div>
+                <div className="font-display font-semibold text-[22px] text-slate-900">
+                  Gastos até agora
+                </div>
                 <div className="flex h-[24px] border border-slate-200 rounded-full overflow-hidden mt-4">
                   <div className="w-[67%] bg-primary"></div>
                   <div className="w-[33%] bg-amber-500"></div>
@@ -1227,7 +1252,9 @@ function HomePage() {
                 <div className="rw-anexo">
                   <span className="flex-1 text-slate-700">Loja B</span>
                   <span className="tabular-nums font-bold text-slate-900">R$ 699</span>
-                  <span className="tag-anexo bg-amber-100 text-amber-900 border-amber-300">Menor</span>
+                  <span className="tag-anexo bg-amber-100 text-amber-900 border-amber-300">
+                    Menor
+                  </span>
                 </div>
                 <div className="rw-anexo">
                   <span className="flex-1 text-slate-700">Loja C</span>
@@ -1284,7 +1311,9 @@ function HomePage() {
           <h2 className="h2-anexo">Casal ou individual?</h2>
           <div className="flex gap-6 flex-wrap mt-7">
             <div className="st-anexo max-w-none flex-1 basis-[380px] bg-emerald-50/50 border-emerald-200">
-              <div className="font-display font-semibold text-[26px] text-slate-900">Conta de casal</div>
+              <div className="font-display font-semibold text-[26px] text-slate-900">
+                Conta de casal
+              </div>
               <ul className="ls-anexo">
                 <li>Duas pessoas vinculadas à mesma casa</li>
                 <li>Divisão personalizada e transparente de cada gasto</li>
@@ -1295,7 +1324,9 @@ function HomePage() {
               </div>
             </div>
             <div className="st-anexo max-w-none flex-1 basis-[380px]">
-              <div className="font-display font-semibold text-[26px] text-slate-900">Conta individual</div>
+              <div className="font-display font-semibold text-[26px] text-slate-900">
+                Conta individual
+              </div>
               <ul className="ls-anexo">
                 <li>Para quem está montando a casa sozinho</li>
                 <li>Mesmos cômodos, itens e orçamento</li>
@@ -1318,7 +1349,7 @@ function HomePage() {
           <h2 className="h2-anexo">Dúvidas comuns</h2>
           <div className="mt-7">
             <div className="row-anexo">
-              <div className="w-[380px] shrink-0 font-display font-semibold text-[20px] text-slate-900">
+              <div className="w-full sm:w-[380px] max-w-full shrink-0 font-display font-semibold text-[20px] text-slate-900">
                 Preciso pagar para usar?
               </div>
               <p className="flex-1 basis-[300px] m-0 text-[16px] leading-[1.6] text-slate-600">
@@ -1327,7 +1358,7 @@ function HomePage() {
               </p>
             </div>
             <div className="row-anexo">
-              <div className="w-[380px] shrink-0 font-display font-semibold text-[20px] text-slate-900">
+              <div className="w-full sm:w-[380px] max-w-full shrink-0 font-display font-semibold text-[20px] text-slate-900">
                 Funciona no celular?
               </div>
               <p className="flex-1 basis-[300px] m-0 text-[16px] leading-[1.6] text-slate-600">
@@ -1335,7 +1366,7 @@ function HomePage() {
               </p>
             </div>
             <div className="row-anexo">
-              <div className="w-[380px] shrink-0 font-display font-semibold text-[20px] text-slate-900">
+              <div className="w-full sm:w-[380px] max-w-full shrink-0 font-display font-semibold text-[20px] text-slate-900">
                 Nós dois vemos as mesmas informações?
               </div>
               <p className="flex-1 basis-[300px] m-0 text-[16px] leading-[1.6] text-slate-600">
@@ -1344,7 +1375,7 @@ function HomePage() {
               </p>
             </div>
             <div className="row-anexo">
-              <div className="w-[380px] shrink-0 font-display font-semibold text-[20px] text-slate-900">
+              <div className="w-full sm:w-[380px] max-w-full shrink-0 font-display font-semibold text-[20px] text-slate-900">
                 Posso usar sem a outra pessoa?
               </div>
               <p className="flex-1 basis-[300px] m-0 text-[16px] leading-[1.6] text-slate-600">
@@ -1352,7 +1383,7 @@ function HomePage() {
               </p>
             </div>
             <div className="row-anexo border-b border-slate-200">
-              <div className="w-[380px] shrink-0 font-display font-semibold text-[20px] text-slate-900">
+              <div className="w-full sm:w-[380px] max-w-full shrink-0 font-display font-semibold text-[20px] text-slate-900">
                 E se eu esquecer a senha?
               </div>
               <p className="flex-1 basis-[300px] m-0 text-[16px] leading-[1.6] text-slate-600">
@@ -1367,7 +1398,11 @@ function HomePage() {
           <h2 className="h2-anexo text-[38px] sm:text-[44px] max-w-[600px]">
             Criem a conta e montem o primeiro cômodo.
           </h2>
-          <Link to="/login" search={{ registrar: 1 }} className="btn-anexo bg-primary text-white hover:bg-primary-hover border-primary">
+          <Link
+            to="/login"
+            search={{ registrar: 1 }}
+            className="btn-anexo bg-primary text-white hover:bg-primary-hover border-primary"
+          >
             Criar conta de casal
           </Link>
         </section>

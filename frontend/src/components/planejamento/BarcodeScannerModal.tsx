@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,50 @@ export function BarcodeScannerModal({
   const [codigoManual, setCodigoManual] = useState("");
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const readerElementId = "barcode-scanner-viewport";
+
+  const pararScanner = useCallback(async () => {
+    if (scannerRef.current) {
+      try {
+        if (scannerRef.current.isScanning) {
+          await scannerRef.current.stop();
+        }
+        scannerRef.current.clear();
+      } catch {
+        // Ignora erros ao parar
+      }
+      scannerRef.current = null;
+    }
+  }, []);
+
+  const processarCodigo = useCallback(
+    async (codigo: string) => {
+      setBuscando(true);
+      await pararScanner();
+
+      try {
+        toast.loading("Buscando produto pelo código de barras...", { id: "barcode-lookup" });
+        const info = await consultarCodigoBarras(codigo);
+
+        if (info) {
+          toast.success(
+            info.nome !== `Produto EAN ${codigo}`
+              ? `Produto identificado: ${info.nome}`
+              : `Código lido: ${codigo}`,
+            { id: "barcode-lookup" },
+          );
+          onProdutoDetectado(info);
+          onOpenChange(false);
+        } else {
+          toast.error("Produto não encontrado na base de dados.", { id: "barcode-lookup" });
+        }
+      } catch {
+        toast.error("Erro ao buscar produto pelo código de barras.", { id: "barcode-lookup" });
+      } finally {
+        setBuscando(false);
+      }
+    },
+    [onOpenChange, onProdutoDetectado, pararScanner],
+  );
 
   useEffect(() => {
     if (!open) {
@@ -84,48 +128,7 @@ export function BarcodeScannerModal({
       clearTimeout(t);
       pararScanner();
     };
-  }, [open]);
-
-  const pararScanner = async () => {
-    if (scannerRef.current) {
-      try {
-        if (scannerRef.current.isScanning) {
-          await scannerRef.current.stop();
-        }
-        scannerRef.current.clear();
-      } catch {
-        // Ignora erros ao parar
-      }
-      scannerRef.current = null;
-    }
-  };
-
-  const processarCodigo = async (codigo: string) => {
-    setBuscando(true);
-    await pararScanner();
-
-    try {
-      toast.loading("Buscando produto pelo código de barras...", { id: "barcode-lookup" });
-      const info = await consultarCodigoBarras(codigo);
-
-      if (info) {
-        toast.success(
-          info.nome !== `Produto EAN ${codigo}`
-            ? `Produto identificado: ${info.nome}`
-            : `Código lido: ${codigo}`,
-          { id: "barcode-lookup" },
-        );
-        onProdutoDetectado(info);
-        onOpenChange(false);
-      } else {
-        toast.error("Produto não encontrado na base de dados.", { id: "barcode-lookup" });
-      }
-    } catch {
-      toast.error("Erro ao buscar produto pelo código de barras.", { id: "barcode-lookup" });
-    } finally {
-      setBuscando(false);
-    }
-  };
+  }, [open, pararScanner, processarCodigo]);
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();

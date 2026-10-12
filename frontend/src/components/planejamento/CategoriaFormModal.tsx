@@ -14,7 +14,14 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { categoriasService, type CategoriaInputDTO } from "@/services/categorias";
 import type { Categoria } from "@/services/types";
-import { ICON_MAP, ICON_NAMES, CATEGORIA_COLORS, iconFor, comodoColor, COMODO_DEFAULT_COLORS } from "./icon-map";
+import {
+  ICON_MAP,
+  ICON_NAMES,
+  CATEGORIA_COLORS,
+  iconFor,
+  comodoColor,
+  COMODO_DEFAULT_COLORS,
+} from "./icon-map";
 import { cn } from "@/lib/utils";
 
 interface Props {

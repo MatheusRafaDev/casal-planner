@@ -115,8 +115,8 @@ function PerfilPage() {
                 Conta de casal • Conectado como{" "}
                 <span className="text-primary font-extrabold">
                   {usuario.pessoaLogada === 2
-                    ? (usuario.casalInfo?.pessoa2.nome?.split(" ")[0] || "Pessoa 2")
-                    : (usuario.casalInfo?.pessoa1.nome?.split(" ")[0] || "Pessoa 1")}
+                    ? usuario.casalInfo?.pessoa2.nome?.split(" ")[0] || "Pessoa 2"
+                    : usuario.casalInfo?.pessoa1.nome?.split(" ")[0] || "Pessoa 1"}
                 </span>
               </span>
             ) : (
@@ -153,14 +153,17 @@ function PerfilPage() {
                     <span className="h-5 w-5 rounded-full bg-[#2F7D5B] text-white text-[10px] font-bold grid place-items-center shrink-0">
                       {extrairIniciais(usuario.casalInfo?.pessoa1.nome, "1")}
                     </span>
-                    <span className="truncate">{usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}</span>
+                    <span className="truncate">
+                      {usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}
+                    </span>
                   </TabsTrigger>
                   <TabsTrigger value="p2" className="flex items-center justify-center gap-2">
                     <span className="h-5 w-5 rounded-full bg-[#E8B63C] text-[#24302A] text-[10px] font-bold grid place-items-center shrink-0">
                       {extrairIniciais(usuario.casalInfo?.pessoa2.nome, "2")}
                     </span>
-                    <span className="truncate">{usuario.casalInfo?.pessoa2.nome ?? "Pessoa 2"}</span>
-
+                    <span className="truncate">
+                      {usuario.casalInfo?.pessoa2.nome ?? "Pessoa 2"}
+                    </span>
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="p1" className="mt-0">
@@ -369,10 +372,7 @@ function PessoaForm({
   const [nasc, setNasc] = useState(dados.dataNascimento ? formatDate(dados.dataNascimento) : "");
   const [notif, setNotif] = useState(dados.receberNotificacoes ?? true);
 
-  const iniciaisExibicao = useMemo(
-    () => extrairIniciais(nome, iniciais || "U"),
-    [nome, iniciais],
-  );
+  const iniciaisExibicao = useMemo(() => extrairIniciais(nome, iniciais || "U"), [nome, iniciais]);
 
   useEffect(() => {
     setNome(dados.nome ?? "");
@@ -517,7 +517,6 @@ function PessoaForm({
   );
 }
 
-
 function MetaEnxovalCard({
   metaUsuario,
   onSaved,
@@ -634,7 +633,7 @@ function ListaPublicaCard() {
           text: "Confira nossa lista de desejos do CasalPlanner!",
           url: link,
         })
-        .catch(() => { });
+        .catch(() => {});
     } else {
       navigator.clipboard.writeText(link);
       toast.success("Link copiado!");

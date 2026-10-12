@@ -107,11 +107,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.svg?v=3", type: "image/svg+xml" },
-      { rel: "icon", href: "/favicon.png?v=3", type: "image/png" },
-      { rel: "shortcut icon", href: "/favicon.ico?v=3" },
-      { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=3" },
-      { rel: "manifest", href: "/manifest.json?v=3" },
+      { rel: "icon", href: "/favicon.svg?v=4", type: "image/svg+xml" },
+      { rel: "icon", href: "/favicon.png?v=4", type: "image/png" },
+      { rel: "shortcut icon", href: "/favicon.ico?v=4" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=4" },
+      { rel: "manifest", href: "/manifest.json?v=4" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -166,7 +166,7 @@ function RootComponent() {
     // Keep-alive: ping no backend a cada 14 minutos para evitar cold starts (ex: Render) enquanto a aba estiver aberta
     const keepAliveInterval = setInterval(
       () => {
-        api("/api/health").catch(() => { });
+        api("/api/health").catch(() => {});
       },
       14 * 60 * 1000,
     );

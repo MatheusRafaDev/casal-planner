@@ -11,79 +11,11 @@ if (!fs.existsSync(iconsDir)) {
   fs.mkdirSync(iconsDir, { recursive: true });
 }
 
-// Logo Oficial do CasalPlanner: Casal (Verde Esmeralda e Amarelo Dourado) abraçando o Lar (Casinha Central Branca)
-const coupleSvg = `
-<svg viewBox="0 0 48 48" fill="none" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="pwa-green" x1="11" y1="9" x2="23" y2="41" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#34A853" />
-      <stop offset="100%" stop-color="#206E49" />
-    </linearGradient>
-
-    <linearGradient id="pwa-gold" x1="25" y1="9" x2="37" y2="41" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#FBBF24" />
-      <stop offset="100%" stop-color="#D97706" />
-    </linearGradient>
-
-    <filter id="pwa-shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.16" />
-    </filter>
-  </defs>
-
-  <!-- 1. BONEQUINHO ESQUERDO (Verde Esmeralda) -->
-  <circle cx="17" cy="15" r="6.8" fill="url(#pwa-green)" />
-  <path
-    d="M 17 22.5 C 10.5 22.5 6 27.5 6 34.5 C 6 39.5 9.5 42 16 42 C 20.5 42 24.5 39.5 26.5 35 C 25.5 28.5 22 22.5 17 22.5 Z"
-    fill="url(#pwa-green)"
-  />
-
-  <!-- 2. BONEQUINHO DIREITO (Amarelo Dourado) -->
-  <circle cx="31" cy="15" r="6.8" fill="url(#pwa-gold)" />
-  <path
-    d="M 31 22.5 C 26 22.5 22.5 28.5 21.5 35 C 23.5 39.5 27.5 42 32 42 C 38.5 42 42 39.5 42 34.5 C 42 27.5 37.5 22.5 31 22.5 Z"
-    fill="url(#pwa-gold)"
-  />
-
-  <!-- Intersecção central -->
-  <path
-    d="M 24 24 C 21.5 28 20 33 20 38 C 21 40 23 41.5 24 41.8 C 25 41.5 27 40 28 38 C 28 33 26.5 28 24 24 Z"
-    fill="#206E49"
-    opacity="0.35"
-  />
-
-  <!-- 3. O LAR NO CENTRO (Casinha Branca com Chaminé e Portinha) -->
-  <g filter="url(#pwa-shadow)">
-    <!-- Chaminé -->
-    <rect x="27.5" y="24" width="2.6" height="5" rx="0.6" fill="#FFFFFF" stroke="#D1CAC0" stroke-width="0.9" />
-
-    <!-- Estrutura da Casinha (Telhado + Paredes) -->
-    <path
-      d="M 24 23.2 L 32.2 29.8 C 32.6 30.1 32.5 30.7 32 30.7 H 30.5 V 39.5 C 30.5 40.3 29.8 41 29 41 H 19 C 18.2 41 17.5 40.3 17.5 39.5 V 30.7 H 16 C 15.5 30.7 15.4 30.1 15.8 29.8 L 24 23.2 Z"
-      fill="#FFFFFF"
-      stroke="#D1CAC0"
-      stroke-width="0.9"
-      stroke-linejoin="round"
-    />
-
-    <!-- Portinha Acolhedora -->
-    <path
-      d="M 22 41 V 34.8 C 22 33.8 22.8 33 23.8 33 H 24.2 C 25.2 33 26 33.8 26 34.8 V 41"
-      fill="#FAF8F5"
-      stroke="#D1CAC0"
-      stroke-width="0.8"
-    />
-  </g>
-</svg>
-`;
-
-const badgeSvg = `
-<svg viewBox="0 0 64 64" fill="none" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-  <rect x="1.5" y="1.5" width="61" height="61" rx="16" fill="#FAF8F5" stroke="#E2DDD5" stroke-width="2" />
-  <g transform="translate(8, 8)">
-    ${coupleSvg}
-  </g>
-</svg>
-`;
+const logoDataUrl = `data:image/png;base64,${fs
+  .readFileSync(path.join(publicDir, "logo_casalplanner.png"))
+  .toString("base64")}`;
+const logoMarkup = `<img src="${logoDataUrl}" alt="" style="display:block;width:100%;height:100%;object-fit:contain"/>`;
+const badgeMarkup = `<div style="box-sizing:border-box;width:100%;height:100%;padding:5px;border:2px solid #E2DDD5;border-radius:25%;background:#FAF8F5">${logoMarkup}</div>`;
 
 async function generate() {
   const browser = await chromium.launch({ headless: true });
@@ -113,7 +45,7 @@ async function generate() {
         </style>
       </head>
       <body>
-        <div class="box">${coupleSvg}</div>
+        <div class="box">${logoMarkup}</div>
       </body>
     </html>
   `);
@@ -143,7 +75,7 @@ async function generate() {
         </style>
       </head>
       <body>
-        <div class="box">${coupleSvg}</div>
+        <div class="box">${logoMarkup}</div>
       </body>
     </html>
   `);
@@ -172,7 +104,7 @@ async function generate() {
         </style>
       </head>
       <body>
-        <div class="box">${coupleSvg}</div>
+        <div class="box">${logoMarkup}</div>
       </body>
     </html>
   `);
@@ -202,7 +134,7 @@ async function generate() {
         </style>
       </head>
       <body>
-        <div class="box">${badgeSvg}</div>
+        <div class="box">${badgeMarkup}</div>
       </body>
     </html>
   `);
@@ -232,7 +164,7 @@ async function generate() {
         </style>
       </head>
       <body>
-        <div class="box">${coupleSvg}</div>
+        <div class="box">${logoMarkup}</div>
       </body>
     </html>
   `);
@@ -262,7 +194,7 @@ async function generate() {
         </style>
       </head>
       <body>
-        <div class="box">${coupleSvg}</div>
+        <div class="box">${logoMarkup}</div>
       </body>
     </html>
   `);
@@ -295,7 +227,7 @@ async function generate() {
           </style>
         </head>
         <body>
-          <div class="box">${coupleSvg}</div>
+          <div class="box">${logoMarkup}</div>
         </body>
       </html>
     `);
@@ -333,7 +265,7 @@ async function generate() {
   fs.writeFileSync(path.join(publicDir, "favicon.ico"), icoBuffer);
 
   await browser.close();
-  console.log("All icons, logo.png and favicon.ico generated with official couple icon successfully!");
+  console.log("Icons, logo.png and favicon.ico generated from the CasalPlanner logo successfully!");
 }
 
 generate().catch(console.error);

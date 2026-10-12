@@ -632,7 +632,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                         {analisandoFoto ? (
                           <div className="absolute inset-0 bg-background/85 flex flex-col items-center justify-center backdrop-blur-sm">
                             <Loader2 className="h-6 w-6 text-primary animate-spin mb-2" />
-                            <span className="text-xs font-bold text-primary">Analisando imagem com IA...</span>
+                            <span className="text-xs font-bold text-primary">
+                              Analisando imagem com IA...
+                            </span>
                           </div>
                         ) : (
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/upload:opacity-100 transition-opacity flex flex-col items-center justify-center text-white backdrop-blur-xs">
@@ -663,8 +665,12 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                           <Upload className="h-5 w-5" />
                         </div>
                         <div className="text-center">
-                          <span className="text-xs font-bold text-foreground block">Galeria ou arraste a foto</span>
-                          <span className="text-[11px] text-muted-foreground">A IA detecta o item automaticamente</span>
+                          <span className="text-xs font-bold text-foreground block">
+                            Galeria ou arraste a foto
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">
+                            A IA detecta o item automaticamente
+                          </span>
                         </div>
                       </button>
                     )}
@@ -787,11 +793,11 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 flex gap-2.5 text-xs text-amber-900 dark:text-amber-200">
                       <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
                       <div>
-                        Já existe um item similar neste cômodo: <b>{dupQuery.data.itemSimilar}</b>. Confirme se é mesmo um novo item.
+                        Já existe um item similar neste cômodo: <b>{dupQuery.data.itemSimilar}</b>.
+                        Confirme se é mesmo um novo item.
                       </div>
                     </div>
                   )}
-
                 </div>
               </div>
             </div>
@@ -965,8 +971,12 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     {/* Resumo de Custo */}
                     <div className="rounded-[var(--radius-lg)] border-2 border-border/80 bg-card p-3.5 flex items-center justify-between shadow-sm">
                       <div>
-                        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Custo Estimado</span>
-                        <span className="text-xs text-muted-foreground">{quantidade} un. × {brl(precoNumerico)}</span>
+                        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
+                          Custo Estimado
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {quantidade} un. × {brl(precoNumerico)}
+                        </span>
                       </div>
                       <span className="font-display font-bold text-lg text-primary">
                         {brl(precoNumerico * quantidade)}
@@ -1063,7 +1073,8 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                             checked={comprado}
                             onCheckedChange={(c) => {
                               setComprado(c);
-                              if (c && !dataCompra) setDataCompra(new Date().toLocaleDateString("en-CA"));
+                              if (c && !dataCompra)
+                                setDataCompra(new Date().toLocaleDateString("en-CA"));
                             }}
                           />
                         </div>
@@ -1102,7 +1113,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
 
                       <div className="grid gap-3 sm:grid-cols-3">
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground font-medium">Origem</Label>
+                          <Label className="text-xs text-muted-foreground font-medium">
+                            Origem
+                          </Label>
                           <Select
                             value={origem}
                             onValueChange={(v) => {
@@ -1121,7 +1134,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                         </div>
 
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground font-medium">Prioridade</Label>
+                          <Label className="text-xs text-muted-foreground font-medium">
+                            Prioridade
+                          </Label>
                           <Select value={prioridade} onValueChange={setPrioridade}>
                             <SelectTrigger className="h-9 bg-background text-xs sm:text-sm">
                               <SelectValue />
@@ -1136,7 +1151,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
 
                         {origem !== "ganho" && (
                           <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground font-medium">Pagamento</Label>
+                            <Label className="text-xs text-muted-foreground font-medium">
+                              Pagamento
+                            </Label>
                             <Select
                               value={pagamento}
                               onValueChange={(v) => {
@@ -1158,12 +1175,20 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                         {origem !== "ganho" && (
                           <div className="space-y-2 sm:col-span-3">
                             <div className="flex justify-between items-center">
-                              <Label className="text-xs text-muted-foreground font-medium">Parcelamento</Label>
+                              <Label className="text-xs text-muted-foreground font-medium">
+                                Parcelamento
+                              </Label>
                               {parcelas > 1 && (
                                 <span className="text-[10px] text-muted-foreground font-medium">
                                   Total:{" "}
                                   <strong className="text-foreground">
-                                    {brl(valorParcela(precoNumerico * quantidade, parcelas, jurosMensal) * parcelas)}
+                                    {brl(
+                                      valorParcela(
+                                        precoNumerico * quantidade,
+                                        parcelas,
+                                        jurosMensal,
+                                      ) * parcelas,
+                                    )}
                                   </strong>
                                 </span>
                               )}
@@ -1235,13 +1260,37 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                                 <div className="text-[11px] font-medium text-right">
                                   {jurosMensal > 0 ? (
                                     <span className="text-amber-600 dark:text-amber-400">
-                                      Parcela: <strong>{parcelas}x de {brl(valorParcela(precoNumerico * quantidade, parcelas, jurosMensal))}</strong>
+                                      Parcela:{" "}
+                                      <strong>
+                                        {parcelas}x de{" "}
+                                        {brl(
+                                          valorParcela(
+                                            precoNumerico * quantidade,
+                                            parcelas,
+                                            jurosMensal,
+                                          ),
+                                        )}
+                                      </strong>
                                       {" · "}
-                                      Total: <strong>{brl(valorParcela(precoNumerico * quantidade, parcelas, jurosMensal) * parcelas)}</strong>
+                                      Total:{" "}
+                                      <strong>
+                                        {brl(
+                                          valorParcela(
+                                            precoNumerico * quantidade,
+                                            parcelas,
+                                            jurosMensal,
+                                          ) * parcelas,
+                                        )}
+                                      </strong>
                                     </span>
                                   ) : (
                                     <span className="text-emerald-600 dark:text-emerald-400">
-                                      Parcela: <strong>{parcelas}x de {brl((precoNumerico * quantidade) / parcelas)}</strong> (sem juros)
+                                      Parcela:{" "}
+                                      <strong>
+                                        {parcelas}x de{" "}
+                                        {brl((precoNumerico * quantidade) / parcelas)}
+                                      </strong>{" "}
+                                      (sem juros)
                                     </span>
                                   )}
                                 </div>
@@ -1256,7 +1305,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                             <div>
                               <Label className="text-xs font-bold">Responsável Financeiro</Label>
-                              <p className="text-[11px] text-muted-foreground">Quem pagará por este item?</p>
+                              <p className="text-[11px] text-muted-foreground">
+                                Quem pagará por este item?
+                              </p>
                             </div>
                             <Select
                               value={
@@ -1295,7 +1346,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                                 <SelectItem value="conjunto">Conta Conjunta (Ambos)</SelectItem>
                                 <SelectItem value="1">{p1} paga 100%</SelectItem>
                                 <SelectItem value="2">{p2} paga 100%</SelectItem>
-                                <SelectItem value="dividir">Dividir valores específicos...</SelectItem>
+                                <SelectItem value="dividir">
+                                  Dividir valores específicos...
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -1338,7 +1391,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                                         : "text-emerald-500 font-bold"
                                     }
                                   >
-                                    {brl(divisaoPagamento.valorPessoa1 + divisaoPagamento.valorPessoa2)}
+                                    {brl(
+                                      divisaoPagamento.valorPessoa1 + divisaoPagamento.valorPessoa2,
+                                    )}
                                   </span>{" "}
                                   / {brl(precoNumerico * quantidade)}
                                 </div>

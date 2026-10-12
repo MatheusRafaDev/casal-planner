@@ -10,8 +10,15 @@ export default defineConfig({
   workers: 1,
   reporter: "list",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: "http://127.0.0.1:8080",
     trace: "on-first-retry",
+  },
+
+  webServer: {
+    command: "npm run dev -- --host 127.0.0.1",
+    url: "http://127.0.0.1:8080",
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
   },
 
   projects: [

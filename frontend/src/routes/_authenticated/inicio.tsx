@@ -67,8 +67,7 @@ function InicioPage() {
   });
 
   const isLoading =
-    (loadingCategorias && categorias.length === 0) ||
-    (loadingItens && itens.length === 0);
+    (loadingCategorias && categorias.length === 0) || (loadingItens && itens.length === 0);
 
   const faturasMensais = useMemo(() => {
     if (!itens || itens.length === 0) return [];
@@ -393,9 +392,9 @@ function InicioPage() {
   // Porcentagens das pessoas, conjunto e ganhos para a barra empilhada
   const totalBolso =
     (r?.totalPessoa1 ?? 0) +
-    (r?.totalPessoa2 ?? 0) +
-    (r?.totalConjunto ?? 0) +
-    (totalEconomizadoGanhos ?? 0) ||
+      (r?.totalPessoa2 ?? 0) +
+      (r?.totalConjunto ?? 0) +
+      (totalEconomizadoGanhos ?? 0) ||
     (r?.totalGeral ?? 1);
   const p1Pct = totalBolso > 0 ? ((r?.totalPessoa1 ?? 0) / totalBolso) * 100 : 0;
   const p2Pct = totalBolso > 0 ? ((r?.totalPessoa2 ?? 0) / totalBolso) * 100 : 0;
@@ -692,9 +691,7 @@ function InicioPage() {
                           className="h-full transition-all duration-500"
                           style={{
                             width: `${pctC}%`,
-                            backgroundColor: estourou
-                              ? "var(--destructive)"
-                              : corComodo,
+                            backgroundColor: estourou ? "var(--destructive)" : corComodo,
                           }}
                         />
                       </div>

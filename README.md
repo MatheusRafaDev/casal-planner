@@ -370,6 +370,28 @@ O banco possui índices para otimizar consultas relacionadas a:
 
 ---
 
+## Desenvolvimento local
+
+1. Configure `backend/CasalPlanner.API/.env` a partir do `.env.example`, preenchendo ao menos `JWT_SECRET_KEY` (mínimo de 32 caracteres) e `MONGODB_CONNECTION_STRING`.
+2. Inicie a API:
+
+   ```powershell
+   cd backend/CasalPlanner.API
+   dotnet run --launch-profile http
+   ```
+
+3. Em outro terminal, inicie o frontend:
+
+   ```powershell
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+O frontend abre em `http://localhost:8080` e encaminha `/api` para a API local em `http://localhost:5286`. Mantenha `VITE_API_BASE_URL` vazio no `.env` do frontend durante o desenvolvimento local; a API precisa estar ativa e conectada ao MongoDB para login e telas autenticadas funcionarem.
+
+---
+
 ## 🔌 Integrações
 
 | Serviço                       | Utilização                           |

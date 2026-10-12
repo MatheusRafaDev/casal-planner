@@ -269,7 +269,9 @@ export function ItemFormModal({
               <div className="flex flex-col text-left">
                 <span>{isEdit ? "Editar Item" : "Novo Item"}</span>
                 <span className="text-xs font-normal text-muted-foreground">
-                  {isEdit ? "Atualize as informações, fotos e status do item" : "Adicione manualmente um item ao planejamento"}
+                  {isEdit
+                    ? "Atualize as informações, fotos e status do item"
+                    : "Adicione manualmente um item ao planejamento"}
                 </span>
               </div>
             </DialogTitle>
@@ -352,7 +354,9 @@ export function ItemFormModal({
                           <Upload className="h-4 w-4" />
                         </div>
                         <span className="text-xs font-bold text-foreground">Escolher Foto</span>
-                        <span className="text-[10px] text-muted-foreground">Arraste ou cole (Ctrl+V)</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          Arraste ou cole (Ctrl+V)
+                        </span>
                       </div>
                     )}
 
@@ -414,7 +418,10 @@ export function ItemFormModal({
                     <div className="flex items-center gap-2">
                       <ExternalLink className="w-4 h-4 text-primary shrink-0" />
                       <div>
-                        <Label htmlFor="toggle-link-produto" className="text-xs font-bold text-foreground cursor-pointer block">
+                        <Label
+                          htmlFor="toggle-link-produto"
+                          className="text-xs font-bold text-foreground cursor-pointer block"
+                        >
                           Link do Produto
                         </Label>
                         <p className="text-[11px] text-muted-foreground">
@@ -458,7 +465,8 @@ export function ItemFormModal({
                             >
                               <a
                                 href={
-                                  form.linkProduto.startsWith("http://") || form.linkProduto.startsWith("https://")
+                                  form.linkProduto.startsWith("http://") ||
+                                  form.linkProduto.startsWith("https://")
                                     ? form.linkProduto
                                     : `https://${form.linkProduto}`
                                 }
@@ -512,7 +520,8 @@ export function ItemFormModal({
                         <div className="absolute top-full mt-1 z-10 w-full rounded-md border border-amber-500/40 bg-amber-500/10 p-2 flex gap-2 text-xs text-amber-800 dark:text-amber-200 shadow-md">
                           <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-500" />
                           <div>
-                            Já existe um item similar neste cômodo: <b>{dupQuery.data.itemSimilar}</b>
+                            Já existe um item similar neste cômodo:{" "}
+                            <b>{dupQuery.data.itemSimilar}</b>
                           </div>
                         </div>
                       )}
@@ -600,7 +609,8 @@ export function ItemFormModal({
                         checked={form.comprado}
                         onCheckedChange={(c) => {
                           set("comprado", c);
-                          if (c && !form.dataCompra) set("dataCompra", new Date().toLocaleDateString("en-CA"));
+                          if (c && !form.dataCompra)
+                            set("dataCompra", new Date().toLocaleDateString("en-CA"));
                         }}
                       />
                     </div>
@@ -658,7 +668,9 @@ export function ItemFormModal({
                     </div>
 
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground font-medium">Prioridade</Label>
+                      <Label className="text-xs text-muted-foreground font-medium">
+                        Prioridade
+                      </Label>
                       <Select
                         value={form.prioridade}
                         onValueChange={(v) => set("prioridade", v as ItemInputDTO["prioridade"])}
@@ -677,7 +689,9 @@ export function ItemFormModal({
                     {form.origem !== "ganho" && (
                       <>
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground font-medium">Pagamento</Label>
+                          <Label className="text-xs text-muted-foreground font-medium">
+                            Pagamento
+                          </Label>
                           <Select
                             value={form.pagamento}
                             onValueChange={(v) => {
@@ -697,14 +711,19 @@ export function ItemFormModal({
 
                         <div className="space-y-2 sm:col-span-2">
                           <div className="flex justify-between items-center">
-                            <Label className="text-xs text-muted-foreground font-medium">Parcelamento</Label>
+                            <Label className="text-xs text-muted-foreground font-medium">
+                              Parcelamento
+                            </Label>
                             {(form.parcelas ?? 1) > 1 && (
                               <span className="text-[10px] text-muted-foreground font-medium">
                                 Total:{" "}
                                 <strong className="text-foreground">
                                   {brl(
-                                    valorParcela(form.preco * form.quantidade, form.parcelas ?? 1, form.jurosMensal ?? 0) *
-                                      (form.parcelas ?? 1),
+                                    valorParcela(
+                                      form.preco * form.quantidade,
+                                      form.parcelas ?? 1,
+                                      form.jurosMensal ?? 0,
+                                    ) * (form.parcelas ?? 1),
                                   )}
                                 </strong>
                               </span>
@@ -777,13 +796,37 @@ export function ItemFormModal({
                               <div className="text-[11px] font-medium text-right">
                                 {(form.jurosMensal ?? 0) > 0 ? (
                                   <span className="text-amber-600 dark:text-amber-400">
-                                    Parcela: <strong>{form.parcelas}x de {brl(valorParcela(form.preco * form.quantidade, form.parcelas ?? 1, form.jurosMensal ?? 0))}</strong>
+                                    Parcela:{" "}
+                                    <strong>
+                                      {form.parcelas}x de{" "}
+                                      {brl(
+                                        valorParcela(
+                                          form.preco * form.quantidade,
+                                          form.parcelas ?? 1,
+                                          form.jurosMensal ?? 0,
+                                        ),
+                                      )}
+                                    </strong>
                                     {" · "}
-                                    Total: <strong>{brl(valorParcela(form.preco * form.quantidade, form.parcelas ?? 1, form.jurosMensal ?? 0) * (form.parcelas ?? 1))}</strong>
+                                    Total:{" "}
+                                    <strong>
+                                      {brl(
+                                        valorParcela(
+                                          form.preco * form.quantidade,
+                                          form.parcelas ?? 1,
+                                          form.jurosMensal ?? 0,
+                                        ) * (form.parcelas ?? 1),
+                                      )}
+                                    </strong>
                                   </span>
                                 ) : (
                                   <span className="text-emerald-600 dark:text-emerald-400">
-                                    Parcela: <strong>{form.parcelas}x de {brl((form.preco * form.quantidade) / (form.parcelas ?? 1))}</strong> (sem juros)
+                                    Parcela:{" "}
+                                    <strong>
+                                      {form.parcelas}x de{" "}
+                                      {brl((form.preco * form.quantidade) / (form.parcelas ?? 1))}
+                                    </strong>{" "}
+                                    (sem juros)
                                   </span>
                                 )}
                               </div>
@@ -799,7 +842,9 @@ export function ItemFormModal({
                       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                         <div>
                           <Label className="text-xs font-bold">Responsável Financeiro</Label>
-                          <p className="text-[11px] text-muted-foreground">Quem pagará por este item?</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            Quem pagará por este item?
+                          </p>
                         </div>
                         <Select
                           value={

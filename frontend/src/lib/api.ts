@@ -17,6 +17,9 @@ export class ApiError extends Error {
 
 /** Base resolvida: string vazia (relativo) quando a env não está definida. */
 function resolveBaseUrl(): string {
+  // Local Vite requests go through its /api proxy to the local .NET API.
+  if (import.meta.env.DEV && typeof window !== "undefined") return "";
+
   // Em produção, a Vercel encaminha /api para o backend no mesmo domínio,
   // evitando que navegadores móveis bloqueiem os cookies de sessão cross-site.
   if (import.meta.env.PROD && typeof window !== "undefined") return "";

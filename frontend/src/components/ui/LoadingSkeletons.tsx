@@ -356,4 +356,3 @@ export function PerfilSkeleton() {
     </motion.div>
   );
 }
-
