@@ -3,7 +3,7 @@ import { LayoutGrid, User, LogOut, Download, PieChart } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { usePwa } from "@/hooks/use-pwa";
 import { cn } from "@/lib/utils";
-import { BrandLogoText } from "@/components/ui/BrandLogo";
+import { BrandLogoText, BrandLogoIcon } from "@/components/ui/BrandLogo";
 
 const nav = [
   { to: "/inicio", label: "Dashboard", icon: PieChart },
@@ -30,35 +30,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-dvh flex flex-col bg-background md:pl-64 font-sans text-foreground">
-      {/* Mobile Top Header */}
-      <header className="mobile-safe-header md:hidden sticky top-0 z-40 flex items-center justify-between px-4 border-b border-border shadow-xs">
-        <Link to="/inicio" className="flex items-center gap-2.5">
-          <div className="flex flex-col">
-            <BrandLogoText size="sm" />
-            <span className="text-[10px] font-semibold text-muted-foreground leading-none mt-0.5">
-              {isCasal ? `${p1Primeiro} & ${p2Primeiro}` : "Gestão do lar"}
-            </span>
-          </div>
-        </Link>
-        <div className="flex items-center gap-2">
-          {installPrompt && (
-            <button
-              onClick={triggerInstall}
-              className="p-2 rounded-xl border border-border bg-primary text-primary-foreground shadow-xs hover:bg-primary-hover active:scale-95 transition-all cursor-pointer"
-              title="Instalar App"
-            >
-              <Download className="h-4 w-4" />
-            </button>
-          )}
-          <button
-            onClick={logout}
-            className="p-2 rounded-xl border border-border bg-card text-muted-foreground hover:text-destructive hover:bg-destructive/10 shadow-xs active:scale-95 transition-all cursor-pointer"
-            title="Sair"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
-        </div>
-      </header>
 
       {/* Sidebar Desktop */}
       <aside className="hidden md:flex md:flex-col w-64 border-r border-border bg-sidebar text-foreground fixed inset-y-0 left-0 z-50 overflow-hidden select-none">
@@ -68,6 +39,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             to="/inicio"
             className="flex items-center gap-3 transition-transform hover:scale-[1.02] group"
           >
+            <BrandLogoIcon size="md" className="h-9 w-9" />
             <div className="flex flex-col">
               <BrandLogoText size="md" />
               <span className="text-[11px] font-semibold text-muted-foreground mt-0.5">
@@ -193,7 +165,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 min-w-0 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-8">
+      <main className="flex-1 min-w-0 pt-[env(safe-area-inset-top,0px)] md:pt-0 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-8">
         <div className="w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 py-6 lg:py-8">{children}</div>
       </main>
 

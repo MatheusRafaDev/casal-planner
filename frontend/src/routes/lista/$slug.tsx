@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { brl } from "@/lib/formatters";
 import { listaPublicaService, ItemPublico } from "@/services/lista-publica";
-import { BrandLogoText } from "@/components/ui/BrandLogo";
+import { BrandLogoText, BrandLogoIcon } from "@/components/ui/BrandLogo";
 
 export const Route = createFileRoute("/lista/$slug")({
   loader: async ({ params }) => {
@@ -179,7 +179,8 @@ function ListaPublicaPage() {
       {/* Header com Branding */}
       <header className="pt-14 pb-12 px-4 text-center bg-card border-b-2 border-border relative overflow-hidden">
         <div className="max-w-4xl mx-auto space-y-4">
-          <div className="flex justify-center">
+          <div className="flex justify-center items-center gap-3">
+            <BrandLogoIcon size="xl" className="h-12 w-12" />
             <BrandLogoText size="xl" />
           </div>
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border-2 border-border bg-primary-tint text-primary-tint-foreground text-xs font-bold uppercase tracking-wider">
@@ -465,6 +466,7 @@ function ListaPublicaPage() {
 
       {/* Footer com branding CasalPlanner */}
       <footer className="pt-8 pb-12 text-center text-xs text-muted-foreground flex items-center justify-center gap-2 font-semibold">
+        <BrandLogoIcon size="xs" className="h-5 w-5" />
         <BrandLogoText size="sm" />
         <span>— Gestão do lar e lista de presentes</span>
       </footer>

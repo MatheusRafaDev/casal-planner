@@ -14,14 +14,60 @@ if (!fs.existsSync(iconsDir)) {
 const logoDataUrl = `data:image/png;base64,${fs
   .readFileSync(path.join(publicDir, "logo_casalplanner.png"))
   .toString("base64")}`;
-const logoMarkup = `<img src="${logoDataUrl}" alt="" style="display:block;width:100%;height:100%;object-fit:contain"/>`;
-const badgeMarkup = `<div style="box-sizing:border-box;width:100%;height:100%;padding:5px;border:2px solid #E2DDD5;border-radius:25%;background:#FAF8F5">${logoMarkup}</div>`;
 
 async function generate() {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
 
-  // 1. icon-192.png (192x192)
+  // 1. Obter imagem recortada e perfeitamente centralizada
+  const croppedDataUrl = await page.evaluate(async (dataUrl) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement("canvas");
+        c.width = img.naturalWidth;
+        c.height = img.naturalHeight;
+        const ctx = c.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        const data = ctx.getImageData(0, 0, c.width, c.height).data;
+        let minX = c.width, maxX = 0, minY = c.height, maxY = 0;
+        for (let y = 0; y < c.height; y++) {
+          for (let x = 0; x < c.width; x++) {
+            if (data[(y * c.width + x) * 4 + 3] > 10) {
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+              if (y < minY) minY = y;
+              if (y > maxY) maxY = y;
+            }
+          }
+        }
+        const symW = maxX - minX;
+        const symH = maxY - minY;
+        const side = Math.max(symW, symH);
+        const padding = side * 0.04;
+        const outSide = side + padding * 2;
+        const out = document.createElement("canvas");
+        out.width = 512;
+        out.height = 512;
+        const outCtx = out.getContext("2d");
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+        const srcX = centerX - outSide / 2;
+        const srcY = centerY - outSide / 2;
+        outCtx.drawImage(c, srcX, srcY, outSide, outSide, 0, 0, 512, 512);
+        resolve(out.toDataURL("image/png"));
+      };
+      img.src = dataUrl;
+    });
+  }, logoDataUrl);
+
+  const base64Data = croppedDataUrl.replace(/^data:image\/png;base64,/, "");
+  fs.writeFileSync(path.join(publicDir, "logo.png"), Buffer.from(base64Data, "base64"));
+
+  const logoMarkup = `<img src="${croppedDataUrl}" alt="" style="display:block;width:100%;height:100%;object-fit:contain"/>`;
+  const badgeMarkup = `<div style="box-sizing:border-box;width:100%;height:100%;padding:10px;border:2px solid #E2DDD5;border-radius:28%;background:#FAF8F5">${logoMarkup}</div>`;
+
+  // 2. icon-192.png (192x192)
   await page.setViewportSize({ width: 192, height: 192 });
   await page.setContent(`
     <!DOCTYPE html>
@@ -51,7 +97,7 @@ async function generate() {
   `);
   await page.screenshot({ path: path.join(iconsDir, "icon-192.png") });
 
-  // 2. icon-512.png (512x512)
+  // 3. icon-512.png (512x512)
   await page.setViewportSize({ width: 512, height: 512 });
   await page.setContent(`
     <!DOCTYPE html>
@@ -69,8 +115,8 @@ async function generate() {
             justify-content: center;
           }
           .box {
-            width: 416px;
-            height: 416px;
+            width: 420px;
+            height: 420px;
           }
         </style>
       </head>
@@ -81,7 +127,7 @@ async function generate() {
   `);
   await page.screenshot({ path: path.join(iconsDir, "icon-512.png") });
 
-  // 3. icon-512-maskable.png (fundo #206E49 verde, símbolo centralizado seguro)
+  // 4. icon-512-maskable.png (com margem segura de 60%)
   await page.setContent(`
     <!DOCTYPE html>
     <html>
@@ -98,8 +144,8 @@ async function generate() {
             justify-content: center;
           }
           .box {
-            width: 340px;
-            height: 340px;
+            width: 320px;
+            height: 320px;
           }
         </style>
       </head>
@@ -110,7 +156,7 @@ async function generate() {
   `);
   await page.screenshot({ path: path.join(iconsDir, "icon-512-maskable.png") });
 
-  // 4. apple-touch-icon.png (180x180)
+  // 5. apple-touch-icon.png (180x180)
   await page.setViewportSize({ width: 180, height: 180 });
   await page.setContent(`
     <!DOCTYPE html>
@@ -140,7 +186,7 @@ async function generate() {
   `);
   await page.screenshot({ path: path.join(publicDir, "apple-touch-icon.png") });
 
-  // 5. favicon.png (64x64 PNG transparente sem fundo)
+  // 6. favicon.png (64x64 PNG transparente sem fundo)
   await page.setViewportSize({ width: 64, height: 64 });
   await page.setContent(`
     <!DOCTYPE html>
@@ -169,36 +215,6 @@ async function generate() {
     </html>
   `);
   await page.screenshot({ path: path.join(publicDir, "favicon.png"), omitBackground: true });
-
-  // 6. logo.png (512x512)
-  await page.setViewportSize({ width: 512, height: 512 });
-  await page.setContent(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <style>
-          body {
-            margin: 0;
-            padding: 0;
-            background: transparent;
-            width: 512px;
-            height: 512px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          .box {
-            width: 440px;
-            height: 440px;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="box">${logoMarkup}</div>
-      </body>
-    </html>
-  `);
-  await page.screenshot({ path: path.join(publicDir, "logo.png"), omitBackground: true });
 
   // 7. favicon.ico (16, 32, 48 transparente)
   const icoSizes = [16, 32, 48];
@@ -265,7 +281,7 @@ async function generate() {
   fs.writeFileSync(path.join(publicDir, "favicon.ico"), icoBuffer);
 
   await browser.close();
-  console.log("Icons, logo.png and favicon.ico generated from the CasalPlanner logo successfully!");
+  console.log("All icons, logo.png and favicon.ico generated successfully!");
 }
 
 generate().catch(console.error);

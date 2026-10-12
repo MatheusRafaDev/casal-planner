@@ -5,6 +5,30 @@ export interface BrandLogoTextProps {
   withDot?: boolean;
 }
 
+export interface BrandLogoIconProps {
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
+  className?: string;
+}
+
+export function BrandLogoIcon({ size = "md", className = "" }: BrandLogoIconProps) {
+  const sizeMap = {
+    xs: "h-5 w-5",
+    sm: "h-7 w-7",
+    md: "h-8 w-8",
+    lg: "h-10 w-10",
+    xl: "h-12 w-12",
+  };
+
+  return (
+    <img
+      src="/logo.png"
+      alt="CasalPlanner"
+      className={`${sizeMap[size]} object-contain shrink-0 select-none ${className}`}
+      loading="eager"
+    />
+  );
+}
+
 export function BrandLogoText({
   size = "md",
   className = "",
@@ -23,8 +47,7 @@ export function BrandLogoText({
   return (
     <span className={`inline-flex flex-col select-none leading-none ${className}`}>
       <span className={`inline-flex items-baseline font-brand tracking-[-0.02em] ${current.text}`}>
-        <span className="font-extrabold text-[#206E49] dark:text-[#4FB387]">Casal</span>
-        <span className="ml-[3px] font-bold text-[#1E2922] dark:text-[#FAF6EE]">Planner</span>
+        <span className="font-extrabold text-[#206E49] dark:text-[#4FB387]">Casal</span><span className="font-bold text-[#1E2922] dark:text-[#FAF6EE]">Planner</span>
         {withDot && (
           <span
             aria-hidden="true"
@@ -40,5 +63,26 @@ export function BrandLogoText({
         </span>
       )}
     </span>
+  );
+}
+
+export interface BrandLogoProps extends BrandLogoTextProps {
+  iconSize?: "xs" | "sm" | "md" | "lg" | "xl";
+  iconClassName?: string;
+}
+
+export function BrandLogo({
+  size = "md",
+  iconSize,
+  className = "",
+  iconClassName = "",
+  withTagline = false,
+  withDot = true,
+}: BrandLogoProps) {
+  return (
+    <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
+      <BrandLogoIcon size={iconSize || size} className={iconClassName} />
+      <BrandLogoText size={size} withTagline={withTagline} withDot={withDot} />
+    </div>
   );
 }

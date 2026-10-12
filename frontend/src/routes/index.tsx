@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
-import { BrandLogoText } from "@/components/ui/BrandLogo";
+import { BrandLogoText, BrandLogoIcon } from "@/components/ui/BrandLogo";
 import {
   Check,
   Sparkles,
@@ -471,6 +471,7 @@ function HomePage() {
             className="flex items-center gap-3 group transition-transform hover:scale-[1.01]"
             aria-label="CasalPlanner"
           >
+            <BrandLogoIcon size="sm" className="h-8 w-8" />
             <BrandLogoText size="sm" />
           </Link>
           <nav className="flex items-center gap-2 sm:gap-6" aria-label="Conta">
@@ -1409,6 +1410,7 @@ function HomePage() {
         {/* Footer */}
         <footer className="pb-9 text-[14px] text-slate-500 flex justify-between items-center flex-wrap gap-2 border-t border-slate-200 pt-6">
           <div className="flex items-center gap-2.5">
+            <BrandLogoIcon size="xs" className="h-6 w-6" />
             <BrandLogoText size="sm" withTagline={false} />
           </div>
           <span>Valores mostrados são exemplos.</span>
