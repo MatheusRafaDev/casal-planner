@@ -7,7 +7,7 @@
  *  - Offline fallback → página HTML simples para navegação sem rede
  */
 
-const CACHE_NAME = "casal-planner-v4";
+const CACHE_NAME = "casal-planner-v5";
 const OFFLINE_URL = "/__offline";
 
 // Assets que queremos pré-cachear na instalação
@@ -64,7 +64,7 @@ self.addEventListener("fetch", (event) => {
   // Ignorar requests de outros origins
   if (url.origin !== self.location.origin) return;
 
-  // Em localhost ou requisições do Vite (HMR), repassar direto para a rede sem bloquear
+  // Em localhost ou requisições de desenvolvimento do Vite (HMR), repassar direto para a rede nativa
   if (
     url.hostname === "localhost" ||
     url.hostname === "127.0.0.1" ||
@@ -72,13 +72,11 @@ self.addEventListener("fetch", (event) => {
     url.pathname.includes("@fs") ||
     url.pathname.includes("node_modules")
   ) {
-    event.respondWith(fetch(request));
     return;
   }
 
-  // API → Network-first
+  // API → Não interceptar, deixar o navegador tratar autenticação e streaming diretamente
   if (url.pathname.startsWith("/api/")) {
-    event.respondWith(fetch(request));
     return;
   }
 
