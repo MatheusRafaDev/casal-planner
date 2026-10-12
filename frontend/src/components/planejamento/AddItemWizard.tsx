@@ -1151,76 +1151,83 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                                 </span>
                               )}
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                              <div className={parcelas > 1 ? "sm:col-span-2" : "sm:col-span-3"}>
-                                <Select
-                                  value={String(parcelas)}
-                                  onValueChange={(v) => {
-                                    const p = Number(v);
-                                    setParcelas(p);
-                                    if (p === 1) {
-                                      setJurosMensal(0);
-                                      setJurosTexto("");
-                                    }
-                                  }}
-                                  disabled={pagamento === "vr"}
-                                >
-                                  <SelectTrigger className="h-9 bg-background text-xs sm:text-sm w-full">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map((p) => (
-                                      <SelectItem key={p} value={String(p)}>
-                                        {p === 1
-                                          ? `À vista · ${brl(precoNumerico * quantidade)}`
-                                          : `${p}x de ${brl(valorParcela(precoNumerico * quantidade, p, jurosMensal))}${jurosMensal > 0 ? "" : " sem juros"}`}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              {parcelas > 1 && (
-                                <div className="relative">
-                                  <Input
-                                    type="text"
-                                    inputMode="decimal"
-                                    value={jurosTexto}
-                                    onChange={(e) => {
-                                      const raw = e.target.value;
-                                      if (!/^[0-9]*[.,]?[0-9]*$/.test(raw)) return;
-                                      setJurosTexto(raw);
-                                      const parsed = parseFloat(raw.replace(",", "."));
-                                      setJurosMensal(isNaN(parsed) || parsed < 0 ? 0 : parsed);
-                                    }}
-                                    placeholder="0 (sem juros)"
-                                    title="Taxa de juros ao mês (% a.m.)"
-                                    className="h-9 bg-background text-xs sm:text-sm pr-12 font-medium"
-                                  />
-                                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground pointer-events-none">
-                                    % a.m.
-                                  </span>
-                                </div>
-                              )}
-                            </div>
+
+                            <Select
+                              value={String(parcelas)}
+                              onValueChange={(v) => {
+                                const p = Number(v);
+                                setParcelas(p);
+                                if (p === 1) {
+                                  setJurosMensal(0);
+                                  setJurosTexto("");
+                                }
+                              }}
+                              disabled={pagamento === "vr"}
+                            >
+                              <SelectTrigger className="h-9 bg-background text-xs sm:text-sm w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map((p) => {
+                                  const total = precoNumerico * quantidade;
+                                  const vParc = valorParcela(total, p, jurosMensal);
+                                  return (
+                                    <SelectItem key={p} value={String(p)}>
+                                      {p === 1
+                                        ? `À vista (1x) · ${brl(total)}`
+                                        : `${p}x de ${brl(vParc)}${jurosMensal > 0 ? " (com juros)" : " sem juros"}`}
+                                    </SelectItem>
+                                  );
+                                })}
+                              </SelectContent>
+                            </Select>
+
+                            {/* Campo pequeno para juros embaixo do parcelamento quando mais de 1 parcela */}
                             {parcelas > 1 && (
-                              <div className="flex items-center justify-between text-[11px] bg-muted/40 border border-border/70 rounded-md px-2.5 py-1.5 text-muted-foreground">
-                                <span>
-                                  Parcela:{" "}
-                                  <strong className="text-foreground">
-                                    {parcelas}x de {brl(valorParcela(precoNumerico * quantidade, parcelas, jurosMensal))}
-                                  </strong>
-                                </span>
-                                <span>
+                              <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-lg bg-muted/30 border border-border/60">
+                                <div className="flex items-center gap-2">
+                                  <Label
+                                    htmlFor="wizard-juros"
+                                    className="text-xs text-muted-foreground font-medium shrink-0 cursor-pointer"
+                                  >
+                                    Taxa de juros:
+                                  </Label>
+                                  <div className="relative w-28">
+                                    <Input
+                                      id="wizard-juros"
+                                      type="text"
+                                      inputMode="decimal"
+                                      value={jurosTexto}
+                                      onChange={(e) => {
+                                        const raw = e.target.value;
+                                        if (!/^[0-9]*[.,]?[0-9]*$/.test(raw)) return;
+                                        setJurosTexto(raw);
+                                        const parsed = parseFloat(raw.replace(",", "."));
+                                        setJurosMensal(isNaN(parsed) || parsed < 0 ? 0 : parsed);
+                                      }}
+                                      placeholder="0,00"
+                                      title="Taxa de juros ao mês (% a.m.)"
+                                      className="h-8 text-xs bg-background pr-10 font-medium"
+                                    />
+                                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground pointer-events-none">
+                                      % a.m.
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="text-[11px] font-medium text-right">
                                   {jurosMensal > 0 ? (
-                                    <span className="text-amber-600 dark:text-amber-400 font-semibold">
-                                      +{brl(valorParcela(precoNumerico * quantidade, parcelas, jurosMensal) * parcelas - precoNumerico * quantidade)} juros
+                                    <span className="text-amber-600 dark:text-amber-400">
+                                      Parcela: <strong>{parcelas}x de {brl(valorParcela(precoNumerico * quantidade, parcelas, jurosMensal))}</strong>
+                                      {" · "}
+                                      Total: <strong>{brl(valorParcela(precoNumerico * quantidade, parcelas, jurosMensal) * parcelas)}</strong>
                                     </span>
                                   ) : (
-                                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                                      Sem juros
+                                    <span className="text-emerald-600 dark:text-emerald-400">
+                                      Parcela: <strong>{parcelas}x de {brl((precoNumerico * quantidade) / parcelas)}</strong> (sem juros)
                                     </span>
                                   )}
-                                </span>
+                                </div>
                               </div>
                             )}
                           </div>
