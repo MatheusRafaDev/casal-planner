@@ -173,16 +173,18 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4" autoComplete="on" suppressHydrationWarning>
-      <div className="space-y-2">
-        <Label htmlFor="email">E-mail</Label>
+    <form onSubmit={submit} className="space-y-3.5" autoComplete="on" suppressHydrationWarning>
+      <div className="space-y-1">
+        <Label htmlFor="email" className="text-xs font-semibold">
+          E-mail
+        </Label>
         <div className="relative">
           <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             id="email"
             name="email"
             type="email"
-            className="pl-9"
+            className="pl-9 h-10 text-sm"
             ref={emailInputRef}
             defaultValue=""
             placeholder="voce@exemplo.com"
@@ -191,10 +193,15 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
           />
         </div>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <Label htmlFor="senha">Senha</Label>
-          <Link to="/recuperar-senha" className="text-xs font-bold text-primary hover:underline hover:text-primary-hover">
+          <Label htmlFor="senha" className="text-xs font-semibold">
+            Senha
+          </Label>
+          <Link
+            to="/recuperar-senha"
+            className="text-xs font-bold text-primary hover:underline hover:text-primary-hover"
+          >
             Esqueci minha senha
           </Link>
         </div>
@@ -204,7 +211,7 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
             id="senha"
             name="password"
             type={mostrarSenha ? "text" : "password"}
-            className="pl-9 pr-10"
+            className="pl-9 pr-9 h-10 text-sm"
             ref={senhaInputRef}
             defaultValue=""
             placeholder="Mínimo 6 caracteres"
@@ -216,7 +223,7 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
             tabIndex={-1}
             aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
             onClick={() => setMostrarSenha((v) => !v)}
-            className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           >
             {mostrarSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
@@ -225,7 +232,7 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
 
       <Button
         type="submit"
-        className="w-full h-11 bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-base shadow-[3px_3px_0_var(--border)] border-2 border-border transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+        className="w-full h-11 bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-sm shadow-[2px_2px_0_var(--border)] border-2 border-border transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer mt-1"
         disabled={loading || googleLoading}
       >
         {loading ? "Entrando..." : "Entrar na conta"}
