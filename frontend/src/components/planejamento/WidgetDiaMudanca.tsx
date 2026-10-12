@@ -375,9 +375,6 @@ export function WidgetDiaMudanca() {
                     <CloudSun className="h-4 w-4 text-amber-500" />
                     <span>Previsão do Tempo</span>
                   </div>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-                    Radar a 16 dias
-                  </span>
                 </div>
 
                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">
