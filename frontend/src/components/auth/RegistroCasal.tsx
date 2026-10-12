@@ -279,7 +279,7 @@ export function RegistroCasal() {
               <Input
                 required
                 className="pl-9 h-10 text-sm"
-                placeholder="Ex: Ana Clara"
+                placeholder="Ex: Rayane"
                 value={p2.nome}
                 onChange={(e) => setP2({ ...p2, nome: e.target.value })}
               />
