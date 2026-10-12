@@ -157,9 +157,7 @@ export function RegistroCasal() {
               p1Valido ? "bg-emerald-600" : "bg-emerald-600/50",
             )}
           />
-          <span className="truncate">
-            1. {p1.nome ? p1.nome.split(" ")[0] : "Você (P1)"}
-          </span>
+
           {p1Valido && <Check className="w-3 h-3 text-emerald-600 ml-auto shrink-0" />}
         </button>
 
