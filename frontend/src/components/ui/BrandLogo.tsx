@@ -98,16 +98,16 @@ interface BrandLogoBadgeProps {
 
 export function BrandLogoBadge({ size = "md", className = "" }: BrandLogoBadgeProps) {
   const sizeMap = {
-    sm: { box: "h-9 w-9 rounded-xl", icon: "h-6 w-6" },
-    md: { box: "h-11 w-11 rounded-xl", icon: "h-7 w-7" },
-    lg: { box: "h-13 w-13 rounded-2xl", icon: "h-8.5 w-8.5" },
+    sm: { box: "h-8 w-8", icon: "h-7 w-7" },
+    md: { box: "h-10 w-10", icon: "h-9 w-9" },
+    lg: { box: "h-12 w-12", icon: "h-11 w-11" },
   };
 
   const current = sizeMap[size];
 
   return (
     <span
-      className={`grid ${current.box} shrink-0 place-items-center border border-[#E8E3DA] dark:border-[#2A2724] bg-white dark:bg-[#181716] shadow-xs transition-transform group-hover:scale-105 ${className}`}
+      className={`inline-flex ${current.box} shrink-0 items-center justify-center bg-transparent transition-transform group-hover:scale-105 ${className}`}
     >
       <BrandLogoIcon className={current.icon} />
     </span>

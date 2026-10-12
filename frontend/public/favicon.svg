@@ -18,9 +18,6 @@
     </filter>
   </defs>
 
-  <!-- Container arredondado com borda sutil para máximo destaque em abas claras e escuras -->
-  <rect x="1" y="1" width="46" height="46" rx="12" fill="#FAF8F5" stroke="#E2DDD5" stroke-width="1.5" />
-
   <!-- 1. BONEQUINHO ESQUERDO (Verde Esmeralda) -->
   <circle cx="17" cy="15" r="6.8" fill="url(#fav-green)" />
   <path

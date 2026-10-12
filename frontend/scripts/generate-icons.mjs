@@ -208,7 +208,7 @@ async function generate() {
   `);
   await page.screenshot({ path: path.join(publicDir, "apple-touch-icon.png") });
 
-  // 5. favicon.png (64x64 PNG com fundo badge nítido)
+  // 5. favicon.png (64x64 PNG transparente sem fundo)
   await page.setViewportSize({ width: 64, height: 64 });
   await page.setContent(`
     <!DOCTYPE html>
@@ -232,7 +232,7 @@ async function generate() {
         </style>
       </head>
       <body>
-        <div class="box">${badgeSvg}</div>
+        <div class="box">${coupleSvg}</div>
       </body>
     </html>
   `);
@@ -248,7 +248,7 @@ async function generate() {
           body {
             margin: 0;
             padding: 0;
-            background: #FAF8F5;
+            background: transparent;
             width: 512px;
             height: 512px;
             display: flex;
@@ -256,8 +256,8 @@ async function generate() {
             justify-content: center;
           }
           .box {
-            width: 420px;
-            height: 420px;
+            width: 440px;
+            height: 440px;
           }
         </style>
       </head>
@@ -266,15 +266,13 @@ async function generate() {
       </body>
     </html>
   `);
-  await page.screenshot({ path: path.join(publicDir, "logo.png") });
+  await page.screenshot({ path: path.join(publicDir, "logo.png"), omitBackground: true });
 
-  // 7. favicon.ico (16, 32, 48)
+  // 7. favicon.ico (16, 32, 48 transparente)
   const icoSizes = [16, 32, 48];
   const pngBuffers = [];
   for (const s of icoSizes) {
     await page.setViewportSize({ width: s, height: s });
-    const padding = Math.max(1, Math.floor(s * 0.05));
-    const boxSize = s - padding * 2;
     await page.setContent(`
       <!DOCTYPE html>
       <html>
@@ -291,13 +289,13 @@ async function generate() {
               justify-content: center;
             }
             .box {
-              width: ${boxSize}px;
-              height: ${boxSize}px;
+              width: ${s}px;
+              height: ${s}px;
             }
           </style>
         </head>
         <body>
-          <div class="box">${badgeSvg}</div>
+          <div class="box">${coupleSvg}</div>
         </body>
       </html>
     `);

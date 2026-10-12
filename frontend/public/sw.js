@@ -7,7 +7,7 @@
  *  - Offline fallback → página HTML simples para navegação sem rede
  */
 
-const CACHE_NAME = "casal-planner-v3";
+const CACHE_NAME = "casal-planner-v4";
 const OFFLINE_URL = "/__offline";
 
 // Assets que queremos pré-cachear na instalação
