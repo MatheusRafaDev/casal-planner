@@ -15,6 +15,7 @@ import {
 import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { resumoService } from "@/services/resumo";
 import { brl } from "@/lib/formatters";
+import { valorParcela } from "@/lib/parcelas";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { iconFor, comodoColor } from "@/components/planejamento/icon-map";
@@ -83,14 +84,14 @@ function InicioPage() {
 
       const valorTotal = item.preco * item.quantidade;
       const parcelas = Math.max(1, item.parcelas ?? 1);
-      const valorParcela = valorTotal / parcelas;
+      const vParcela = valorParcela(valorTotal, parcelas, item.jurosMensal ?? 0);
 
       for (let i = 0; i < parcelas; i++) {
         const dataParcela = new Date(dataBase);
         dataParcela.setMonth(dataParcela.getMonth() + i);
 
         const mesAnoKey = `${dataParcela.getFullYear()}-${String(dataParcela.getMonth() + 1).padStart(2, "0")}`;
-        mesesMap.set(mesAnoKey, (mesesMap.get(mesAnoKey) ?? 0) + valorParcela);
+        mesesMap.set(mesAnoKey, (mesesMap.get(mesAnoKey) ?? 0) + vParcela);
       }
     });
 
@@ -168,7 +169,7 @@ function InicioPage() {
         (agora.getFullYear() - dataBase.getFullYear()) * 12 +
         (agora.getMonth() - dataBase.getMonth());
       if (diffMeses >= 0 && diffMeses < parcelas) {
-        soma += (it.preco * it.quantidade) / parcelas;
+        soma += valorParcela(it.preco * it.quantidade, parcelas, it.jurosMensal ?? 0);
       }
     });
     return soma;
@@ -176,7 +177,13 @@ function InicioPage() {
 
   const totalParcelado = itens
     .filter((i) => (i.parcelas ?? 1) > 1 && i.origem !== "ganho" && i.comprado)
-    .reduce((s, i) => s + i.preco * i.quantidade, 0);
+    .reduce(
+      (s, i) =>
+        s +
+        valorParcela(i.preco * i.quantidade, i.parcelas ?? 1, i.jurosMensal ?? 0) *
+          (i.parcelas ?? 1),
+      0,
+    );
 
   const totalEconomizadoGanhos = itens
     .filter((i) => i.origem === "ganho")

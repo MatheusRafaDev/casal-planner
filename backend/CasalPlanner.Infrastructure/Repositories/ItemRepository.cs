@@ -99,6 +99,7 @@ namespace CasalPlanner.Infrastructure.Repositories
             if (dto.FotoPublicId != null) updates.Add(update.Set(i => i.FotoPublicId, dto.FotoPublicId));
             if (!string.IsNullOrEmpty(dto.Origem)) updates.Add(update.Set(i => i.Origem, dto.Origem));
             if (dto.Parcelas.HasValue) updates.Add(update.Set(i => i.Parcelas, dto.Parcelas.Value));
+            if (dto.JurosMensal.HasValue) updates.Add(update.Set(i => i.JurosMensal, dto.JurosMensal.Value));
             if (dto.OrigemDescricao != null) updates.Add(update.Set(i => i.OrigemDescricao, dto.OrigemDescricao));
             if (dto.Variantes != null) updates.Add(update.Set(i => i.Variantes, dto.Variantes));
 

@@ -1,3 +1,4 @@
+import { valorParcela } from "@/lib/parcelas";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -88,6 +89,7 @@ export function ItemFormModal({
   const qc = useQueryClient();
   const isEdit = !!item;
   const [form, setForm] = useState<ItemInputDTO>(empty(categoriaId));
+  const [jurosTexto, setJurosTexto] = useState("");
   const [showLink, setShowLink] = useState(false);
   const [dividir, setDividir] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -124,15 +126,18 @@ export function ItemFormModal({
           linkProduto: item.linkProduto ?? "",
           fotoUrl: item.fotoUrl ?? "",
           parcelas: item.parcelas ?? 1,
+          jurosMensal: item.jurosMensal ?? 0,
           origem: item.origem ?? "comprado",
           responsavelId: item.responsavelId ?? null,
           divisaoPagamento: item.divisaoPagamento ? { ...item.divisaoPagamento } : null,
           dataCompra: item.dataCompra ? item.dataCompra.split("T")[0] : null,
         });
+        setJurosTexto(item.jurosMensal ? String(item.jurosMensal) : "");
         setDividir(!!item.divisaoPagamento);
         setShowLink(false);
       } else {
         setForm({ ...empty(categoriaId), ...initial });
+        setJurosTexto("");
         setDividir(false);
         setShowLink(!!initial?.linkProduto);
       }
@@ -561,11 +566,23 @@ export function ItemFormModal({
                           {form.comprado ? "Item Comprado / Adquirido" : "Pendente na Lista"}
                         </h4>
                         <p className="text-[11px] text-muted-foreground leading-tight">
-                          {form.comprado ? "Já adquirido pelo casal" : "Ainda não comprado"}
+                          {form.comprado
+                            ? form.dataCompra
+                              ? `Comprado em ${new Date(form.dataCompra + "T12:00:00").toLocaleDateString("pt-BR")}`
+                              : "Já adquirido pelo casal"
+                            : form.dataCompra
+                              ? `Previsão: ${new Date(form.dataCompra + "T12:00:00").toLocaleDateString("pt-BR")}`
+                              : "Ainda não comprado"}
                         </p>
                       </div>
                     </div>
-                    <Switch checked={form.comprado} onCheckedChange={(c) => set("comprado", c)} />
+                    <Switch
+                      checked={form.comprado}
+                      onCheckedChange={(c) => {
+                        set("comprado", c);
+                        if (c && !form.dataCompra) set("dataCompra", new Date().toLocaleDateString("en-CA"));
+                      }}
+                    />
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-3">
@@ -638,31 +655,93 @@ export function ItemFormModal({
                           </Select>
                         </div>
 
-                        <div className="space-y-1 sm:col-span-2">
+                        <div className="space-y-2 sm:col-span-2">
                           <div className="flex justify-between items-center">
                             <Label className="text-xs text-muted-foreground font-medium">Parcelamento</Label>
                             {(form.parcelas ?? 1) > 1 && (
                               <span className="text-[10px] text-muted-foreground font-medium">
-                                {brl((form.preco * form.quantidade) / (form.parcelas ?? 1))}/mês
+                                Total:{" "}
+                                <strong className="text-foreground">
+                                  {brl(
+                                    valorParcela(form.preco * form.quantidade, form.parcelas ?? 1, form.jurosMensal ?? 0) *
+                                      (form.parcelas ?? 1),
+                                  )}
+                                </strong>
                               </span>
                             )}
                           </div>
-                          <Select
-                            value={String(form.parcelas ?? 1)}
-                            onValueChange={(v) => set("parcelas", Number(v))}
-                            disabled={form.pagamento === "vr"}
-                          >
-                            <SelectTrigger className="bg-background h-9 text-xs sm:text-sm">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((p) => (
-                                <SelectItem key={p} value={String(p)}>
-                                  {p === 1 ? "À vista (1x)" : `${p}x sem juros`}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div className={(form.parcelas ?? 1) > 1 ? "sm:col-span-2" : "sm:col-span-3"}>
+                              <Select
+                                value={String(form.parcelas ?? 1)}
+                                onValueChange={(v) => {
+                                  const p = Number(v);
+                                  set("parcelas", p);
+                                  if (p === 1) {
+                                    set("jurosMensal", 0);
+                                    setJurosTexto("");
+                                  }
+                                }}
+                                disabled={form.pagamento === "vr"}
+                              >
+                                <SelectTrigger className="bg-background h-9 text-xs sm:text-sm w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map((p) => (
+                                    <SelectItem key={p} value={String(p)}>
+                                      {p === 1
+                                        ? `À vista · ${brl(form.preco * form.quantidade)}`
+                                        : `${p}x de ${brl(valorParcela(form.preco * form.quantidade, p, form.jurosMensal ?? 0))}${(form.jurosMensal ?? 0) > 0 ? "" : " sem juros"}`}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            {(form.parcelas ?? 1) > 1 && (
+                              <div className="relative">
+                                <Input
+                                  type="text"
+                                  inputMode="decimal"
+                                  value={jurosTexto}
+                                  onChange={(e) => {
+                                    const raw = e.target.value;
+                                    if (!/^[0-9]*[.,]?[0-9]*$/.test(raw)) return;
+                                    setJurosTexto(raw);
+                                    const parsed = parseFloat(raw.replace(",", "."));
+                                    set("jurosMensal", isNaN(parsed) || parsed < 0 ? 0 : parsed);
+                                  }}
+                                  placeholder="0 (sem juros)"
+                                  title="Taxa de juros ao mês (% a.m.)"
+                                  className="bg-background h-9 text-xs sm:text-sm pr-12 font-medium"
+                                />
+                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground pointer-events-none">
+                                  % a.m.
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          {(form.parcelas ?? 1) > 1 && (
+                            <div className="flex items-center justify-between text-[11px] bg-muted/40 border border-border/70 rounded-md px-2.5 py-1.5 text-muted-foreground">
+                              <span>
+                                Parcela:{" "}
+                                <strong className="text-foreground">
+                                  {form.parcelas}x de {brl(valorParcela(form.preco * form.quantidade, form.parcelas ?? 1, form.jurosMensal ?? 0))}
+                                </strong>
+                              </span>
+                              <span>
+                                {(form.jurosMensal ?? 0) > 0 ? (
+                                  <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                                    +{brl(valorParcela(form.preco * form.quantidade, form.parcelas ?? 1, form.jurosMensal ?? 0) * (form.parcelas ?? 1) - form.preco * form.quantidade)} juros
+                                  </span>
+                                ) : (
+                                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                                    Sem juros
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </>
                     )}

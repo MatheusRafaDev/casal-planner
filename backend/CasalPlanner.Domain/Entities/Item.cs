@@ -34,6 +34,7 @@ public class Item
     public string? FotoPublicId { get; set; }
 
     public int Parcelas { get; set; } = 1;
+    public decimal JurosMensal { get; set; } = 0;
     public List<string> Variantes { get; set; } = new List<string>();
     public string? VarianteSelecionadaId { get; set; }
 

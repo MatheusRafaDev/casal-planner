@@ -128,6 +128,7 @@ namespace CasalPlanner.Application.Services
                 Origem = dto.Origem ?? "comprado",
                 OrigemDescricao = dto.OrigemDescricao,
                 Parcelas = dto.Parcelas,
+                JurosMensal = dto.JurosMensal,
                 Variantes = dto.Variantes ?? new List<string>(),
                 VarianteSelecionadaId = dto.VarianteSelecionadaId,
                 ResponsavelId = dto.ResponsavelId,

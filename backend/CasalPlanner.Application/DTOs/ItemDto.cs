@@ -38,6 +38,7 @@ namespace CasalPlanner.Application.DTOs
 
         [JsonPropertyName("parcelas")]
         public int Parcelas { get; set; } = 1;
+        public decimal JurosMensal { get; set; } = 0;
         [JsonPropertyName("variantes")]
         public List<string> Variantes { get; set; } = new List<string>();
         [JsonPropertyName("varianteSelecionadaId")]
@@ -80,6 +81,7 @@ namespace CasalPlanner.Application.DTOs
         public string? FotoPublicId { get; set; }
         [JsonPropertyName("parcelas")]
         public int? Parcelas { get; set; }
+        public decimal? JurosMensal { get; set; }
         [JsonPropertyName("variantes")]
         public List<string>? Variantes { get; set; }
         [JsonPropertyName("varianteSelecionadaId")]
@@ -124,6 +126,7 @@ namespace CasalPlanner.Application.DTOs
         public string LinkProduto { get; set; } = string.Empty;
         public string FotoUrl { get; set; } = string.Empty;
         public int Parcelas { get; set; } = 1;
+        public decimal JurosMensal { get; set; } = 0;
         public List<string> Variantes { get; set; } = new List<string>();
         public string? VarianteSelecionadaId { get; set; }
         public string Origem { get; set; } = "comprado";

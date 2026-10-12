@@ -73,6 +73,7 @@ export interface Item {
   linkProduto?: string | null;
   fotoUrl?: string | null;
   parcelas?: number | null;
+  jurosMensal?: number | null;
   variantes?: ItemVariante[];
   varianteSelecionadaId?: string | null;
   origem?: string | null;

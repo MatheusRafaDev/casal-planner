@@ -17,6 +17,7 @@ export interface ItemInputDTO {
   fotoUrl?: string;
   fotoFile?: File;
   parcelas?: number;
+  jurosMensal?: number;
   varianteSelecionadaId?: string | null;
   clearVarianteSelecionadaId?: boolean;
   origem?: string;

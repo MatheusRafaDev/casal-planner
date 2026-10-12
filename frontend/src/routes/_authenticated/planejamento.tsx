@@ -61,6 +61,7 @@ import { categoriasService } from "@/services/categorias";
 import { itensService } from "@/services/itens";
 import type { Categoria, Item } from "@/services/types";
 import { brl, toTitleCase } from "@/lib/formatters";
+import { valorParcela } from "@/lib/parcelas";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 
@@ -856,12 +857,18 @@ function PlanejamentoPage() {
                       {brl(it.preco * it.quantidade)}
                     </div>
                     <div className="text-[11px] text-muted-foreground font-semibold mt-1">
-                      {it.quantidade > 1 ? (
+                      {(it.parcelas ?? 1) > 1 ? (
+                        <span>
+                          {it.quantidade > 1 ? `${it.quantidade} un · ` : ""}
+                          {it.parcelas}x de {brl(valorParcela(it.preco * it.quantidade, it.parcelas ?? 1, it.jurosMensal ?? 0))}
+                          {(it.jurosMensal ?? 0) > 0 && " (com juros)"}
+                        </span>
+                      ) : it.quantidade > 1 ? (
                         <span>
                           {it.quantidade}x {brl(it.preco)}
                         </span>
                       ) : (
-                        <span>1x {brl(it.preco)}</span>
+                        <span>À vista</span>
                       )}
                     </div>
                   </div>
