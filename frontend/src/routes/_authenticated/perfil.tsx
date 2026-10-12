@@ -110,7 +110,18 @@ function PerfilPage() {
       >
         <div>
           <span className="text-xs md:text-sm font-bold text-muted-foreground block mb-1">
-            {isCasal ? "Conta de casal" : "Conta individual"}
+            {isCasal ? (
+              <span>
+                Conta de casal • Conectado como{" "}
+                <span className="text-primary font-extrabold">
+                  {usuario.pessoaLogada === 2
+                    ? (usuario.casalInfo?.pessoa2.nome?.split(" ")[0] || "Pessoa 2")
+                    : (usuario.casalInfo?.pessoa1.nome?.split(" ")[0] || "Pessoa 1")}
+                </span>
+              </span>
+            ) : (
+              "Conta individual"
+            )}
           </span>
           <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground">
             Minha conta
@@ -143,12 +154,22 @@ function PerfilPage() {
                       {extrairIniciais(usuario.casalInfo?.pessoa1.nome, "1")}
                     </span>
                     <span className="truncate">{usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}</span>
+                    {usuario.pessoaLogada === 1 && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
+                        Você
+                      </span>
+                    )}
                   </TabsTrigger>
                   <TabsTrigger value="p2" className="flex items-center justify-center gap-2">
                     <span className="h-5 w-5 rounded-full bg-[#E8B63C] text-[#24302A] text-[10px] font-bold grid place-items-center shrink-0">
                       {extrairIniciais(usuario.casalInfo?.pessoa2.nome, "2")}
                     </span>
                     <span className="truncate">{usuario.casalInfo?.pessoa2.nome ?? "Pessoa 2"}</span>
+                    {usuario.pessoaLogada === 2 && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
+                        Você
+                      </span>
+                    )}
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="p1" className="mt-0">
@@ -399,18 +420,37 @@ function PessoaForm({
     >
       {/* Top Avatar + Name Summary matching Page 7 */}
       <div className="flex items-center gap-3.5 pb-2">
-        <div
-          className={cn(
-            "h-12 w-12 rounded-full border-2 border-border grid place-items-center font-display font-bold text-base shadow-xs shrink-0 select-none",
-            avatarColor,
+        <div className="relative shrink-0">
+          <div
+            className={cn(
+              "h-12 w-12 rounded-full border-2 border-border grid place-items-center font-display font-bold text-base shadow-xs select-none",
+              avatarColor,
+            )}
+          >
+            {iniciaisExibicao}
+          </div>
+          {!somenteLeitura && (
+            <span
+              className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-card"
+              title="Perfil conectado no momento"
+            />
           )}
-        >
-          {iniciaisExibicao}
         </div>
         <div className="min-w-0">
-          <span className="font-display font-bold text-lg text-foreground block truncate">
-            {nome || "Seu nome"}
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-display font-bold text-lg text-foreground block truncate">
+              {nome || "Seu nome"}
+            </span>
+            {!somenteLeitura ? (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
+                Conectado agora (Você)
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border shrink-0">
+                Parceiro(a)
+              </span>
+            )}
+          </div>
           <span className="text-xs font-semibold text-muted-foreground block truncate">
             {email || "[e-mail]"}
           </span>

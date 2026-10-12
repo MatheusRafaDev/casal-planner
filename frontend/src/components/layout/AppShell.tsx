@@ -119,41 +119,56 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className="flex items-center gap-3 hover:opacity-85 transition-opacity"
             >
               {isCasal ? (
-                <div className="flex items-center -space-x-2 shrink-0">
+                <div className="relative flex items-center -space-x-1.5 shrink-0">
                   <div
                     className={cn(
-                      "h-7 w-7 rounded-full border border-border flex items-center justify-center font-bold text-xs shadow-xs",
+                      "h-7 w-7 rounded-full border-2 border-card flex items-center justify-center font-bold text-xs shadow-xs transition-transform",
                       usuario?.pessoaLogada === 1
-                        ? "bg-[#2F7D5B] text-white z-10"
-                        : "bg-[#2F7D5B]/70 text-white",
+                        ? "bg-[#2F7D5B] text-white z-10 ring-2 ring-primary scale-110"
+                        : "bg-[#2F7D5B]/50 text-white/70 opacity-60 scale-90",
                     )}
-                    title={p1Primeiro}
+                    title={usuario?.pessoaLogada === 1 ? `${p1Primeiro} (Você)` : p1Primeiro}
                   >
                     {p1Primeiro.charAt(0)}
                   </div>
                   <div
                     className={cn(
-                      "h-7 w-7 rounded-full border border-border flex items-center justify-center font-bold text-xs shadow-xs",
+                      "h-7 w-7 rounded-full border-2 border-card flex items-center justify-center font-bold text-xs shadow-xs transition-transform",
                       usuario?.pessoaLogada === 2
-                        ? "bg-[#E8B63C] text-[#24302A] z-10"
-                        : "bg-[#E8B63C]/70 text-[#24302A]",
+                        ? "bg-[#E8B63C] text-[#24302A] z-10 ring-2 ring-[#E8B63C] scale-110"
+                        : "bg-[#E8B63C]/50 text-[#24302A]/70 opacity-60 scale-90",
                     )}
-                    title={p2Primeiro}
+                    title={usuario?.pessoaLogada === 2 ? `${p2Primeiro} (Você)` : p2Primeiro}
                   >
                     {p2Primeiro.charAt(0)}
                   </div>
+                  <span
+                    className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-card z-20"
+                    title="Conectado agora"
+                  />
                 </div>
               ) : (
-                <div className="h-8 w-8 rounded-xl border border-border bg-primary/20 text-primary flex items-center justify-center shrink-0 font-bold text-sm shadow-xs">
-                  {logadoNome.charAt(0).toUpperCase()}
+                <div className="relative shrink-0">
+                  <div className="h-8 w-8 rounded-full border-2 border-border bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-xs">
+                    {logadoNome.charAt(0).toUpperCase()}
+                  </div>
+                  <span
+                    className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-card"
+                    title="Conectado agora"
+                  />
                 </div>
               )}
               <div className="flex flex-col overflow-hidden min-w-0">
-                <span className="text-xs font-bold text-foreground truncate">
-                  {usuario?.nomeCompleto || (isCasal ? `${p1Primeiro} & ${p2Primeiro}` : "Usuário")}
-                </span>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-xs font-bold text-foreground truncate">
+                    {logadoNome}
+                  </span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
+                    Você
+                  </span>
+                </div>
                 <span className="text-[11px] text-muted-foreground truncate font-medium">
-                  {isCasal ? `${p1Primeiro} & ${p2Primeiro}` : "Conta individual"}
+                  {isCasal ? `Casal: ${p1Primeiro} & ${p2Primeiro}` : "Conta individual"}
                 </span>
               </div>
             </Link>
