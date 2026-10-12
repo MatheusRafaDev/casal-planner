@@ -154,11 +154,6 @@ function PerfilPage() {
                       {extrairIniciais(usuario.casalInfo?.pessoa1.nome, "1")}
                     </span>
                     <span className="truncate">{usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}</span>
-                    {usuario.pessoaLogada === 1 && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
-                        Você
-                      </span>
-                    )}
                   </TabsTrigger>
                   <TabsTrigger value="p2" className="flex items-center justify-center gap-2">
                     <span className="h-5 w-5 rounded-full bg-[#E8B63C] text-[#24302A] text-[10px] font-bold grid place-items-center shrink-0">
@@ -727,7 +722,7 @@ function ExportarCard() {
         it.quantidade,
         it.preco.toString().replace(".", ","),
         (it.preco * it.quantidade).toString().replace(".", ","),
-        it.comprado ? "Sim" : "Não",
+        it.comprado ? (it.origem === "ganho" ? "Ganhado" : "Sim") : "Não",
         it.dataCompra ? new Date(it.dataCompra).toLocaleDateString("pt-BR") : "",
         it.origem,
       ]);

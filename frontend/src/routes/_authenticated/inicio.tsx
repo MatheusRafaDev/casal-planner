@@ -14,8 +14,9 @@ import {
 } from "lucide-react";
 import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { resumoService } from "@/services/resumo";
+import type { ResumoCategoria } from "@/services/types";
 import { brl } from "@/lib/formatters";
-import { valorParcela } from "@/lib/parcelas";
+import { valorParcela, calcularStatusParcelas, parseDataReferencia } from "@/lib/parcelas";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { iconFor, comodoColor } from "@/components/planejamento/icon-map";
@@ -49,49 +50,55 @@ function InicioPage() {
   const p1Primeiro = p1.split(" ")[0];
   const p2Primeiro = p2.split(" ")[0];
 
-  const { data: categorias = [] } = useQuery({
+  const { data: categorias = [], isLoading: loadingCategorias } = useQuery({
     queryKey: ["categorias"],
     queryFn: () => import("@/services/categorias").then((m) => m.categoriasService.listar()),
   });
 
-  const { data: resumo, isLoading } = useQuery({
-    queryKey: ["resumo", categorias.length],
-    queryFn: () => resumoService.obterAdaptado(categorias),
-  });
-
-  const { data: itens = [] } = useQuery({
+  const { data: itens = [], isLoading: loadingItens } = useQuery({
     queryKey: ["itens"],
     queryFn: () => import("@/services/itens").then((m) => m.itensService.listar()),
     retry: false,
   });
 
+  const { data: resumo } = useQuery({
+    queryKey: ["resumo"],
+    queryFn: () => resumoService.obterAdaptado(categorias),
+  });
+
+  const isLoading =
+    (loadingCategorias && categorias.length === 0) ||
+    (loadingItens && itens.length === 0);
+
   const faturasMensais = useMemo(() => {
     if (!itens || itens.length === 0) return [];
 
+    const agora = new Date();
+    const mesAtualKey = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}`;
     const mesesMap = new Map<string, number>();
+
     const itensRelevantes = itens.filter(
       (i) =>
-        i.origem !== "ganho" &&
+        !["ganho", "presente", "prometido"].includes(i.origem ?? "") &&
         i.pagamento !== "vr" &&
-        (i.comprado || i.dataCompra) &&
-        !(i.comprado && (i.parcelas ?? 1) <= 1),
+        (i.parcelas ?? 1) > 1 &&
+        (i.comprado || i.dataCompra),
     );
 
     itensRelevantes.forEach((item) => {
-      if (!item.dataCompra && !item.comprado) return;
-      const dataStr = item.dataCompra || new Date().toISOString();
-      const dataBase = new Date(dataStr);
-
+      const dataRef = parseDataReferencia(item.dataCompra ?? item.createdAt);
       const valorTotal = item.preco * item.quantidade;
       const parcelas = Math.max(1, item.parcelas ?? 1);
       const vParcela = valorParcela(valorTotal, parcelas, item.jurosMensal ?? 0);
 
       for (let i = 0; i < parcelas; i++) {
-        const dataParcela = new Date(dataBase);
-        dataParcela.setMonth(dataParcela.getMonth() + i);
-
+        const dataParcela = new Date(dataRef.getFullYear(), dataRef.getMonth() + i, 1);
         const mesAnoKey = `${dataParcela.getFullYear()}-${String(dataParcela.getMonth() + 1).padStart(2, "0")}`;
-        mesesMap.set(mesAnoKey, (mesesMap.get(mesAnoKey) ?? 0) + vParcela);
+
+        // Respeitar o dia/mês da compra: não mostrar parcelas que já foram no passado
+        if (mesAnoKey >= mesAtualKey) {
+          mesesMap.set(mesAnoKey, (mesesMap.get(mesAnoKey) ?? 0) + vParcela);
+        }
       }
     });
 
@@ -139,9 +146,34 @@ function InicioPage() {
     }
   });
 
-  const r = resumo
-    ? {
-      ...resumo,
+  const metaCalculada = useMemo(() => {
+    if (usuario?.metaGlobalEnxoval && usuario.metaGlobalEnxoval > 0) {
+      return usuario.metaGlobalEnxoval;
+    }
+    return categorias.reduce((s, c) => s + (c.metaOrcamento || 0), 0);
+  }, [usuario, categorias]);
+
+  const porCategoriaCalculado: ResumoCategoria[] = useMemo(() => {
+    return categorias.map((c) => {
+      const cItens = validItens.filter((it) => it.categoriaId === c.id);
+      const totalGasto = cItens.reduce((s, it) => s + it.preco * it.quantidade, 0);
+      const itensComprados = cItens.filter((it) => it.comprado).length;
+
+      return {
+        categoriaId: c.id,
+        categoriaNome: c.nome,
+        totalGasto,
+        totalItens: cItens.length,
+        itensComprados,
+        metaOrcamento: c.metaOrcamento ?? null,
+        cor: comodoColor(c.bg, c.nome),
+        icon: c.icon ?? null,
+      };
+    });
+  }, [categorias, validItens]);
+
+  const r = useMemo(() => {
+    return {
       totalGeral: realTotalGeral,
       totalNormal: realTotalNormal,
       totalVr: realTotalVr,
@@ -150,51 +182,75 @@ function InicioPage() {
       totalPessoa1: realTotalP1,
       totalPessoa2: realTotalP2,
       totalConjunto: realTotalConjunto,
-    }
-    : null;
+      metaGlobal: metaCalculada,
+      percentualMeta: metaCalculada > 0 ? (realTotalGeral / metaCalculada) * 100 : null,
+      mesAtual: resumo?.mesAtual ?? 0,
+      mesPassado: resumo?.mesPassado ?? 0,
+      mesRetrasado: resumo?.mesRetrasado ?? 0,
+      variacaoMensal: resumo?.variacaoMensal ?? null,
+      porCategoria: porCategoriaCalculado,
+    };
+  }, [
+    realTotalGeral,
+    realTotalNormal,
+    realTotalVr,
+    realTotalComprados,
+    validItens.length,
+    realTotalP1,
+    realTotalP2,
+    realTotalConjunto,
+    metaCalculada,
+    resumo,
+    porCategoriaCalculado,
+  ]);
 
-  const meta = r?.metaGlobal ?? 0;
-  const pct = meta > 0 ? Math.min(100, ((r?.totalGeral ?? 0) / meta) * 100) : 0;
-  const valorRestante = meta > 0 ? Math.max(0, meta - (r?.totalGeral ?? 0)) : 0;
+  const meta = metaCalculada;
+  const pct = meta > 0 ? Math.min(100, (realTotalGeral / meta) * 100) : 0;
+  const valorRestante = meta > 0 ? Math.max(0, meta - realTotalGeral) : 0;
 
-  const parcelasDesteMes = useMemo(() => {
+  const parcelasResumo = useMemo(() => {
     const agora = new Date();
-    let soma = 0;
+    let somaDesteMes = 0;
+    let somaRestanteAtivo = 0;
+    let comprasAtivas = 0;
+
     itens.forEach((it) => {
-      if (it.origem === "ganho" || it.pagamento === "vr") return;
-      const parcelas = Math.max(1, it.parcelas ?? 1);
-      if (parcelas <= 1 && it.comprado) return;
-      const dataBase = it.dataCompra ? new Date(it.dataCompra) : new Date(it.createdAt ?? Date.now());
-      const diffMeses =
-        (agora.getFullYear() - dataBase.getFullYear()) * 12 +
-        (agora.getMonth() - dataBase.getMonth());
-      if (diffMeses >= 0 && diffMeses < parcelas) {
-        soma += valorParcela(it.preco * it.quantidade, parcelas, it.jurosMensal ?? 0);
+      if (
+        ["ganho", "presente", "prometido"].includes(it.origem ?? "") ||
+        it.pagamento === "vr" ||
+        (it.parcelas ?? 1) <= 1
+      )
+        return;
+      if (!it.comprado && !it.dataCompra) return;
+
+      const status = calcularStatusParcelas(it, agora);
+      if (status.ativo) {
+        somaDesteMes += status.valorDesteMes;
+        somaRestanteAtivo += status.valorRestante;
+        comprasAtivas += 1;
       }
     });
-    return soma;
+
+    return {
+      valorDesteMes: somaDesteMes,
+      valorRestanteAtivo: somaRestanteAtivo,
+      comprasAtivas,
+    };
   }, [itens]);
 
-  const totalParcelado = itens
-    .filter((i) => (i.parcelas ?? 1) > 1 && i.origem !== "ganho" && i.comprado)
-    .reduce(
-      (s, i) =>
-        s +
-        valorParcela(i.preco * i.quantidade, i.parcelas ?? 1, i.jurosMensal ?? 0) *
-          (i.parcelas ?? 1),
-      0,
-    );
+  const parcelasDesteMes = parcelasResumo.valorDesteMes;
+  const totalParcelado = parcelasResumo.valorRestanteAtivo;
 
   const totalEconomizadoGanhos = itens
-    .filter((i) => i.origem === "ganho")
+    .filter((i) => ["ganho", "presente"].includes(i.origem ?? ""))
     .reduce((s, i) => s + i.preco * i.quantidade, 0);
-  const qtdGanhos = itens.filter((i) => i.origem === "ganho").length;
+  const qtdGanhos = itens.filter((i) => ["ganho", "presente"].includes(i.origem ?? "")).length;
 
   const hoje = new Date();
   const mesAtualFormatado = hoje.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
   const mesCapitalizado = mesAtualFormatado.charAt(0).toUpperCase() + mesAtualFormatado.slice(1);
 
-  const semDados = categorias.length === 0 && (!r || (r.totalItens ?? 0) === 0);
+  const semDados = categorias.length === 0 && validItens.length === 0;
 
   // ─── Gerador de Relatório PDF Financeiro ───────────────────────────────────
   const gerarRelatorioFinanceiro = async () => {
@@ -334,13 +390,17 @@ function InicioPage() {
     return <InicioSkeleton />;
   }
 
-  // Porcentagens das pessoas e conjunto para a barra empilhada
+  // Porcentagens das pessoas, conjunto e ganhos para a barra empilhada
   const totalBolso =
-    (r?.totalPessoa1 ?? 0) + (r?.totalPessoa2 ?? 0) + (r?.totalConjunto ?? 0) ||
+    (r?.totalPessoa1 ?? 0) +
+    (r?.totalPessoa2 ?? 0) +
+    (r?.totalConjunto ?? 0) +
+    (totalEconomizadoGanhos ?? 0) ||
     (r?.totalGeral ?? 1);
   const p1Pct = totalBolso > 0 ? ((r?.totalPessoa1 ?? 0) / totalBolso) * 100 : 0;
   const p2Pct = totalBolso > 0 ? ((r?.totalPessoa2 ?? 0) / totalBolso) * 100 : 0;
   const conjPct = totalBolso > 0 ? ((r?.totalConjunto ?? 0) / totalBolso) * 100 : 0;
+  const ganhoPct = totalBolso > 0 ? ((totalEconomizadoGanhos ?? 0) / totalBolso) * 100 : 0;
 
   return (
     <motion.div
@@ -463,6 +523,13 @@ function InicioPage() {
                           title={`Conjunto (Azul): ${brl(r?.totalConjunto)} (${conjPct.toFixed(1)}%)`}
                         />
                       )}
+                      {totalEconomizadoGanhos > 0 && (
+                        <div
+                          className="h-full bg-purple-500 transition-all duration-500"
+                          style={{ width: `${ganhoPct}%` }}
+                          title={`Ganho (Roxo): ${brl(totalEconomizadoGanhos)} (${ganhoPct.toFixed(1)}%)`}
+                        />
+                      )}
                     </div>
                   ) : (
                     <div
@@ -499,6 +566,13 @@ function InicioPage() {
                             </span>
                           </div>
                         )}
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <span className="w-3 h-3 rounded-full border border-border bg-purple-500 inline-block shrink-0 shadow-xs" />
+                          <span className="text-muted-foreground">Ganho (Roxo):</span>
+                          <span className="text-foreground tabular-nums">
+                            {brl(totalEconomizadoGanhos)}
+                          </span>
+                        </div>
                       </>
                     ) : (
                       <div className="flex items-center gap-2">
@@ -528,12 +602,12 @@ function InicioPage() {
                   Parcelas deste mês
                 </span>
                 <span className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-foreground tabular-nums">
-                  {brl(parcelasDesteMes > 0 ? parcelasDesteMes : totalParcelado)}
+                  {brl(parcelasResumo.valorDesteMes)}
                 </span>
                 <span className="text-xs text-muted-foreground font-medium mt-1">
-                  {totalParcelado > 0
-                    ? `${brl(totalParcelado)} em parcelas ativas`
-                    : "Nenhum parcelamento no mês"}
+                  {parcelasResumo.valorRestanteAtivo > 0
+                    ? `${brl(parcelasResumo.valorRestanteAtivo)} restante em ${parcelasResumo.comprasAtivas} ${parcelasResumo.comprasAtivas === 1 ? "parcelamento ativo" : "parcelamentos ativos"}`
+                    : "Nenhum parcelamento ativo"}
                 </span>
               </motion.div>
 
@@ -799,7 +873,7 @@ function InicioPage() {
                     </div>
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
-                        Cartão Parcelado
+                        Cartão Parcelado (A vencer)
                       </span>
                       <span className="text-base font-bold tabular-nums text-foreground">
                         {brl(totalParcelado)}
@@ -857,6 +931,10 @@ function InicioPage() {
                           </span>
                         </>
                       )}
+                      <span className="text-muted-foreground">•</span>
+                      <span className="text-purple-600 dark:text-purple-400 font-bold">
+                        Ganho: {brl(totalEconomizadoGanhos)}
+                      </span>
                     </span>
                   </div>
                 </div>

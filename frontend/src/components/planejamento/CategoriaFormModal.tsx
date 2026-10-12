@@ -51,6 +51,9 @@ export function CategoriaFormModal({ open, onOpenChange, categoria }: Props) {
     onSuccess: () => {
       onOpenChange(false);
       qc.invalidateQueries({ queryKey: ["categorias"] });
+      qc.invalidateQueries({ queryKey: ["itens"] });
+      qc.invalidateQueries({ queryKey: ["itens-paginado"] });
+      qc.invalidateQueries({ queryKey: ["resumo"] });
     },
     onError: (e: Error) => {
       toast.error(e.message);

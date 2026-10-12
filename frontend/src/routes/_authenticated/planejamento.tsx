@@ -61,7 +61,7 @@ import { categoriasService } from "@/services/categorias";
 import { itensService } from "@/services/itens";
 import type { Categoria, Item } from "@/services/types";
 import { brl, toTitleCase, formatDate } from "@/lib/formatters";
-import { valorParcela } from "@/lib/parcelas";
+import { valorParcela, calcularStatusParcelas } from "@/lib/parcelas";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 
@@ -168,7 +168,6 @@ function PlanejamentoPage() {
   const todosItensQ = useQuery({
     queryKey: ["itens"],
     queryFn: () => itensService.listar(),
-    staleTime: 60_000,
   });
   const todosItens = useMemo(() => todosItensQ.data ?? [], [todosItensQ.data]);
 
@@ -198,7 +197,21 @@ function PlanejamentoPage() {
   }, [itensCategoria]);
 
   const compradosCategoria = useMemo(() => {
-    return itensCategoria.filter((i) => i.comprado).length;
+    return itensCategoria.filter(
+      (i) => i.comprado && !["ganho", "presente"].includes(i.origem ?? ""),
+    ).length;
+  }, [itensCategoria]);
+
+  const ganhadosCategoria = useMemo(() => {
+    return itensCategoria.filter(
+      (i) => i.comprado && ["ganho", "presente"].includes(i.origem ?? ""),
+    ).length;
+  }, [itensCategoria]);
+
+  const totalGanhosCategoria = useMemo(() => {
+    return itensCategoria
+      .filter((i) => ["ganho", "presente"].includes(i.origem ?? ""))
+      .reduce((s, i) => s + i.preco * i.quantidade, 0);
   }, [itensCategoria]);
 
   // Divisão de gastos por pessoa
@@ -240,6 +253,7 @@ function PlanejamentoPage() {
       itensService.toggleComprado(id, comprado),
     onMutate: async ({ id, comprado }) => {
       await qc.cancelQueries({ queryKey: ["itens-paginado"] });
+      await qc.cancelQueries({ queryKey: ["itens"] });
       qc.setQueriesData({ queryKey: ["itens-paginado"] }, (old: unknown) => {
         if (!old || typeof old !== "object") return old;
         const data = old as { pages: Array<{ items: Item[] }> };
@@ -249,11 +263,19 @@ function PlanejamentoPage() {
             ...page,
             items: page.items.map((i: Item) =>
               i.id === id
-                ? { ...i, comprado, dataCompra: comprado ? new Date().toISOString() : null }
+                ? { ...i, comprado, dataCompra: comprado ? (i.dataCompra || new Date().toISOString()) : null }
                 : i,
             ),
           })),
         };
+      });
+      qc.setQueryData<Item[]>(["itens"], (old) => {
+        if (!old) return old;
+        return old.map((i) =>
+          i.id === id
+            ? { ...i, comprado, dataCompra: comprado ? (i.dataCompra || new Date().toISOString()) : null }
+            : i,
+        );
       });
     },
     onError: () => {
@@ -282,6 +304,9 @@ function PlanejamentoPage() {
     mutationFn: (id: string) => categoriasService.excluir(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["categorias"] });
+      qc.invalidateQueries({ queryKey: ["itens"] });
+      qc.invalidateQueries({ queryKey: ["itens-paginado"] });
+      qc.invalidateQueries({ queryKey: ["resumo"] });
       setExcluindoCategoria(null);
       setCategoriaSelecionada("tudo");
       toast.success("Cômodo removido");
@@ -500,7 +525,9 @@ function PlanejamentoPage() {
               )}
             </div>
             <div className="text-xs text-muted-foreground font-semibold">
-              {compradosCategoria} comprados de {itensCategoria.length} itens
+              {ganhadosCategoria > 0
+                ? `${compradosCategoria} comprados · ${ganhadosCategoria} ganhados de ${itensCategoria.length} itens`
+                : `${compradosCategoria} comprados de ${itensCategoria.length} itens`}
             </div>
           </div>
         </div>
@@ -558,6 +585,14 @@ function PlanejamentoPage() {
                       <span>|</span>
                       <span>
                         Juntos: <span className="text-foreground tabular-nums">{brl(totalConjunto)}</span>
+                      </span>
+                    </>
+                  )}
+                  {totalGanhosCategoria > 0 && (
+                    <>
+                      <span>|</span>
+                      <span className="text-purple-600 dark:text-purple-400 font-bold">
+                        Ganho: <span className="tabular-nums">{brl(totalGanhosCategoria)}</span>
                       </span>
                     </>
                   )}
@@ -705,7 +740,15 @@ function PlanejamentoPage() {
                     onCheckedChange={() =>
                       toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
                     }
-                    aria-label={it.comprado ? "Desmarcar comprado" : "Marcar como comprado"}
+                    aria-label={
+                      it.comprado
+                        ? isPresente
+                          ? "Desmarcar ganhado"
+                          : "Desmarcar comprado"
+                        : isPresente
+                          ? "Marcar como ganhado"
+                          : "Marcar como comprado"
+                    }
                   />
 
                   {/* Thumbnail / Room Icon */}
@@ -764,7 +807,7 @@ function PlanejamentoPage() {
                           variant="outline"
                           className="text-[10px] py-0 px-2 h-4.5 font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300"
                         >
-                          Ganho
+                          {it.comprado ? "Ganhado" : "Ganho"}
                         </Badge>
                       )}
                       {isPrometido && (
@@ -851,7 +894,11 @@ function PlanejamentoPage() {
                                 : "text-amber-700 dark:text-amber-400 font-semibold"
                             }
                           >
-                            {it.comprado ? "Comprado em " : "Previsão: "}
+                            {it.comprado
+                              ? isPresente
+                                ? "Ganhado em "
+                                : "Comprado em "
+                              : "Previsão: "}
                             {formatDate(it.dataCompra)}
                           </span>
                         </>
@@ -872,13 +919,41 @@ function PlanejamentoPage() {
                       {brl(it.preco * it.quantidade)}
                     </div>
                     <div className="text-[11px] text-muted-foreground font-semibold mt-1">
-                      {(it.parcelas ?? 1) > 1 ? (
-                        <span>
-                          {it.quantidade > 1 ? `${it.quantidade} un · ` : ""}
-                          {it.parcelas}x de {brl(valorParcela(it.preco * it.quantidade, it.parcelas ?? 1, it.jurosMensal ?? 0))}
-                          {(it.jurosMensal ?? 0) > 0 && " (com juros)"}
-                        </span>
-                      ) : it.quantidade > 1 ? (
+                      {(it.parcelas ?? 1) > 1 ? (() => {
+                        const status = calcularStatusParcelas(it);
+                        if (it.comprado && status.quitado) {
+                          return (
+                            <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold">
+                              <span>
+                                {it.quantidade > 1 ? `${it.quantidade} un · ` : ""}
+                                {it.parcelas}x de {brl(status.valorParcela)}
+                              </span>
+                              <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9px] uppercase tracking-wide">
+                                Quitado
+                              </span>
+                            </span>
+                          );
+                        }
+                        if (it.comprado && status.ativo && status.parcelaAtualMes > 0) {
+                          return (
+                            <span>
+                              {it.quantidade > 1 ? `${it.quantidade} un · ` : ""}
+                              <strong className="text-foreground">{status.parcelaAtualMes}ª de {it.parcelas}x</strong> de {brl(status.valorParcela)}
+                              {status.parcelasRestantes > 1 && (
+                                <span className="text-muted-foreground font-normal"> ({status.parcelasRestantes} restantes)</span>
+                              )}
+                              {(it.jurosMensal ?? 0) > 0 && " (com juros)"}
+                            </span>
+                          );
+                        }
+                        return (
+                          <span>
+                            {it.quantidade > 1 ? `${it.quantidade} un · ` : ""}
+                            {it.parcelas}x de {brl(status.valorParcela)}
+                            {(it.jurosMensal ?? 0) > 0 && " (com juros)"}
+                          </span>
+                        );
+                      })() : it.quantidade > 1 ? (
                         <span>
                           {it.quantidade}x {brl(it.preco)}
                         </span>
@@ -911,7 +986,13 @@ function PlanejamentoPage() {
                           }
                         >
                           <Check className="h-4 w-4 mr-2" />
-                          {it.comprado ? "Marcar pendente" : "Marcar comprado"}
+                          {it.comprado
+                            ? isPresente
+                              ? "Desmarcar ganhado"
+                              : "Marcar pendente"
+                            : isPresente
+                              ? "Marcar como ganhado"
+                              : "Marcar comprado"}
                         </DropdownMenuItem>
                         {it.linkProduto && (
                           <DropdownMenuItem asChild>

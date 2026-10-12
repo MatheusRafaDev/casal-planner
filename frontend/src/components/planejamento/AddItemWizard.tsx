@@ -439,6 +439,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
       qc.invalidateQueries({ queryKey: ["itens-paginado"] });
       qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
+      qc.invalidateQueries({ queryKey: ["categorias"] });
       reset();
     },
     onError: (e: Error) => {
@@ -1033,16 +1034,26 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                             </div>
                             <div className="min-w-0">
                               <h4 className="text-xs sm:text-sm font-bold leading-tight">
-                                {comprado ? "Item Comprado / Adquirido" : "Pendente na Lista"}
+                                {comprado
+                                  ? origem === "ganho"
+                                    ? "Item Ganhado / Recebido"
+                                    : "Item Comprado / Adquirido"
+                                  : "Pendente na Lista"}
                               </h4>
                               <p className="text-[11px] text-muted-foreground leading-tight">
                                 {comprado
                                   ? dataCompra
-                                    ? `Comprado em ${formatDate(dataCompra)}`
-                                    : "Já adquirido pelo casal"
+                                    ? origem === "ganho"
+                                      ? `Ganhado em ${formatDate(dataCompra)}`
+                                      : `Comprado em ${formatDate(dataCompra)}`
+                                    : origem === "ganho"
+                                      ? "Já recebido de presente"
+                                      : "Já adquirido pelo casal"
                                   : dataCompra
                                     ? `Previsão para ${formatDate(dataCompra)}`
-                                    : "Ainda não comprado"}
+                                    : origem === "ganho"
+                                      ? "Ainda não recebido"
+                                      : "Ainda não comprado"}
                               </p>
                             </div>
                           </div>
@@ -1065,11 +1076,17 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                               className="text-xs font-semibold flex items-center gap-1.5 cursor-pointer text-foreground"
                             >
                               <Calendar className="w-3.5 h-3.5 text-primary" />
-                              {comprado ? "Data da Compra" : "Data de Previsão"}
+                              {comprado
+                                ? origem === "ganho"
+                                  ? "Data que Ganhou"
+                                  : "Data da Compra"
+                                : "Data de Previsão"}
                             </Label>
                             <p className="text-[10px] text-muted-foreground">
                               {comprado
-                                ? "Data em que o item foi adquirido"
+                                ? origem === "ganho"
+                                  ? "Data em que o presente foi recebido"
+                                  : "Data em que o item foi adquirido"
                                 : "Previsão estimada para compra (opcional)"}
                             </p>
                           </div>

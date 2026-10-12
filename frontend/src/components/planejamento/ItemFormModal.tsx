@@ -173,6 +173,7 @@ export function ItemFormModal({
       qc.invalidateQueries({ queryKey: ["itens-paginado"] });
       qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
+      qc.invalidateQueries({ queryKey: ["categorias"] });
       toast.success(vars.id ? "Item atualizado" : "Item adicionado");
     },
     onError: (e: Error) => {
@@ -570,16 +571,26 @@ export function ItemFormModal({
                         </div>
                         <div className="min-w-0">
                           <h4 className="text-xs sm:text-sm font-bold leading-tight">
-                            {form.comprado ? "Item Comprado / Adquirido" : "Pendente na Lista"}
+                            {form.comprado
+                              ? form.origem === "ganho"
+                                ? "Item Ganhado / Recebido"
+                                : "Item Comprado / Adquirido"
+                              : "Pendente na Lista"}
                           </h4>
                           <p className="text-[11px] text-muted-foreground leading-tight">
                             {form.comprado
                               ? form.dataCompra
-                                ? `Comprado em ${formatDate(form.dataCompra)}`
-                                : "Já adquirido pelo casal"
+                                ? form.origem === "ganho"
+                                  ? `Ganhado em ${formatDate(form.dataCompra)}`
+                                  : `Comprado em ${formatDate(form.dataCompra)}`
+                                : form.origem === "ganho"
+                                  ? "Já recebido de presente"
+                                  : "Já adquirido pelo casal"
                               : form.dataCompra
                                 ? `Previsão para ${formatDate(form.dataCompra)}`
-                                : "Ainda não comprado"}
+                                : form.origem === "ganho"
+                                  ? "Ainda não recebido"
+                                  : "Ainda não comprado"}
                           </p>
                         </div>
                       </div>
@@ -602,11 +613,17 @@ export function ItemFormModal({
                           className="text-xs font-semibold flex items-center gap-1.5 cursor-pointer text-foreground"
                         >
                           <Calendar className="w-3.5 h-3.5 text-primary" />
-                          {form.comprado ? "Data da Compra" : "Data de Previsão"}
+                          {form.comprado
+                            ? form.origem === "ganho"
+                              ? "Data que Ganhou"
+                              : "Data da Compra"
+                            : "Data de Previsão"}
                         </Label>
                         <p className="text-[10px] text-muted-foreground">
                           {form.comprado
-                            ? "Data em que o item foi adquirido"
+                            ? form.origem === "ganho"
+                              ? "Data em que o presente foi recebido"
+                              : "Data em que o item foi adquirido"
                             : "Previsão estimada para compra (opcional)"}
                         </p>
                       </div>
