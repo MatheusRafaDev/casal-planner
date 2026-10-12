@@ -65,9 +65,8 @@ async function generate() {
   fs.writeFileSync(path.join(publicDir, "logo.png"), Buffer.from(base64Data, "base64"));
 
   const logoMarkup = `<img src="${croppedDataUrl}" alt="" style="display:block;width:100%;height:100%;object-fit:contain"/>`;
-  const badgeMarkup = `<div style="box-sizing:border-box;width:100%;height:100%;padding:10px;border:2px solid #E2DDD5;border-radius:28%;background:#FAF8F5">${logoMarkup}</div>`;
 
-  // 2. icon-192.png (192x192)
+  // 2. icon-192.png (192x192) - 100% transparente
   await page.setViewportSize({ width: 192, height: 192 });
   await page.setContent(`
     <!DOCTYPE html>
@@ -77,7 +76,7 @@ async function generate() {
           body {
             margin: 0;
             padding: 0;
-            background: #FAF8F5;
+            background: transparent;
             width: 192px;
             height: 192px;
             display: flex;
@@ -85,8 +84,8 @@ async function generate() {
             justify-content: center;
           }
           .box {
-            width: 156px;
-            height: 156px;
+            width: 180px;
+            height: 180px;
           }
         </style>
       </head>
@@ -95,9 +94,9 @@ async function generate() {
       </body>
     </html>
   `);
-  await page.screenshot({ path: path.join(iconsDir, "icon-192.png") });
+  await page.screenshot({ path: path.join(iconsDir, "icon-192.png"), omitBackground: true });
 
-  // 3. icon-512.png (512x512)
+  // 3. icon-512.png (512x512) - 100% transparente
   await page.setViewportSize({ width: 512, height: 512 });
   await page.setContent(`
     <!DOCTYPE html>
@@ -107,7 +106,7 @@ async function generate() {
           body {
             margin: 0;
             padding: 0;
-            background: #FAF8F5;
+            background: transparent;
             width: 512px;
             height: 512px;
             display: flex;
@@ -115,8 +114,8 @@ async function generate() {
             justify-content: center;
           }
           .box {
-            width: 420px;
-            height: 420px;
+            width: 480px;
+            height: 480px;
           }
         </style>
       </head>
@@ -125,9 +124,9 @@ async function generate() {
       </body>
     </html>
   `);
-  await page.screenshot({ path: path.join(iconsDir, "icon-512.png") });
+  await page.screenshot({ path: path.join(iconsDir, "icon-512.png"), omitBackground: true });
 
-  // 4. icon-512-maskable.png (com margem segura de 60%)
+  // 4. icon-512-maskable.png (com margem segura) - 100% transparente
   await page.setContent(`
     <!DOCTYPE html>
     <html>
@@ -136,7 +135,7 @@ async function generate() {
           body {
             margin: 0;
             padding: 0;
-            background: #FAF8F5;
+            background: transparent;
             width: 512px;
             height: 512px;
             display: flex;
@@ -144,8 +143,8 @@ async function generate() {
             justify-content: center;
           }
           .box {
-            width: 320px;
-            height: 320px;
+            width: 380px;
+            height: 380px;
           }
         </style>
       </head>
@@ -154,9 +153,9 @@ async function generate() {
       </body>
     </html>
   `);
-  await page.screenshot({ path: path.join(iconsDir, "icon-512-maskable.png") });
+  await page.screenshot({ path: path.join(iconsDir, "icon-512-maskable.png"), omitBackground: true });
 
-  // 5. apple-touch-icon.png (180x180)
+  // 5. apple-touch-icon.png (180x180) - 100% transparente
   await page.setViewportSize({ width: 180, height: 180 });
   await page.setContent(`
     <!DOCTYPE html>
@@ -166,7 +165,7 @@ async function generate() {
           body {
             margin: 0;
             padding: 0;
-            background: #FAF8F5;
+            background: transparent;
             width: 180px;
             height: 180px;
             display: flex;
@@ -174,17 +173,17 @@ async function generate() {
             justify-content: center;
           }
           .box {
-            width: 160px;
-            height: 160px;
+            width: 170px;
+            height: 170px;
           }
         </style>
       </head>
       <body>
-        <div class="box">${badgeMarkup}</div>
+        <div class="box">${logoMarkup}</div>
       </body>
     </html>
   `);
-  await page.screenshot({ path: path.join(publicDir, "apple-touch-icon.png") });
+  await page.screenshot({ path: path.join(publicDir, "apple-touch-icon.png"), omitBackground: true });
 
   // 6. favicon.png (64x64 PNG transparente sem fundo)
   await page.setViewportSize({ width: 64, height: 64 });
@@ -281,7 +280,7 @@ async function generate() {
   fs.writeFileSync(path.join(publicDir, "favicon.ico"), icoBuffer);
 
   await browser.close();
-  console.log("All icons, logo.png and favicon.ico generated successfully!");
+  console.log("All icons (with 100% transparent backgrounds) generated successfully!");
 }
 
 generate().catch(console.error);
