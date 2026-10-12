@@ -41,24 +41,15 @@ export function usePwa(): UsePwaReturn {
 
     // Registrar o service worker (client-only — nunca durante SSR)
     if ("serviceWorker" in navigator) {
-      if (import.meta.env.DEV) {
-        // Remove o service worker no ambiente de desenvolvimento para não cachear o localhost
-        navigator.serviceWorker.getRegistrations().then((registrations) => {
-          for (const registration of registrations) {
-            registration.unregister();
-            console.log("[PWA] Service Worker desativado em desenvolvimento.");
-          }
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .then((reg) => {
+          reg.update();
+          console.log("[PWA] Service Worker registrado e atualizado:", reg.scope);
+        })
+        .catch((err) => {
+          console.warn("[PWA] Falha ao registrar Service Worker:", err);
         });
-      } else {
-        navigator.serviceWorker
-          .register("/sw.js", { scope: "/" })
-          .then((reg) => {
-            console.log("[PWA] Service Worker registrado:", reg.scope);
-          })
-          .catch((err) => {
-            console.warn("[PWA] Falha ao registrar Service Worker:", err);
-          });
-      }
     }
 
     return () => {
