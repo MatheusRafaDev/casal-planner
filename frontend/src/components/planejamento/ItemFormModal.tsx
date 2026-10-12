@@ -130,7 +130,7 @@ export function ItemFormModal({
           dataCompra: item.dataCompra ? item.dataCompra.split("T")[0] : null,
         });
         setDividir(!!item.divisaoPagamento);
-        setShowLink(!!item.linkProduto);
+        setShowLink(false);
       } else {
         setForm({ ...empty(categoriaId), ...initial });
         setDividir(false);
@@ -415,14 +415,14 @@ export function ItemFormModal({
                         </p>
                       </div>
                     </div>
-                    <Switch
+                    <button
+                      type="button"
                       id="toggle-link-produto"
-                      checked={showLink}
-                      onCheckedChange={(checked) => {
-                        setShowLink(checked);
-                        if (!checked) set("linkProduto", "");
-                      }}
-                    />
+                      onClick={() => setShowLink((v) => !v)}
+                      className="text-xs font-bold text-primary hover:underline cursor-pointer shrink-0"
+                    >
+                      {showLink ? "Ocultar ▲" : form.linkProduto ? "Ver link ▼" : "Adicionar ▼"}
+                    </button>
                   </div>
 
                   <AnimatePresence>
@@ -480,16 +480,18 @@ export function ItemFormModal({
                       <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                         Nome do Produto
                       </Label>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setScannerOpen(true)}
-                        className="h-6 text-[11px] gap-1 text-primary border-primary/30 hover:bg-primary/10 font-bold"
-                      >
-                        <Barcode className="h-3 w-3" />
-                        EAN / Barcode
-                      </Button>
+                      {!item && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setScannerOpen(true)}
+                          className="h-6 text-[11px] gap-1 text-primary border-primary/30 hover:bg-primary/10 font-bold"
+                        >
+                          <Barcode className="h-3 w-3" />
+                          EAN / Barcode
+                        </Button>
+                      )}
                     </div>
                     <div className="relative">
                       <Input
@@ -820,9 +822,6 @@ export function ItemFormModal({
             </div>
 
             <DialogFooter className="p-4 sm:px-6 border-t-2 border-border/80 bg-card shrink-0 flex items-center justify-between sm:justify-between gap-3">
-              <div className="text-xs text-muted-foreground hidden sm:flex items-center gap-1.5">
-                <span>💡 Cole fotos com <kbd className="px-1.5 py-0.5 rounded border bg-muted text-[10px] font-mono font-semibold">Ctrl+V</kbd> ou arraste para cá</span>
-              </div>
               <div className="flex items-center gap-2.5 ml-auto">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                   Cancelar

@@ -165,11 +165,7 @@ function PerfilPage() {
                       {extrairIniciais(usuario.casalInfo?.pessoa2.nome, "2")}
                     </span>
                     <span className="truncate">{usuario.casalInfo?.pessoa2.nome ?? "Pessoa 2"}</span>
-                    {usuario.pessoaLogada === 2 && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
-                        Você
-                      </span>
-                    )}
+
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="p1" className="mt-0">

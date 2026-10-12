@@ -781,10 +781,6 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                     </div>
                   )}
 
-                  <div className="p-3 rounded-lg border bg-muted/20 text-xs text-muted-foreground flex items-center gap-2.5">
-                    <Sparkles className="w-4 h-4 text-primary shrink-0" />
-                    <span>Na próxima etapa, buscaremos os melhores preços online em diversas lojas para comparar e economizar.</span>
-                  </div>
                 </div>
               </div>
             </div>

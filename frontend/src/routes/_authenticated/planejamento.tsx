@@ -246,7 +246,11 @@ function PlanejamentoPage() {
           ...data,
           pages: data.pages.map((page) => ({
             ...page,
-            items: page.items.map((i: Item) => (i.id === id ? { ...i, comprado } : i)),
+            items: page.items.map((i: Item) =>
+              i.id === id
+                ? { ...i, comprado, dataCompra: comprado ? new Date().toISOString() : null }
+                : i,
+            ),
           })),
         };
       });

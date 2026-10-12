@@ -200,6 +200,7 @@ namespace CasalPlanner.Application.Services
             {
                 itemAtual.Comprado = true;
                 itemAtual.Origem = "presente";
+                itemAtual.DataCompra = DateTime.UtcNow;
                 itemAtual.UpdatedAt = DateTime.UtcNow;
                 itemResult = await _itemRepository.UpdateRawAsync(itemAtual);
             }
@@ -208,6 +209,7 @@ namespace CasalPlanner.Application.Services
             {
                 itemAtual.Comprado = false;
                 itemAtual.Origem = "prometido";
+                itemAtual.DataCompra = null;
                 itemAtual.UpdatedAt = DateTime.UtcNow;
                 itemResult = await _itemRepository.UpdateRawAsync(itemAtual);
             }

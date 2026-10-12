@@ -48,7 +48,7 @@ namespace CasalPlanner.Infrastructure.Repositories
             {
                 if (status == "comprados") filter &= builder.Eq(i => i.Comprado, true);
                 else if (status == "faltando") filter &= builder.Eq(i => i.Comprado, false);
-                else if (status == "presentes") filter &= builder.Eq(i => i.Origem, OrigemItem.Presente) | builder.Eq(i => i.Origem, OrigemItem.Prometido);
+                else if (status == "presentes") filter &= builder.In(i => i.Origem, new[] { OrigemItem.Presente, OrigemItem.Prometido, "ganho" });
             }
 
             if (!string.IsNullOrEmpty(pagamento) && pagamento != "todos")
@@ -128,6 +128,9 @@ namespace CasalPlanner.Infrastructure.Repositories
         {
             var filter = Builders<Item>.Filter.And(Builders<Item>.Filter.Eq(i => i.Id, id), Builders<Item>.Filter.Eq(i => i.UsuarioId, usuarioId));
             var update = Builders<Item>.Update.Set(i => i.Comprado, comprado).Set(i => i.UpdatedAt, DateTime.UtcNow);
+            update = comprado
+                ? update.Set(i => i.DataCompra, DateTime.UtcNow)
+                : update.Set(i => i.DataCompra, (DateTime?)null);
             var options = new FindOneAndUpdateOptions<Item> { ReturnDocument = ReturnDocument.After };
             return await _context.Itens.FindOneAndUpdateAsync(filter, update, options);
         }
