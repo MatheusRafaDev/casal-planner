@@ -299,17 +299,8 @@ export function PerfilSkeleton() {
           </div>
         </div>
 
-        {/* Coluna Direita: Casal, Dia da Mudança, Lista, Exportar, Sessão */}
+        {/* Coluna Direita: Dia da Mudança, Lista, Exportar, Sessão */}
         <div className="lg:col-span-5 space-y-6">
-          {/* Card: Nosso Casal */}
-          <div className="skeleton-card p-5 md:p-6 space-y-4">
-            <Shimmer className="h-6 w-32" />
-            <div className="space-y-3">
-              <Shimmer className="h-14 w-full" rounded="xl" />
-              <Shimmer className="h-14 w-full" rounded="xl" />
-            </div>
-          </div>
-
           {/* Card: Dia da Mudança */}
           <div className="skeleton-card p-5 md:p-6 space-y-4">
             <div className="flex items-center justify-between">

@@ -11,7 +11,6 @@ import {
   Share2,
   Copy,
   Check,
-  MailOpen,
   LogOut,
   Download,
   Bell,
@@ -24,7 +23,6 @@ import { useAuth } from "@/lib/auth-context";
 
 import { usuarioService } from "@/services/usuario";
 import { resumoService } from "@/services/resumo";
-import { conviteService } from "@/services/convite";
 import { recuperarSenhaService } from "@/services/recuperar-senha";
 import { itensService } from "@/services/itens";
 import { Button } from "@/components/ui/button";
@@ -241,59 +239,8 @@ function PerfilPage() {
           </motion.div>
         </div>
 
-        {/* Right Column: Nosso Casal, Lista Pública, Sessão e Dados */}
+        {/* Right Column: Dia da Mudança, Lista Pública, Exportar, Sessão e Dados */}
         <div className="lg:col-span-5 space-y-6">
-          {/* Card: Nosso Casal matching Page 7 */}
-          <motion.div variants={itemVariants}>
-            {isCasal ? (
-              <div className="card-sticker p-5 md:p-6 bg-card space-y-4">
-                <h2 className="font-display font-bold text-xl text-foreground">Nosso casal</h2>
-
-                {/* Member 1 */}
-                <div className="card-sticker p-3.5 bg-primary-tint/30 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="h-8 w-8 rounded-full bg-[#2F7D5B] border-2 border-border grid place-items-center text-white font-bold text-xs shrink-0 shadow-xs">
-                      {usuario.casalInfo?.pessoa1.nome?.charAt(0).toUpperCase() || "1"}
-                    </span>
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-bold text-sm text-foreground truncate">
-                        {usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}
-                      </span>
-                      <span className="text-xs font-semibold text-muted-foreground">
-                        {usuario.pessoaLogada === 1 ? "Você está conectado" : "Conta vinculada"}
-                      </span>
-                    </div>
-                  </div>
-                  <span className="text-[11px] font-bold px-2.5 py-1 rounded-full border border-[#2F7D5B]/30 bg-[#2F7D5B]/15 text-[#16623A] shrink-0">
-                    Parceiro(a) 1
-                  </span>
-                </div>
-
-                {/* Member 2 */}
-                <div className="card-sticker p-3.5 bg-[#E8B63C]/15 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="h-8 w-8 rounded-full bg-[#E8B63C] border-2 border-border grid place-items-center text-[#24302A] font-bold text-xs shrink-0 shadow-xs">
-                      {usuario.casalInfo?.pessoa2.nome?.charAt(0).toUpperCase() || "2"}
-                    </span>
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-bold text-sm text-foreground truncate">
-                        {usuario.casalInfo?.pessoa2.nome ?? "Pessoa 2"}
-                      </span>
-                      <span className="text-xs font-semibold text-muted-foreground">
-                        {usuario.pessoaLogada === 2 ? "Você está conectado" : "Conta vinculada"}
-                      </span>
-                    </div>
-                  </div>
-                  <span className="text-[11px] font-bold px-2.5 py-1 rounded-full border border-[#E8B63C]/40 bg-[#E8B63C]/20 text-[#8A5A00] shrink-0">
-                    Parceiro(a) 2
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <ConvidarParceiroCard />
-            )}
-          </motion.div>
-
           {/* Card: Dia da Mudança */}
           <motion.div variants={itemVariants}>
             <WidgetDiaMudanca />
@@ -605,87 +552,6 @@ function TrocarSenhaCard() {
       <KeyRound className="h-4 w-4 mr-1.5" />
       {mut.isPending ? "Enviando e-mail..." : "Trocar senha"}
     </Button>
-  );
-}
-
-function ConvidarParceiroCard() {
-  const { refresh } = useAuth();
-  const [emailParceiro, setEmailParceiro] = useState("");
-  const navigate = useNavigate();
-
-  const convitesQuery = useQuery({
-    queryKey: ["meus-convites"],
-    queryFn: () => conviteService.buscarMeusConvites(),
-  });
-
-  const aceitarMutation = useMutation({
-    mutationFn: (token: string) => conviteService.aceitar({ token, migrarDados: true }),
-    onSuccess: async () => {
-      toast.success("Convite aceito! Contas vinculadas.");
-      await refresh();
-      navigate({ to: "/inicio" });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const conviteMutation = useMutation({
-    mutationFn: () => conviteService.criar({ emailParceiro }),
-    onSuccess: () => {
-      toast.success("Convite enviado com sucesso!");
-      setEmailParceiro("");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  return (
-    <div className="card-sticker p-5 md:p-6 bg-card space-y-4">
-      <div className="flex items-center gap-2">
-        <MailOpen className="h-5 w-5 text-primary" />
-        <h2 className="font-display font-bold text-xl text-foreground">Conectar com parceiro(a)</h2>
-      </div>
-      <p className="text-xs font-semibold text-muted-foreground">
-        Vincule sua conta para planejarem a casa juntos em tempo real.
-      </p>
-
-      {convitesQuery.data && convitesQuery.data.length > 0 && (
-        <div className="space-y-2">
-          {convitesQuery.data.map((c) => (
-            <div
-              key={c.token}
-              className="card-sticker p-3 bg-primary-tint/20 flex items-center justify-between gap-2"
-            >
-              <span className="text-xs font-bold text-foreground">
-                {c.nomeConvidante} convidou você
-              </span>
-              <Button
-                size="sm"
-                className="btn-sticker bg-primary text-primary-foreground text-xs"
-                onClick={() => aceitarMutation.mutate(c.token)}
-                disabled={aceitarMutation.isPending}
-              >
-                Aceitar
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="flex gap-2">
-        <Input
-          type="email"
-          placeholder="parceiro@email.com"
-          value={emailParceiro}
-          onChange={(e) => setEmailParceiro(e.target.value)}
-        />
-        <Button
-          onClick={() => conviteMutation.mutate()}
-          disabled={!emailParceiro || conviteMutation.isPending}
-          className="btn-sticker bg-primary text-primary-foreground shrink-0"
-        >
-          Convidar
-        </Button>
-      </div>
-    </div>
   );
 }
 
