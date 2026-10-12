@@ -1,74 +1,58 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" width="48" height="48">
-  <!-- Casinha de fundo com telhado protetor -->
+  <defs>
+    <!-- Gradiente Verde Esmeralda (Pessoa 1) -->
+    <linearGradient id="logo-green" x1="11" y1="9" x2="23" y2="41" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34A853" />
+      <stop offset="100%" stop-color="#24784F" />
+    </linearGradient>
+
+    <!-- Gradiente Amarelo Dourado (Pessoa 2) -->
+    <linearGradient id="logo-gold" x1="25" y1="9" x2="37" y2="41" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FBBF24" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+
+    <filter id="logo-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.12" />
+    </filter>
+  </defs>
+
+  <!-- 1. BONEQUINHO ESQUERDO (Verde Esmeralda) -->
+  <circle cx="17" cy="15" r="6.8" fill="url(#logo-green)" />
   <path
-    d="M7 19 L24 5 L41 19 V41 C41 42.6569 39.6569 44 38 44 H10 C8.34315 44 7 42.6569 7 41 Z"
-    fill="#FFFDF8"
-    stroke="#24302A"
-    stroke-width="2.5"
-    stroke-linejoin="round"
+    d="M 17 22.5 C 10.5 22.5 6 27.5 6 34.5 C 6 39.5 9.5 42 16 42 C 20.5 42 24.5 39.5 26.5 35 C 25.5 28.5 22 22.5 17 22.5 Z"
+    fill="url(#logo-green)"
   />
 
-  <!-- Telhado charmoso destacado -->
+  <!-- 2. BONEQUINHO DIREITO (Amarelo Dourado) -->
+  <circle cx="31" cy="15" r="6.8" fill="url(#logo-gold)" />
   <path
-    d="M4 20 L24 4 L44 20"
-    stroke="#24302A"
-    stroke-width="3"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <path
-    d="M24 7 L39 19 H9 Z"
-    fill="#E8B63C"
+    d="M 31 22.5 C 26 22.5 22.5 28.5 21.5 35 C 23.5 39.5 27.5 42 32 42 C 38.5 42 42 39.5 42 34.5 C 42 27.5 37.5 22.5 31 22.5 Z"
+    fill="url(#logo-gold)"
   />
 
-  <!-- Coração do casal no alto do telhado -->
+  <!-- Intersecção central -->
   <path
-    d="M24 12 C23 10.5 20.8 10.5 20.8 12.2 C20.8 14 24 16 24 16 C24 16 27.2 14 27.2 12.2 C27.2 10.5 25 10.5 24 12 Z"
-    fill="#E0531C"
-    stroke="#24302A"
-    stroke-width="1.2"
-    stroke-linejoin="round"
+    d="M 24 24 C 21.5 28 20 33 20 38 C 21 40 23 41.5 24 41.8 C 25 41.5 27 40 28 38 C 28 33 26.5 28 24 24 Z"
+    fill="#266B46"
+    opacity="0.35"
   />
 
-  <!-- Boneco Verde (Pessoa 1 - Esquerda) -->
-  <g id="boneco-verde">
-    <!-- Cabeça -->
-    <circle
-      cx="17"
-      cy="24"
-      r="4.2"
-      fill="#2F7D5B"
-      stroke="#24302A"
-      stroke-width="2"
-    />
-    <!-- Corpo -->
+  <!-- 3. O LAR NO CENTRO (Casinha Branca) -->
+  <g filter="url(#logo-shadow)">
+    <rect x="27.5" y="24" width="2.6" height="5" rx="0.6" fill="#FFFFFF" stroke="#E2DDD5" stroke-width="0.8" />
     <path
-      d="M11 44 C11 35 13.5 30.5 17 30.5 C20.5 30.5 23 35 23 44 Z"
-      fill="#2F7D5B"
-      stroke="#24302A"
-      stroke-width="2"
+      d="M 24 23.2 L 32.2 29.8 C 32.6 30.1 32.5 30.7 32 30.7 H 30.5 V 39.5 C 30.5 40.3 29.8 41 29 41 H 19 C 18.2 41 17.5 40.3 17.5 39.5 V 30.7 H 16 C 15.5 30.7 15.4 30.1 15.8 29.8 L 24 23.2 Z"
+      fill="#FFFFFF"
+      stroke="#E2DDD5"
+      stroke-width="0.8"
       stroke-linejoin="round"
     />
-  </g>
-
-  <!-- Boneco Amarelo (Pessoa 2 - Direita) -->
-  <g id="boneco-amarelo">
-    <!-- Cabeça -->
-    <circle
-      cx="31"
-      cy="24"
-      r="4.2"
-      fill="#E8B63C"
-      stroke="#24302A"
-      stroke-width="2"
-    />
-    <!-- Corpo -->
     <path
-      d="M25 44 C25 35 27.5 30.5 31 30.5 C34.5 30.5 37 35 37 44 Z"
-      fill="#E8B63C"
-      stroke="#24302A"
-      stroke-width="2"
-      stroke-linejoin="round"
+      d="M 22 41 V 34.8 C 22 33.8 22.8 33 23.8 33 H 24.2 C 25.2 33 26 33.8 26 34.8 V 41"
+      fill="#FAF8F5"
+      stroke="#E2DDD5"
+      stroke-width="0.75"
     />
   </g>
 </svg>

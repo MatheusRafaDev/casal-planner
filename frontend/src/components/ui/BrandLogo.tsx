@@ -1,88 +1,92 @@
-import type { SVGProps } from "react";
+import { useId, type SVGProps } from "react";
 
 /**
  * Ícone Oficial CasalPlanner:
- * Une Casa (Lar), Casal (Verde e Dourado) e Planner (Checkmark dinâmico de metas)
+ * Dois bonequinhos (Verde Esmeralda e Amarelo Dourado) abraçando o Lar (Casa Branca Central).
  */
 export function BrandLogoIcon({ className = "h-5 w-5", ...props }: SVGProps<SVGSVGElement>) {
+  const id = useId();
+  const cleanId = id.replace(/:/g, "");
+  const greenGradId = `cp-green-${cleanId}`;
+  const goldGradId = `cp-gold-${cleanId}`;
+  const shadowId = `cp-shadow-${cleanId}`;
+
   return (
     <svg viewBox="0 0 48 48" fill="none" className={className} aria-hidden="true" {...props}>
-      {/* Chaminé acolhedora */}
+      <defs>
+        {/* Gradiente Verde Esmeralda (Pessoa 1) */}
+        <linearGradient id={greenGradId} x1="11" y1="9" x2="23" y2="41" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#34A853" />
+          <stop offset="100%" stopColor="#24784F" />
+        </linearGradient>
+
+        {/* Gradiente Amarelo Dourado (Pessoa 2) */}
+        <linearGradient id={goldGradId} x1="25" y1="9" x2="37" y2="41" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#FBBF24" />
+          <stop offset="100%" stopColor="#D97706" />
+        </linearGradient>
+
+        {/* Sombra sutil sob a casinha */}
+        <filter id={shadowId} x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" floodColor="#000000" floodOpacity="0.12" />
+        </filter>
+      </defs>
+
+      {/* ========================================================
+          1. BONEQUINHO ESQUERDO (Verde Esmeralda)
+          ======================================================== */}
+      {/* Cabeça Esquerda */}
+      <circle cx="17" cy="15" r="6.8" fill={`url(#${greenGradId})`} />
+
+      {/* Corpo / Ombro Esquerdo */}
       <path
-        d="M12 16 V10 H17 V13.5"
-        fill="#E8B63C"
-        stroke="#24302A"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M 17 22.5 C 10.5 22.5 6 27.5 6 34.5 C 6 39.5 9.5 42 16 42 C 20.5 42 24.5 39.5 26.5 35 C 25.5 28.5 22 22.5 17 22.5 Z"
+        fill={`url(#${greenGradId})`}
       />
 
-      {/* Estrutura da casa (paredes) */}
+      {/* ========================================================
+          2. BONEQUINHO DIREITO (Amarelo Dourado)
+          ======================================================== */}
+      {/* Cabeça Direita */}
+      <circle cx="31" cy="15" r="6.8" fill={`url(#${goldGradId})`} />
+
+      {/* Corpo / Ombro Direito */}
       <path
-        d="M9 20 L24 7 L39 20 V40 C39 41.65 37.65 43 36 43 H12 C10.35 43 9 41.65 9 40 Z"
-        fill="#FFFDF8"
-        stroke="#24302A"
-        strokeWidth="2.5"
-        strokeLinejoin="round"
+        d="M 31 22.5 C 26 22.5 22.5 28.5 21.5 35 C 23.5 39.5 27.5 42 32 42 C 38.5 42 42 39.5 42 34.5 C 42 27.5 37.5 22.5 31 22.5 Z"
+        fill={`url(#${goldGradId})`}
       />
 
-      {/* Telhado charmoso verde floresta */}
+      {/* Intersecção / União dos dois corpos no centro */}
       <path
-        d="M6 21 L24 6 L42 21"
-        stroke="#2F7D5B"
-        strokeWidth="3.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M 24 24 C 21.5 28 20 33 20 38 C 21 40 23 41.5 24 41.8 C 25 41.5 27 40 28 38 C 28 33 26.5 28 24 24 Z"
+        fill="#266B46"
+        opacity="0.35"
       />
 
-      {/* Coração sutil no ápice do telhado */}
-      <path
-        d="M24 11.5 C23.2 10.5 21.8 10.5 21.8 11.7 C21.8 13 24 14.5 24 14.5 C24 14.5 26.2 13 26.2 11.7 C26.2 10.5 24.8 10.5 24 11.5 Z"
-        fill="#E0531C"
-        stroke="#24302A"
-        strokeWidth="1"
-        strokeLinejoin="round"
-      />
+      {/* ========================================================
+          3. O LAR NO CENTRO (Casinha com Chaminé)
+          ======================================================== */}
+      <g filter={`url(#${shadowId})`}>
+        {/* Chaminé */}
+        <rect x="27.5" y="24" width="2.6" height="5" rx="0.6" fill="#FFFFFF" stroke="#E2DDD5" strokeWidth="0.8" />
 
-      {/* Pessoa 1 - Verde (Matheus) */}
-      <g id="pessoa-verde">
-        <circle cx="18" cy="23" r="3.5" fill="#2F7D5B" stroke="#24302A" strokeWidth="1.8" />
+        {/* Estrutura da Casinha (Telhado Inclinado + Paredes) */}
         <path
-          d="M12.5 36 C12.5 29.5 15 28 18 28 C21 28 23.5 29.5 23.5 36 Z"
-          fill="#2F7D5B"
-          stroke="#24302A"
-          strokeWidth="1.8"
+          d="M 24 23.2 L 32.2 29.8 C 32.6 30.1 32.5 30.7 32 30.7 H 30.5 V 39.5 C 30.5 40.3 29.8 41 29 41 H 19 C 18.2 41 17.5 40.3 17.5 39.5 V 30.7 H 16 C 15.5 30.7 15.4 30.1 15.8 29.8 L 24 23.2 Z"
+          fill="#FFFFFF"
+          stroke="#E2DDD5"
+          strokeWidth="0.8"
           strokeLinejoin="round"
         />
-      </g>
 
-      {/* Pessoa 2 - Amarelo/Dourado (Rayane) */}
-      <g id="pessoa-amarela">
-        <circle cx="28.5" cy="24" r="3.5" fill="#E8B63C" stroke="#24302A" strokeWidth="1.8" />
+        {/* Portinha Acolhedora no Centro */}
         <path
-          d="M23.5 36 C23.5 30.5 25.5 29 28.5 29 C31.5 29 34.5 30.5 34.5 36 Z"
-          fill="#E8B63C"
-          stroke="#24302A"
-          strokeWidth="1.8"
-          strokeLinejoin="round"
+          d="M 22 41 V 34.8 C 22 33.8 22.8 33 23.8 33 H 24.2 C 25.2 33 26 33.8 26 34.8 V 41"
+          fill="#FAF8F5"
+          stroke="#E2DDD5"
+          strokeWidth="0.75"
         />
       </g>
-
-      {/* Checkmark marcante do Planner cruzando à frente */}
-      <path
-        d="M16 34 L23.5 40.5 L38.5 23"
-        stroke="#24302A"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M16 34 L23.5 40.5 L38.5 23"
-        stroke="#E8B63C"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
     </svg>
   );
 }
@@ -94,16 +98,16 @@ interface BrandLogoBadgeProps {
 
 export function BrandLogoBadge({ size = "md", className = "" }: BrandLogoBadgeProps) {
   const sizeMap = {
-    sm: { box: "h-9 w-9 rounded-xl", icon: "h-5 w-5" },
-    md: { box: "h-10 w-10 rounded-xl", icon: "h-6 w-6" },
-    lg: { box: "h-12 w-12 rounded-2xl", icon: "h-7 w-7" },
+    sm: { box: "h-9 w-9 rounded-xl", icon: "h-6 w-6" },
+    md: { box: "h-11 w-11 rounded-xl", icon: "h-7 w-7" },
+    lg: { box: "h-13 w-13 rounded-2xl", icon: "h-8.5 w-8.5" },
   };
 
   const current = sizeMap[size];
 
   return (
     <span
-      className={`grid ${current.box} shrink-0 place-items-center border-2 border-border bg-[#FFFDF8] shadow-[2.5px_2.5px_0_var(--border)] transition-transform group-hover:scale-105 ${className}`}
+      className={`grid ${current.box} shrink-0 place-items-center border border-[#E8E3DA] dark:border-[#2A2724] bg-white dark:bg-[#181716] shadow-xs transition-transform group-hover:scale-105 ${className}`}
     >
       <BrandLogoIcon className={current.icon} />
     </span>
@@ -119,7 +123,7 @@ export interface BrandLogoTextProps {
 
 /**
  * Wordmark Oficial do CasalPlanner:
- * Tipografia limpa, harmoniosa e com selo de checkmark sutil e elegante.
+ * Tipografia moderna, sofisticada e limpa (Outfit) com detalhe dourado sutil.
  */
 export function BrandLogoText({
   size = "md",
@@ -130,31 +134,23 @@ export function BrandLogoText({
   const sizeMap = {
     sm: {
       text: "text-[18px]",
-      checkBadge: "w-4 h-4 ml-1",
-      checkSvg: "w-2.5 h-2.5",
-      checkStroke: "2.6",
-      tagline: "text-[9px] tracking-wider",
+      dot: "w-1.5 h-1.5 ml-1",
+      tagline: "text-[9px] tracking-[0.18em]",
     },
     md: {
       text: "text-[22px]",
-      checkBadge: "w-5 h-5 ml-1.5",
-      checkSvg: "w-3 h-3",
-      checkStroke: "2.8",
-      tagline: "text-[10px] tracking-wider",
+      dot: "w-2 h-2 ml-1.5",
+      tagline: "text-[10px] tracking-[0.18em]",
     },
     lg: {
-      text: "text-[28px]",
-      checkBadge: "w-6 h-6 ml-2",
-      checkSvg: "w-3.5 h-3.5",
-      checkStroke: "3",
-      tagline: "text-[11px] tracking-wider",
+      text: "text-[27px]",
+      dot: "w-2.5 h-2.5 ml-1.5",
+      tagline: "text-[11px] tracking-[0.2em]",
     },
     xl: {
-      text: "text-[34px]",
-      checkBadge: "w-7 h-7 ml-2.5",
-      checkSvg: "w-4 h-4",
-      checkStroke: "3.2",
-      tagline: "text-[12px] tracking-wider",
+      text: "text-[33px]",
+      dot: "w-3 h-3 ml-2",
+      tagline: "text-[12px] tracking-[0.2em]",
     },
   };
 
@@ -163,38 +159,27 @@ export function BrandLogoText({
   return (
     <div className={`inline-flex flex-col select-none leading-none ${className}`}>
       <span
-        className={`font-display font-extrabold tracking-tight inline-flex items-center ${current.text}`}
+        className={`font-brand tracking-[-0.02em] inline-flex items-baseline ${current.text}`}
       >
-        <span className="text-[#2F7D5B]">Casal</span>
-        <span className="text-[#24302A] dark:text-foreground ml-0.5">Planner</span>
+        <span className="font-extrabold text-[#206E49] dark:text-[#4FB387] transition-colors">
+          Casal
+        </span>
+        <span className="font-bold text-[#1E2922] dark:text-[#FAF6EE] ml-[3px] transition-colors">
+          Planner
+        </span>
 
-        {/* Selo minimalista com Checkmark */}
+        {/* Ponto solar dourado sutil */}
         {withDot && (
           <span
-            className={`${current.checkBadge} inline-flex items-center justify-center rounded-md bg-[#2F7D5B] text-white border-1.5 border-[#24302A] shadow-[1.5px_1.5px_0_#24302A] shrink-0 transition-transform group-hover:scale-105`}
+            className={`${current.dot} inline-block rounded-full bg-gradient-to-tr from-[#F59E0B] to-[#D97706] shadow-xs shrink-0 transition-transform group-hover:scale-125`}
             title="CasalPlanner"
-          >
-            <svg
-              className={current.checkSvg}
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M3.2 8.4 L6.4 11.6 L12.8 4.6"
-                stroke="currentColor"
-                strokeWidth={current.checkStroke}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
+          />
         )}
       </span>
 
       {withTagline && (
         <span
-          className={`font-sans font-bold uppercase text-muted-foreground mt-1 ${current.tagline}`}
+          className={`font-sans font-bold uppercase text-muted-foreground/85 mt-1 ${current.tagline}`}
         >
           Planejamento a dois
         </span>
@@ -230,3 +215,4 @@ export function BrandLogoWordmark({
     </div>
   );
 }
+

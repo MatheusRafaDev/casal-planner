@@ -11,65 +11,66 @@ if (!fs.existsSync(iconsDir)) {
   fs.mkdirSync(iconsDir, { recursive: true });
 }
 
-const houseSvg = `
+// Logo Oficial do CasalPlanner: Casal (Verde Esmeralda e Amarelo Dourado) abraçando o Lar (Casinha Central Branca)
+const coupleSvg = `
 <svg viewBox="0 0 48 48" fill="none" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pwa-green" x1="11" y1="9" x2="23" y2="41" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34A853" />
+      <stop offset="100%" stop-color="#206E49" />
+    </linearGradient>
+
+    <linearGradient id="pwa-gold" x1="25" y1="9" x2="37" y2="41" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FBBF24" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+
+    <filter id="pwa-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.16" />
+    </filter>
+  </defs>
+
+  <!-- 1. BONEQUINHO ESQUERDO (Verde Esmeralda) -->
+  <circle cx="17" cy="15" r="6.8" fill="url(#pwa-green)" />
   <path
-    d="M7 19 L24 5 L41 19 V41 C41 42.6569 39.6569 44 38 44 H10 C8.34315 44 7 42.6569 7 41 Z"
-    fill="#FFFDF8"
-    stroke="#24302A"
-    stroke-width="2.5"
-    stroke-linejoin="round"
+    d="M 17 22.5 C 10.5 22.5 6 27.5 6 34.5 C 6 39.5 9.5 42 16 42 C 20.5 42 24.5 39.5 26.5 35 C 25.5 28.5 22 22.5 17 22.5 Z"
+    fill="url(#pwa-green)"
   />
+
+  <!-- 2. BONEQUINHO DIREITO (Amarelo Dourado) -->
+  <circle cx="31" cy="15" r="6.8" fill="url(#pwa-gold)" />
   <path
-    d="M24 7 L39 19 H9 Z"
-    fill="#E8B63C"
+    d="M 31 22.5 C 26 22.5 22.5 28.5 21.5 35 C 23.5 39.5 27.5 42 32 42 C 38.5 42 42 39.5 42 34.5 C 42 27.5 37.5 22.5 31 22.5 Z"
+    fill="url(#pwa-gold)"
   />
+
+  <!-- Intersecção central -->
   <path
-    d="M4 20 L24 4 L44 20"
-    stroke="#24302A"
-    stroke-width="3"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    d="M 24 24 C 21.5 28 20 33 20 38 C 21 40 23 41.5 24 41.8 C 25 41.5 27 40 28 38 C 28 33 26.5 28 24 24 Z"
+    fill="#206E49"
+    opacity="0.35"
   />
-  <path
-    d="M24 12 C23 10.5 20.8 10.5 20.8 12.2 C20.8 14 24 16 24 16 C24 16 27.2 14 27.2 12.2 C27.2 10.5 25 10.5 24 12 Z"
-    fill="#E0531C"
-    stroke="#24302A"
-    stroke-width="1.2"
-    stroke-linejoin="round"
-  />
-  <g id="boneco-verde">
-    <circle
-      cx="17"
-      cy="24"
-      r="4.2"
-      fill="#2F7D5B"
-      stroke="#24302A"
-      stroke-width="2"
-    />
+
+  <!-- 3. O LAR NO CENTRO (Casinha Branca com Chaminé e Portinha) -->
+  <g filter="url(#pwa-shadow)">
+    <!-- Chaminé -->
+    <rect x="27.5" y="24" width="2.6" height="5" rx="0.6" fill="#FFFFFF" stroke="#D1CAC0" stroke-width="0.9" />
+
+    <!-- Estrutura da Casinha (Telhado + Paredes) -->
     <path
-      d="M11 44 C11 35 13.5 30.5 17 30.5 C20.5 30.5 23 35 23 44 Z"
-      fill="#2F7D5B"
-      stroke="#24302A"
-      stroke-width="2"
+      d="M 24 23.2 L 32.2 29.8 C 32.6 30.1 32.5 30.7 32 30.7 H 30.5 V 39.5 C 30.5 40.3 29.8 41 29 41 H 19 C 18.2 41 17.5 40.3 17.5 39.5 V 30.7 H 16 C 15.5 30.7 15.4 30.1 15.8 29.8 L 24 23.2 Z"
+      fill="#FFFFFF"
+      stroke="#D1CAC0"
+      stroke-width="0.9"
       stroke-linejoin="round"
     />
-  </g>
-  <g id="boneco-amarelo">
-    <circle
-      cx="31"
-      cy="24"
-      r="4.2"
-      fill="#E8B63C"
-      stroke="#24302A"
-      stroke-width="2"
-    />
+
+    <!-- Portinha Acolhedora -->
     <path
-      d="M25 44 C25 35 27.5 30.5 31 30.5 C34.5 30.5 37 35 37 44 Z"
-      fill="#E8B63C"
-      stroke="#24302A"
-      stroke-width="2"
-      stroke-linejoin="round"
+      d="M 22 41 V 34.8 C 22 33.8 22.8 33 23.8 33 H 24.2 C 25.2 33 26 33.8 26 34.8 V 41"
+      fill="#FAF8F5"
+      stroke="#D1CAC0"
+      stroke-width="0.8"
     />
   </g>
 </svg>
@@ -77,10 +78,9 @@ const houseSvg = `
 
 const badgeSvg = `
 <svg viewBox="0 0 64 64" fill="none" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-  <rect x="5.5" y="5.5" width="53" height="53" rx="14" fill="#24302A" />
-  <rect x="3" y="3" width="53" height="53" rx="14" fill="#FFFDF8" stroke="#24302A" stroke-width="2.5" />
+  <rect x="1.5" y="1.5" width="61" height="61" rx="16" fill="#FAF8F5" stroke="#E2DDD5" stroke-width="2" />
   <g transform="translate(8, 8)">
-    ${houseSvg}
+    ${coupleSvg}
   </g>
 </svg>
 `;
@@ -89,7 +89,7 @@ async function generate() {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
 
-  // 1. icon-192.png (192x192, transparent or background)
+  // 1. icon-192.png (192x192)
   await page.setViewportSize({ width: 192, height: 192 });
   await page.setContent(`
     <!DOCTYPE html>
@@ -99,7 +99,7 @@ async function generate() {
           body {
             margin: 0;
             padding: 0;
-            background: #F6F1E9;
+            background: #FAF8F5;
             width: 192px;
             height: 192px;
             display: flex;
@@ -107,13 +107,13 @@ async function generate() {
             justify-content: center;
           }
           .box {
-            width: 150px;
-            height: 150px;
+            width: 156px;
+            height: 156px;
           }
         </style>
       </head>
       <body>
-        <div class="box">${houseSvg}</div>
+        <div class="box">${coupleSvg}</div>
       </body>
     </html>
   `);
@@ -129,7 +129,7 @@ async function generate() {
           body {
             margin: 0;
             padding: 0;
-            background: #F6F1E9;
+            background: #FAF8F5;
             width: 512px;
             height: 512px;
             display: flex;
@@ -137,19 +137,19 @@ async function generate() {
             justify-content: center;
           }
           .box {
-            width: 400px;
-            height: 400px;
+            width: 416px;
+            height: 416px;
           }
         </style>
       </head>
       <body>
-        <div class="box">${houseSvg}</div>
+        <div class="box">${coupleSvg}</div>
       </body>
     </html>
   `);
   await page.screenshot({ path: path.join(iconsDir, "icon-512.png") });
 
-  // 3. icon-512-maskable.png (fundo #2F7D5B, símbolo dentro da área segura ~65% do tamanho)
+  // 3. icon-512-maskable.png (fundo #206E49 verde, símbolo centralizado seguro)
   await page.setContent(`
     <!DOCTYPE html>
     <html>
@@ -158,7 +158,7 @@ async function generate() {
           body {
             margin: 0;
             padding: 0;
-            background: #2F7D5B;
+            background: #FAF8F5;
             width: 512px;
             height: 512px;
             display: flex;
@@ -166,13 +166,13 @@ async function generate() {
             justify-content: center;
           }
           .box {
-            width: 320px;
-            height: 320px;
+            width: 340px;
+            height: 340px;
           }
         </style>
       </head>
       <body>
-        <div class="box">${houseSvg}</div>
+        <div class="box">${coupleSvg}</div>
       </body>
     </html>
   `);
@@ -188,7 +188,7 @@ async function generate() {
           body {
             margin: 0;
             padding: 0;
-            background: #F6F1E9;
+            background: #FAF8F5;
             width: 180px;
             height: 180px;
             display: flex;
@@ -196,8 +196,8 @@ async function generate() {
             justify-content: center;
           }
           .box {
-            width: 156px;
-            height: 156px;
+            width: 160px;
+            height: 160px;
           }
         </style>
       </head>
@@ -208,7 +208,7 @@ async function generate() {
   `);
   await page.screenshot({ path: path.join(publicDir, "apple-touch-icon.png") });
 
-  // 5. favicon.png (64x64 PNG)
+  // 5. favicon.png (64x64 PNG com fundo badge nítido)
   await page.setViewportSize({ width: 64, height: 64 });
   await page.setContent(`
     <!DOCTYPE html>
@@ -248,7 +248,7 @@ async function generate() {
           body {
             margin: 0;
             padding: 0;
-            background: #F6F1E9;
+            background: #FAF8F5;
             width: 512px;
             height: 512px;
             display: flex;
@@ -262,7 +262,7 @@ async function generate() {
         </style>
       </head>
       <body>
-        <div class="box">${houseSvg}</div>
+        <div class="box">${coupleSvg}</div>
       </body>
     </html>
   `);
@@ -273,7 +273,7 @@ async function generate() {
   const pngBuffers = [];
   for (const s of icoSizes) {
     await page.setViewportSize({ width: s, height: s });
-    const padding = Math.max(1, Math.floor(s * 0.08));
+    const padding = Math.max(1, Math.floor(s * 0.05));
     const boxSize = s - padding * 2;
     await page.setContent(`
       <!DOCTYPE html>
@@ -335,7 +335,7 @@ async function generate() {
   fs.writeFileSync(path.join(publicDir, "favicon.ico"), icoBuffer);
 
   await browser.close();
-  console.log("Icons, logo.png and favicon.ico generated successfully!");
+  console.log("All icons, logo.png and favicon.ico generated with official couple icon successfully!");
 }
 
 generate().catch(console.error);

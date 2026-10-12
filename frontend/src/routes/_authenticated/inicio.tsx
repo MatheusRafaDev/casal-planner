@@ -163,7 +163,7 @@ function InicioPage() {
       if (it.origem === "ganho" || it.pagamento === "vr") return;
       const parcelas = Math.max(1, it.parcelas ?? 1);
       if (parcelas <= 1 && it.comprado) return;
-      const dataBase = it.dataCompra ? new Date(it.dataCompra) : new Date(it.createdAt);
+      const dataBase = it.dataCompra ? new Date(it.dataCompra) : new Date(it.createdAt ?? Date.now());
       const diffMeses =
         (agora.getFullYear() - dataBase.getFullYear()) * 12 +
         (agora.getMonth() - dataBase.getMonth());

@@ -59,9 +59,9 @@ function LoginPage() {
   return (
     <div className="min-h-screen w-full bg-background text-foreground flex flex-col lg:grid lg:grid-cols-[1.1fr_1fr] selection:bg-gold/30 relative font-sans">
       {/* =========================================
-          PAINEL ESQUERDO: APRESENTAÇÃO DO PRODUTO (Estilo Landing Page)
+          PAINEL ESQUERDO: APRESENTAÇÃO DO PRODUTO (Estilo Moderno & Clean)
       ========================================= */}
-      <div className="hidden lg:flex flex-col justify-between border-r-2 border-border bg-[#F6F1E9] dark:bg-[#161F1A] p-10 xl:p-14 relative overflow-hidden">
+      <div className="hidden lg:flex flex-col justify-between border-r border-[#E8E3DA] dark:border-[#2A2724] bg-[#F7F4EE] dark:bg-[#151413] p-8 xl:p-12 relative overflow-hidden">
         {/* Topo: Logo */}
         <div className="flex items-center justify-between">
           <Link
@@ -73,81 +73,85 @@ function LoginPage() {
           </Link>
         </div>
 
-        {/* Centro: Mensagem & Card de Lista da Landing Page */}
-        <div className="my-auto py-8 space-y-8 max-w-lg">
-          <div className="space-y-3">
-            <h1 className="font-display text-3xl xl:text-4xl font-semibold tracking-tight text-foreground leading-tight">
+        {/* Centro: Mensagem & Imagem Editorial estilo Landing Page */}
+        <div className="my-auto py-6 space-y-6 max-w-lg">
+          <div className="space-y-2.5">
+            <h1 className="font-display text-3xl xl:text-4xl font-bold tracking-tight text-foreground leading-tight">
               Planejar a dois é começar a casa com o{" "}
-              <span className="bg-[linear-gradient(transparent_62%,#E8B63C_62%,#E8B63C_92%,transparent_92%)] dark:text-[#24302A] dark:px-1 dark:rounded-sm">
+              <span className="text-primary font-bold">
                 pé direito.
               </span>
             </h1>
-            <p className="text-base text-foreground/80 dark:text-[#b4c4ba] leading-relaxed font-medium">
+            <p className="text-sm xl:text-base text-muted-foreground leading-relaxed font-medium">
               Cada cômodo, cada compra e o orçamento da casa nova num lugar só.
             </p>
           </div>
 
-          {/* Cartão de Lista rotacionado com selo dourado */}
-          <div className="relative pt-4 pb-6 px-2 flex justify-center">
-            <div className="paper-notepad w-full max-w-sm p-6 rounded-xl rotate-[-2.5deg] shadow-[5px_5px_0_var(--border)] relative overflow-hidden bg-[#fdfaf2] text-[#24302A]">
-              {/* Margem vermelha de caderno */}
-              <div className="absolute top-0 bottom-0 left-[28px] w-[2px] bg-red-400 pointer-events-none" />
-
-              <div className="font-handwriting font-bold text-2xl border-b-2 border-dashed border-[#24302A]/30 pb-2 text-[#24302A]">
-                Lista da cozinha
-              </div>
-              <div className="space-y-2.5 mt-3 font-handwriting text-xl leading-tight text-[#24302A]">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-4 h-4 border-2 border-[#24302A] rounded-[4px] bg-[#2F7D5B] text-white flex items-center justify-center text-[10px] shrink-0 font-sans font-bold">
-                    ✓
-                  </span>
-                  <span className="flex-1 line-through decoration-[#2F7D5B] decoration-[2px] opacity-70 text-[#24302A]">
-                    Geladeira
-                  </span>
-                  <span className="tabular-nums font-sans font-bold text-sm text-[#24302A]">
-                    R$ 3.200
-                  </span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <span className="w-4 h-4 border-2 border-[#24302A] rounded-[4px] bg-[#2F7D5B] text-white flex items-center justify-center text-[10px] shrink-0 font-sans font-bold">
-                    ✓
-                  </span>
-                  <span className="flex-1 line-through decoration-[#2F7D5B] decoration-[2px] opacity-70 text-[#24302A]">
-                    Fogão
-                  </span>
-                  <span className="tabular-nums font-sans font-bold text-sm text-[#24302A]">
-                    R$ 1.450
-                  </span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <span className="w-4 h-4 border-2 border-[#24302A] rounded-[4px] bg-white shrink-0" />
-                  <span className="flex-1 text-[#24302A]">Micro-ondas</span>
-                  <span className="tabular-nums font-sans font-bold text-sm text-[#24302A]">
-                    R$ 690
-                  </span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <span className="w-4 h-4 border-2 border-[#24302A] rounded-[4px] bg-white shrink-0" />
-                  <span className="flex-1 text-[#24302A]">Air fryer</span>
-                  <span className="tabular-nums font-sans font-bold text-sm text-[#24302A]">
-                    R$ 520
-                  </span>
-                </div>
+          {/* Ilustração Cartunesca do Casal no Lar (exatamente como na Home) */}
+          <div className="relative pt-4 pb-4 max-w-[420px] mx-auto w-full">
+            {/* Card Flutuante 1: Geladeira */}
+            <div className="hidden sm:flex absolute -top-1 -left-4 z-20 bg-white dark:bg-[#181716] p-2 rounded-2xl border border-[#E8E3DA] dark:border-[#2A2724] shadow-md items-center gap-2 transition-transform hover:scale-105">
+              <img
+                src="/images/products/geladeira.jpg"
+                alt="Geladeira Duplex"
+                className="w-10 h-10 object-contain rounded-lg bg-slate-50 dark:bg-slate-800 p-1"
+              />
+              <div className="pr-1 text-left">
+                <span className="text-[10px] font-semibold block text-emerald-700 leading-tight">
+                  ✓ Cozinha
+                </span>
+                <span className="text-xs font-bold text-foreground font-display">
+                  Geladeira Duplex
+                </span>
+                <span className="text-[10px] font-semibold text-muted-foreground block">R$ 3.890</span>
               </div>
             </div>
 
-            {/* Selo Dourado Redondo */}
-            <div className="absolute -right-2 -bottom-2 w-28 h-28 rounded-full bg-[#E8B63C] text-[#24302A] border-2 border-border shadow-[4px_4px_0_var(--border)] flex flex-col items-center justify-center rotate-12 text-center">
-              <span className="font-handwriting font-bold text-lg leading-none">sobram</span>
-              <span className="tabular-nums text-lg font-bold font-display leading-tight">
-                R$ 26.650
-              </span>
+            {/* Card Flutuante 2: Air Fryer & Café */}
+            <div className="hidden sm:flex absolute -top-1 -right-4 z-20 bg-white dark:bg-[#181716] p-2 rounded-2xl border border-[#E8E3DA] dark:border-[#2A2724] shadow-md items-center gap-2 transition-transform hover:scale-105">
+              <img
+                src="/images/products/air-fryer-cafeteira.jpg"
+                alt="Air fryer e cafeteira"
+                className="w-10 h-10 object-contain rounded-lg bg-slate-50 dark:bg-slate-800 p-1"
+              />
+              <div className="pr-1 text-left">
+                <span className="text-[10px] font-semibold block text-orange-700 leading-tight">
+                  🎁 Presente
+                </span>
+                <span className="text-xs font-bold text-foreground font-display">
+                  Air Fryer & Café
+                </span>
+                <span className="text-[10px] font-semibold text-muted-foreground block">Padrinhos</span>
+              </div>
             </div>
+
+            {/* Card Central com a Ilustração Cartunesca Exclusiva do Login */}
+            <div className="rounded-3xl border border-[#E8E3DA] dark:border-[#2A2724] shadow-xl overflow-hidden bg-white dark:bg-[#181716] relative">
+              <img
+                src="/illustrations/login-couple.jpg"
+                alt="Casal celebrando as chaves e checklist da casa nova (ilustração exclusiva)"
+                className="w-full h-[280px] xl:h-[320px] object-cover block"
+              />
+              <div className="p-4 bg-white/95 dark:bg-[#181716]/95 backdrop-blur-xs border-t border-[#E8E3DA] dark:border-[#2A2724] flex items-center justify-between">
+                <div>
+                  <span className="font-display font-bold text-sm text-foreground block">
+                    Nosso novo cantinho 🏡
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Escolhas e orçamento sincronizados
+                  </span>
+                </div>
+                <span className="px-3 py-1 rounded-full border border-emerald-600/20 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 font-semibold text-xs">
+                  Tudo em ordem
+                </span>
+              </div>
+            </div>
+
           </div>
         </div>
 
         {/* Rodapé esquerdo */}
-        <div className="text-xs text-foreground/75 dark:text-[#9fb0a6] font-bold">
+        <div className="text-xs text-muted-foreground font-medium">
           CasalPlanner • Feito para o casal e para conta individual.
         </div>
       </div>
@@ -186,15 +190,15 @@ function LoginPage() {
           </div>
 
 
-          {/* Alternador de Modo: Entrar ou Cadastrar (Estilo Adesivo) */}
-          <div className="grid grid-cols-2 p-1.5 bg-muted rounded-xl border-2 border-border gap-1.5 shadow-[2px_2px_0_var(--border)]">
+          {/* Alternador de Modo: Entrar ou Cadastrar */}
+          <div className="grid grid-cols-2 p-1 bg-muted rounded-xl border border-border gap-1">
             <button
               type="button"
               onClick={() => setModo("entrar")}
-              className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
+              className={`py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all cursor-pointer ${
                 modo === "entrar"
-                  ? "bg-primary text-primary-foreground border-2 border-border shadow-[2px_2px_0_var(--border)]"
-                  : "text-foreground/80 hover:text-foreground hover:bg-card/50"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Entrar
@@ -202,10 +206,10 @@ function LoginPage() {
             <button
               type="button"
               onClick={() => setModo("cadastrar")}
-              className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
+              className={`py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all cursor-pointer ${
                 modo === "cadastrar"
-                  ? "bg-primary text-primary-foreground border-2 border-border shadow-[2px_2px_0_var(--border)]"
-                  : "text-foreground/80 hover:text-foreground hover:bg-card/50"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Criar conta
@@ -217,8 +221,8 @@ function LoginPage() {
             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
               <LoginForm returnUrl={returnUrl} />
 
-              <div className="text-center pt-2 border-t-2 border-border/20">
-                <p className="text-xs text-foreground/80 dark:text-[#b4c4ba] font-semibold">
+              <div className="text-center pt-2 border-t border-border/40">
+                <p className="text-xs text-muted-foreground font-medium">
                   Ainda não tem conta no CasalPlanner?{" "}
                   <button
                     type="button"
@@ -236,11 +240,11 @@ function LoginPage() {
                 defaultValue={tipo === "individual" ? "individual" : "casal"}
                 className="w-full"
               >
-                <TabsList className="grid grid-cols-2 w-full h-11 bg-muted rounded-xl p-1 mb-5 border-2 border-border">
-                  <TabsTrigger value="casal" className="rounded-lg text-xs font-bold">
+                <TabsList className="grid grid-cols-2 w-full h-10 bg-muted rounded-xl p-1 mb-5 border border-border">
+                  <TabsTrigger value="casal" className="rounded-lg text-xs font-semibold">
                     <Heart className="h-3.5 w-3.5 mr-1.5 text-primary" /> Em casal
                   </TabsTrigger>
-                  <TabsTrigger value="individual" className="rounded-lg text-xs font-bold">
+                  <TabsTrigger value="individual" className="rounded-lg text-xs font-semibold">
                     <UserIcon className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" /> Individual
                   </TabsTrigger>
                 </TabsList>

@@ -3,108 +3,150 @@
 
 @layer base {
   :root {
-    --background: #f6f1e9;
-    --foreground: #24302a;
+    /* Cores Neutras / Toque de Bege Suave & Linho Contemporâneo (Warm Greige) */
+    --background: #FAF8F5; /* Bege linho contemporâneo, calmo e acolhedor */
+    --foreground: #1c1917; /* Stone-900 / Grafite quente com contraste perfeito */
     --card: #ffffff;
-    --card-foreground: #24302a;
+    --card-foreground: #1c1917;
     --popover: #ffffff;
-    --popover-foreground: #24302a;
-    --sidebar: #fbf9f5;
-    --sidebar-foreground: #24302a;
-    --border: #24302a;
+    --popover-foreground: #1c1917;
+    --sidebar: #FAF8F5;
+    --sidebar-foreground: #1c1917;
+    --border: #E8E3DA; /* Borda bege suave e moderna de 1px */
     --input: #ffffff;
     --ring: #2f7d5b;
 
-    --muted: #eee8dd;
-    --muted-foreground: #66685c;
-    --muted-text: #4a4f45;
+    --muted: #F3EFE8; /* Bege suave para superfícies secundárias */
+    --muted-foreground: #78716c; /* Stone-500: legibilidade suave e moderna */
+    --muted-text: #57534e; /* Stone-600 */
 
+    /* Toque de Bege Elegante */
+    --beige: #F5EFEB;
+    --beige-tint: #FDFBF7;
+    --beige-border: #E8E1D5;
+    --beige-dark: #8C7E6A;
+
+    /* Identidade da Marca: Verde Esmeralda & Âmbar Harmonizados */
     --primary: #2f7d5b;
     --primary-foreground: #ffffff;
-    --primary-hover: #27694c;
-    --primary-tint: #e8f3ec;
-    --primary-tint-foreground: #1f5a41;
+    --primary-hover: #266b4d;
+    --primary-tint: #ecfdf5;
+    --primary-tint-foreground: #065f46;
 
-    --gold: #e8b63c;
-    --gold-foreground: #24302a;
-    --gold-hover: #d9a42b;
-    --gold-tint: #fbefd2;
-    --gold-tint-foreground: #6b4a06;
+    --gold: #d97706;
+    --gold-foreground: #ffffff;
+    --gold-hover: #b45309;
+    --gold-tint: #fef3c7;
+    --gold-tint-foreground: #92400e;
 
-    --success-tint: #e3f3ea;
-    --success-tint-foreground: #16623a;
+    --success-tint: #ecfdf5;
+    --success-tint-foreground: #065f46;
 
-    --destructive: #c2410c;
+    --destructive: #dc2626;
     --destructive-foreground: #ffffff;
-    --destructive-tint: #fde3d8;
-    --destructive-tint-foreground: #8a2e08;
+    --destructive-tint: #fee2e2;
+    --destructive-tint-foreground: #991b1b;
 
     --radius-sm: 8px;
-    --radius-md: 12px;
+    --radius-md: 10px;
     --radius-lg: 12px;
     --radius-xl: 16px;
     --radius-full: 9999px;
 
-    --shadow-sticker: 3px 3px 0 var(--border);
-    --shadow-sticker-sm: 2px 2px 0 var(--border);
-    --shadow-sticker-lg: 5px 5px 0 var(--border);
-    --shadow-sticker-modal: 6px 6px 0 var(--border);
+    /* Sombras suaves e naturais */
+    --shadow-sticker: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.03);
+    --shadow-sticker-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+    --shadow-sticker-lg: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.03);
+    --shadow-sticker-modal: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.04);
   }
 
   /* ========================================================
      SISTEMA DE CORES DO CASAL
      - Pessoa 1 = Verde 🌿
-     - Pessoa 2 = Amarelo / Dourado ☀️
-     - Visitante / Não logado = Harmonização Verde & Amarelo
+     - Pessoa 2 = Âmbar / Dourado ☀️
+     - Visitante / Não logado = Harmonização Verde & Âmbar
      ======================================================== */
 
   :root {
     --p1-color: #2f7d5b;
     --p1-foreground: #ffffff;
-    --p1-hover: #27694c;
-    --p1-tint: #e8f3ec;
-    --p1-tint-foreground: #1f5a41;
+    --p1-hover: #266b4d;
+    --p1-tint: #ecfdf5;
+    --p1-tint-foreground: #065f46;
 
-    --p2-color: #e8b63c;
-    --p2-foreground: #24302a;
-    --p2-hover: #d9a42b;
-    --p2-tint: #fbefd2;
-    --p2-tint-foreground: #6b4a06;
+    --p2-color: #d97706;
+    --p2-foreground: #ffffff;
+    --p2-hover: #b45309;
+    --p2-tint: #fef3c7;
+    --p2-tint-foreground: #92400e;
   }
 
   .dark {
-    --p1-color: #4fb387;
-    --p1-foreground: #0e1712;
-    --p1-hover: #5ec496;
-    --p1-tint: #1c3328;
+    --background: #11100F; /* Carvão acolhedor com sutil toque quente */
+    --foreground: #F5F3EF;
+    --card: #181716;
+    --card-foreground: #F5F3EF;
+    --popover: #181716;
+    --popover-foreground: #F5F3EF;
+    --sidebar: #141312;
+    --sidebar-foreground: #F5F3EF;
+    --border: #2A2724;
+    --input: #181716;
+    --ring: #34d399;
+
+    --muted: #242220;
+    --muted-foreground: #A39E98;
+    --muted-text: #D6D2CC;
+
+    --primary: #34d399;
+    --primary-foreground: #022c22;
+    --primary-hover: #10b981;
+    --primary-tint: #064e3b;
+    --primary-tint-foreground: #6ee7b7;
+
+    --gold: #fbbf24;
+    --gold-foreground: #1c1917;
+    --gold-hover: #f59e0b;
+    --gold-tint: #451a03;
+    --gold-tint-foreground: #fde68a;
+
+    --p1-color: #34d399;
+    --p1-foreground: #022c22;
+    --p1-hover: #10b981;
+    --p1-tint: #064e3b;
     --p1-tint-foreground: #6ee7b7;
 
-    --p2-color: #f2c353;
-    --p2-foreground: #141a17;
-    --p2-hover: #ffd369;
-    --p2-tint: #382e14;
+    --p2-color: #fbbf24;
+    --p2-foreground: #1c1917;
+    --p2-hover: #f59e0b;
+    --p2-tint: #451a03;
     --p2-tint-foreground: #fde68a;
+
+    --shadow-sticker: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+    --shadow-sticker-sm: 0 1px 2px 0 rgb(0 0 0 / 0.25);
+    --shadow-sticker-lg: 0 4px 6px -1px rgb(0 0 0 / 0.35);
+    --shadow-sticker-modal: 0 20px 25px -5px rgb(0 0 0 / 0.45);
   }
 
-  /* Quando Pessoa 2 está ativa: o sistema primário vira Amarelo */
+  /* Quando Pessoa 2 está ativa: o sistema primário vira Âmbar */
   :root[data-persona="p2"],
   [data-persona="p2"] {
-    --primary: #e8b63c;
-    --primary-foreground: #24302a;
-    --primary-hover: #d9a42b;
-    --primary-tint: #fbefd2;
-    --primary-tint-foreground: #6b4a06;
-    --ring: #e8b63c;
+    --primary: #d97706;
+    --primary-foreground: #ffffff;
+    --primary-hover: #b45309;
+    --primary-tint: #fef3c7;
+    --primary-tint-foreground: #92400e;
+    --ring: #d97706;
   }
 
   .dark[data-persona="p2"],
   .dark [data-persona="p2"] {
-    --primary: #f2c353;
-    --primary-foreground: #141a17;
-    --primary-hover: #ffd369;
-    --primary-tint: #382e14;
+    --primary: #fbbf24;
+    --primary-foreground: #1c1917;
+    --primary-hover: #f59e0b;
+    --primary-tint: #451a03;
     --primary-tint-foreground: #fde68a;
-    --ring: #f2c353;
+    --ring: #fbbf24;
   }
 
   /* Quando Pessoa 1 está ativa: o sistema primário é Verde */
@@ -112,20 +154,20 @@
   [data-persona="p1"] {
     --primary: #2f7d5b;
     --primary-foreground: #ffffff;
-    --primary-hover: #27694c;
-    --primary-tint: #e8f3ec;
-    --primary-tint-foreground: #1f5a41;
+    --primary-hover: #266b4d;
+    --primary-tint: #ecfdf5;
+    --primary-tint-foreground: #065f46;
     --ring: #2f7d5b;
   }
 
   .dark[data-persona="p1"],
   .dark [data-persona="p1"] {
-    --primary: #4fb387;
-    --primary-foreground: #0e1712;
-    --primary-hover: #5ec496;
-    --primary-tint: #1c3328;
+    --primary: #34d399;
+    --primary-foreground: #022c22;
+    --primary-hover: #10b981;
+    --primary-tint: #064e3b;
     --primary-tint-foreground: #6ee7b7;
-    --ring: #4fb387;
+    --ring: #34d399;
   }
 
   * {
@@ -154,9 +196,11 @@
 }
 
 @theme {
-  --font-display: "Fredoka", sans-serif;
-  --font-sans: "Nunito", system-ui, -apple-system, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Outfit", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-brand: "Outfit", "Plus Jakarta Sans", sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
   --font-handwriting: "Caveat", cursive, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -213,7 +257,7 @@
   --radius-full: var(--radius-full);
 }
 
-/* Utilities for Sticker Style */
+/* Modern Clean Elevation */
 .shadow-sticker {
   box-shadow: var(--shadow-sticker);
 }
@@ -230,48 +274,55 @@
   box-shadow: var(--shadow-sticker-modal);
 }
 
-/* Sticker Button Base */
+/* Clean Modern Button Base */
 .btn-sticker {
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-sticker);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   font-family: var(--font-sans);
-  font-weight: 700;
-  transition:
-    transform 0.1s ease,
-    box-shadow 0.1s ease;
+  font-weight: 600;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-sticker:hover:not(:disabled) {
-  transform: translate(1px, 1px);
-  box-shadow: var(--shadow-sticker-sm);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.04);
 }
 
 .btn-sticker:active:not(:disabled) {
-  transform: translate(3px, 3px);
-  box-shadow: 0 0 0 var(--border);
+  transform: translateY(0);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
-/* Sticker Card */
+/* Clean Modern Card */
 .card-sticker {
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  box-shadow: var(--shadow-sticker);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.03);
   background-color: var(--card);
 }
 
 .card-sticker-lg {
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-sticker-lg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.03);
   background-color: var(--card);
 }
 
 .modal-sticker {
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: var(--shadow-sticker-modal);
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.04);
   background-color: var(--card);
+}
+
+/* Suavização de traçado e sombras cartoon em toda a aplicação */
+.border-2 {
+  border-width: 1px !important;
+}
+
+[class*="shadow-["] {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.03) !important;
 }
 
 /* Focus Ring */
@@ -283,41 +334,31 @@
   box-shadow: 0 0 0 3px var(--ring);
 }
 
-/* Handwriting & Notepad Styles */
+/* Handwriting & Notepad Styles (Cleaned up from cartoon) */
 .font-handwriting {
   font-family: var(--font-handwriting), "Caveat", cursive, sans-serif;
 }
 
 .paper-notepad {
-  background-color: #fdfaf2;
-  background-image: repeating-linear-gradient(
-    transparent,
-    transparent 29px,
-    #e9e2cf 29px,
-    #e9e2cf 30px
-  );
-  border: 2px solid #24302A;
-  box-shadow: var(--shadow-sticker-lg);
-  color: #24302A;
+  background-color: #ffffff;
+  background-image: none;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+  color: var(--foreground);
 }
 
 .dark .paper-notepad {
-  background-color: #fdfaf2;
-  background-image: repeating-linear-gradient(
-    transparent,
-    transparent 29px,
-    #e9e2cf 29px,
-    #e9e2cf 30px
-  );
-  border: 2px solid #24302A;
-  box-shadow: 6px 6px 0 #24302A;
-  color: #24302A;
+  background-color: var(--card);
+  background-image: none;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.3);
+  color: var(--foreground);
 }
 
 .post-it {
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--border);
+  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.05);
   transition: transform 0.15s ease;
 }
 
@@ -348,16 +389,16 @@
     transparent 0%,
     rgba(255, 255, 255, 0.45) 35%,
     rgba(47, 125, 91, 0.08) 50%,
-    rgba(232, 182, 60, 0.12) 65%,
+    rgba(217, 119, 6, 0.12) 65%,
     transparent 100%
   );
   animation: shimmer-sweep 1.8s infinite cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .skeleton-card {
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  box-shadow: 3px 3px 0 var(--border);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
   background-color: var(--card);
   position: relative;
   overflow: hidden;
@@ -373,10 +414,9 @@
     transparent 0%,
     rgba(255, 255, 255, 0.4) 30%,
     rgba(47, 125, 91, 0.06) 50%,
-    rgba(232, 182, 60, 0.09) 70%,
+    rgba(217, 119, 6, 0.09) 70%,
     transparent 100%
   );
   animation: shimmer-sweep 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
 }
-

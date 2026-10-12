@@ -195,22 +195,22 @@ export function WidgetDiaMudanca() {
   if (!usuario?.dataMudanca) {
     return (
       <>
-        <div className="card-sticker p-5 sm:p-6 bg-card relative overflow-hidden transition-all">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 bg-white dark:bg-slate-900 relative overflow-hidden transition-all shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="h-12 w-12 rounded-xl border-2 border-border bg-primary/10 text-primary flex items-center justify-center shrink-0 shadow-sticker-sm">
-                <Truck className="h-6 w-6" />
+              <div className="h-11 w-11 rounded-xl border border-emerald-200/60 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <Truck className="h-5 w-5" />
               </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <h3 className="font-display font-bold text-lg text-foreground">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-display font-bold text-base sm:text-lg text-slate-900 dark:text-slate-100">
                     Data da Mudança & Previsão do Tempo
                   </h3>
-                  <span className="px-2.5 py-0.5 rounded-full border-2 border-border text-primary text-[10px] uppercase font-mono font-bold bg-primary/10 shadow-sticker-sm">
+                  <span className="px-2 py-0.5 rounded text-emerald-700 dark:text-emerald-400 text-[10px] uppercase font-mono font-bold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40">
                     Open-Meteo
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground max-w-xl leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
                   Defina o dia do novo lar para ativar a contagem regressiva, alertas de chuva em
                   tempo real e dicas logísticas para o transporte seguro do seu enxoval.
                 </p>
@@ -218,7 +218,7 @@ export function WidgetDiaMudanca() {
             </div>
             <Button
               onClick={() => setModalOpen(true)}
-              className="btn-sticker bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 h-10 px-4 font-bold"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 h-9 px-4 font-semibold text-xs sm:text-sm rounded-xl shadow-xs transition-colors"
             >
               <Calendar className="h-4 w-4 mr-2" />
               Definir Data da Mudança
@@ -233,25 +233,22 @@ export function WidgetDiaMudanca() {
 
   return (
     <>
-      <div className="card-sticker p-5 sm:p-6 bg-card relative overflow-hidden transition-all">
-        {/* Glow sutil de fundo */}
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 bg-white dark:bg-slate-900 relative overflow-hidden transition-all shadow-xs">
         {/* Barra Superior do Widget: Tags de Identificação & Ação Clara */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-3.5 mb-4 border-b-2 border-border/40">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border-2 border-border text-primary text-xs font-bold uppercase tracking-wider font-mono shadow-sticker-sm">
+        <div className="flex items-center justify-between gap-3 pb-3.5 mb-4 border-b border-slate-100 dark:border-slate-800 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-xs font-semibold border border-emerald-200/60 dark:border-emerald-800/50">
               <Truck className="h-3.5 w-3.5" />
               <span>Dia da Mudança</span>
-            </div>
+            </span>
             {usuario.cidadeMudanca && (
-              <div
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/60 border-2 border-border text-muted-foreground text-xs font-semibold shadow-sticker-sm max-w-[280px] sm:max-w-[360px] truncate"
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium border border-slate-200/80 dark:border-slate-700 max-w-[220px] sm:max-w-[360px] truncate"
                 title={usuario.cidadeMudanca}
               >
-                <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                <MapPin className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span className="truncate">{usuario.cidadeMudanca}</span>
-              </div>
+              </span>
             )}
           </div>
 
@@ -259,76 +256,77 @@ export function WidgetDiaMudanca() {
             variant="outline"
             size="sm"
             onClick={() => setModalOpen(true)}
-            className="btn-sticker text-xs h-8 px-3 gap-1.5 bg-background hover:bg-muted font-bold text-foreground shrink-0"
+            className="text-xs h-8 px-3 gap-1.5 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-lg shrink-0 transition-colors"
           >
-            <Edit2 className="h-3.5 w-3.5 text-primary" />
+            <Edit2 className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
             <span>Alterar data</span>
           </Button>
         </div>
 
-        {/* Grid Principal: Contagem em Destaque + Card de Meteorologia */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-center">
-          {/* Lado Esquerdo: Contagem Regressiva Ampla e Fluida */}
-          <div className="lg:col-span-7 flex flex-col justify-center">
+        {/* Corpo Principal: Contagem em Destaque + Card de Meteorologia */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 lg:gap-8">
+          {/* Lado Esquerdo: Contagem Regressiva Hero */}
+          <div className="flex-1 min-w-0">
             {diasRestantes !== null && diasRestantes > 0 ? (
-              <div className="space-y-1">
-                <div className="flex items-baseline gap-2 flex-wrap">
-                  <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground whitespace-nowrap">
-                    Faltam <span className="text-primary font-mono">{diasRestantes}</span>{" "}
-                    {diasRestantes === 1 ? "dia" : "dias"}
-                  </h2>
+              <div className="flex items-center gap-4 sm:gap-6 min-w-0">
+                <div className="font-display text-5xl sm:text-6xl font-black text-emerald-600 dark:text-emerald-400 leading-none tracking-tight tabular-nums shrink-0">
+                  {diasRestantes}
                 </div>
-                <p className="text-sm sm:text-base text-muted-foreground font-medium flex items-center gap-2 flex-wrap">
-                  <span>para o grande dia!</span>
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
-                  <span className="font-semibold text-foreground">({dataMudancaFormatada})</span>
-                </p>
+                <div className="space-y-1 min-w-0">
+                  <h2 className="font-display text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-snug">
+                    {diasRestantes === 1 ? "dia para a mudança!" : "dias para o grande dia!"}
+                  </h2>
+                  <div className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+                    <Calendar className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>Data prevista: <strong className="text-slate-700 dark:text-slate-200 font-semibold">{dataMudancaFormatada}</strong></span>
+                  </div>
+                </div>
               </div>
             ) : diasRestantes === 0 ? (
               <div className="space-y-1">
-                <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-emerald-600 flex items-center gap-2">
+                <h2 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-emerald-600 flex items-center gap-2">
                   É Hoje! Feliz Casa Nova! 🎉
                 </h2>
-                <p className="text-sm sm:text-base text-muted-foreground font-medium">
+                <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 font-medium">
                   Chegou o grande momento de começar essa nova etapa a dois! 🏠🥂
                 </p>
               </div>
             ) : (
               <div className="space-y-1">
-                <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground flex items-center gap-2">
+                <h2 className="font-display text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
                   Mudança realizada! 🏠🥂
                 </h2>
-                <p className="text-sm text-muted-foreground font-medium">
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                   Celebrando o novo lar desde{" "}
-                  <span className="font-semibold text-foreground">{dataMudancaFormatada}</span>
+                  <strong className="text-slate-700 dark:text-slate-200 font-semibold">{dataMudancaFormatada}</strong>
                 </p>
               </div>
             )}
           </div>
 
-          {/* Lado Direito: Previsão do Tempo / Status Aberto Open-Meteo */}
-          <div className="lg:col-span-5">
-            <div className="rounded-xl border-2 border-border bg-muted/40 p-3.5 sm:p-4 shadow-sticker-sm">
+          {/* Lado Direito: Previsão do Tempo */}
+          <div className="lg:w-[360px] w-full shrink-0">
+            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-3.5 sm:p-4">
               {loadingClima ? (
-                <div className="flex items-center justify-center gap-2.5 text-xs text-muted-foreground py-3">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary shrink-0" />
+                <div className="flex items-center justify-center gap-2.5 text-xs text-slate-500 py-2.5">
+                  <Loader2 className="h-4 w-4 animate-spin text-emerald-600 shrink-0" />
                   <span>Consultando previsão Open-Meteo...</span>
                 </div>
               ) : previsaoDiaMudanca ? (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-card rounded-lg border-2 border-border shadow-sticker-sm shrink-0">
+                      <div className="p-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-xs shrink-0">
                         {renderIconeClima(infoClima?.icone)}
                       </div>
                       <div>
-                        <div className="flex items-baseline gap-1.5 font-mono font-black text-base text-foreground">
+                        <div className="flex items-baseline gap-1.5 font-display font-bold text-base text-slate-900 dark:text-slate-100">
                           <span>{previsaoDiaMudanca.tempMax}°C</span>
-                          <span className="text-xs text-muted-foreground font-semibold">
+                          <span className="text-xs text-slate-500 font-semibold">
                             / {previsaoDiaMudanca.tempMin}°C
                           </span>
                         </div>
-                        <p className="text-xs text-muted-foreground capitalize font-medium">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 capitalize font-medium leading-none mt-0.5">
                           {infoClima?.descricao}
                         </p>
                       </div>
@@ -336,24 +334,24 @@ export function WidgetDiaMudanca() {
 
                     <Badge
                       variant="outline"
-                      className={`text-[10px] font-bold uppercase px-2 py-0.5 border-2 shadow-none ${
+                      className={`text-[10px] font-bold uppercase px-2 py-0.5 border shadow-none ${
                         risco.nivel === "alto"
-                          ? "border-red-500/50 text-red-600 bg-red-500/10"
+                          ? "border-red-500/30 text-red-600 bg-red-500/10"
                           : risco.nivel === "medio"
-                            ? "border-amber-500/50 text-amber-600 bg-amber-500/10"
-                            : "border-emerald-500/50 text-emerald-600 bg-emerald-500/10"
+                            ? "border-amber-500/30 text-amber-600 bg-amber-500/10"
+                            : "border-emerald-500/30 text-emerald-600 bg-emerald-500/10"
                       }`}
                     >
                       {risco.badge}
                     </Badge>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs pt-2 border-t border-border/40 font-medium">
-                    <span className="flex items-center gap-1.5 text-foreground/80">
+                  <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 dark:border-slate-700 font-medium text-slate-600 dark:text-slate-400">
+                    <span className="flex items-center gap-1.5">
                       <CloudRain className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                       {previsaoDiaMudanca.probabilidadeChuva}% chance de chuva
                     </span>
-                    <span className="text-[11px] text-muted-foreground font-mono">
+                    <span className="text-[11px] text-slate-500 font-semibold">
                       {risco.titulo}
                     </span>
                   </div>
@@ -361,14 +359,21 @@ export function WidgetDiaMudanca() {
               ) : (
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="p-2.5 rounded-lg bg-card border-2 border-border shadow-sticker-sm text-primary shrink-0">
+                    <div className="h-10 w-10 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-amber-500 shrink-0 shadow-xs">
                       <CloudSun className="h-5 w-5" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-foreground">
-                        {usuario.cidadeMudanca ? "Previsão Antecipada" : "Previsão do Tempo"}
-                      </p>
-                      <p className="text-xs text-muted-foreground leading-snug">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                          Previsão do Tempo
+                        </span>
+                        {usuario.cidadeMudanca && (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/50 leading-none">
+                            16 dias
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug mt-0.5">
                         {usuario.cidadeMudanca
                           ? "A previsão detalhada fica ativa a até 16 dias da data."
                           : "Defina sua cidade para previsão do tempo e alertas de chuva."}
@@ -380,7 +385,7 @@ export function WidgetDiaMudanca() {
                       variant="outline"
                       size="sm"
                       onClick={() => setModalOpen(true)}
-                      className="btn-sticker text-xs h-7 px-2.5 shrink-0 bg-background hover:bg-muted font-bold"
+                      className="text-xs h-7 px-2.5 shrink-0 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 font-semibold rounded-lg"
                     >
                       Configurar
                     </Button>
@@ -393,13 +398,13 @@ export function WidgetDiaMudanca() {
 
         {/* Dicas logísticas contextuais */}
         {previsaoDiaMudanca && risco.dicas.length > 0 && (
-          <div className="mt-4 pt-3 border-t-2 border-border/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-            <div className="flex items-center gap-2 text-foreground font-medium">
-              <Info className="h-4 w-4 text-primary shrink-0" />
-              <span className="font-bold">Dica Logística:</span>
-              <span className="text-muted-foreground italic">"{risco.dicas[0]}"</span>
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-medium">
+              <Info className="h-4 w-4 text-emerald-600 shrink-0" />
+              <span className="font-bold text-slate-900 dark:text-slate-100">Dica Logística:</span>
+              <span className="text-slate-500 dark:text-slate-400 italic">"{risco.dicas[0]}"</span>
             </div>
-            <span className="text-[10px] font-mono text-muted-foreground/80 shrink-0">
+            <span className="text-[10px] font-mono text-slate-400 shrink-0">
               Open-Meteo Weather API
             </span>
           </div>
@@ -413,13 +418,13 @@ export function WidgetDiaMudanca() {
   function renderModal() {
     return (
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-md bg-card border-2 border-border shadow-sticker-modal rounded-2xl p-6">
+        <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-2xl p-6">
           <DialogHeader>
-            <DialogTitle className="font-display text-xl font-bold flex items-center gap-2">
-              <Truck className="h-5 w-5 text-primary" />
+            <DialogTitle className="font-display text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100">
+              <Truck className="h-5 w-5 text-emerald-600" />
               Configurar Data da Mudança
             </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
+            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
               Acompanhe a contagem regressiva e consulte as condições climáticas e risco de chuva
               para o transporte do enxoval.
             </DialogDescription>
@@ -428,22 +433,20 @@ export function WidgetDiaMudanca() {
           <div className="space-y-4 py-2">
             {/* Campo de Data */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              <Label className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
                 Data Prevista
               </Label>
-              <div className="relative">
-                <Input
-                  type="date"
-                  value={dataMudancaInput}
-                  onChange={(e) => setDataMudancaInput(e.target.value)}
-                  className="h-10 font-mono text-sm bg-background border-2 border-border rounded-xl shadow-inner"
-                />
-              </div>
+              <Input
+                type="date"
+                value={dataMudancaInput}
+                onChange={(e) => setDataMudancaInput(e.target.value)}
+                className="h-10 text-sm bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg"
+              />
             </div>
 
             {/* Campo de Cidade com Autocomplete Open-Meteo */}
             <div className="space-y-1.5 relative">
-              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              <Label className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
                 Cidade da Casa Nova (para previsão do tempo)
               </Label>
               <div className="relative">
@@ -456,17 +459,17 @@ export function WidgetDiaMudanca() {
                     }
                   }}
                   placeholder="Ex: São Paulo, Campinas, Curitiba..."
-                  className="h-10 pl-9 bg-background border-2 border-border rounded-xl shadow-inner"
+                  className="h-10 pl-9 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg"
                 />
-                <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-3" />
+                <Search className="h-4 w-4 text-slate-400 absolute left-3 top-3" />
                 {buscandoCidades && (
-                  <Loader2 className="h-4 w-4 text-primary absolute right-3 top-3 animate-spin" />
+                  <Loader2 className="h-4 w-4 text-emerald-600 absolute right-3 top-3 animate-spin" />
                 )}
               </div>
 
               {/* Sugestões de Cidade */}
               {sugestoes.length > 0 && !cidadeSelecionada && (
-                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border-2 border-border rounded-xl shadow-sticker-lg max-h-48 overflow-y-auto divide-y divide-border/50">
+                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg max-h-48 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
                   {sugestoes.map((cid) => (
                     <button
                       key={cid.id}
@@ -483,16 +486,16 @@ export function WidgetDiaMudanca() {
                         });
                         setSugestoes([]);
                       }}
-                      className="w-full text-left px-3.5 py-2.5 text-xs hover:bg-muted/70 transition-colors flex items-center justify-between"
+                      className="w-full text-left px-3.5 py-2.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors flex items-center justify-between"
                     >
                       <div className="flex items-center gap-2">
-                        <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-                        <span className="font-bold text-foreground">{cid.name}</span>
-                        <span className="text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">{cid.name}</span>
+                        <span className="text-slate-500">
                           {cid.admin1} {cid.country ? `(${cid.country})` : ""}
                         </span>
                       </div>
-                      <span className="text-[10px] font-mono text-muted-foreground">
+                      <span className="text-[10px] font-mono text-slate-400">
                         {cid.latitude.toFixed(2)}, {cid.longitude.toFixed(2)}
                       </span>
                     </button>
@@ -508,7 +511,7 @@ export function WidgetDiaMudanca() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-destructive hover:bg-destructive/10 text-xs sm:mr-auto font-bold"
+                className="text-destructive hover:bg-destructive/10 text-xs sm:mr-auto font-medium"
                 onClick={() => {
                   setDataMudancaInput("");
                   setCidadeBusca("");
@@ -525,7 +528,7 @@ export function WidgetDiaMudanca() {
               type="button"
               variant="outline"
               size="sm"
-              className="btn-sticker font-bold"
+              className="font-medium rounded-lg border-slate-200 dark:border-slate-700"
               onClick={() => setModalOpen(false)}
             >
               Cancelar
@@ -534,7 +537,7 @@ export function WidgetDiaMudanca() {
             <Button
               type="button"
               size="sm"
-              className="btn-sticker bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg shadow-xs"
               onClick={() => salvarMutation.mutate()}
               disabled={salvarMutation.isPending}
             >

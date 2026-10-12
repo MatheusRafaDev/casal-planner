@@ -1,38 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 48" fill="none">
-  <!-- Símbolo Casinha Compacta -->
-  <g transform="translate(4, 4)">
-    <!-- Base Parede -->
-    <path d="M6 16 L20 4 L34 16 V34 C34 35.5 32.5 36.5 31 36.5 H9 C7.5 36.5 6 35.5 6 34 Z" fill="#FFFDF8" stroke="#24302A" stroke-width="2" stroke-linejoin="round"/>
-    <!-- Telhado Dourado -->
-    <path d="M20 6 L33 16 H7 Z" fill="#E8B63C"/>
-    <path d="M4 17 L20 4 L36 17" stroke="#24302A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <!-- Coração topo -->
-    <path d="M20 10.5 C19.2 9.2 17.5 9.2 17.5 10.6 C17.5 12 20 13.6 20 13.6 C20 13.6 22.5 12 22.5 10.6 C22.5 9.2 20.8 9.2 20 10.5 Z" fill="#E0531C" stroke="#24302A" stroke-width="1"/>
-    <!-- Dupla Verde e Amarelo -->
-    <circle cx="14" cy="21" r="3.2" fill="#2F7D5B" stroke="#24302A" stroke-width="1.5"/>
-    <path d="M9 36.5 C9 29.5 11 26 14 26 C17 26 19 29.5 19 36.5 Z" fill="#2F7D5B" stroke="#24302A" stroke-width="1.5" stroke-linejoin="round"/>
-    <circle cx="26" cy="21" r="3.2" fill="#E8B63C" stroke="#24302A" stroke-width="1.5"/>
-    <path d="M21 36.5 C21 29.5 23 26 26 26 C29 26 31 29.5 31 36.5 Z" fill="#E8B63C" stroke="#24302A" stroke-width="1.5" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 48" fill="none">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@700;800&amp;display=swap');
+      .brand-title {
+        font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        font-weight: 800;
+        font-size: 27px;
+        letter-spacing: -0.03em;
+      }
+    </style>
+    <linearGradient id="lt-green" x1="7" y1="21.5" x2="24" y2="7.5" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#246B4D" />
+      <stop offset="100%" stop-color="#3FA579" />
+    </linearGradient>
+    <linearGradient id="lt-gold" x1="41" y1="21.5" x2="24" y2="7.5" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D99B26" />
+      <stop offset="100%" stop-color="#F5B938" />
+    </linearGradient>
+  </defs>
+
+  <!-- Símbolo Oficial CasalPlanner -->
+  <g transform="translate(4, 4) scale(0.833)">
+    <!-- Telhado com Beiral (Verde Esmeralda e Dourado) -->
+    <path d="M 7 21.5 L 24 7.5" stroke="url(#lt-green)" stroke-width="4.2" stroke-linecap="round" />
+    <path d="M 41 21.5 L 24 7.5" stroke="url(#lt-gold)" stroke-width="4.2" stroke-linecap="round" />
+
+    <!-- Estrutura do Lar e Fundação -->
+    <path d="M 12 23.5 V 37.5 C 12 39.5 13.5 40.5 15.5 40.5 H 32.5 C 34.5 40.5 36 39.5 36 37.5 V 23.5"
+          stroke="#24302A" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+    <line x1="9" y1="41" x2="39" y2="41" stroke="#24302A" stroke-width="3" stroke-linecap="round" />
+
+    <!-- Coração Duo Central -->
+    <path d="M 24 18 C 22 14.5 16.5 15 15 19.8 C 13.5 25.5 24 33.5 24 33.5 C 24 33.5 34.5 25.5 33 19.8 C 31.5 15 26 14.5 24 18 Z"
+          fill="#FFFDF8" stroke="#24302A" stroke-width="2" stroke-linejoin="round" />
+    <path d="M 24 18 C 22 14.5 16.5 15 15 19.8 C 13.5 25.5 24 33.5 24 33.5 V 18 Z" fill="#2F7D5B" />
+    <path d="M 24 18 C 26 14.5 31.5 15 33 19.8 C 34.5 25.5 24 33.5 24 33.5 V 18 Z" fill="#E8B63C" />
   </g>
 
-  <!-- Telhado de Casa sobre 'Casal' -->
-  <g id="telhado-casal">
-    <path d="M95 10 V5 H98.5 V12" stroke="#2F7D5B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M48 14 L82 5 L116 14" stroke="#2F7D5B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M82 7.2 C81 6.2 79.5 6.2 79.5 7.4 C79.5 8.6 82 10 82 10 C82 10 84.5 8.6 84.5 7.4 C84.5 6.2 83 6.2 82 7.2 Z" fill="#E0531C"/>
-  </g>
-
-  <!-- Tipografia Estilizada -->
-  <text x="48" y="34" font-family="'Fredoka', 'Nunito', 'Segoe UI', system-ui, sans-serif" font-weight="700" font-size="26" letter-spacing="-0.5">
+  <!-- Tipografia Moderna Outfit -->
+  <text x="50" y="32" class="brand-title">
     <tspan fill="#2F7D5B">Casal</tspan><tspan fill="#24302A">Planner</tspan>
   </text>
 
-  <!-- Selo de Checkmark no 'Planner' -->
-  <g transform="translate(204, 17)">
-    <rect x="0" y="0" width="18" height="18" rx="5" fill="#2F7D5B" stroke="#24302A" stroke-width="1.5"/>
-    <path d="M4.5 9.5 L7.5 12.5 L13.5 5.5" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
-
-  <!-- Sublinhado Marker sob "Planner" -->
-  <path d="M120 39 Q 160 42, 202 39" stroke="#E8B63C" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.9"/>
+  <!-- Ponto Solar Dourado -->
+  <circle cx="210" cy="27" r="3.2" fill="#E8B63C" />
 </svg>

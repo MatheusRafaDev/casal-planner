@@ -1,28 +1,39 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 48" fill="none">
-  <!-- Símbolo Casinha Compacta (Dark) -->
-  <g transform="translate(4, 4)">
-    <!-- Base Parede -->
-    <path d="M6 16 L20 4 L34 16 V34 C34 35.5 32.5 36.5 31 36.5 H9 C7.5 36.5 6 35.5 6 34 Z" fill="#1E2621" stroke="#FAF6EE" stroke-width="2" stroke-linejoin="round"/>
-    <!-- Telhado Dourado -->
-    <path d="M20 6 L33 16 H7 Z" fill="#E8B63C"/>
-    <path d="M4 17 L20 4 L36 17" stroke="#FAF6EE" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <!-- Coração topo -->
-    <path d="M20 10.5 C19.2 9.2 17.5 9.2 17.5 10.6 C17.5 12 20 13.6 20 13.6 C20 13.6 22.5 12 22.5 10.6 C22.5 9.2 20.8 9.2 20 10.5 Z" fill="#E0531C" stroke="#FAF6EE" stroke-width="1"/>
-    <!-- Dupla Verde e Amarelo -->
-    <circle cx="14" cy="21" r="3.2" fill="#52B788" stroke="#FAF6EE" stroke-width="1.5"/>
-    <path d="M9 36.5 C9 29.5 11 26 14 26 C17 26 19 29.5 19 36.5 Z" fill="#52B788" stroke="#FAF6EE" stroke-width="1.5" stroke-linejoin="round"/>
-    <circle cx="26" cy="21" r="3.2" fill="#E8B63C" stroke="#FAF6EE" stroke-width="1.5"/>
-    <path d="M21 36.5 C21 29.5 23 26 26 26 C29 26 31 29.5 31 36.5 Z" fill="#E8B63C" stroke="#FAF6EE" stroke-width="1.5" stroke-linejoin="round"/>
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@700;800&amp;display=swap');
+      .brand-title-dark {
+        font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        font-weight: 800;
+        font-size: 27px;
+        letter-spacing: -0.03em;
+      }
+    </style>
+  </defs>
+
+  <!-- Símbolo Oficial CasalPlanner (Dark) -->
+  <g transform="translate(4, 4) scale(0.833)">
+    <!-- Telhado com Beiral (Verde Esmeralda e Dourado) -->
+    <path d="M 7 21.5 L 24 7.5" stroke="#4FB387" stroke-width="4.2" stroke-linecap="round" />
+    <path d="M 41 21.5 L 24 7.5" stroke="#F5B938" stroke-width="4.2" stroke-linecap="round" />
+
+    <!-- Estrutura do Lar e Fundação -->
+    <path d="M 12 23.5 V 37.5 C 12 39.5 13.5 40.5 15.5 40.5 H 32.5 C 34.5 40.5 36 39.5 36 37.5 V 23.5"
+          stroke="#FAF6EE" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+    <line x1="9" y1="41" x2="39" y2="41" stroke="#FAF6EE" stroke-width="3" stroke-linecap="round" />
+
+    <!-- Coração Duo Central -->
+    <path d="M 24 18 C 22 14.5 16.5 15 15 19.8 C 13.5 25.5 24 33.5 24 33.5 C 24 33.5 34.5 25.5 33 19.8 C 31.5 15 26 14.5 24 18 Z"
+          fill="#141A17" stroke="#FAF6EE" stroke-width="2" stroke-linejoin="round" />
+    <path d="M 24 18 C 22 14.5 16.5 15 15 19.8 C 13.5 25.5 24 33.5 24 33.5 V 18 Z" fill="#4FB387" />
+    <path d="M 24 18 C 26 14.5 31.5 15 33 19.8 C 34.5 25.5 24 33.5 24 33.5 V 18 Z" fill="#F5B938" />
   </g>
 
-  <!-- Tipografia Estilizada -->
-  <text x="48" y="32" font-family="'Fredoka', 'Nunito', 'Segoe UI', system-ui, sans-serif" font-weight="700" font-size="26" letter-spacing="-0.5">
-    <tspan fill="#52B788">Casal</tspan><tspan fill="#FAF6EE">Planner</tspan>
+  <!-- Tipografia Moderna Outfit (Dark) -->
+  <text x="50" y="32" class="brand-title-dark">
+    <tspan fill="#4FB387">Casal</tspan><tspan fill="#FAF6EE">Planner</tspan>
   </text>
 
-  <!-- Ponto Amarelo com Borda (Pessoa 2) -->
-  <circle cx="206" cy="18" r="3.5" fill="#E8B63C" stroke="#FAF6EE" stroke-width="1.5"/>
-
-  <!-- Sublinhado Marker Curvo sob "Planner" -->
-  <path d="M120 37 Q 160 41, 202 37" stroke="#E8B63C" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.9"/>
+  <!-- Ponto Solar Dourado -->
+  <circle cx="210" cy="27" r="3.2" fill="#F5B938" />
 </svg>

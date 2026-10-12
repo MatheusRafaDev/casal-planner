@@ -31,12 +31,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-background md:pl-64 font-sans text-foreground">
       {/* Mobile Top Header */}
-      <header className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 h-16 bg-card border-b-2 border-border shadow-[0_2px_0_var(--border)]">
+      <header className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 h-16 bg-card border-b border-border shadow-xs">
         <Link to="/inicio" className="flex items-center gap-2.5">
           <BrandLogoBadge size="sm" />
           <div className="flex flex-col">
             <BrandLogoText size="sm" />
-            <span className="text-[10px] font-bold text-muted-foreground leading-none mt-0.5">
+            <span className="text-[10px] font-semibold text-muted-foreground leading-none mt-0.5">
               {isCasal ? `${p1Primeiro} & ${p2Primeiro}` : "Gestão do lar"}
             </span>
           </div>
@@ -45,7 +45,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {installPrompt && (
             <button
               onClick={triggerInstall}
-              className="p-2 rounded-xl border-2 border-border bg-primary text-primary-foreground shadow-[2px_2px_0_var(--border)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
+              className="p-2 rounded-xl border border-border bg-primary text-primary-foreground shadow-xs hover:bg-primary-hover active:scale-95 transition-all cursor-pointer"
               title="Instalar App"
             >
               <Download className="h-4 w-4" />
@@ -53,7 +53,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
           <button
             onClick={logout}
-            className="p-2 rounded-xl border-2 border-border bg-card text-muted-foreground hover:text-destructive hover:bg-destructive/10 shadow-[2px_2px_0_var(--border)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
+            className="p-2 rounded-xl border border-border bg-card text-muted-foreground hover:text-destructive hover:bg-destructive/10 shadow-xs active:scale-95 transition-all cursor-pointer"
             title="Sair"
           >
             <LogOut className="h-4 w-4" />
@@ -62,7 +62,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex md:flex-col w-64 border-r-2 border-border bg-sidebar text-foreground fixed inset-y-0 left-0 z-50 overflow-hidden select-none">
+      <aside className="hidden md:flex md:flex-col w-64 border-r border-border bg-sidebar text-foreground fixed inset-y-0 left-0 z-50 overflow-hidden select-none">
         {/* Brand Header */}
         <div className="p-6 pb-4">
           <Link
@@ -72,7 +72,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <BrandLogoBadge size="md" className="transition-transform group-hover:scale-105" />
             <div className="flex flex-col">
               <BrandLogoText size="md" />
-              <span className="text-[11px] font-bold text-muted-foreground mt-0.5">
+              <span className="text-[11px] font-semibold text-muted-foreground mt-0.5">
                 {isCasal ? `${p1Primeiro} & ${p2Primeiro}` : "Gestão do lar"}
               </span>
             </div>
@@ -80,7 +80,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Navigation Items */}
-        <div className="px-4 py-4 space-y-2">
+        <div className="px-4 py-4 space-y-1.5">
           {nav.map((n) => {
             const active = pathname.startsWith(n.to);
             return (
@@ -88,16 +88,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={n.to}
                 to={n.to}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition-all duration-150 h-11 border-2",
+                  "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all duration-150 h-10 border",
                   active
-                    ? "bg-primary text-primary-foreground border-border shadow-[2px_2px_0_var(--border)]"
-                    : "border-transparent text-foreground hover:bg-muted/70 hover:border-border/40",
+                    ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/70",
                 )}
               >
                 <n.icon
                   className={cn(
                     "h-4 w-4 shrink-0",
-                    active ? "text-primary-foreground" : "text-foreground",
+                    active ? "text-primary-foreground" : "text-muted-foreground",
                   )}
                 />
                 <span>{n.label}</span>
@@ -122,7 +122,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <div className="flex items-center -space-x-2 shrink-0">
                   <div
                     className={cn(
-                      "h-7 w-7 rounded-full border-2 border-border flex items-center justify-center font-bold text-xs shadow-xs",
+                      "h-7 w-7 rounded-full border border-border flex items-center justify-center font-bold text-xs shadow-xs",
                       usuario?.pessoaLogada === 1
                         ? "bg-[#2F7D5B] text-white z-10"
                         : "bg-[#2F7D5B]/70 text-white",
@@ -133,7 +133,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   </div>
                   <div
                     className={cn(
-                      "h-7 w-7 rounded-full border-2 border-border flex items-center justify-center font-bold text-xs shadow-xs",
+                      "h-7 w-7 rounded-full border border-border flex items-center justify-center font-bold text-xs shadow-xs",
                       usuario?.pessoaLogada === 2
                         ? "bg-[#E8B63C] text-[#24302A] z-10"
                         : "bg-[#E8B63C]/70 text-[#24302A]",
@@ -144,7 +144,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   </div>
                 </div>
               ) : (
-                <div className="h-8 w-8 rounded-xl border-2 border-border bg-primary/20 text-primary flex items-center justify-center shrink-0 font-bold text-sm shadow-xs">
+                <div className="h-8 w-8 rounded-xl border border-border bg-primary/20 text-primary flex items-center justify-center shrink-0 font-bold text-sm shadow-xs">
                   {logadoNome.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -159,11 +159,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
 
             {/* Quick Actions Bar */}
-            <div className="flex items-center justify-end gap-1 pt-2 border-t-2 border-border/20">
+            <div className="flex items-center justify-end gap-1 pt-2 border-t border-border">
               {installPrompt && (
                 <button
                   onClick={triggerInstall}
-                  className="flex items-center justify-center gap-1 py-1 px-2 rounded-lg text-[11px] font-bold text-primary hover:bg-primary-tint transition-colors cursor-pointer"
+                  className="flex items-center justify-center gap-1 py-1 px-2 rounded-lg text-[11px] font-semibold text-primary hover:bg-primary-tint transition-colors cursor-pointer"
                   title="Instalar como aplicativo"
                 >
                   <Download className="h-3.5 w-3.5" /> App
@@ -171,7 +171,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               )}
               <button
                 onClick={logout}
-                className="flex items-center justify-center gap-1 py-1 px-2 rounded-lg text-[11px] font-bold text-muted-foreground hover:text-destructive hover:bg-destructive-tint transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-1 py-1 px-2 rounded-lg text-[11px] font-semibold text-muted-foreground hover:text-destructive hover:bg-destructive-tint transition-colors cursor-pointer"
                 title="Encerrar sessão"
               >
                 <LogOut className="h-3.5 w-3.5" /> Sair
@@ -188,7 +188,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Bottom Nav Mobile */}
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 bg-card border-t-2 border-border z-50 shadow-[0_-3px_0_var(--border)]"
+        className="md:hidden fixed bottom-0 inset-x-0 bg-card border-t border-border z-50 shadow-lg"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
         <div className="flex h-16 items-center justify-around px-2">
@@ -210,7 +210,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   className={cn(
                     "flex items-center justify-center h-8 w-12 rounded-full transition-all",
                     active
-                      ? "bg-primary-tint text-primary-tint-foreground border-2 border-border"
+                      ? "bg-primary-tint text-primary-tint-foreground border border-primary/20"
                       : "bg-transparent",
                   )}
                 >
