@@ -121,32 +121,39 @@ export function InicioSkeleton() {
 
 export function ItemCardSkeleton() {
   return (
-    <div className="skeleton-card p-3.5 sm:p-4 flex items-center justify-between gap-3 sm:gap-4">
-      {/* Esquerda: Imagem ou Ícone */}
-      <div className="flex items-center gap-3 min-w-0 flex-1">
+    <div className="card-sticker p-3 sm:p-4 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[2px_2px_0_var(--border)]">
+      {/* Esquerda: Checkbox + Imagem/Ícone + Informações */}
+      <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
+        {/* Checkbox Placeholder */}
+        <Shimmer className="h-5 w-5 shrink-0 border-2 border-border/40" rounded="md" />
+
+        {/* Thumbnail / Ícone Placeholder */}
         <Shimmer className="h-12 w-12 shrink-0 border-2 border-border/40" rounded="xl" />
 
-        <div className="space-y-2 flex-1 min-w-0">
+        {/* Título & Detalhes */}
+        <div className="flex-1 min-w-0 py-0.5 space-y-1.5">
           <div className="flex items-center gap-2">
-            <Shimmer className="h-5 w-36 sm:w-48" />
+            <Shimmer className="h-5 w-36 sm:w-52" rounded="md" />
             <Shimmer className="h-4 w-14 hidden sm:block" rounded="full" />
           </div>
 
-          <div className="flex items-center gap-2">
-            <Shimmer className="h-3.5 w-20" />
-            <span className="text-border/30">•</span>
-            <Shimmer className="h-3.5 w-24" />
+          <div className="flex items-center gap-1.5 text-xs">
+            <Shimmer className="h-3.5 w-16" rounded="sm" />
+            <span className="text-border/40">•</span>
+            <Shimmer className="h-3.5 w-14" rounded="sm" />
+            <span className="text-border/40">•</span>
+            <Shimmer className="h-3.5 w-24" rounded="sm" />
           </div>
         </div>
       </div>
 
-      {/* Direita: Preço & Ações */}
-      <div className="flex items-center gap-3 shrink-0">
-        <div className="text-right space-y-1 hidden sm:block">
-          <Shimmer className="h-5 w-20" />
-          <Shimmer className="h-3 w-14 ml-auto" />
+      {/* Direita: Preço + Parcelas + Ações */}
+      <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 sm:pl-3 sm:border-l sm:border-border/30">
+        <div className="text-left sm:text-right space-y-1">
+          <Shimmer className="h-5 w-20 sm:ml-auto" rounded="md" />
+          <Shimmer className="h-3 w-14 sm:ml-auto" rounded="sm" />
         </div>
-        <Shimmer className="h-9 w-9 shrink-0 border-2 border-border/30" rounded="lg" />
+        <Shimmer className="h-8 w-8 shrink-0" rounded="lg" />
       </div>
     </div>
   );
@@ -157,58 +164,57 @@ export function PlanejamentoSkeleton() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.25 }}
-      className="space-y-6 pb-20 font-sans"
+      transition={{ duration: 0.2 }}
+      className="w-full space-y-6 pb-20 font-sans"
     >
       {/* ─── Topo: Título & Botões ───────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-1.5">
-          <Shimmer className="h-8 w-48 sm:w-64" />
-          <Shimmer className="h-4 w-72" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <Shimmer className="h-8 w-44 sm:w-56" rounded="lg" />
+          <Shimmer className="h-4 w-64 sm:w-80" rounded="md" />
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Shimmer className="h-10 w-28" rounded="lg" />
-          <Shimmer className="h-10 w-36" rounded="lg" />
+        <div className="flex items-center gap-2.5 shrink-0">
+          <Shimmer className="h-9 w-28 sm:w-32" rounded="xl" />
+          <Shimmer className="h-9 w-32 sm:w-36" rounded="xl" />
         </div>
       </div>
 
-      {/* ─── Pílulas de Cômodos (Horizontal) ────────────────────── */}
-      <div className="flex items-center gap-2 overflow-hidden pb-1">
-        <Shimmer className="h-14 w-32 shrink-0" rounded="xl" />
-        <Shimmer className="h-14 w-36 shrink-0" rounded="xl" />
-        <Shimmer className="h-14 w-32 shrink-0" rounded="xl" />
-        <Shimmer className="h-14 w-36 shrink-0" rounded="xl" />
-        <Shimmer className="h-14 w-28 shrink-0" rounded="xl" />
+      {/* ─── Seletor de Cômodos Mobile (md:hidden) ───────────────── */}
+      <div className="md:hidden">
+        <Shimmer className="h-10 w-full" rounded="xl" />
       </div>
 
-      {/* ─── Banner do Cômodo Ativo ─────────────────────────────── */}
-      <div className="skeleton-card p-4 sm:p-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      {/* ─── Card de Resumo (Summary Card) ─────────────────────── */}
+      <div className="card-sticker p-4 sm:p-5 bg-card flex flex-col lg:flex-row lg:items-center justify-between gap-5 shadow-[3px_3px_0_var(--border)]">
+        {/* Esquerda: Ícone do cômodo & Título */}
         <div className="flex items-center gap-3.5">
-          <Shimmer className="h-12 w-12" rounded="xl" />
+          <Shimmer className="h-12 w-12 shrink-0 border-2 border-border/20" rounded="xl" />
           <div className="space-y-1.5">
-            <Shimmer className="h-6 w-44" />
-            <Shimmer className="h-3.5 w-32" />
+            <Shimmer className="h-6 w-40" rounded="md" />
+            <Shimmer className="h-3.5 w-32" rounded="sm" />
           </div>
         </div>
 
-        <div className="flex items-center gap-4 w-full lg:w-auto">
-          <div className="space-y-1 flex-1 lg:flex-none">
-            <Shimmer className="h-4 w-24" />
-            <Shimmer className="h-5 w-32" />
+        {/* Direita: Total Gasto, Dinheiro, Casal */}
+        <div className="flex items-center gap-6 sm:gap-8 flex-wrap">
+          <div className="space-y-1">
+            <Shimmer className="h-3.5 w-16" rounded="sm" />
+            <Shimmer className="h-6 w-28" rounded="md" />
           </div>
-          <div className="space-y-1 flex-1 lg:flex-none">
-            <Shimmer className="h-4 w-24" />
-            <Shimmer className="h-5 w-32" />
+          <div className="h-8 w-px bg-border/60 hidden sm:block" />
+          <div className="space-y-1">
+            <Shimmer className="h-3.5 w-14" rounded="sm" />
+            <Shimmer className="h-5 w-20" rounded="md" />
           </div>
         </div>
       </div>
 
       {/* ─── Barra de Filtros & Busca ───────────────────────────── */}
-      <div className="flex flex-col sm:flex-row items-center gap-3">
-        <Shimmer className="h-11 w-full flex-1" rounded="lg" />
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Shimmer className="h-11 w-32 shrink-0" rounded="lg" />
-          <Shimmer className="h-11 w-32 shrink-0" rounded="lg" />
+      <div className="flex flex-col sm:flex-row items-center gap-2.5">
+        <Shimmer className="h-10 w-full sm:flex-1" rounded="xl" />
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+          <Shimmer className="h-10 w-28 sm:w-32" rounded="xl" />
+          <Shimmer className="h-10 w-32 sm:w-36" rounded="xl" />
         </div>
       </div>
 

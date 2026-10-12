@@ -1,7 +1,13 @@
 import { lazy, Suspense, useState, useMemo, useDeferredValue, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import {
+  useQuery,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Plus,
@@ -150,6 +156,7 @@ function PlanejamentoPage() {
     getNextPageParam: (lastPage) =>
       lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
     initialPageParam: 1,
+    placeholderData: keepPreviousData,
   });
 
   const itensFiltrados = useMemo(
@@ -277,7 +284,7 @@ function PlanejamentoPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (categoriasQ.isLoading && categorias.length === 0) {
+  if ((categoriasQ.isLoading && categorias.length === 0) || (itensQ.isLoading && !itensQ.data)) {
     return <PlanejamentoSkeleton />;
   }
 
@@ -617,8 +624,13 @@ function PlanejamentoPage() {
       </div>
 
       {/* Horizontal Items List matching media_1791749066370.png */}
-      <motion.div layout className="flex flex-col gap-2.5">
-        {itensQ.isLoading && (
+      <div
+        className={cn(
+          "flex flex-col gap-2.5 transition-opacity duration-200",
+          itensQ.isFetching && !itensQ.isLoading && "opacity-80",
+        )}
+      >
+        {itensQ.isLoading && !itensQ.data && (
           <div className="flex flex-col gap-2.5">
             {[1, 2, 3, 4, 5].map((i) => (
               <ItemCardSkeleton key={i} />
@@ -651,34 +663,31 @@ function PlanejamentoPage() {
           </div>
         )}
 
-        <AnimatePresence mode="popLayout">
-          {itensFiltrados.map((it) => {
-            const itemCategoria = categorias.find((c) => c.id === it.categoriaId);
-            const Icon = iconFor(itemCategoria?.icon ?? "package");
-            const isPresente = ["ganho", "presente"].includes(it.origem ?? "");
-            const isPrometido = it.origem === "prometido";
-            const responsavelNum = it.responsavelId;
+        {itensFiltrados.map((it) => {
+          const itemCategoria = categorias.find((c) => c.id === it.categoriaId);
+          const Icon = iconFor(itemCategoria?.icon ?? "package");
+          const isPresente = ["ganho", "presente"].includes(it.origem ?? "");
+          const isPrometido = it.origem === "prometido";
+          const responsavelNum = it.responsavelId;
 
-            const nomeResponsavel =
-              responsavelNum === 1
-                ? p1.split(" ")[0]
-                : responsavelNum === 2
-                  ? p2.split(" ")[0]
-                  : "Casal";
+          const nomeResponsavel =
+            responsavelNum === 1
+              ? p1.split(" ")[0]
+              : responsavelNum === 2
+                ? p2.split(" ")[0]
+                : "Casal";
 
-            return (
-              <motion.div
-                layout
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.15 }}
-                key={it.id}
-                className={cn(
-                  "group card-sticker p-3 sm:p-4 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[2px_2px_0_var(--border)] transition-all",
-                  it.comprado && "bg-muted/30 border-border/60 shadow-none",
-                )}
-              >
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              key={it.id}
+              className={cn(
+                "group card-sticker p-3 sm:p-4 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[2px_2px_0_var(--border)] transition-all",
+                it.comprado && "bg-muted/30 border-border/60 shadow-none",
+              )}
+            >
                 {/* Left: Checkbox + Thumbnail + Info */}
                 <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
                   {/* Checkbox */}
@@ -899,10 +908,17 @@ function PlanejamentoPage() {
               </motion.div>
             );
           })}
-        </AnimatePresence>
+
+        {/* Loading skeleton for next page */}
+        {itensQ.isFetchingNextPage && (
+          <div className="flex flex-col gap-2.5 pt-1">
+            <ItemCardSkeleton />
+            <ItemCardSkeleton />
+          </div>
+        )}
 
         {/* Pagination / Load more */}
-        {itensQ.hasNextPage && (
+        {itensQ.hasNextPage && !itensQ.isFetchingNextPage && (
           <div className="pt-4 flex justify-center">
             <Button
               variant="outline"
@@ -910,17 +926,11 @@ function PlanejamentoPage() {
               onClick={() => itensQ.fetchNextPage()}
               disabled={itensQ.isFetchingNextPage}
             >
-              {itensQ.isFetchingNextPage ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Carregando...
-                </>
-              ) : (
-                "Carregar mais itens"
-              )}
+              Carregar mais itens
             </Button>
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* Modals & Dialogs (All original features preserved) */}
       <CategoriaFormModal open={novaCategoria} onOpenChange={setNovaCategoria} />
