@@ -25,6 +25,7 @@ import {
   Sparkles,
   Loader2,
   Barcode,
+  Calendar,
 } from "lucide-react";
 import { BarcodeScannerModal } from "./BarcodeScannerModal";
 import {
@@ -49,7 +50,7 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/lib/auth-context";
 import { itensService, type ItemInputDTO } from "@/services/itens";
 import type { Categoria, Item } from "@/services/types";
-import { brl } from "@/lib/formatters";
+import { brl, formatDate } from "@/lib/formatters";
 import { groqService } from "@/services/groq";
 import { useQuery } from "@tanstack/react-query";
 
@@ -554,35 +555,69 @@ export function ItemFormModal({
 
                 {/* Card Financeiro & Compra */}
                 <div className="rounded-[var(--radius-lg)] border-2 border-border/80 bg-card p-4 sm:p-5 space-y-3.5 shadow-sm">
-                  <div className="flex items-center justify-between bg-muted/20 p-2.5 rounded-lg border">
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className={`p-1.5 rounded-md ${form.comprado ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}
-                      >
-                        <Check className="w-4 h-4" />
+                  {/* Card de Status & Data (Comprado vs Previsão) */}
+                  <div className="bg-muted/20 p-3 sm:p-3.5 rounded-lg border space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className={`p-1.5 rounded-md shrink-0 transition-colors ${
+                            form.comprado
+                              ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          <Check className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-xs sm:text-sm font-bold leading-tight">
+                            {form.comprado ? "Item Comprado / Adquirido" : "Pendente na Lista"}
+                          </h4>
+                          <p className="text-[11px] text-muted-foreground leading-tight">
+                            {form.comprado
+                              ? form.dataCompra
+                                ? `Comprado em ${formatDate(form.dataCompra)}`
+                                : "Já adquirido pelo casal"
+                              : form.dataCompra
+                                ? `Previsão para ${formatDate(form.dataCompra)}`
+                                : "Ainda não comprado"}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-xs font-bold leading-tight">
-                          {form.comprado ? "Item Comprado / Adquirido" : "Pendente na Lista"}
-                        </h4>
-                        <p className="text-[11px] text-muted-foreground leading-tight">
+
+                      <Switch
+                        id="modal-switch-comprado"
+                        checked={form.comprado}
+                        onCheckedChange={(c) => {
+                          set("comprado", c);
+                          if (c && !form.dataCompra) set("dataCompra", new Date().toLocaleDateString("en-CA"));
+                        }}
+                      />
+                    </div>
+
+                    {/* Campo unificado de data: Data da Compra ou Data de Previsão */}
+                    <div className="pt-2.5 border-t border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <Label
+                          htmlFor="modal-data-compra"
+                          className="text-xs font-semibold flex items-center gap-1.5 cursor-pointer text-foreground"
+                        >
+                          <Calendar className="w-3.5 h-3.5 text-primary" />
+                          {form.comprado ? "Data da Compra" : "Data de Previsão"}
+                        </Label>
+                        <p className="text-[10px] text-muted-foreground">
                           {form.comprado
-                            ? form.dataCompra
-                              ? `Comprado em ${new Date(form.dataCompra + "T12:00:00").toLocaleDateString("pt-BR")}`
-                              : "Já adquirido pelo casal"
-                            : form.dataCompra
-                              ? `Previsão: ${new Date(form.dataCompra + "T12:00:00").toLocaleDateString("pt-BR")}`
-                              : "Ainda não comprado"}
+                            ? "Data em que o item foi adquirido"
+                            : "Previsão estimada para compra (opcional)"}
                         </p>
                       </div>
+                      <Input
+                        id="modal-data-compra"
+                        type="date"
+                        value={form.dataCompra ?? ""}
+                        onChange={(e) => set("dataCompra", e.target.value || null)}
+                        className="h-8 text-xs bg-background w-full sm:w-44 cursor-pointer"
+                      />
                     </div>
-                    <Switch
-                      checked={form.comprado}
-                      onCheckedChange={(c) => {
-                        set("comprado", c);
-                        if (c && !form.dataCompra) set("dataCompra", new Date().toLocaleDateString("en-CA"));
-                      }}
-                    />
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-3">
@@ -622,21 +657,9 @@ export function ItemFormModal({
                       </Select>
                     </div>
 
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground font-medium">
-                        {form.comprado ? "Data da Compra" : "Previsão"}
-                      </Label>
-                      <Input
-                        type="date"
-                        value={form.dataCompra ?? ""}
-                        onChange={(e) => set("dataCompra", e.target.value || null)}
-                        className="bg-background h-9 text-xs sm:text-sm"
-                      />
-                    </div>
-
                     {form.origem !== "ganho" && (
                       <>
-                        <div className="space-y-1 sm:col-span-1">
+                        <div className="space-y-1">
                           <Label className="text-xs text-muted-foreground font-medium">Pagamento</Label>
                           <Select
                             value={form.pagamento}

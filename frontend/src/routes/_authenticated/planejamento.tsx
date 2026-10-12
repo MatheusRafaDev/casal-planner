@@ -60,7 +60,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { categoriasService } from "@/services/categorias";
 import { itensService } from "@/services/itens";
 import type { Categoria, Item } from "@/services/types";
-import { brl, toTitleCase } from "@/lib/formatters";
+import { brl, toTitleCase, formatDate } from "@/lib/formatters";
 import { valorParcela } from "@/lib/parcelas";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
@@ -839,6 +839,21 @@ function PlanejamentoPage() {
                               </a>
                             )}
                           </div>
+                        </>
+                      )}
+                      {it.dataCompra && (
+                        <>
+                          <span>•</span>
+                          <span
+                            className={
+                              it.comprado
+                                ? "text-emerald-700 dark:text-emerald-400 font-semibold"
+                                : "text-amber-700 dark:text-amber-400 font-semibold"
+                            }
+                          >
+                            {it.comprado ? "Comprado em " : "Previsão: "}
+                            {formatDate(it.dataCompra)}
+                          </span>
                         </>
                       )}
                     </div>

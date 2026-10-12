@@ -23,6 +23,7 @@ import {
   ScanBarcode,
   Type,
   LayoutGrid,
+  Calendar,
 } from "lucide-react";
 import { BarcodeScannerModal } from "./BarcodeScannerModal";
 import type { ProdutoBarcodeInfo } from "@/services/barcode";
@@ -47,7 +48,7 @@ import { itensService } from "@/services/itens";
 import { pesquisaPrecosService } from "@/services/pesquisa-precos";
 import { registroPrecoService } from "@/services/registro-preco";
 import { groqService } from "@/services/groq";
-import { brl } from "@/lib/formatters";
+import { brl, formatDate } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { getSuggestions } from "@/lib/suggestions";
 import { iconFor } from "@/components/planejamento/icon-map";
@@ -1017,35 +1018,69 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
 
                     {/* Financeiro e Planejamento */}
                     <div className="rounded-[var(--radius-lg)] border-2 border-border/80 bg-card p-4 space-y-3.5 shadow-sm">
-                      <div className="flex items-center justify-between bg-muted/20 p-2.5 rounded-lg border">
-                        <div className="flex items-center gap-2.5">
-                          <div
-                            className={`p-1.5 rounded-md ${comprado ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}
-                          >
-                            <Check className="w-4 h-4" />
+                      {/* Card de Status & Data (Comprado vs Previsão) */}
+                      <div className="bg-muted/20 p-3 sm:p-3.5 rounded-lg border space-y-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div
+                              className={`p-1.5 rounded-md shrink-0 transition-colors ${
+                                comprado
+                                  ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                                  : "bg-muted text-muted-foreground"
+                              }`}
+                            >
+                              <Check className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <h4 className="text-xs sm:text-sm font-bold leading-tight">
+                                {comprado ? "Item Comprado / Adquirido" : "Pendente na Lista"}
+                              </h4>
+                              <p className="text-[11px] text-muted-foreground leading-tight">
+                                {comprado
+                                  ? dataCompra
+                                    ? `Comprado em ${formatDate(dataCompra)}`
+                                    : "Já adquirido pelo casal"
+                                  : dataCompra
+                                    ? `Previsão para ${formatDate(dataCompra)}`
+                                    : "Ainda não comprado"}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="text-xs font-bold leading-tight">
-                              {comprado ? "Item Comprado / Adquirido" : "Pendente na Lista"}
-                            </h4>
-                            <p className="text-[11px] text-muted-foreground leading-tight">
+
+                          <Switch
+                            id="wizard-switch-comprado"
+                            checked={comprado}
+                            onCheckedChange={(c) => {
+                              setComprado(c);
+                              if (c && !dataCompra) setDataCompra(new Date().toLocaleDateString("en-CA"));
+                            }}
+                          />
+                        </div>
+
+                        {/* Campo unificado de data: Data da Compra ou Data de Previsão */}
+                        <div className="pt-2.5 border-t border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="space-y-0.5">
+                            <Label
+                              htmlFor="wizard-data-compra"
+                              className="text-xs font-semibold flex items-center gap-1.5 cursor-pointer text-foreground"
+                            >
+                              <Calendar className="w-3.5 h-3.5 text-primary" />
+                              {comprado ? "Data da Compra" : "Data de Previsão"}
+                            </Label>
+                            <p className="text-[10px] text-muted-foreground">
                               {comprado
-                                ? dataCompra
-                                  ? `Comprado em ${new Date(dataCompra + "T12:00:00").toLocaleDateString("pt-BR")}`
-                                  : "Já adquirido pelo casal"
-                                : dataCompra
-                                  ? `Previsão: ${new Date(dataCompra + "T12:00:00").toLocaleDateString("pt-BR")}`
-                                  : "Ainda não comprado"}
+                                ? "Data em que o item foi adquirido"
+                                : "Previsão estimada para compra (opcional)"}
                             </p>
                           </div>
+                          <Input
+                            id="wizard-data-compra"
+                            type="date"
+                            value={dataCompra ?? ""}
+                            onChange={(e) => setDataCompra(e.target.value || null)}
+                            className="h-8 text-xs bg-background w-full sm:w-44 cursor-pointer"
+                          />
                         </div>
-                        <Switch
-                          checked={comprado}
-                          onCheckedChange={(c) => {
-                            setComprado(c);
-                            if (c && !dataCompra) setDataCompra(new Date().toLocaleDateString("en-CA"));
-                          }}
-                        />
                       </div>
 
                       <div className="grid gap-3 sm:grid-cols-3">
@@ -1080,18 +1115,6 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                               <SelectItem value="baixa">Baixa (Pode esperar)</SelectItem>
                             </SelectContent>
                           </Select>
-                        </div>
-
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground font-medium">
-                            {comprado ? "Data da Compra" : "Previsão de Compra"}
-                          </Label>
-                          <Input
-                            type="date"
-                            value={dataCompra ?? ""}
-                            onChange={(e) => setDataCompra(e.target.value || null)}
-                            className="h-9 bg-background text-xs sm:text-sm"
-                          />
                         </div>
 
                         {origem !== "ganho" && (
