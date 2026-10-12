@@ -1,9 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  User,
   Trash2,
   KeyRound,
   Target,
@@ -47,6 +46,14 @@ import { maskDate, brToIsoDate, formatDate, brl } from "@/lib/formatters";
 import { motion, type Variants } from "framer-motion";
 import { PerfilSkeleton } from "@/components/ui/LoadingSkeletons";
 import { cn } from "@/lib/utils";
+
+function extrairIniciais(nome?: string | null, fallback = "U"): string {
+  if (!nome || !nome.trim()) return fallback;
+  const partes = nome.trim().split(/\s+/).filter(Boolean);
+  if (partes.length === 0) return fallback;
+  if (partes.length === 1) return partes[0].charAt(0).toUpperCase();
+  return (partes[0].charAt(0) + partes[partes.length - 1].charAt(0)).toUpperCase();
+}
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
@@ -131,11 +138,17 @@ function PerfilPage() {
             {isCasal ? (
               <Tabs defaultValue={usuario.pessoaLogada === 2 ? "p2" : "p1"} className="w-full">
                 <TabsList className="grid grid-cols-2 mb-5">
-                  <TabsTrigger value="p1">
-                    {usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}
+                  <TabsTrigger value="p1" className="flex items-center justify-center gap-2">
+                    <span className="h-5 w-5 rounded-full bg-[#2F7D5B] text-white text-[10px] font-bold grid place-items-center shrink-0">
+                      {extrairIniciais(usuario.casalInfo?.pessoa1.nome, "1")}
+                    </span>
+                    <span className="truncate">{usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}</span>
                   </TabsTrigger>
-                  <TabsTrigger value="p2">
-                    {usuario.casalInfo?.pessoa2.nome ?? "Pessoa 2"}
+                  <TabsTrigger value="p2" className="flex items-center justify-center gap-2">
+                    <span className="h-5 w-5 rounded-full bg-[#E8B63C] text-[#24302A] text-[10px] font-bold grid place-items-center shrink-0">
+                      {extrairIniciais(usuario.casalInfo?.pessoa2.nome, "2")}
+                    </span>
+                    <span className="truncate">{usuario.casalInfo?.pessoa2.nome ?? "Pessoa 2"}</span>
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="p1" className="mt-0">
@@ -147,8 +160,8 @@ function PerfilPage() {
                       dataNascimento: usuario.casalInfo?.pessoa1.dataNascimento ?? "",
                       receberNotificacoes: usuario.casalInfo?.pessoa1.receberNotificacoes ?? true,
                     }}
-                    iniciais="P1"
-                    avatarColor="bg-primary text-primary-foreground"
+                    iniciais={extrairIniciais(usuario.casalInfo?.pessoa1.nome, "1")}
+                    avatarColor="bg-[#2F7D5B] text-white"
                     bloquearEmailCpf
                     somenteLeitura={usuario.pessoaLogada !== 1}
                     onSave={async (dto) => {
@@ -173,8 +186,8 @@ function PerfilPage() {
                       dataNascimento: usuario.casalInfo?.pessoa2.dataNascimento ?? "",
                       receberNotificacoes: usuario.casalInfo?.pessoa2.receberNotificacoes ?? true,
                     }}
-                    iniciais="P2"
-                    avatarColor="bg-gold text-gold-foreground"
+                    iniciais={extrairIniciais(usuario.casalInfo?.pessoa2.nome, "2")}
+                    avatarColor="bg-[#E8B63C] text-[#24302A]"
                     bloquearEmailCpf
                     somenteLeitura={usuario.pessoaLogada !== 2}
                     onSave={async (dto) => {
@@ -199,7 +212,7 @@ function PerfilPage() {
                   dataNascimento: usuario.dataNascimento ?? "",
                   receberNotificacoes: usuario.receberNotificacoes ?? true,
                 }}
-                iniciais={usuario.nomeCompleto?.charAt(0).toUpperCase() || "U"}
+                iniciais={extrairIniciais(usuario.nomeCompleto, "U")}
                 avatarColor="bg-primary text-primary-foreground"
                 bloquearEmailCpf
                 onSave={async (dto) => {
@@ -344,6 +357,11 @@ function PessoaForm({
   const [nasc, setNasc] = useState(dados.dataNascimento ? formatDate(dados.dataNascimento) : "");
   const [notif, setNotif] = useState(dados.receberNotificacoes ?? true);
 
+  const iniciaisExibicao = useMemo(
+    () => extrairIniciais(nome, iniciais || "U"),
+    [nome, iniciais],
+  );
+
   useEffect(() => {
     setNome(dados.nome ?? "");
     setEmail(dados.email ?? "");
@@ -383,11 +401,11 @@ function PessoaForm({
       <div className="flex items-center gap-3.5 pb-2">
         <div
           className={cn(
-            "h-12 w-12 rounded-full border-2 border-border grid place-items-center font-display font-bold text-base shadow-xs shrink-0",
+            "h-12 w-12 rounded-full border-2 border-border grid place-items-center font-display font-bold text-base shadow-xs shrink-0 select-none",
             avatarColor,
           )}
         >
-          {iniciais}
+          {iniciaisExibicao}
         </div>
         <div className="min-w-0">
           <span className="font-display font-bold text-lg text-foreground block truncate">
