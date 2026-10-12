@@ -3,7 +3,7 @@ import { LayoutGrid, User, LogOut, Download, PieChart } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { usePwa } from "@/hooks/use-pwa";
 import { cn } from "@/lib/utils";
-import { BrandLogoBadge, BrandLogoText } from "@/components/ui/BrandLogo";
+import { BrandLogoText } from "@/components/ui/BrandLogo";
 
 const nav = [
   { to: "/inicio", label: "Dashboard", icon: PieChart },
@@ -33,7 +33,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Mobile Top Header */}
       <header className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 h-16 bg-card border-b border-border shadow-xs">
         <Link to="/inicio" className="flex items-center gap-2.5">
-          <BrandLogoBadge size="sm" />
           <div className="flex flex-col">
             <BrandLogoText size="sm" />
             <span className="text-[10px] font-semibold text-muted-foreground leading-none mt-0.5">
@@ -69,7 +68,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             to="/inicio"
             className="flex items-center gap-3 transition-transform hover:scale-[1.02] group"
           >
-            <BrandLogoBadge size="md" className="transition-transform group-hover:scale-105" />
             <div className="flex flex-col">
               <BrandLogoText size="md" />
               <span className="text-[11px] font-semibold text-muted-foreground mt-0.5">

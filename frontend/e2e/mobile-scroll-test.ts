@@ -59,3 +59,15 @@ test("usa a API na mesma origem durante o desenvolvimento local", async ({ page 
   const request = await authRequest;
   expect(new URL(request.url()).origin).toBe(new URL(page.url()).origin);
 });
+
+test("exibe a marca como texto com ponto amarelo, sem imagem", async ({ page }) => {
+  await page.goto("/");
+
+  const brand = page.getByRole("link", { name: "CasalPlanner" });
+  await expect(brand).toContainText("CasalPlanner");
+  await expect(brand.locator("img")).toHaveCount(0);
+  await expect(brand.locator('[aria-hidden="true"]')).toHaveCSS(
+    "background-color",
+    "rgb(245, 158, 11)",
+  );
+});

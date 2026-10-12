@@ -7,7 +7,7 @@ import { RegistroIndividual } from "@/components/auth/RegistroIndividual";
 import { RegistroCasal } from "@/components/auth/RegistroCasal";
 import { useAuth } from "@/lib/auth-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BrandLogoBadge, BrandLogoText } from "@/components/ui/BrandLogo";
+import { BrandLogoText } from "@/components/ui/BrandLogo";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (
@@ -74,7 +74,6 @@ function LoginPage() {
             to="/"
             className="flex items-center gap-3 font-bold tracking-tight text-foreground group"
           >
-            <BrandLogoBadge size="md" className="transition-transform group-hover:scale-105" />
             <BrandLogoText size="lg" />
           </Link>
         </div>
@@ -187,7 +186,6 @@ function LoginPage() {
           {/* Cabeçalho Fixo (Altura estável para eliminar saltos de layout) */}
           <div className="text-center sm:text-left min-h-[56px] flex flex-col justify-center">
             <div className="lg:hidden inline-flex items-center gap-2 font-bold mb-2">
-              <BrandLogoBadge size="sm" />
               <BrandLogoText size="md" />
             </div>
 

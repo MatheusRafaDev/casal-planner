@@ -15,15 +15,14 @@ import { ThemeProvider } from "@/lib/theme-context";
 import { Toaster } from "@/components/ui/sonner";
 import { clearAppData } from "@/lib/clear-app-data";
 import { api } from "@/lib/api";
-import { BrandLogoBadge } from "@/components/ui/BrandLogo";
+import { BrandLogoText } from "@/components/ui/BrandLogo";
 
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 font-sans">
       <div className="card-sticker-lg max-w-md w-full text-center p-8 bg-card shadow-[5px_5px_0_var(--border)]">
-        <div className="flex items-center justify-center gap-2.5 mb-6">
-          <BrandLogoBadge size="lg" />
-          <span className="font-display text-xl font-bold">CasalPlanner</span>
+        <div className="mb-6 flex items-center justify-center">
+          <BrandLogoText size="lg" />
         </div>
         <h1 className="text-7xl font-display font-bold text-primary">404</h1>
         <h2 className="mt-4 text-2xl font-display font-bold text-foreground">

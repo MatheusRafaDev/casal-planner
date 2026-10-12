@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { WizardRecuperarSenha } from "@/components/auth/WizardRecuperarSenha";
-import { BrandLogoIcon } from "@/components/ui/BrandLogo";
+import { BrandLogoText } from "@/components/ui/BrandLogo";
 
 export const Route = createFileRoute("/recuperar-senha")({
   validateSearch: (search: Record<string, unknown>): { email?: string; step?: 1 | 2 | 3 } => {
@@ -22,11 +22,8 @@ function RecuperarPage() {
     <div className="min-h-screen bg-background relative flex flex-col items-center justify-center p-4 selection:bg-gold/30 font-sans">
       <div className="card-sticker-lg w-full max-w-[420px] bg-card p-6 sm:p-10 shadow-[5px_5px_0_var(--border)]">
         <div className="flex flex-col items-center text-center space-y-4 mb-8">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center h-14 w-14 rounded-2xl border-2 border-border bg-[#FFFDF8] dark:bg-[#1E2621] text-[#24302A] shadow-[3px_3px_0_var(--border)] mb-2 hover:scale-105 transition-transform"
-          >
-            <BrandLogoIcon className="h-9 w-9" />
+          <Link to="/" className="mb-2 inline-flex items-center justify-center">
+            <BrandLogoText size="lg" />
           </Link>
           <div className="space-y-2">
             <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
