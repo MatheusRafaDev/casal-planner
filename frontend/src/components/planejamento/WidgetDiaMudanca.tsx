@@ -411,9 +411,7 @@ export function WidgetDiaMudanca() {
               <span className="font-bold text-foreground">Dica Logística:</span>
               <span className="text-muted-foreground italic">"{risco.dicas[0]}"</span>
             </div>
-            <span className="text-[10px] font-mono text-muted-foreground/70 shrink-0">
-              Open-Meteo Weather API
-            </span>
+
           </div>
         )}
       </div>
