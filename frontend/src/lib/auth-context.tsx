@@ -77,9 +77,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Pré-carrega no React Query em paralelo com o pré-aquecimento do Redis
     qc.prefetchQuery({ queryKey: ["resumo"], queryFn: () => resumoService.obter() });
     qc.prefetchQuery({ queryKey: ["categorias"], queryFn: () => categoriasService.listar() });
-    qc.prefetchQuery({
+    qc.prefetchInfiniteQuery({
       queryKey: ["itens-paginado", "tudo", "", "todos", "todos", "todos"],
-      queryFn: () => itensService.listarPaginado({ page: 1, pageSize: 20 }),
+      queryFn: ({ pageParam }) =>
+        itensService.listarPaginado({ page: pageParam as number, pageSize: 20 }),
+      initialPageParam: 1,
     });
   }, [qc]);
 
