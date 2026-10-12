@@ -11,6 +11,7 @@ import {
   Gift,
   CheckCircle,
   AlertTriangle,
+  ChevronDown,
 } from "lucide-react";
 import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { resumoService } from "@/services/resumo";
@@ -414,7 +415,7 @@ function InicioPage() {
           <span className="text-xs md:text-sm font-semibold text-muted-foreground block mb-1">
             {mesCapitalizado}
           </span>
-          <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground">
             {isCasal ? "Resumo do nosso lar" : "Resumo do meu lar"}
           </h1>
         </div>
@@ -591,16 +592,16 @@ function InicioPage() {
             </motion.div>
 
             {/* Coluna Direita: 2 Cards Menores */}
-            <div className="flex flex-col gap-6">
+            <div className="grid grid-cols-2 lg:flex lg:flex-col gap-3 md:gap-6">
               {/* Card 1: Parcelas deste mês */}
               <motion.div
                 variants={itemVariants}
-                className="card-sticker p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between flex-1"
+                className="card-sticker p-4 md:p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between lg:flex-1"
               >
                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
                   Parcelas deste mês
                 </span>
-                <span className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-foreground tabular-nums">
+                <span className="font-display text-2xl sm:text-4xl font-bold tracking-tight text-foreground tabular-nums">
                   {brl(parcelasResumo.valorDesteMes)}
                 </span>
                 <span className="text-xs text-muted-foreground font-medium mt-1">
@@ -613,14 +614,14 @@ function InicioPage() {
               {/* Card 2: Itens comprados */}
               <motion.div
                 variants={itemVariants}
-                className="card-sticker p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between flex-1"
+                className="card-sticker p-4 md:p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between lg:flex-1"
               >
                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
                   Itens comprados
                 </span>
-                <span className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-foreground tabular-nums">
+                <span className="font-display text-2xl sm:text-4xl font-bold tracking-tight text-foreground tabular-nums">
                   {r?.itensComprados}{" "}
-                  <span className="text-2xl sm:text-3xl font-semibold text-muted-foreground">
+                  <span className="text-lg sm:text-3xl font-semibold text-muted-foreground">
                     de {r?.totalItens}
                   </span>
                 </span>
@@ -633,311 +634,319 @@ function InicioPage() {
             </div>
           </div>
 
-          {/* ─── Seção Cômodos ─────────────────────────────────────────────────── */}
-          <motion.div variants={itemVariants} className="space-y-4">
-            <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
-              Cômodos
-            </h2>
+          <details className="home-details">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-bold text-foreground shadow-sticker focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+              Ver detalhes do planejamento
+              <ChevronDown className="home-details-chevron h-4 w-4 shrink-0 text-muted-foreground" />
+            </summary>
+            <div className="home-details-content">
+              {/* ─── Seção Cômodos ─────────────────────────────────────────────────── */}
+              <motion.div variants={itemVariants} className="space-y-4">
+                <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
+                  Cômodos
+                </h2>
 
-            {r?.porCategoria && r.porCategoria.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {r.porCategoria.map((c) => {
-                  const metaC = c.metaOrcamento ?? 0;
-                  const estourou = metaC > 0 && c.totalGasto > metaC;
-                  const pctC = metaC > 0 ? Math.min(100, (c.totalGasto / metaC) * 100) : 100;
-                  const IconComp = iconFor(c.icon);
-                  const corComodo = comodoColor(c.cor, c.categoriaNome);
+                {r?.porCategoria && r.porCategoria.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {r.porCategoria.map((c) => {
+                      const metaC = c.metaOrcamento ?? 0;
+                      const estourou = metaC > 0 && c.totalGasto > metaC;
+                      const pctC = metaC > 0 ? Math.min(100, (c.totalGasto / metaC) * 100) : 100;
+                      const IconComp = iconFor(c.icon);
+                      const corComodo = comodoColor(c.cor, c.categoriaNome);
 
-                  return (
-                    <Link
-                      key={c.categoriaId}
-                      to="/planejamento"
-                      search={{ comodo: c.categoriaId }}
-                      className="card-sticker p-5 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between gap-4 transition-transform hover:translate-x-[1px] hover:translate-y-[1px] group block cursor-pointer"
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <div
-                              className="h-8 w-8 rounded-lg border-2 border-border flex items-center justify-center shrink-0 shadow-xs"
-                              style={{
-                                backgroundColor: `${corComodo}25`,
-                                color: corComodo,
-                              }}
-                            >
-                              <IconComp className="h-4 w-4" />
+                      return (
+                        <Link
+                          key={c.categoriaId}
+                          to="/planejamento"
+                          search={{ comodo: c.categoriaId }}
+                          className="card-sticker p-5 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between gap-4 transition-transform hover:translate-x-[1px] hover:translate-y-[1px] group block cursor-pointer"
+                        >
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div
+                                  className="h-8 w-8 rounded-lg border-2 border-border flex items-center justify-center shrink-0 shadow-xs"
+                                  style={{
+                                    backgroundColor: `${corComodo}25`,
+                                    color: corComodo,
+                                  }}
+                                >
+                                  <IconComp className="h-4 w-4" />
+                                </div>
+                                <span className="font-bold text-base text-foreground truncate group-hover:text-primary transition-colors">
+                                  {c.categoriaNome}
+                                </span>
+                              </div>
+                              {estourou && (
+                                <span className="border-2 border-border rounded-full px-2 py-0.5 text-[10px] font-bold bg-destructive-tint text-destructive-tint-foreground shrink-0 shadow-xs">
+                                  Estourou
+                                </span>
+                              )}
                             </div>
-                            <span className="font-bold text-base text-foreground truncate group-hover:text-primary transition-colors">
-                              {c.categoriaNome}
-                            </span>
+
+                            <div className="text-xs font-semibold text-muted-foreground mt-2">
+                              <span className="tabular-nums font-bold text-foreground">
+                                {brl(c.totalGasto)}
+                              </span>{" "}
+                              {metaC > 0 ? `de ${brl(metaC)}` : `(${c.totalItens} itens)`}
+                            </div>
                           </div>
-                          {estourou && (
-                            <span className="border-2 border-border rounded-full px-2 py-0.5 text-[10px] font-bold bg-destructive-tint text-destructive-tint-foreground shrink-0 shadow-xs">
-                              Estourou
-                            </span>
-                          )}
-                        </div>
 
-                        <div className="text-xs font-semibold text-muted-foreground mt-2">
-                          <span className="tabular-nums font-bold text-foreground">
-                            {brl(c.totalGasto)}
-                          </span>{" "}
-                          {metaC > 0 ? `de ${brl(metaC)}` : `(${c.totalItens} itens)`}
-                        </div>
-                      </div>
+                          <div className="h-3 w-full rounded-full border-2 border-border bg-white dark:bg-card overflow-hidden">
+                            <div
+                              className="h-full transition-all duration-500"
+                              style={{
+                                width: `${pctC}%`,
+                                backgroundColor: estourou ? "var(--destructive)" : corComodo,
+                              }}
+                            />
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="card-sticker p-8 text-center text-muted-foreground font-semibold bg-card shadow-[3px_3px_0_var(--border)]">
+                    Nenhum cômodo cadastrado ainda. Crie cômodos na página de Planejamento.
+                  </div>
+                )}
+              </motion.div>
 
-                      <div className="h-3 w-full rounded-full border-2 border-border bg-white dark:bg-card overflow-hidden">
-                        <div
-                          className="h-full transition-all duration-500"
-                          style={{
-                            width: `${pctC}%`,
-                            backgroundColor: estourou ? "var(--destructive)" : corComodo,
-                          }}
-                        />
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="card-sticker p-8 text-center text-muted-foreground font-semibold bg-card shadow-[3px_3px_0_var(--border)]">
-                Nenhum cômodo cadastrado ainda. Crie cômodos na página de Planejamento.
-              </div>
-            )}
-          </motion.div>
-
-          {/* ─── Seção Gráfico: Faturas dos Próximos Meses (Largura Total) ──────── */}
-          <motion.div
-            variants={itemVariants}
-            className="card-sticker p-6 md:p-8 bg-card shadow-[4px_4px_0_var(--border)] space-y-6"
-          >
-            <div>
-              <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
-                Faturas dos próximos meses
-              </h2>
-              <p className="text-xs sm:text-sm text-muted-foreground font-medium mt-0.5">
-                Projeção mês a mês de compras parceladas
-              </p>
-            </div>
-
-            <div className="w-full h-[220px]">
-              {faturasMensais.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground font-medium">
-                  <p className="text-sm">Nenhuma fatura futura parcelada registrada.</p>
+              {/* ─── Seção Gráfico: Faturas dos Próximos Meses (Largura Total) ──────── */}
+              <motion.div
+                variants={itemVariants}
+                className="card-sticker p-6 md:p-8 bg-card shadow-[4px_4px_0_var(--border)] space-y-6"
+              >
+                <div>
+                  <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
+                    Faturas dos próximos meses
+                  </h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground font-medium mt-0.5">
+                    Projeção mês a mês de compras parceladas
+                  </p>
                 </div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={faturasMensais}
-                    margin={{ top: 10, right: 10, bottom: 0, left: 10 }}
-                  >
-                    <XAxis
-                      dataKey="name"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 13, fontWeight: 700, fill: "var(--foreground)" }}
-                      dy={10}
-                    />
-                    <YAxis hide />
-                    <Tooltip
-                      cursor={{ fill: "var(--muted)", opacity: 0.5 }}
-                      contentStyle={{
-                        borderRadius: "12px",
-                        border: "2px solid var(--border)",
-                        boxShadow: "3px 3px 0 var(--border)",
-                        backgroundColor: "var(--card)",
-                        color: "var(--foreground)",
-                        fontWeight: 700,
-                      }}
-                      formatter={(v: number) => [
-                        <span key="val" className="font-bold text-foreground tabular-nums">
-                          {brl(v)}
-                        </span>,
-                        "Fatura",
-                      ]}
-                      labelFormatter={(label) => `Mês: ${label}`}
-                    />
-                    <Bar
-                      dataKey="valor"
-                      fill="var(--primary)"
-                      stroke="var(--border)"
-                      strokeWidth={2}
-                      radius={[6, 6, 0, 0]}
-                      maxBarSize={55}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-          </motion.div>
 
-          {/* ─── Seção Inferior: Mini Totais + Próximas Compras ─────────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Próximas Compras */}
-            <motion.div
-              variants={itemVariants}
-              className="card-sticker p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between"
-            >
-              <div>
-                <h3 className="font-display text-xl font-bold tracking-tight text-foreground mb-1">
-                  Próximas compras
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground font-medium mb-4">
-                  Pendências prioritárias no seu planejamento
-                </p>
-
-                <div className="space-y-3">
-                  {validItens.filter((i) => !i.comprado).length === 0 ? (
-                    <div className="py-8 text-center text-muted-foreground font-medium flex flex-col items-center justify-center">
-                      <CheckCircle className="h-8 w-8 text-primary mb-2" />
-                      <p className="text-sm font-bold text-foreground">Tudo comprado!</p>
-                      <p className="text-xs">Nenhum item pendente no momento.</p>
+                <div className="w-full h-[220px]">
+                  {faturasMensais.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground font-medium">
+                      <p className="text-sm">Nenhuma fatura futura parcelada registrada.</p>
                     </div>
                   ) : (
-                    validItens
-                      .filter((i) => !i.comprado)
-                      .slice(0, 4)
-                      .map((item, idx) => {
-                        const cat = categorias.find((c) => c.id === item.categoriaId);
-                        return (
-                          <div
-                            key={idx}
-                            className="card-sticker p-3 bg-card shadow-[2px_2px_0_var(--border)] flex items-center justify-between"
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className="h-8 w-8 rounded-lg border-2 border-border bg-primary-tint text-primary-tint-foreground flex items-center justify-center shrink-0">
-                                <ShoppingBag className="h-4 w-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-sm font-bold text-foreground truncate">
-                                  {item.nome}
-                                </p>
-                                <p className="text-xs text-muted-foreground font-medium truncate">
-                                  {cat?.nome ?? "Sem cômodo"}
-                                </p>
-                              </div>
-                            </div>
-                            <span className="text-sm font-bold tabular-nums text-foreground shrink-0 ml-3">
-                              {brl(item.preco)}
-                            </span>
-                          </div>
-                        );
-                      })
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={faturasMensais}
+                        margin={{ top: 10, right: 10, bottom: 0, left: 10 }}
+                      >
+                        <XAxis
+                          dataKey="name"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 13, fontWeight: 700, fill: "var(--foreground)" }}
+                          dy={10}
+                        />
+                        <YAxis hide />
+                        <Tooltip
+                          cursor={{ fill: "var(--muted)", opacity: 0.5 }}
+                          contentStyle={{
+                            borderRadius: "12px",
+                            border: "2px solid var(--border)",
+                            boxShadow: "3px 3px 0 var(--border)",
+                            backgroundColor: "var(--card)",
+                            color: "var(--foreground)",
+                            fontWeight: 700,
+                          }}
+                          formatter={(v: number) => [
+                            <span key="val" className="font-bold text-foreground tabular-nums">
+                              {brl(v)}
+                            </span>,
+                            "Fatura",
+                          ]}
+                          labelFormatter={(label) => `Mês: ${label}`}
+                        />
+                        <Bar
+                          dataKey="valor"
+                          fill="var(--primary)"
+                          stroke="var(--border)"
+                          strokeWidth={2}
+                          radius={[6, 6, 0, 0]}
+                          maxBarSize={55}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
                   )}
                 </div>
-              </div>
+              </motion.div>
 
-              <Button
-                asChild
-                variant="outline"
-                className="btn-sticker w-full mt-6 bg-card text-foreground font-bold"
-              >
-                <Link to="/planejamento">Ver planejamento completo</Link>
-              </Button>
-            </motion.div>
+              {/* ─── Seção Inferior: Mini Totais + Próximas Compras ─────────────────── */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Próximas Compras */}
+                <motion.div
+                  variants={itemVariants}
+                  className="card-sticker p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between"
+                >
+                  <div>
+                    <h3 className="font-display text-xl font-bold tracking-tight text-foreground mb-1">
+                      Próximas compras
+                    </h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground font-medium mb-4">
+                      Pendências prioritárias no seu planejamento
+                    </p>
 
-            {/* Divisão e Meios de Pagamento */}
-            <motion.div
-              variants={itemVariants}
-              className="card-sticker p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between"
-            >
-              <div>
-                <h3 className="font-display text-xl font-bold tracking-tight text-foreground mb-1">
-                  Formas de pagamento
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground font-medium mb-4">
-                  Distribuição dos recursos investidos
-                </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="card-sticker p-3.5 bg-card shadow-[2px_2px_0_var(--border)] flex items-center gap-3">
-                    <div className="p-2 rounded-lg border-2 border-border bg-gold-tint text-gold-tint-foreground">
-                      <ShoppingBag className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
-                        Dinheiro / Pix
-                      </span>
-                      <span className="text-base font-bold tabular-nums text-foreground">
-                        {brl(r?.totalNormal)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="card-sticker p-3.5 bg-card shadow-[2px_2px_0_var(--border)] flex items-center gap-3">
-                    <div className="p-2 rounded-lg border-2 border-border bg-destructive-tint text-destructive-tint-foreground">
-                      <CreditCard className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
-                        Cartão Parcelado (A vencer)
-                      </span>
-                      <span className="text-base font-bold tabular-nums text-foreground">
-                        {brl(totalParcelado)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="card-sticker p-3.5 bg-card shadow-[2px_2px_0_var(--border)] flex items-center gap-3">
-                    <div className="p-2 rounded-lg border-2 border-border bg-primary-tint text-primary-tint-foreground">
-                      <Wallet className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
-                        Vale VR / VA
-                      </span>
-                      <span className="text-base font-bold tabular-nums text-foreground">
-                        {brl(r?.totalVr)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="card-sticker p-3.5 bg-card shadow-[2px_2px_0_var(--border)] flex items-center gap-3">
-                    <div className="p-2 rounded-lg border-2 border-border bg-gold-tint text-gold-tint-foreground">
-                      <Gift className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
-                        Economia Presentes
-                      </span>
-                      <span className="text-base font-bold tabular-nums text-foreground">
-                        {brl(totalEconomizadoGanhos)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {isCasal && (
-                <div className="mt-6 pt-4 border-t-2 border-border/20">
-                  <div className="flex items-center justify-between text-xs sm:text-sm font-bold flex-wrap gap-2">
-                    <span className="text-muted-foreground">Divisão do casal:</span>
-                    <span className="flex items-center gap-2 flex-wrap">
-                      <span className="text-primary">
-                        {p1Primeiro}: {brl(r?.totalPessoa1)}
-                      </span>
-                      <span className="text-muted-foreground">•</span>
-                      <span className="text-[#8A5A00] font-bold">
-                        {p2Primeiro}: {brl(r?.totalPessoa2)}
-                      </span>
-                      {(r?.totalConjunto ?? 0) > 0 && (
-                        <>
-                          <span className="text-muted-foreground">•</span>
-                          <span className="text-[#2A7F8E] font-bold">
-                            Conjunto: {brl(r?.totalConjunto)}
-                          </span>
-                        </>
+                    <div className="space-y-3">
+                      {validItens.filter((i) => !i.comprado).length === 0 ? (
+                        <div className="py-8 text-center text-muted-foreground font-medium flex flex-col items-center justify-center">
+                          <CheckCircle className="h-8 w-8 text-primary mb-2" />
+                          <p className="text-sm font-bold text-foreground">Tudo comprado!</p>
+                          <p className="text-xs">Nenhum item pendente no momento.</p>
+                        </div>
+                      ) : (
+                        validItens
+                          .filter((i) => !i.comprado)
+                          .slice(0, 4)
+                          .map((item, idx) => {
+                            const cat = categorias.find((c) => c.id === item.categoriaId);
+                            return (
+                              <div
+                                key={idx}
+                                className={`card-sticker p-3 bg-card shadow-[2px_2px_0_var(--border)] items-center justify-between ${idx >= 2 ? "hidden sm:flex" : "flex"}`}
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="h-8 w-8 rounded-lg border-2 border-border bg-primary-tint text-primary-tint-foreground flex items-center justify-center shrink-0">
+                                    <ShoppingBag className="h-4 w-4" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-bold text-foreground truncate">
+                                      {item.nome}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground font-medium truncate">
+                                      {cat?.nome ?? "Sem cômodo"}
+                                    </p>
+                                  </div>
+                                </div>
+                                <span className="text-sm font-bold tabular-nums text-foreground shrink-0 ml-3">
+                                  {brl(item.preco)}
+                                </span>
+                              </div>
+                            );
+                          })
                       )}
-                      <span className="text-muted-foreground">•</span>
-                      <span className="text-purple-600 dark:text-purple-400 font-bold">
-                        Ganho: {brl(totalEconomizadoGanhos)}
-                      </span>
-                    </span>
+                    </div>
                   </div>
-                </div>
-              )}
-            </motion.div>
-          </div>
+
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="btn-sticker w-full mt-6 bg-card text-foreground font-bold"
+                  >
+                    <Link to="/planejamento">Ver planejamento completo</Link>
+                  </Button>
+                </motion.div>
+
+                {/* Divisão e Meios de Pagamento */}
+                <motion.div
+                  variants={itemVariants}
+                  className="card-sticker p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between"
+                >
+                  <div>
+                    <h3 className="font-display text-xl font-bold tracking-tight text-foreground mb-1">
+                      Formas de pagamento
+                    </h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground font-medium mb-4">
+                      Distribuição dos recursos investidos
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="card-sticker p-3.5 bg-card shadow-[2px_2px_0_var(--border)] flex items-center gap-3">
+                        <div className="p-2 rounded-lg border-2 border-border bg-gold-tint text-gold-tint-foreground">
+                          <ShoppingBag className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                            Dinheiro / Pix
+                          </span>
+                          <span className="text-base font-bold tabular-nums text-foreground">
+                            {brl(r?.totalNormal)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="card-sticker p-3.5 bg-card shadow-[2px_2px_0_var(--border)] flex items-center gap-3">
+                        <div className="p-2 rounded-lg border-2 border-border bg-destructive-tint text-destructive-tint-foreground">
+                          <CreditCard className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                            Cartão Parcelado (A vencer)
+                          </span>
+                          <span className="text-base font-bold tabular-nums text-foreground">
+                            {brl(totalParcelado)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="card-sticker p-3.5 bg-card shadow-[2px_2px_0_var(--border)] flex items-center gap-3">
+                        <div className="p-2 rounded-lg border-2 border-border bg-primary-tint text-primary-tint-foreground">
+                          <Wallet className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                            Vale VR / VA
+                          </span>
+                          <span className="text-base font-bold tabular-nums text-foreground">
+                            {brl(r?.totalVr)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="card-sticker p-3.5 bg-card shadow-[2px_2px_0_var(--border)] flex items-center gap-3">
+                        <div className="p-2 rounded-lg border-2 border-border bg-gold-tint text-gold-tint-foreground">
+                          <Gift className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                            Economia Presentes
+                          </span>
+                          <span className="text-base font-bold tabular-nums text-foreground">
+                            {brl(totalEconomizadoGanhos)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {isCasal && (
+                    <div className="mt-6 pt-4 border-t-2 border-border/20">
+                      <div className="flex items-center justify-between text-xs sm:text-sm font-bold flex-wrap gap-2">
+                        <span className="text-muted-foreground">Divisão do casal:</span>
+                        <span className="flex items-center gap-2 flex-wrap">
+                          <span className="text-primary">
+                            {p1Primeiro}: {brl(r?.totalPessoa1)}
+                          </span>
+                          <span className="text-muted-foreground">•</span>
+                          <span className="text-[#8A5A00] font-bold">
+                            {p2Primeiro}: {brl(r?.totalPessoa2)}
+                          </span>
+                          {(r?.totalConjunto ?? 0) > 0 && (
+                            <>
+                              <span className="text-muted-foreground">•</span>
+                              <span className="text-[#2A7F8E] font-bold">
+                                Conjunto: {brl(r?.totalConjunto)}
+                              </span>
+                            </>
+                          )}
+                          <span className="text-muted-foreground">•</span>
+                          <span className="text-purple-600 dark:text-purple-400 font-bold">
+                            Ganho: {brl(totalEconomizadoGanhos)}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              </div>
+            </div>
+          </details>
         </>
       )}
     </motion.div>

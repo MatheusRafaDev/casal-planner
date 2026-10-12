@@ -4,27 +4,27 @@
 @layer base {
   :root {
     /* Cores Neutras / Toque de Bege Suave & Linho Contemporâneo (Warm Greige) */
-    --background: #FAF8F5; /* Bege linho contemporâneo, calmo e acolhedor */
+    --background: #faf8f5; /* Bege linho contemporâneo, calmo e acolhedor */
     --foreground: #1c1917; /* Stone-900 / Grafite quente com contraste perfeito */
     --card: #ffffff;
     --card-foreground: #1c1917;
     --popover: #ffffff;
     --popover-foreground: #1c1917;
-    --sidebar: #FAF8F5;
+    --sidebar: #faf8f5;
     --sidebar-foreground: #1c1917;
-    --border: #E8E3DA; /* Borda bege suave e moderna de 1px */
+    --border: #e8e3da; /* Borda bege suave e moderna de 1px */
     --input: #ffffff;
     --ring: #2f7d5b;
 
-    --muted: #F3EFE8; /* Bege suave para superfícies secundárias */
+    --muted: #f3efe8; /* Bege suave para superfícies secundárias */
     --muted-foreground: #78716c; /* Stone-500: legibilidade suave e moderna */
     --muted-text: #57534e; /* Stone-600 */
 
     /* Toque de Bege Elegante */
-    --beige: #F5EFEB;
-    --beige-tint: #FDFBF7;
-    --beige-border: #E8E1D5;
-    --beige-dark: #8C7E6A;
+    --beige: #f5efeb;
+    --beige-tint: #fdfbf7;
+    --beige-border: #e8e1d5;
+    --beige-dark: #8c7e6a;
 
     /* Identidade da Marca: Verde Esmeralda & Âmbar Harmonizados */
     --primary: #2f7d5b;
@@ -82,21 +82,21 @@
   }
 
   .dark {
-    --background: #11100F; /* Carvão acolhedor com sutil toque quente */
-    --foreground: #F5F3EF;
+    --background: #11100f; /* Carvão acolhedor com sutil toque quente */
+    --foreground: #f5f3ef;
     --card: #181716;
-    --card-foreground: #F5F3EF;
+    --card-foreground: #f5f3ef;
     --popover: #181716;
-    --popover-foreground: #F5F3EF;
+    --popover-foreground: #f5f3ef;
     --sidebar: #141312;
-    --sidebar-foreground: #F5F3EF;
-    --border: #2A2724;
+    --sidebar-foreground: #f5f3ef;
+    --border: #2a2724;
     --input: #181716;
     --ring: #34d399;
 
     --muted: #242220;
-    --muted-foreground: #A39E98;
-    --muted-text: #D6D2CC;
+    --muted-foreground: #a39e98;
+    --muted-text: #d6d2cc;
 
     --primary: #34d399;
     --primary-foreground: #022c22;
@@ -286,7 +286,9 @@
 
 .btn-sticker:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.07),
+    0 2px 4px -2px rgb(0 0 0 / 0.04);
 }
 
 .btn-sticker:active:not(:disabled) {
@@ -298,21 +300,27 @@
 .card-sticker {
   border: 1px solid var(--border);
   border-radius: 12px;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.03);
+  box-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 0.04),
+    0 1px 2px -1px rgb(0 0 0 / 0.03);
   background-color: var(--card);
 }
 
 .card-sticker-lg {
   border: 1px solid var(--border);
   border-radius: 14px;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.03);
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.05),
+    0 2px 4px -2px rgb(0 0 0 / 0.03);
   background-color: var(--card);
 }
 
 .modal-sticker {
   border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.04);
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.08),
+    0 8px 10px -6px rgb(0 0 0 / 0.04);
   background-color: var(--card);
 }
 
@@ -322,7 +330,9 @@
 }
 
 [class*="shadow-["] {
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.03) !important;
+  box-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 0.05),
+    0 1px 2px -1px rgb(0 0 0 / 0.03) !important;
 }
 
 /* Focus Ring */
@@ -413,4 +423,41 @@
   background-color: var(--card);
   position: relative;
   overflow: hidden;
+}
+
+.mobile-safe-header {
+  box-sizing: border-box;
+  height: calc(4rem + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  background: linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent env(safe-area-inset-top, 0px),
+    var(--card) env(safe-area-inset-top, 0px)
+  );
+}
+
+.home-details-content {
+  display: none;
+}
+
+.home-details[open] .home-details-content {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.home-details[open] .home-details-chevron {
+  transform: rotate(180deg);
+}
+
+@media (min-width: 768px) {
+  .home-details > summary {
+    display: none;
+  }
+
+  .home-details .home-details-content {
+    display: grid;
+    gap: 1.5rem;
+  }
 }

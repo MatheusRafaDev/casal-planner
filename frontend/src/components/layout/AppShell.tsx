@@ -29,9 +29,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     : usuario?.nomeCompleto?.split(" ")[0] || "Usuário";
 
   return (
-    <div className="min-h-screen flex flex-col bg-background md:pl-64 font-sans text-foreground">
+    <div className="min-h-dvh flex flex-col bg-background md:pl-64 font-sans text-foreground">
       {/* Mobile Top Header */}
-      <header className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 h-16 bg-card border-b border-border shadow-xs">
+      <header className="mobile-safe-header md:hidden sticky top-0 z-40 flex items-center justify-between px-4 border-b border-border shadow-xs">
         <Link to="/inicio" className="flex items-center gap-2.5">
           <div className="flex flex-col">
             <BrandLogoText size="sm" />
