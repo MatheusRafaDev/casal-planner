@@ -1,0 +1,7 @@
+{
+  "name": "casal-planner",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix frontend run build"
+  }
+}

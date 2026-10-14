@@ -1,0 +1,37 @@
+# ── Estágio 1: Build ─────────────────────────
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+COPY ["CasalPlanner.Domain/CasalPlanner.Domain.csproj", "CasalPlanner.Domain/"]
+COPY ["CasalPlanner.Application/CasalPlanner.Application.csproj", "CasalPlanner.Application/"]
+COPY ["CasalPlanner.Infrastructure/CasalPlanner.Infrastructure.csproj", "CasalPlanner.Infrastructure/"]
+COPY ["CasalPlanner.API/CasalPlanner.API.csproj", "CasalPlanner.API/"]
+RUN dotnet restore "CasalPlanner.API/CasalPlanner.API.csproj"
+
+COPY . .
+WORKDIR "/src/CasalPlanner.API"
+
+RUN dotnet publish "CasalPlanner.API.csproj" \
+    -c Release \
+    -o /app/publish \
+    --no-restore \
+    -p:UseAppHost=false
+
+# ── Estágio 2: Runtime ───────────────────────
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /app/publish .
+
+ENV PORT=80
+ENV ASPNETCORE_HTTP_PORTS=80;8080
+ENV ASPNETCORE_ENVIRONMENT=Production
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+
+EXPOSE 80 8080
+
+USER root
+
+ENTRYPOINT ["/bin/sh", "-c", "export ASPNETCORE_URLS=\"http://+:${PORT:-80};http://+:8080\"; exec dotnet CasalPlanner.API.dll"]

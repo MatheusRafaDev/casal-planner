@@ -1,10 +1,4 @@
 {
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://casal-planner.onrender.com/api/:path*"
-    }
-  ],
   "headers": [
     {
       "source": "/sw.js",
