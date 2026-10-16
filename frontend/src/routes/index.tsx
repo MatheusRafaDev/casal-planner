@@ -526,21 +526,6 @@ function HomePage() {
             <p className="p-anexo text-[19px] max-w-[500px] mt-6 text-slate-500">
               Cada cômodo, cada compra e o orçamento da casa nova num lugar só.
             </p>
-            <div className="flex gap-3 sm:gap-4 flex-wrap mt-9 items-center">
-              <Link
-                to="/login"
-                search={{ registrar: 1 }}
-                className="px-6 sm:px-7 py-3 rounded-full border border-primary text-primary hover:bg-primary/5 font-semibold text-base transition-all shadow-xs hover:shadow-sm whitespace-nowrap"
-              >
-                Cadastre-se agora
-              </Link>
-              <Link
-                to="/login"
-                className="px-7 sm:px-8 py-3 rounded-full bg-primary border border-primary text-white hover:bg-primary-hover font-semibold text-base transition-all shadow-xs hover:shadow-sm whitespace-nowrap"
-              >
-                Entrar
-              </Link>
-            </div>
             <p className="mt-5 mb-0 text-[14px] text-slate-400 font-medium">
               Sozinho também funciona: tem conta individual.
             </p>

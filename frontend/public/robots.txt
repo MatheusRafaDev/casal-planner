@@ -1,0 +1,16 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /recuperar-senha
+Allow: /lista/
+
+# Rotas privadas / autenticadas
+Disallow: /inicio
+Disallow: /planejamento
+Disallow: /perfil
+Disallow: /trocar-senha
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://casalplanner.vercel.app/sitemap.xml
