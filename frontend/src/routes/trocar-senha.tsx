@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { WizardRecuperarSenha } from "@/components/auth/WizardRecuperarSenha";
 import { useAuth } from "@/lib/auth-context";
 import { BrandLogoText, BrandLogoIcon } from "@/components/ui/BrandLogo";
+import { BRAND_CONFIG } from "@/design-system";
 
 export const Route = createFileRoute("/trocar-senha")({
   head: () => ({
@@ -27,7 +28,7 @@ function TrocarSenhaPage() {
             <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
               Segurança e senha
             </h1>
-            <p className="text-sm text-foreground/80 dark:text-[#b4c4ba] font-medium">
+            <p className="text-sm text-muted-foreground font-medium">
               Para sua segurança, enviaremos um código por e-mail para você redefinir sua senha.
             </p>
           </div>
@@ -44,8 +45,8 @@ function TrocarSenhaPage() {
           </Link>
         </div>
       </div>
-      <div className="mt-8 text-center text-xs font-semibold text-foreground/75 dark:text-[#9fb0a6]">
-        CasalPlanner © {new Date().getFullYear()}
+      <div className="mt-8 text-center text-xs font-semibold text-muted-foreground">
+        {BRAND_CONFIG.name} © {new Date().getFullYear()}
       </div>
     </div>
   );

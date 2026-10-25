@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { WizardRecuperarSenha } from "@/components/auth/WizardRecuperarSenha";
 import { BrandLogoText, BrandLogoIcon } from "@/components/ui/BrandLogo";
+import { BRAND_CONFIG } from "@/design-system";
 
 export const Route = createFileRoute("/recuperar-senha")({
   validateSearch: (search: Record<string, unknown>): { email?: string; step?: 1 | 2 | 3 } => {
@@ -11,7 +12,7 @@ export const Route = createFileRoute("/recuperar-senha")({
     };
   },
   head: () => ({
-    meta: [{ title: "CasalPlanner - Recuperar senha" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: `${BRAND_CONFIG.name} - Recuperar senha` }, { name: "robots", content: "noindex" }],
   }),
   component: RecuperarPage,
 });
@@ -30,7 +31,7 @@ function RecuperarPage() {
             <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
               Recuperar senha
             </h1>
-            <p className="text-sm text-foreground/80 dark:text-[#b4c4ba] font-medium">
+            <p className="text-sm text-muted-foreground font-medium">
               Siga os passos abaixo para recuperar seu acesso.
             </p>
           </div>
@@ -47,8 +48,8 @@ function RecuperarPage() {
           </Link>
         </div>
       </div>
-      <div className="mt-8 text-center text-xs font-semibold text-foreground/75 dark:text-[#9fb0a6]">
-        CasalPlanner © {new Date().getFullYear()}
+      <div className="mt-8 text-center text-xs font-semibold text-muted-foreground">
+        {BRAND_CONFIG.name} © {new Date().getFullYear()}
       </div>
     </div>
   );

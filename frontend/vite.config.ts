@@ -5,6 +5,13 @@
 //     error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { loadEnv } from "vite";
+
+const env = loadEnv(process.env.NODE_ENV || "development", process.cwd(), "");
+const backendTarget =
+  env.VITE_BACKEND_TARGET ||
+  (env.VITE_API_BASE && !env.VITE_API_BASE.includes("onrender.com") ? env.VITE_API_BASE : "") ||
+  "http://localhost:5286";
 
 export default defineConfig({
   tanstackStart: {
@@ -16,7 +23,7 @@ export default defineConfig({
     preset: "vercel",
     // @ts-expect-error: routeRules exists in nitro but isn't typed in lovable plugin
     routeRules: {
-      "/api/**": { proxy: "https://casal-planner.onrender.com/api/**" },
+      "/api/**": { proxy: "https://casalplanner.vercel.app/api/**" },
     },
   },
   vite: {
@@ -24,7 +31,7 @@ export default defineConfig({
       port: 8080,
       proxy: {
         "/api": {
-          target: "http://localhost:5286",
+          target: backendTarget,
           changeOrigin: true,
           secure: false,
         },

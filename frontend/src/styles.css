@@ -79,6 +79,13 @@
     --p2-hover: #b45309;
     --p2-tint: #fef3c7;
     --p2-tint-foreground: #92400e;
+
+    /* Divisão Conjunta e Marca */
+    --joint-color: #2a7f8e;
+    --joint-foreground: #ffffff;
+    --brand-primary: var(--primary);
+    --brand-accent: var(--gold);
+    --brand-dot: var(--gold);
   }
 
   .dark {
@@ -121,6 +128,12 @@
     --p2-hover: #f59e0b;
     --p2-tint: #451a03;
     --p2-tint-foreground: #fde68a;
+
+    --joint-color: #38b2ac;
+    --joint-foreground: #11100f;
+    --brand-primary: var(--primary);
+    --brand-accent: var(--gold);
+    --brand-dot: var(--gold);
 
     --shadow-sticker: 0 1px 3px 0 rgb(0 0 0 / 0.3);
     --shadow-sticker-sm: 0 1px 2px 0 rgb(0 0 0 / 0.25);
@@ -241,6 +254,13 @@
   --color-p2-hover: var(--p2-hover);
   --color-p2-tint: var(--p2-tint);
   --color-p2-tint-foreground: var(--p2-tint-foreground);
+
+  --color-joint: var(--joint-color);
+  --color-joint-foreground: var(--joint-foreground);
+
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-dot: var(--brand-dot);
 
   --color-success-tint: var(--success-tint);
   --color-success-tint-foreground: var(--success-tint-foreground);

@@ -150,7 +150,7 @@ function PerfilPage() {
               <Tabs defaultValue={usuario.pessoaLogada === 2 ? "p2" : "p1"} className="w-full">
                 <TabsList className="grid grid-cols-2 mb-5">
                   <TabsTrigger value="p1" className="flex items-center justify-center gap-2">
-                    <span className="h-5 w-5 rounded-full bg-[#2F7D5B] text-white text-[10px] font-bold grid place-items-center shrink-0">
+                    <span className="h-5 w-5 rounded-full bg-p1 text-p1-foreground text-[10px] font-bold grid place-items-center shrink-0">
                       {extrairIniciais(usuario.casalInfo?.pessoa1.nome, "1")}
                     </span>
                     <span className="truncate">
@@ -158,7 +158,7 @@ function PerfilPage() {
                     </span>
                   </TabsTrigger>
                   <TabsTrigger value="p2" className="flex items-center justify-center gap-2">
-                    <span className="h-5 w-5 rounded-full bg-[#E8B63C] text-[#24302A] text-[10px] font-bold grid place-items-center shrink-0">
+                    <span className="h-5 w-5 rounded-full bg-p2 text-p2-foreground text-[10px] font-bold grid place-items-center shrink-0">
                       {extrairIniciais(usuario.casalInfo?.pessoa2.nome, "2")}
                     </span>
                     <span className="truncate">
@@ -176,7 +176,7 @@ function PerfilPage() {
                       receberNotificacoes: usuario.casalInfo?.pessoa1.receberNotificacoes ?? true,
                     }}
                     iniciais={extrairIniciais(usuario.casalInfo?.pessoa1.nome, "1")}
-                    avatarColor="bg-[#2F7D5B] text-white"
+                    avatarColor="bg-p1 text-p1-foreground"
                     bloquearEmailCpf
                     somenteLeitura={usuario.pessoaLogada !== 1}
                     onSave={async (dto) => {
@@ -202,7 +202,7 @@ function PerfilPage() {
                       receberNotificacoes: usuario.casalInfo?.pessoa2.receberNotificacoes ?? true,
                     }}
                     iniciais={extrairIniciais(usuario.casalInfo?.pessoa2.nome, "2")}
-                    avatarColor="bg-[#E8B63C] text-[#24302A]"
+                    avatarColor="bg-p2 text-p2-foreground"
                     bloquearEmailCpf
                     somenteLeitura={usuario.pessoaLogada !== 2}
                     onSave={async (dto) => {

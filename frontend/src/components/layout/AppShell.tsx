@@ -94,8 +94,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     className={cn(
                       "h-7 w-7 rounded-full border-2 border-card flex items-center justify-center font-bold text-xs shadow-xs transition-transform",
                       usuario?.pessoaLogada === 1
-                        ? "bg-[#2F7D5B] text-white z-10 ring-2 ring-primary scale-110"
-                        : "bg-[#2F7D5B]/50 text-white/70 opacity-60 scale-90",
+                        ? "bg-p1 text-p1-foreground z-10 ring-2 ring-p1 scale-110"
+                        : "bg-p1/50 text-p1-foreground/70 opacity-60 scale-90",
                     )}
                     title={usuario?.pessoaLogada === 1 ? `${p1Primeiro} (Você)` : p1Primeiro}
                   >
@@ -105,8 +105,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     className={cn(
                       "h-7 w-7 rounded-full border-2 border-card flex items-center justify-center font-bold text-xs shadow-xs transition-transform",
                       usuario?.pessoaLogada === 2
-                        ? "bg-[#E8B63C] text-[#24302A] z-10 ring-2 ring-[#E8B63C] scale-110"
-                        : "bg-[#E8B63C]/50 text-[#24302A]/70 opacity-60 scale-90",
+                        ? "bg-p2 text-p2-foreground z-10 ring-2 ring-p2 scale-110"
+                        : "bg-p2/50 text-p2-foreground/70 opacity-60 scale-90",
                     )}
                     title={usuario?.pessoaLogada === 2 ? `${p2Primeiro} (Você)` : p2Primeiro}
                   >
@@ -166,7 +166,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Conteúdo Principal */}
       <main className="flex-1 min-w-0 pt-[env(safe-area-inset-top,0px)] md:pt-0 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-8">
-        <div className="w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 py-6 lg:py-8">{children}</div>
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8">{children}</div>
       </main>
 
       {/* Bottom Nav Mobile */}

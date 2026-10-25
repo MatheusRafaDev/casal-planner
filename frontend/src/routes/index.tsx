@@ -231,7 +231,7 @@ function HomePage() {
   };
 
   return (
-    <div className="pg bg-[#FAF8F5] text-stone-900 font-sans min-h-screen selection:bg-emerald-500/20">
+    <div className="pg bg-background text-foreground font-sans min-h-screen selection:bg-primary/20">
       <style>{`
         .btn-anexo {
           display: inline-flex;
@@ -464,7 +464,7 @@ function HomePage() {
       `}</style>
 
       {/* Header Sticky - fixo ao descer o scroll com efeito translúcido e borda sutil */}
-      <header className="sticky top-0 z-50 w-full bg-[#FAF8F5]/90 dark:bg-[#11100F]/90 backdrop-blur-md border-b border-[#E8E3DA] dark:border-[#2A2724] transition-all">
+      <header className="sticky top-0 z-50 w-full bg-background/90 backdrop-blur-md border-b border-border transition-all">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-8 h-[76px] flex items-center justify-between gap-2">
           <Link
             to="/"

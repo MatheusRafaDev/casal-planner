@@ -21,6 +21,7 @@ import {
   Gamepad2,
   type LucideIcon,
 } from "lucide-react";
+import { DESIGN_TOKENS } from "@/design-system";
 
 export const ICON_MAP: Record<string, LucideIcon> = {
   Sofa,
@@ -79,18 +80,18 @@ export const CATEGORIA_COLORS = [
 
 /** Cores padrão recomendadas por nome de cômodo comum */
 export const COMODO_DEFAULT_COLORS: Record<string, string> = {
-  cozinha: "#2F7D5B",
-  sala: "#C85A32",
-  quarto: "#386877",
-  banheiro: "#4A7C59",
-  lavanderia: "#D49B2A",
-  escritório: "#B67332",
-  escritorio: "#B67332",
-  varanda: "#5E6E3B",
-  jardim: "#5E6E3B",
-  garagem: "#344C42",
-  gourmet: "#BC8A2C",
-  closet: "#7A3E4D",
+  cozinha: DESIGN_TOKENS.colors.rooms.cozinha || "#C85A32",
+  sala: DESIGN_TOKENS.colors.rooms.sala || "#2F7D5B",
+  quarto: DESIGN_TOKENS.colors.rooms.quarto || "#386877",
+  banheiro: DESIGN_TOKENS.colors.rooms.banheiro || "#4A7C59",
+  lavanderia: DESIGN_TOKENS.colors.rooms.lavanderia || "#D49B2A",
+  escritório: DESIGN_TOKENS.colors.rooms.escritorio || "#386877",
+  escritorio: DESIGN_TOKENS.colors.rooms.escritorio || "#386877",
+  varanda: DESIGN_TOKENS.colors.rooms.varanda || "#A84E38",
+  jardim: DESIGN_TOKENS.colors.rooms.jardim || "#5E6E3B",
+  garagem: DESIGN_TOKENS.colors.rooms.garagem || "#344C42",
+  gourmet: DESIGN_TOKENS.colors.rooms.gourmet || "#BC8A2C",
+  closet: DESIGN_TOKENS.colors.rooms.closet || "#7A3E4D",
 };
 
 /** Mapeamento de cores legadas/antigas ou genéricas para os tons do sistema */

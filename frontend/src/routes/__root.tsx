@@ -14,8 +14,8 @@ import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { Toaster } from "@/components/ui/sonner";
 import { clearAppData } from "@/lib/clear-app-data";
-import { api } from "@/lib/api";
 import { BrandLogoText, BrandLogoIcon } from "@/components/ui/BrandLogo";
+import { BRAND_CONFIG } from "@/design-system";
 
 function NotFoundComponent() {
   return (
@@ -83,34 +83,32 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "CasalPlanner - Organize seu enxoval com o seu par" },
+      { title: `${BRAND_CONFIG.name} - ${BRAND_CONFIG.slogan}` },
       {
         name: "description",
-        content:
-          "Planeje a compra dos itens da casa nova por cômodo, controle orçamento em VR e dinheiro, e pesquise preços com IA. Feito para casais e para você.",
+        content: BRAND_CONFIG.description,
       },
-      { name: "author", content: "CasalPlanner" },
-      { property: "og:title", content: "CasalPlanner - Enxoval, orçamento e preços com IA" },
+      { name: "author", content: BRAND_CONFIG.author },
+      { property: "og:title", content: `${BRAND_CONFIG.name} - ${BRAND_CONFIG.slogan}` },
       {
         property: "og:description",
-        content:
-          "Organize por cômodo, acompanhe o gasto e encontre os melhores preços — juntos ou sozinho.",
+        content: BRAND_CONFIG.description,
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       // PWA
-      { name: "theme-color", content: "#2F7D5B" },
+      { name: "theme-color", content: BRAND_CONFIG.themeColor },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "CasalPlanner" },
+      { name: "apple-mobile-web-app-title", content: BRAND_CONFIG.name },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.svg?v=5", type: "image/svg+xml" },
-      { rel: "icon", href: "/favicon.png?v=5", type: "image/png" },
+      { rel: "icon", href: `${BRAND_CONFIG.assets.faviconSvg}?v=5`, type: "image/svg+xml" },
+      { rel: "icon", href: `${BRAND_CONFIG.assets.faviconPng}?v=5`, type: "image/png" },
       { rel: "shortcut icon", href: "/favicon.ico?v=5" },
-      { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=5" },
+      { rel: "apple-touch-icon", href: `${BRAND_CONFIG.assets.appleTouchIcon}?v=5` },
       { rel: "manifest", href: "/manifest.json?v=5" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },

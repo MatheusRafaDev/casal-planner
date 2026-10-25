@@ -453,6 +453,27 @@ function PlanejamentoPage() {
                 </div>
               );
             })}
+
+            {/* Botão Adicionar Novo Cômodo */}
+            <button
+              type="button"
+              id="sidebar-btn-novo-comodo"
+              onClick={() => setNovaCategoria(true)}
+              aria-label="Adicionar novo cômodo"
+              className="group flex items-center gap-3 rounded-xl p-2.5 transition-all cursor-pointer border-2 border-dashed border-border/80 hover:border-primary/60 bg-muted/20 hover:bg-primary/5 text-muted-foreground hover:text-primary select-none w-full text-left mt-0.5"
+            >
+              <span className="grid place-items-center h-8 w-8 rounded-lg shrink-0 border-2 border-dashed border-border/80 group-hover:border-primary/60 group-hover:bg-primary/10 text-muted-foreground group-hover:text-primary transition-all">
+                <Plus className="h-4 w-4 transition-transform group-hover:scale-110" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-xs sm:text-sm truncate text-foreground group-hover:text-primary transition-colors">
+                  Adicionar novo cômodo
+                </div>
+                <div className="text-[11px] font-semibold text-muted-foreground/80 group-hover:text-primary/80 mt-0.5 transition-colors">
+                  Criar novo espaço
+                </div>
+              </div>
+            </button>
           </div>,
           portalTarget,
         )}
@@ -522,7 +543,7 @@ function PlanejamentoPage() {
           <span
             className="grid place-items-center h-12 w-12 rounded-xl text-white shrink-0 border-2 border-border/20 shadow-sm"
             style={{
-              backgroundColor: catAtual ? comodoColor(catAtual.bg, catAtual.nome) : "#2F7D5B",
+              backgroundColor: catAtual ? comodoColor(catAtual.bg, catAtual.nome) : "var(--primary)",
             }}
           >
             {(() => {
@@ -755,7 +776,7 @@ function PlanejamentoPage() {
                   className={cn(
                     "h-5 w-5 rounded-md border-2 shrink-0 cursor-pointer",
                     it.comprado &&
-                      "data-[state=checked]:bg-[#2F7D5B] data-[state=checked]:border-[#2F7D5B]",
+                      "data-[state=checked]:bg-primary data-[state=checked]:border-primary",
                   )}
                   checked={it.comprado}
                   onCheckedChange={() =>
@@ -799,7 +820,7 @@ function PlanejamentoPage() {
                     style={{
                       backgroundColor: itemCategoria
                         ? comodoColor(itemCategoria.bg, itemCategoria.nome)
-                        : "#2F7D5B",
+                        : "var(--primary)",
                     }}
                   >
                     <Icon className="h-5 w-5" />
@@ -857,9 +878,9 @@ function PlanejamentoPage() {
                         className={cn(
                           "text-[10px] py-0 px-2 h-4.5 font-bold border",
                           responsavelNum === 1
-                            ? "bg-[#2F7D5B]/10 text-[#2F7D5B] border-[#2F7D5B]/30"
+                            ? "bg-p1/10 text-p1 border-p1/30"
                             : responsavelNum === 2
-                              ? "bg-[#E8B63C]/15 text-[#976D04] dark:text-[#E8B63C] border-[#E8B63C]/40"
+                              ? "bg-p2/15 text-p2 border-p2/40"
                               : "bg-muted text-muted-foreground border-border",
                         )}
                       >

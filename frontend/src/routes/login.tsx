@@ -8,6 +8,7 @@ import { RegistroCasal } from "@/components/auth/RegistroCasal";
 import { useAuth } from "@/lib/auth-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BrandLogoText, BrandLogoIcon } from "@/components/ui/BrandLogo";
+import { BRAND_CONFIG } from "@/design-system";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (
@@ -66,7 +67,7 @@ function LoginPage() {
         initial={{ opacity: 0, x: -28 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="hidden lg:flex flex-col justify-between border-r border-[#E8E3DA] dark:border-[#2A2724] bg-[#F7F4EE] dark:bg-[#151413] p-7 xl:p-10 relative overflow-hidden h-full"
+        className="hidden lg:flex flex-col justify-between border-r border-border bg-sidebar p-7 xl:p-10 relative overflow-hidden h-full"
       >
         {/* Topo: Logo Oficial */}
         <div className="flex items-center justify-between">
@@ -94,11 +95,11 @@ function LoginPage() {
           {/* Ilustração Cartunesca Exclusiva */}
           <div className="relative pt-2 pb-2 max-w-[400px] mx-auto w-full">
             {/* Card Flutuante 1: Geladeira */}
-            <div className="hidden sm:flex absolute -top-1 -left-3 z-20 bg-white dark:bg-[#181716] p-1.5 px-2 rounded-xl border border-[#E8E3DA] dark:border-[#2A2724] shadow-md items-center gap-2 transition-transform hover:scale-105">
+            <div className="hidden sm:flex absolute -top-1 -left-3 z-20 bg-card p-1.5 px-2 rounded-xl border border-border shadow-md items-center gap-2 transition-transform hover:scale-105">
               <img
                 src="/images/products/geladeira.jpg"
                 alt="Geladeira Duplex"
-                className="w-8 h-8 object-contain rounded-md bg-slate-50 dark:bg-slate-800 p-0.5"
+                className="w-8 h-8 object-contain rounded-md bg-muted/50 p-0.5"
               />
               <div className="pr-1 text-left">
                 <span className="text-[9px] font-semibold block text-emerald-700 leading-tight">
@@ -114,11 +115,11 @@ function LoginPage() {
             </div>
 
             {/* Card Flutuante 2: Air Fryer & Café */}
-            <div className="hidden sm:flex absolute -top-1 -right-3 z-20 bg-white dark:bg-[#181716] p-1.5 px-2 rounded-xl border border-[#E8E3DA] dark:border-[#2A2724] shadow-md items-center gap-2 transition-transform hover:scale-105">
+            <div className="hidden sm:flex absolute -top-1 -right-3 z-20 bg-card p-1.5 px-2 rounded-xl border border-border shadow-md items-center gap-2 transition-transform hover:scale-105">
               <img
                 src="/images/products/air-fryer-cafeteira.jpg"
                 alt="Air fryer e cafeteira"
-                className="w-8 h-8 object-contain rounded-md bg-slate-50 dark:bg-slate-800 p-0.5"
+                className="w-8 h-8 object-contain rounded-md bg-muted/50 p-0.5"
               />
               <div className="pr-1 text-left">
                 <span className="text-[9px] font-semibold block text-orange-700 leading-tight">
@@ -134,13 +135,13 @@ function LoginPage() {
             </div>
 
             {/* Card Central com a Ilustração Cartunesca Exclusiva do Login */}
-            <div className="rounded-2xl border border-[#E8E3DA] dark:border-[#2A2724] shadow-xl overflow-hidden bg-white dark:bg-[#181716] relative">
+            <div className="rounded-2xl border border-border shadow-xl overflow-hidden bg-card relative">
               <img
                 src="/illustrations/login-couple.jpg"
                 alt="Casal celebrando as chaves e checklist da casa nova (ilustração exclusiva)"
                 className="w-full h-[230px] xl:h-[260px] object-cover block"
               />
-              <div className="p-3 bg-white/95 dark:bg-[#181716]/95 backdrop-blur-xs border-t border-[#E8E3DA] dark:border-[#2A2724] flex items-center justify-between">
+              <div className="p-3 bg-card/95 backdrop-blur-xs border-t border-border flex items-center justify-between">
                 <div>
                   <span className="font-display font-bold text-xs text-foreground block">
                     Nosso novo cantinho 🏡
@@ -194,7 +195,7 @@ function LoginPage() {
             <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-tight">
               {modo === "entrar" ? "Acesse sua conta" : "Comece seu enxoval"}
             </h2>
-            <p className="text-xs sm:text-sm text-foreground/80 dark:text-[#b4c4ba] font-medium mt-0.5">
+            <p className="text-xs sm:text-sm text-muted-foreground font-medium mt-0.5">
               {modo === "entrar"
                 ? "Entre para acompanhar os cômodos, compras e orçamentos."
                 : "Crie uma conta gratuita em poucos segundos."}
@@ -285,7 +286,7 @@ function LoginPage() {
                   </Tabs>
 
                   <div className="text-center pt-2 border-t border-border/30">
-                    <p className="text-xs text-foreground/80 dark:text-[#b4c4ba] font-medium">
+                    <p className="text-xs text-muted-foreground font-medium">
                       Já possui uma conta criada?{" "}
                       <button
                         type="button"
@@ -303,8 +304,8 @@ function LoginPage() {
         </div>
 
         {/* Rodapé Fixo */}
-        <div className="pt-2 text-center text-xs text-foreground/75 dark:text-[#9fb0a6] font-medium w-full max-w-[520px] mx-auto shrink-0">
-          CasalPlanner © {new Date().getFullYear()} • Todos os direitos reservados.
+        <div className="pt-2 text-center text-xs text-muted-foreground font-medium w-full max-w-[520px] mx-auto shrink-0">
+          {BRAND_CONFIG.name} © {new Date().getFullYear()} • Todos os direitos reservados.
         </div>
       </motion.div>
     </div>

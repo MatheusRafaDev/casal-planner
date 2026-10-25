@@ -25,6 +25,7 @@ import { useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { WidgetDiaMudanca } from "@/components/planejamento/WidgetDiaMudanca";
 import { InicioSkeleton } from "@/components/ui/LoadingSkeletons";
+import { DESIGN_TOKENS } from "@/design-system";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   head: () => ({
@@ -33,15 +34,7 @@ export const Route = createFileRoute("/_authenticated/inicio")({
   component: InicioPage,
 });
 
-const FALLBACK_COLORS = [
-  "#2F7D5B", // verde
-  "#E8B63C", // dourado
-  "#E2725B", // coral
-  "#2A7F8E", // azul-petróleo
-  "#8A9A3B", // oliva
-  "#B4532E", // argila
-  "#24302A", // grafite
-];
+const FALLBACK_COLORS = [...DESIGN_TOKENS.colors.chartPalette];
 
 function InicioPage() {
   const { usuario } = useAuth();
@@ -112,7 +105,10 @@ function InicioPage() {
           name: mesStr.charAt(0).toUpperCase() + mesStr.slice(1).replace(".", ""),
           fullLabel: `${mesStr.charAt(0).toUpperCase() + mesStr.slice(1)}/${ano}`,
           valor: valor,
-          fill: index % 2 === 0 ? "#2F7D5B" : "#E8B63C",
+          fill:
+            index % 2 === 0
+              ? DESIGN_TOKENS.colors.couple.p1.light
+              : DESIGN_TOKENS.colors.couple.p2.light,
         };
       });
   }, [itens]);
@@ -504,21 +500,21 @@ function InicioPage() {
                     >
                       {(r?.totalPessoa1 ?? 0) > 0 && (
                         <div
-                          className="h-full bg-[#2F7D5B] dark:bg-[#4FB387] transition-all duration-500"
+                          className="h-full bg-p1 transition-all duration-500"
                           style={{ width: `${p1Pct}%` }}
                           title={`${p1Primeiro} (Verde): ${brl(r?.totalPessoa1)} (${p1Pct.toFixed(1)}%)`}
                         />
                       )}
                       {(r?.totalPessoa2 ?? 0) > 0 && (
                         <div
-                          className="h-full bg-[#E8B63C] transition-all duration-500"
+                          className="h-full bg-p2 transition-all duration-500"
                           style={{ width: `${p2Pct}%` }}
-                          title={`${p2Primeiro} (Amarelo): ${brl(r?.totalPessoa2)} (${p2Pct.toFixed(1)}%)`}
+                          title={`${p2Primeiro} (Dourado): ${brl(r?.totalPessoa2)} (${p2Pct.toFixed(1)}%)`}
                         />
                       )}
                       {(r?.totalConjunto ?? 0) > 0 && (
                         <div
-                          className="h-full bg-[#2A7F8E] transition-all duration-500"
+                          className="h-full bg-joint transition-all duration-500"
                           style={{ width: `${conjPct}%` }}
                           title={`Conjunto (Azul): ${brl(r?.totalConjunto)} (${conjPct.toFixed(1)}%)`}
                         />
@@ -544,22 +540,22 @@ function InicioPage() {
                     {isCasal ? (
                       <>
                         <div className="flex items-center gap-1.5 sm:gap-2">
-                          <span className="w-3 h-3 rounded-full border border-border bg-[#2F7D5B] dark:bg-[#4FB387] inline-block shrink-0 shadow-xs" />
+                          <span className="w-3 h-3 rounded-full border border-border bg-p1 inline-block shrink-0 shadow-xs" />
                           <span className="text-muted-foreground">{p1Primeiro} (Verde):</span>
                           <span className="text-foreground tabular-nums">
                             {brl(r?.totalPessoa1)}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 sm:gap-2">
-                          <span className="w-3 h-3 rounded-full border border-border bg-[#E8B63C] inline-block shrink-0 shadow-xs" />
-                          <span className="text-muted-foreground">{p2Primeiro} (Amarelo):</span>
+                          <span className="w-3 h-3 rounded-full border border-border bg-p2 inline-block shrink-0 shadow-xs" />
+                          <span className="text-muted-foreground">{p2Primeiro} (Dourado):</span>
                           <span className="text-foreground tabular-nums">
                             {brl(r?.totalPessoa2)}
                           </span>
                         </div>
                         {(r?.totalConjunto ?? 0) > 0 && (
                           <div className="flex items-center gap-1.5 sm:gap-2">
-                            <span className="w-3 h-3 rounded-full border border-border bg-[#2A7F8E] inline-block shrink-0 shadow-xs" />
+                            <span className="w-3 h-3 rounded-full border border-border bg-joint inline-block shrink-0 shadow-xs" />
                             <span className="text-muted-foreground">Conjunto (Azul):</span>
                             <span className="text-foreground tabular-nums">
                               {brl(r?.totalConjunto)}
@@ -920,17 +916,17 @@ function InicioPage() {
                       <div className="flex items-center justify-between text-xs sm:text-sm font-bold flex-wrap gap-2">
                         <span className="text-muted-foreground">Divisão do casal:</span>
                         <span className="flex items-center gap-2 flex-wrap">
-                          <span className="text-primary">
+                          <span className="text-p1 font-bold">
                             {p1Primeiro}: {brl(r?.totalPessoa1)}
                           </span>
                           <span className="text-muted-foreground">•</span>
-                          <span className="text-[#8A5A00] font-bold">
+                          <span className="text-p2 font-bold">
                             {p2Primeiro}: {brl(r?.totalPessoa2)}
                           </span>
                           {(r?.totalConjunto ?? 0) > 0 && (
                             <>
                               <span className="text-muted-foreground">•</span>
-                              <span className="text-[#2A7F8E] font-bold">
+                              <span className="text-joint font-bold">
                                 Conjunto: {brl(r?.totalConjunto)}
                               </span>
                             </>
