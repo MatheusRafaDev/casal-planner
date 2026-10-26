@@ -469,23 +469,23 @@ function InicioPage() {
         <>
           {/* ─── 4 Cards de Métricas Principais (KPIs) ─────────────────────────── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {/* KPI 1: Total Gasto */}
+            {/* KPI 1: Total Gasto (Card Verde de Destaque) */}
             <motion.div
               variants={itemVariants}
-              className="card-sticker p-4 bg-card shadow-[2px_2px_0_var(--border)] flex flex-col justify-between"
+              className="card-sticker p-4 bg-gradient-to-br from-[#1F5C43] via-[#1a4f3a] to-[#143e2d] text-white border-2 border-[#153e2c] shadow-[3px_3px_0_rgba(19,60,43,0.5)] flex flex-col justify-between"
             >
               <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-200">
                   Total Gasto
                 </span>
-                <span className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                <span className="p-1.5 rounded-lg bg-white/15 text-white">
                   <Wallet className="h-3.5 w-3.5" />
                 </span>
               </div>
-              <div className="font-display text-xl sm:text-2xl font-extrabold text-foreground tabular-nums tracking-tight">
+              <div className="font-display text-xl sm:text-2xl font-extrabold text-white tabular-nums tracking-tight">
                 {brl(r?.totalGeral)}
               </div>
-              <span className="text-[11px] text-muted-foreground font-semibold mt-1">
+              <span className="text-[11px] text-emerald-100/75 font-semibold mt-1">
                 {meta > 0 ? `meta: ${brl(meta)}` : "Sem meta definida"}
               </span>
             </motion.div>

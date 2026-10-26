@@ -10,8 +10,9 @@
     --card-foreground: #1b2438;
     --popover: #ffffff;
     --popover-foreground: #1b2438;
-    --sidebar: #faf6f1;
-    --sidebar-foreground: #1b2438;
+    --sidebar: #174a35; /* Verde Lar Floresta: fundo da sidebar */
+    --sidebar-foreground: #ffffff;
+    --sidebar-border: #133c2b;
     --border: #eee3d8; /* Borda de 2px em #EEE3D8 */
     --input: #faf6f1;
     --ring: #1f5c43;
@@ -103,8 +104,9 @@
     --card-foreground: #faf6f1;
     --popover: #1b4433;
     --popover-foreground: #faf6f1;
-    --sidebar: #132e22;
-    --sidebar-foreground: #faf6f1;
+    --sidebar: #0f2b1f;
+    --sidebar-foreground: #ffffff;
+    --sidebar-border: #0a1f16;
     --border: #245440;
     --input: #1b4433;
     --ring: #2f8a63;
@@ -194,6 +196,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

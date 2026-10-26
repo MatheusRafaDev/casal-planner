@@ -1,4 +1,5 @@
 import { BRAND_CONFIG } from "@/design-system";
+import { cn } from "@/lib/utils";
 
 export interface BrandLogoTextProps {
   size?: "xs" | "sm" | "md" | "lg" | "xl";
@@ -8,6 +9,7 @@ export interface BrandLogoTextProps {
   prefix?: string;
   suffix?: string;
   tagline?: string;
+  variant?: "default" | "light" | "on-dark";
 }
 
 export interface BrandLogoIconProps {
@@ -131,6 +133,7 @@ export function BrandLogoText({
   prefix = BRAND_CONFIG.nameParts.prefix,
   suffix = BRAND_CONFIG.nameParts.suffix,
   tagline = BRAND_CONFIG.tagline,
+  variant = "default",
 }: BrandLogoTextProps) {
   const sizeMap = {
     xs: { text: "text-[16px]", dot: "text-[16px]", tagline: "text-[8px] tracking-[0.14em]" },
@@ -145,8 +148,22 @@ export function BrandLogoText({
   return (
     <span className={`inline-flex flex-col select-none leading-none ${className}`}>
       <span className={`inline-flex items-baseline font-brand tracking-[-0.04em] ${current.text}`}>
-        <span className="font-extrabold text-primary">{prefix}</span>
-        <span className="font-light text-foreground">{suffix}</span>
+        <span
+          className={cn(
+            "font-extrabold",
+            variant === "on-dark" ? "text-emerald-300" : "text-primary",
+          )}
+        >
+          {prefix}
+        </span>
+        <span
+          className={cn(
+            "font-light",
+            variant === "on-dark" ? "text-white" : "text-foreground",
+          )}
+        >
+          {suffix}
+        </span>
         {withDot && (
           <span aria-hidden="true" className="font-extrabold text-[#ef6f6c]">
             .
@@ -155,7 +172,11 @@ export function BrandLogoText({
       </span>
       {withTagline && (
         <span
-          className={`mt-1 font-sans text-muted-foreground/85 font-semibold uppercase ${current.tagline}`}
+          className={cn(
+            "mt-1 font-sans font-semibold uppercase",
+            current.tagline,
+            variant === "on-dark" ? "text-emerald-200/80" : "text-muted-foreground/85",
+          )}
         >
           {tagline}
         </span>

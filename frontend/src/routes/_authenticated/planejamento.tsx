@@ -340,23 +340,23 @@ function PlanejamentoPage() {
             <div
               onClick={() => setCategoriaSelecionada("tudo")}
               className={cn(
-                "group flex items-center gap-3 rounded-xl p-2.5 transition-all cursor-pointer border-2 select-none",
+                "group flex items-center gap-3 rounded-xl p-2.5 transition-all cursor-pointer border select-none",
                 catAtualId === "tudo"
-                  ? "bg-primary/10 border-primary text-foreground shadow-[2px_2px_0_var(--border)] font-bold"
-                  : "bg-card border-border/70 hover:bg-muted/60 text-muted-foreground hover:text-foreground",
+                  ? "bg-white/20 border-white/30 text-white shadow-xs font-bold"
+                  : "bg-white/5 border-white/10 hover:bg-white/10 text-emerald-100/80 hover:text-white",
               )}
             >
-              <span className="grid place-items-center h-8 w-8 rounded-lg text-white shrink-0 bg-primary shadow-xs">
+              <span className="grid place-items-center h-8 w-8 rounded-lg text-white shrink-0 bg-white/20 shadow-xs">
                 <Package className="h-4 w-4" />
               </span>
               <div className="flex-1 min-w-0">
-                <div className="font-bold text-xs sm:text-sm truncate text-foreground">
+                <div className="font-bold text-xs sm:text-sm truncate text-white">
                   Todos Os Itens
                 </div>
-                <div className="text-[11px] font-semibold text-muted-foreground mt-0.5">
+                <div className="text-[11px] font-semibold text-emerald-200/70 mt-0.5">
                   <span>
                     {todosItens.filter((i) => i.comprado).length}/{todosItens.length} -{" "}
-                    <span className="tabular-nums font-bold text-foreground">
+                    <span className="tabular-nums font-bold text-white">
                       {brl(totalGastoGeral)}
                     </span>
                   </span>
@@ -379,14 +379,14 @@ function PlanejamentoPage() {
                   key={c.id}
                   onClick={() => setCategoriaSelecionada(c.id)}
                   className={cn(
-                    "group flex items-center gap-3 rounded-xl p-2.5 transition-all cursor-pointer border-2 select-none",
+                    "group flex items-center gap-3 rounded-xl p-2.5 transition-all cursor-pointer border select-none",
                     ativo
-                      ? "bg-primary/10 border-primary text-foreground shadow-[2px_2px_0_var(--border)] font-bold"
-                      : "bg-card border-border/70 hover:bg-muted/60 text-muted-foreground hover:text-foreground",
+                      ? "bg-white/20 border-white/30 text-white shadow-xs font-bold"
+                      : "bg-white/5 border-white/10 hover:bg-white/10 text-emerald-100/80 hover:text-white",
                     c.metaOrcamento &&
                       cGasto > c.metaOrcamento &&
                       !ativo &&
-                      "border-destructive/40 bg-destructive/5",
+                      "border-rose-400/40 bg-rose-500/15",
                   )}
                 >
                   <span
@@ -396,31 +396,31 @@ function PlanejamentoPage() {
                     <I className="h-4 w-4" />
                   </span>
                   <div className="flex-1 min-w-0">
-                    <div className="font-bold text-xs sm:text-sm truncate flex items-center gap-1.5 capitalize text-foreground">
+                    <div className="font-bold text-xs sm:text-sm truncate flex items-center gap-1.5 capitalize text-white">
                       {c.nome}
                       {c.metaOrcamento && cGasto > c.metaOrcamento && (
                         <span title="Orçamento estourado" className="inline-flex shrink-0">
-                          <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+                          <AlertTriangle className="h-3.5 w-3.5 text-rose-300" />
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] font-semibold text-muted-foreground mt-0.5">
+                    <div className="text-[11px] font-semibold text-emerald-200/70 mt-0.5">
                       <span>
                         {cComprados}/{cItens.length} -{" "}
-                        <span className="tabular-nums font-bold text-foreground">
+                        <span className="tabular-nums font-bold text-white">
                           {brl(cGasto)}
                         </span>
                       </span>
                       {c.metaOrcamento ? (
-                        <div className="mt-1 h-1 w-full bg-muted rounded-full overflow-hidden border border-border/40">
+                        <div className="mt-1 h-1 w-full bg-white/20 rounded-full overflow-hidden border border-white/10">
                           <div
                             className={cn(
                               "h-full rounded-full transition-all",
                               cGasto / c.metaOrcamento < 0.8
-                                ? "bg-emerald-500"
+                                ? "bg-emerald-300"
                                 : cGasto / c.metaOrcamento <= 1
-                                  ? "bg-amber-500"
-                                  : "bg-destructive",
+                                  ? "bg-amber-300"
+                                  : "bg-rose-400",
                             )}
                             style={{
                               width: `${Math.min(100, (cGasto / c.metaOrcamento) * 100)}%`,
@@ -435,7 +435,7 @@ function PlanejamentoPage() {
                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
-                        className="p-1 rounded-md text-muted-foreground hover:text-foreground opacity-30 group-hover:opacity-100 transition-opacity"
+                        className="p-1 rounded-md text-emerald-200/60 hover:text-white hover:bg-white/15 opacity-60 group-hover:opacity-100 transition-all cursor-pointer"
                         title="Opções do cômodo"
                       >
                         <MoreVertical className="h-3.5 w-3.5" />
@@ -464,16 +464,16 @@ function PlanejamentoPage() {
               id="sidebar-btn-novo-comodo"
               onClick={() => setNovaCategoria(true)}
               aria-label="Adicionar novo cômodo"
-              className="group flex items-center gap-3 rounded-xl p-2.5 transition-all cursor-pointer border-2 border-dashed border-border/80 hover:border-primary/60 bg-muted/20 hover:bg-primary/5 text-muted-foreground hover:text-primary select-none w-full text-left mt-0.5"
+              className="group flex items-center gap-3 rounded-xl p-2.5 transition-all cursor-pointer border-2 border-dashed border-white/25 hover:border-emerald-300/80 bg-white/5 hover:bg-white/10 text-emerald-100 hover:text-white select-none w-full text-left mt-0.5"
             >
-              <span className="grid place-items-center h-8 w-8 rounded-lg shrink-0 border-2 border-dashed border-border/80 group-hover:border-primary/60 group-hover:bg-primary/10 text-muted-foreground group-hover:text-primary transition-all">
+              <span className="grid place-items-center h-8 w-8 rounded-lg shrink-0 border-2 border-dashed border-white/30 group-hover:border-emerald-300 group-hover:bg-white/10 text-emerald-200 group-hover:text-emerald-100 transition-all">
                 <Plus className="h-4 w-4 transition-transform group-hover:scale-110" />
               </span>
               <div className="flex-1 min-w-0">
-                <div className="font-bold text-xs sm:text-sm truncate text-foreground group-hover:text-primary transition-colors">
+                <div className="font-bold text-xs sm:text-sm whitespace-nowrap text-white group-hover:text-emerald-200 transition-colors">
                   Adicionar novo cômodo
                 </div>
-                <div className="text-[11px] font-semibold text-muted-foreground/80 group-hover:text-primary/80 mt-0.5 transition-colors">
+                <div className="text-[11px] font-semibold text-emerald-200/60 group-hover:text-emerald-200/80 mt-0.5 transition-colors">
                   Criar novo espaço
                 </div>
               </div>
@@ -588,16 +588,16 @@ function PlanejamentoPage() {
         </div>
       </div>
 
-      {/* Summary Card com visual premium do Design System */}
-      <div className="card-sticker p-4 sm:p-5 lg:p-6 bg-card flex flex-col xl:flex-row xl:items-center justify-between gap-6 shadow-[3px_3px_0_var(--border)] border-2 border-border/80">
+      {/* Summary Card com visual Verde Lar Oficial do Design System */}
+      <div className="card-sticker p-4 sm:p-5 lg:p-6 bg-gradient-to-br from-[#1F5C43] via-[#1a4f3a] to-[#154230] text-white flex flex-col xl:flex-row xl:items-center justify-between gap-6 shadow-[3px_3px_0_rgba(19,60,43,0.6)] border-2 border-[#16382a]">
         {/* Left: Category Icon, Title, and Progress Info */}
         <div className="flex items-center gap-3.5 sm:gap-4">
           <span
-            className="grid place-items-center h-12 w-12 sm:h-14 sm:w-14 rounded-2xl text-white shrink-0 border-2 border-border/20 shadow-xs"
+            className="grid place-items-center h-12 w-12 sm:h-14 sm:w-14 rounded-2xl text-white shrink-0 border-2 border-white/20 shadow-xs"
             style={{
               backgroundColor: catAtual
                 ? comodoColor(catAtual.bg, catAtual.nome)
-                : "var(--primary, #1F5C43)",
+                : "rgba(255, 255, 255, 0.2)",
             }}
           >
             {(() => {
@@ -607,35 +607,35 @@ function PlanejamentoPage() {
           </span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-foreground capitalize">
+              <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-white capitalize">
                 {catAtual ? catAtual.nome : "Todos os itens"}
               </h2>
               {catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento && (
                 <span
                   title="Orçamento estourado"
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-destructive bg-destructive/10 px-2.5 py-0.5 rounded-full border border-destructive/20"
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-200 bg-rose-500/30 px-2.5 py-0.5 rounded-full border border-rose-400/40"
                 >
                   <AlertTriangle className="h-3 w-3" /> Acima da meta
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground font-semibold flex-wrap">
+            <div className="flex items-center gap-2 mt-1 text-xs text-emerald-100/85 font-semibold flex-wrap">
               <span>
                 {compradosCategoria} {compradosCategoria === 1 ? "comprado" : "comprados"}
               </span>
               {ganhadosCategoria > 0 && (
                 <>
-                  <span className="text-border">·</span>
-                  <span className="text-amber-700 dark:text-amber-400 font-bold inline-flex items-center gap-1">
+                  <span className="text-white/40">·</span>
+                  <span className="text-amber-300 font-bold inline-flex items-center gap-1">
                     <Gift className="w-3 h-3" />
                     {ganhadosCategoria} {ganhadosCategoria === 1 ? "ganho" : "ganhos"}
                   </span>
                 </>
               )}
-              <span className="text-border">·</span>
+              <span className="text-white/40">·</span>
               <span>de {itensCategoria.length} itens</span>
               {itensCategoria.length > 0 && (
-                <span className="ml-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                <span className="ml-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white border border-white/30">
                   {Math.round(
                     ((compradosCategoria + ganhadosCategoria) / itensCategoria.length) * 100,
                   )}
@@ -650,26 +650,26 @@ function PlanejamentoPage() {
         <div className="flex items-center gap-5 sm:gap-6 lg:gap-8 flex-wrap">
           {/* Total Gasto */}
           <div className="flex flex-col justify-center min-w-[120px]">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-200/90 mb-1">
               Total gasto
             </span>
             <span
               className={cn(
-                "font-display text-2xl sm:text-3xl font-extrabold leading-none tabular-nums tracking-tight",
-                estourouAtual ? "text-destructive" : "text-foreground",
+                "font-display text-2xl sm:text-3xl font-extrabold leading-none tabular-nums tracking-tight text-white",
+                estourouAtual && "text-rose-300",
               )}
             >
               {brl(totalCategoria)}
             </span>
             {metaAtual > 0 ? (
               <div className="mt-1.5 flex items-center gap-1.5 text-[11px] font-semibold flex-wrap">
-                <span className="text-muted-foreground">meta: {brl(metaAtual)}</span>
+                <span className="text-emerald-200/75">meta: {brl(metaAtual)}</span>
                 {!estourouAtual ? (
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                  <span className="text-emerald-300 font-bold">
                     · resta {brl(restanteAtual)}
                   </span>
                 ) : (
-                  <span className="text-destructive font-bold">
+                  <span className="text-rose-300 font-bold">
                     · +{brl(totalCategoria - metaAtual)}
                   </span>
                 )}
@@ -677,19 +677,19 @@ function PlanejamentoPage() {
             ) : null}
           </div>
 
-          <div className="h-10 w-px bg-border/70 hidden sm:block" />
+          <div className="h-10 w-px bg-white/20 hidden sm:block" />
 
           {/* Dinheiro & VR */}
           <div className="flex flex-col justify-center">
-            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
-              <Wallet className="w-3.5 h-3.5 text-primary" /> Dinheiro
+            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-200/90 mb-1">
+              <Wallet className="w-3.5 h-3.5 text-emerald-300" /> Dinheiro
             </div>
-            <span className="font-display text-lg sm:text-xl font-bold text-foreground tabular-nums leading-none">
+            <span className="font-display text-lg sm:text-xl font-bold text-white tabular-nums leading-none">
               {brl(totalDinheiro)}
             </span>
             {totalVr > 0 && (
-              <span className="text-[11px] font-semibold text-muted-foreground mt-1.5">
-                VR: <span className="tabular-nums font-bold text-foreground">{brl(totalVr)}</span>
+              <span className="text-[11px] font-semibold text-emerald-200/80 mt-1.5">
+                VR: <span className="tabular-nums font-bold text-white">{brl(totalVr)}</span>
               </span>
             )}
           </div>
@@ -697,55 +697,55 @@ function PlanejamentoPage() {
           {/* Divisão do Casal */}
           {isCasal && (
             <>
-              <div className="h-10 w-px bg-border/70 hidden md:block" />
+              <div className="h-10 w-px bg-white/20 hidden md:block" />
               <div className="flex flex-col justify-center gap-1.5">
-                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                  <Users className="w-3.5 h-3.5 text-primary" /> Divisão do Casal
+                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-200/90">
+                  <Users className="w-3.5 h-3.5 text-emerald-300" /> Divisão do Casal
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  {/* Pessoa 1 (Verde Lar) */}
+                  {/* Pessoa 1 */}
                   <div
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card border-2 border-border/80 shadow-2xs hover:border-primary/50 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 border border-white/25 shadow-2xs backdrop-blur-xs"
                     title={`${p1}: ${brl(totalP1)}`}
                   >
-                    <span className="w-4.5 h-4.5 rounded-md bg-primary text-primary-foreground font-bold text-[10px] grid place-items-center uppercase shrink-0">
+                    <span className="w-4.5 h-4.5 rounded-md bg-emerald-400 text-emerald-950 font-bold text-[10px] grid place-items-center uppercase shrink-0">
                       {p1.trim()[0]}
                     </span>
-                    <span className="text-xs font-semibold text-muted-foreground truncate max-w-[80px]">
+                    <span className="text-xs font-semibold text-white/90">
                       {p1.split(" ")[0]}:
                     </span>
-                    <span className="text-xs font-bold text-foreground tabular-nums">
+                    <span className="text-xs font-bold text-white tabular-nums">
                       {brl(totalP1)}
                     </span>
                   </div>
 
-                  {/* Pessoa 2 (Coral Complementar) */}
+                  {/* Pessoa 2 */}
                   <div
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card border-2 border-border/80 shadow-2xs hover:border-[#EF6F6C]/60 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 border border-white/25 shadow-2xs backdrop-blur-xs"
                     title={`${p2}: ${brl(totalP2)}`}
                   >
                     <span className="w-4.5 h-4.5 rounded-md bg-[#EF6F6C] text-white font-bold text-[10px] grid place-items-center uppercase shrink-0">
                       {p2.trim()[0]}
                     </span>
-                    <span className="text-xs font-semibold text-muted-foreground truncate max-w-[80px]">
+                    <span className="text-xs font-semibold text-white/90">
                       {p2.split(" ")[0]}:
                     </span>
-                    <span className="text-xs font-bold text-foreground tabular-nums">
+                    <span className="text-xs font-bold text-white tabular-nums">
                       {brl(totalP2)}
                     </span>
                   </div>
 
-                  {/* Juntos */}
+                  {/* Conjunto */}
                   {totalConjunto > 0 && (
                     <div
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/5 border-2 border-primary/20 shadow-2xs"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 border border-white/25 shadow-2xs backdrop-blur-xs"
                       title={`Juntos: ${brl(totalConjunto)}`}
                     >
-                      <span className="w-4.5 h-4.5 rounded-md bg-primary/15 text-primary font-bold text-[10px] grid place-items-center shrink-0">
+                      <span className="w-4.5 h-4.5 rounded-md bg-emerald-300/30 text-emerald-200 font-bold text-[10px] grid place-items-center shrink-0">
                         <Users className="w-2.5 h-2.5" />
                       </span>
-                      <span className="text-xs font-semibold text-muted-foreground">Juntos:</span>
-                      <span className="text-xs font-bold text-foreground tabular-nums">
+                      <span className="text-xs font-semibold text-white/90">Juntos:</span>
+                      <span className="text-xs font-bold text-white tabular-nums">
                         {brl(totalConjunto)}
                       </span>
                     </div>
@@ -754,16 +754,16 @@ function PlanejamentoPage() {
                   {/* Ganhos / Presentes */}
                   {totalGanhosCategoria > 0 && (
                     <div
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 dark:bg-amber-500/15 border-2 border-amber-500/30 shadow-2xs"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-400/20 border border-amber-300/35 shadow-2xs backdrop-blur-xs"
                       title={`Ganhos / Presentes: ${brl(totalGanhosCategoria)}`}
                     >
-                      <span className="w-4.5 h-4.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-[10px] grid place-items-center shrink-0">
+                      <span className="w-4.5 h-4.5 rounded-md bg-amber-400 text-amber-950 font-bold text-[10px] grid place-items-center shrink-0">
                         <Gift className="w-2.5 h-2.5" />
                       </span>
-                      <span className="text-xs font-semibold text-amber-900 dark:text-amber-300">
+                      <span className="text-xs font-semibold text-amber-200">
                         Ganhos:
                       </span>
-                      <span className="text-xs font-bold text-amber-900 dark:text-amber-200 tabular-nums">
+                      <span className="text-xs font-bold text-white tabular-nums">
                         {brl(totalGanhosCategoria)}
                       </span>
                     </div>
