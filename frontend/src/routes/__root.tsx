@@ -14,6 +14,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { Toaster } from "@/components/ui/sonner";
 import { clearAppData } from "@/lib/clear-app-data";
+import { api } from "@/lib/api";
 import { BrandLogoText, BrandLogoIcon } from "@/components/ui/BrandLogo";
 import { BRAND_CONFIG } from "@/design-system";
 

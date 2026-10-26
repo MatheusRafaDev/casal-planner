@@ -1,9 +1,18 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutGrid, User, LogOut, Download, PieChart } from "lucide-react";
+import { useState, Suspense, lazy } from "react";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { LayoutGrid, User, LogOut, Download, PieChart, Plus } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { usePwa } from "@/hooks/use-pwa";
 import { cn } from "@/lib/utils";
 import { BrandLogoText, BrandLogoIcon } from "@/components/ui/BrandLogo";
+
+const AddItemWizard = lazy(() =>
+  import("@/components/planejamento/AddItemWizard").then(({ AddItemWizard }) => ({
+    default: AddItemWizard,
+  })),
+);
 
 const nav = [
   { to: "/inicio", label: "Dashboard", icon: PieChart },
@@ -15,6 +24,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { usuario, logout } = useAuth();
   const { installPrompt, triggerInstall } = usePwa();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+
+  const [wizardOpen, setWizardOpen] = useState(false);
+
+  const { data: categorias = [] } = useQuery({
+    queryKey: ["categorias"],
+    queryFn: () => import("@/services/categorias").then((m) => m.categoriasService.listar()),
+  });
+
+  const abrirWizardAdicionar = () => {
+    if (categorias.length === 0) {
+      toast.info("Crie seu primeiro cômodo no Planejamento para organizar seus itens!");
+      navigate({ to: "/planejamento" });
+    } else {
+      setWizardOpen(true);
+    }
+  };
 
   const isCasal = usuario?.tipoConta === "Casal";
   const p1Nome = usuario?.casalInfo?.pessoa1?.nome?.trim() || "Pessoa 1";
@@ -238,40 +264,110 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Bottom Nav Mobile */}
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 bg-card/95 backdrop-blur-md border-t border-border/80 z-50 shadow-lg"
+        className="md:hidden fixed bottom-0 inset-x-0 bg-card/95 backdrop-blur-md border-t border-border/80 z-50 shadow-lg select-none"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
-        <div className="flex h-16 items-center justify-around px-3">
-          {nav.map((n) => {
-            const active = pathname.startsWith(n.to);
-            return (
-              <Link
-                key={n.to}
-                to={n.to}
-                className={cn(
-                  "flex flex-col items-center justify-center gap-1 w-full h-full transition-all active:scale-95",
-                  active
-                    ? "text-primary font-bold"
-                    : "text-muted-foreground hover:text-foreground font-semibold",
-                )}
-                aria-current={active ? "page" : undefined}
-              >
-                <div
-                  className={cn(
-                    "flex items-center justify-center h-8 w-12 rounded-full transition-all duration-200",
-                    active
-                      ? "bg-primary/10 text-primary border border-primary/25 shadow-2xs"
-                      : "bg-transparent text-muted-foreground",
-                  )}
-                >
-                  <n.icon className="h-4 w-4" />
-                </div>
-                <span className="text-[11px] leading-none tracking-tight">{n.label}</span>
-              </Link>
-            );
-          })}
+        <div className="grid grid-cols-4 h-16 items-center px-1">
+          {/* 1. Início */}
+          <Link
+            to="/inicio"
+            className={cn(
+              "flex flex-col items-center justify-center gap-0.5 w-full h-full transition-all active:scale-95",
+              pathname.startsWith("/inicio")
+                ? "text-primary font-bold"
+                : "text-muted-foreground hover:text-foreground font-semibold",
+            )}
+            aria-current={pathname.startsWith("/inicio") ? "page" : undefined}
+          >
+            <div
+              className={cn(
+                "flex items-center justify-center h-7 w-11 rounded-full transition-all duration-200",
+                pathname.startsWith("/inicio")
+                  ? "bg-primary/10 text-primary border border-primary/25 shadow-2xs"
+                  : "bg-transparent text-muted-foreground",
+              )}
+            >
+              <PieChart className="h-4 w-4" />
+            </div>
+            <span className="text-[10px] leading-none tracking-tight">Início</span>
+          </Link>
+
+          {/* 2. Planejamento */}
+          <Link
+            to="/planejamento"
+            className={cn(
+              "flex flex-col items-center justify-center gap-0.5 w-full h-full transition-all active:scale-95",
+              pathname.startsWith("/planejamento")
+                ? "text-primary font-bold"
+                : "text-muted-foreground hover:text-foreground font-semibold",
+            )}
+            aria-current={pathname.startsWith("/planejamento") ? "page" : undefined}
+          >
+            <div
+              className={cn(
+                "flex items-center justify-center h-7 w-11 rounded-full transition-all duration-200",
+                pathname.startsWith("/planejamento")
+                  ? "bg-primary/10 text-primary border border-primary/25 shadow-2xs"
+                  : "bg-transparent text-muted-foreground",
+              )}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </div>
+            <span className="text-[10px] leading-none tracking-tight">Planejar</span>
+          </Link>
+
+          {/* 3. Botão Adicionar Destacado (No meio das opções) */}
+          <button
+            type="button"
+            onClick={abrirWizardAdicionar}
+            className="flex flex-col items-center justify-center gap-0.5 w-full h-full transition-all active:scale-90 group cursor-pointer"
+            aria-label="Adicionar novo item"
+          >
+            <div className="flex items-center justify-center h-9 w-9 rounded-full bg-primary text-primary-foreground shadow-[0_2px_8px_rgba(31,92,67,0.35)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.5)] border border-primary/20 -translate-y-1 group-active:translate-y-0 transition-transform">
+              <Plus className="h-5 w-5 stroke-[2.5]" />
+            </div>
+            <span className="text-[10px] font-bold text-primary leading-none -translate-y-0.5 group-active:translate-y-0 transition-transform">
+              Adicionar
+            </span>
+          </button>
+
+          {/* 4. Minha Conta */}
+          <Link
+            to="/perfil"
+            className={cn(
+              "flex flex-col items-center justify-center gap-0.5 w-full h-full transition-all active:scale-95",
+              pathname.startsWith("/perfil")
+                ? "text-primary font-bold"
+                : "text-muted-foreground hover:text-foreground font-semibold",
+            )}
+            aria-current={pathname.startsWith("/perfil") ? "page" : undefined}
+          >
+            <div
+              className={cn(
+                "flex items-center justify-center h-7 w-11 rounded-full transition-all duration-200",
+                pathname.startsWith("/perfil")
+                  ? "bg-primary/10 text-primary border border-primary/25 shadow-2xs"
+                  : "bg-transparent text-muted-foreground",
+              )}
+            >
+              <User className="h-4 w-4" />
+            </div>
+            <span className="text-[10px] leading-none tracking-tight">Perfil</span>
+          </Link>
         </div>
       </nav>
+
+      {/* Modal Global do Wizard de Adicionar Item */}
+      {wizardOpen && (
+        <Suspense fallback={null}>
+          <AddItemWizard
+            open={wizardOpen}
+            onOpenChange={setWizardOpen}
+            categorias={categorias}
+            categoriaInicialId=""
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

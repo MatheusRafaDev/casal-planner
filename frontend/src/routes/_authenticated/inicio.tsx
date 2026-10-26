@@ -23,6 +23,7 @@ import { Progress } from "@/components/ui/progress";
 import { iconFor, comodoColor } from "@/components/planejamento/icon-map";
 import { useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { cn } from "@/lib/utils";
 import { WidgetDiaMudanca } from "@/components/planejamento/WidgetDiaMudanca";
 import { InicioSkeleton } from "@/components/ui/LoadingSkeletons";
 import { DESIGN_TOKENS } from "@/design-system";

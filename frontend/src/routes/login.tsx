@@ -59,16 +59,16 @@ function LoginPage() {
   }, [loading, isAuthenticated, navigate, router.history, returnUrl]);
 
   return (
-    <div className="min-h-screen lg:h-screen lg:max-h-screen lg:overflow-hidden overflow-x-clip w-full bg-background text-foreground flex flex-col lg:grid lg:grid-cols-[44%_56%] xl:grid-cols-[42%_58%] selection:bg-gold/30 relative font-sans">
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      className="min-h-screen lg:h-screen lg:max-h-screen lg:overflow-hidden overflow-x-clip w-full bg-background text-foreground flex flex-col lg:grid lg:grid-cols-[44%_56%] xl:grid-cols-[42%_58%] selection:bg-gold/30 relative font-sans"
+    >
       {/* =========================================
-          PAINEL ESQUERDO: APRESENTAÇÃO EDITORIAL (Com animação suave de entrada)
+          PAINEL ESQUERDO: APRESENTAÇÃO EDITORIAL
       ========================================= */}
-      <motion.div
-        initial={{ opacity: 0, x: -28 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="hidden lg:flex flex-col justify-between border-r border-border bg-sidebar p-7 xl:p-10 relative overflow-hidden h-full"
-      >
+      <div className="hidden lg:flex flex-col justify-between border-r border-border bg-sidebar p-7 xl:p-10 relative overflow-hidden h-full">
         {/* Topo: Logo Oficial */}
         <div className="flex items-center justify-between">
           <Link
@@ -162,17 +162,12 @@ function LoginPage() {
         <div className="text-[11px] text-muted-foreground font-medium">
           CasalPlanner • Feito para o casal e para conta individual.
         </div>
-      </motion.div>
+      </div>
 
       {/* =========================================
           PAINEL DIREITO: FORMULÁRIO COM LARGURA AMPLIADA E ZERO JUMP
       ========================================= */}
-      <motion.div
-        initial={{ opacity: 0, x: 28 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="flex-1 flex flex-col justify-between p-6 sm:p-8 lg:p-8 xl:p-10 h-full relative overflow-y-auto lg:overflow-hidden bg-card"
-      >
+      <div className="flex-1 flex flex-col justify-between p-6 sm:p-8 lg:p-8 xl:p-10 h-full relative overflow-y-auto lg:overflow-hidden bg-card">
         {/* Topbar: Voltar ao site */}
         <div className="flex items-center justify-between w-full max-w-[520px] mx-auto mb-2 shrink-0">
           <Link
@@ -307,7 +302,7 @@ function LoginPage() {
         <div className="pt-2 text-center text-xs text-muted-foreground font-medium w-full max-w-[520px] mx-auto shrink-0">
           {BRAND_CONFIG.name} © {new Date().getFullYear()} • Todos os direitos reservados.
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </motion.div>
   );
 }
