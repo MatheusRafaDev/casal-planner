@@ -30,7 +30,10 @@ async function generate() {
         const ctx = c.getContext("2d");
         ctx.drawImage(img, 0, 0);
         const data = ctx.getImageData(0, 0, c.width, c.height).data;
-        let minX = c.width, maxX = 0, minY = c.height, maxY = 0;
+        let minX = c.width,
+          maxX = 0,
+          minY = c.height,
+          maxY = 0;
         for (let y = 0; y < c.height; y++) {
           for (let x = 0; x < c.width; x++) {
             if (data[(y * c.width + x) * 4 + 3] > 10) {
@@ -153,7 +156,10 @@ async function generate() {
       </body>
     </html>
   `);
-  await page.screenshot({ path: path.join(iconsDir, "icon-512-maskable.png"), omitBackground: true });
+  await page.screenshot({
+    path: path.join(iconsDir, "icon-512-maskable.png"),
+    omitBackground: true,
+  });
 
   // 5. apple-touch-icon.png (180x180) - 100% transparente
   await page.setViewportSize({ width: 180, height: 180 });
@@ -183,7 +189,10 @@ async function generate() {
       </body>
     </html>
   `);
-  await page.screenshot({ path: path.join(publicDir, "apple-touch-icon.png"), omitBackground: true });
+  await page.screenshot({
+    path: path.join(publicDir, "apple-touch-icon.png"),
+    omitBackground: true,
+  });
 
   // 6. favicon.png (64x64 PNG transparente sem fundo)
   await page.setViewportSize({ width: 64, height: 64 });

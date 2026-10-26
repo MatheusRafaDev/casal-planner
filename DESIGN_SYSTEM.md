@@ -26,11 +26,11 @@ Edite **`frontend/src/design-system/brand.ts`**:
 export const BRAND_CONFIG = {
   name: "CasalPlanner",
   nameParts: {
-    prefix: "Casal",    // Primeira parte com destaque
-    suffix: "Planner",   // Segunda parte
+    prefix: "casal",    // Peso 800 em Verde Lar
+    suffix: "planner",  // Peso 300 em Tinta
   },
-  tagline: "Planejamento a dois",
-  slogan: "Organize seu enxoval com o seu par",
+  tagline: "organizador de compras do casal",
+  slogan: "Organizador de compras do casal",
   
   // Caminhos das imagens em /public
   assets: {
@@ -40,7 +40,9 @@ export const BRAND_CONFIG = {
     appleTouchIcon: "/apple-touch-icon.png",
   },
   
-  themeColor: "#2F7D5B",
+  themeColor: "#1F5C43", // Verde Lar
+  themeColorDark: "#16382A", // Verde Floresta
+  backgroundColor: "#FAF6F1", // Creme
 };
 ```
 > **Nota:** Todos os componentes (`BrandLogo`, `Header`, `AppShell`, meta tags de PWA, SEO e telas de autenticação) atualizam automaticamente quando você altera esse arquivo.
@@ -52,24 +54,27 @@ Edite as variáveis em **`frontend/src/styles.css`**:
 
 ```css
 :root {
-  /* Cor Primária do Sistema (Pessoa 1 / Marca) */
-  --primary: #2f7d5b;
-  --primary-hover: #266b4d;
+  /* Cor Primária do Sistema (Verde Lar) */
+  --primary: #1f5c43;
+  --primary-hover: #2f8a63;
   --primary-foreground: #ffffff;
 
-  /* Cor de Acento / Secundária (Pessoa 2 / Ouro) */
-  --gold: #d97706;
-  --gold-hover: #b45309;
+  /* Cor de Acento / Secundária (Coral) */
+  --gold: #ef6f6c;
+  --gold-hover: #e05a57;
 
-  /* Cores Individuais do Casal */
-  --p1-color: #2f7d5b;
-  --p2-color: #d97706;
-  --joint-color: #2a7f8e; /* Despesas conjuntas */
+  /* Cores Individuais do Casal (Duas folhas da lista: Coral e Verde) */
+  --p1-color: #ef6f6c; /* Pessoa 1: Coral */
+  --p2-color: #1f5c43; /* Pessoa 2: Verde Lar */
+  --joint-color: #2f8a63; /* Despesas conjuntas: Verde Folha */
 
   /* Neutros e Superfícies */
-  --background: #faf8f5; /* Fundo geral */
+  --background: #faf6f1; /* Fundo geral (Creme) */
+  --foreground: #1b2438; /* Texto principal (Tinta) */
   --card: #ffffff;       /* Fundo dos cards e modais */
-  --border: #e8e3da;     /* Bordas do sistema */
+  --border: #eee3d8;     /* Bordas de 2px */
+  --muted: #e7ece9;      /* Névoa */
+  --muted-foreground: #5b6470; /* Cinza */
 }
 ```
 

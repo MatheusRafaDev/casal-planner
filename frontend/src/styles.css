@@ -3,44 +3,49 @@
 
 @layer base {
   :root {
-    /* Cores Neutras / Toque de Bege Suave & Linho Contemporâneo (Warm Greige) */
-    --background: #faf8f5; /* Bege linho contemporâneo, calmo e acolhedor */
-    --foreground: #1c1917; /* Stone-900 / Grafite quente com contraste perfeito */
+    /* Cores do Design System Oficial */
+    --background: #faf6f1; /* Creme: fundo das telas */
+    --foreground: #1b2438; /* Tinta: texto principal */
     --card: #ffffff;
-    --card-foreground: #1c1917;
+    --card-foreground: #1b2438;
     --popover: #ffffff;
-    --popover-foreground: #1c1917;
-    --sidebar: #faf8f5;
-    --sidebar-foreground: #1c1917;
-    --border: #e8e3da; /* Borda bege suave e moderna de 1px */
-    --input: #ffffff;
-    --ring: #2f7d5b;
+    --popover-foreground: #1b2438;
+    --sidebar: #faf6f1;
+    --sidebar-foreground: #1b2438;
+    --border: #eee3d8; /* Borda de 2px em #EEE3D8 */
+    --input: #faf6f1;
+    --ring: #1f5c43;
 
-    --muted: #f3efe8; /* Bege suave para superfícies secundárias */
-    --muted-foreground: #78716c; /* Stone-500: legibilidade suave e moderna */
-    --muted-text: #57534e; /* Stone-600 */
+    --muted: #e7ece9; /* Névoa: divisores e fundos de linha */
+    --muted-foreground: #5b6470; /* Cinza: texto secundário */
+    --muted-text: #5b6470;
 
-    /* Toque de Bege Elegante */
-    --beige: #f5efeb;
-    --beige-tint: #fdfbf7;
-    --beige-border: #e8e1d5;
-    --beige-dark: #8c7e6a;
+    /* Toque Creme Suave */
+    --beige: #faf6f1;
+    --beige-tint: #fdfbf8;
+    --beige-border: #eee3d8;
+    --beige-dark: #5b6470;
 
-    /* Identidade da Marca: Verde Esmeralda & Âmbar Harmonizados */
-    --primary: #2f7d5b;
+    /* Identidade da Marca: Verde Lar (#1F5C43) & Coral (#EF6F6C) */
+    --primary: #1f5c43;
     --primary-foreground: #ffffff;
-    --primary-hover: #266b4d;
-    --primary-tint: #ecfdf5;
-    --primary-tint-foreground: #065f46;
+    --primary-hover: #2f8a63;
+    --primary-tint: #e7ece9;
+    --primary-tint-foreground: #1f5c43;
 
-    --gold: #d97706;
-    --gold-foreground: #ffffff;
-    --gold-hover: #b45309;
-    --gold-tint: #fef3c7;
-    --gold-tint-foreground: #92400e;
+    --gold: #ef6f6c; /* Acento Coral */
+    --gold-foreground: #1b2438;
+    --gold-hover: #e05a57;
+    --gold-tint: #f6b3b0;
+    --gold-tint-foreground: #1b2438;
 
-    --success-tint: #ecfdf5;
-    --success-tint-foreground: #065f46;
+    --coral: #ef6f6c;
+    --coral-foreground: #1b2438;
+    --coral-tint: #f6b3b0;
+    --coral-tint-foreground: #1b2438;
+
+    --success-tint: #e7ece9;
+    --success-tint-foreground: #1f5c43;
 
     --destructive: #dc2626;
     --destructive-foreground: #ffffff;
@@ -48,9 +53,10 @@
     --destructive-tint-foreground: #991b1b;
 
     --radius-sm: 8px;
-    --radius-md: 10px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
+    --radius-md: 12px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
     --radius-full: 9999px;
 
     /* Sombras suaves e naturais */
@@ -62,78 +68,83 @@
 
   /* ========================================================
      SISTEMA DE CORES DO CASAL
-     - Pessoa 1 = Verde 🌿
-     - Pessoa 2 = Âmbar / Dourado ☀️
-     - Visitante / Não logado = Harmonização Verde & Âmbar
+     - Folha 1 (Pessoa 1) = Coral #EF6F6C 🌺
+     - Folha 2 (Pessoa 2) = Verde Lar #1F5C43 🌿
+     - Divisão Conjunta = Verde Folha #2F8A63 🍃
      ======================================================== */
 
   :root {
-    --p1-color: #2f7d5b;
-    --p1-foreground: #ffffff;
-    --p1-hover: #266b4d;
-    --p1-tint: #ecfdf5;
-    --p1-tint-foreground: #065f46;
+    --p1-color: #ef6f6c;
+    --p1-foreground: #1b2438;
+    --p1-hover: #e05a57;
+    --p1-tint: #f6b3b0;
+    --p1-tint-foreground: #1b2438;
 
-    --p2-color: #d97706;
+    --p2-color: #1f5c43;
     --p2-foreground: #ffffff;
-    --p2-hover: #b45309;
-    --p2-tint: #fef3c7;
-    --p2-tint-foreground: #92400e;
+    --p2-hover: #2f8a63;
+    --p2-tint: #e7ece9;
+    --p2-tint-foreground: #1f5c43;
 
     /* Divisão Conjunta e Marca */
-    --joint-color: #2a7f8e;
+    --joint-color: #2f8a63;
     --joint-foreground: #ffffff;
     --brand-primary: var(--primary);
-    --brand-accent: var(--gold);
-    --brand-dot: var(--gold);
+    --brand-accent: #ef6f6c;
+    --brand-dot: #ef6f6c;
   }
 
   .dark {
-    --background: #11100f; /* Carvão acolhedor com sutil toque quente */
-    --foreground: #f5f3ef;
-    --card: #181716;
-    --card-foreground: #f5f3ef;
-    --popover: #181716;
-    --popover-foreground: #f5f3ef;
-    --sidebar: #141312;
-    --sidebar-foreground: #f5f3ef;
-    --border: #2a2724;
-    --input: #181716;
-    --ring: #34d399;
+    --background: #16382a; /* Verde Floresta: modo escuro e contraste */
+    --foreground: #faf6f1;
+    --card: #1b4433;
+    --card-foreground: #faf6f1;
+    --popover: #1b4433;
+    --popover-foreground: #faf6f1;
+    --sidebar: #132e22;
+    --sidebar-foreground: #faf6f1;
+    --border: #245440;
+    --input: #1b4433;
+    --ring: #2f8a63;
 
-    --muted: #242220;
-    --muted-foreground: #a39e98;
-    --muted-text: #d6d2cc;
+    --muted: #1f4a38;
+    --muted-foreground: #a4b2aa;
+    --muted-text: #cbd5ce;
 
-    --primary: #34d399;
-    --primary-foreground: #022c22;
-    --primary-hover: #10b981;
-    --primary-tint: #064e3b;
+    --primary: #2f8a63;
+    --primary-foreground: #ffffff;
+    --primary-hover: #3aa377;
+    --primary-tint: #132e22;
     --primary-tint-foreground: #6ee7b7;
 
-    --gold: #fbbf24;
-    --gold-foreground: #1c1917;
-    --gold-hover: #f59e0b;
-    --gold-tint: #451a03;
-    --gold-tint-foreground: #fde68a;
+    --gold: #ef6f6c;
+    --gold-foreground: #1b2438;
+    --gold-hover: #e05a57;
+    --gold-tint: #451a1a;
+    --gold-tint-foreground: #f6b3b0;
 
-    --p1-color: #34d399;
-    --p1-foreground: #022c22;
-    --p1-hover: #10b981;
-    --p1-tint: #064e3b;
-    --p1-tint-foreground: #6ee7b7;
+    --coral: #ef6f6c;
+    --coral-foreground: #1b2438;
+    --coral-tint: #451a1a;
+    --coral-tint-foreground: #f6b3b0;
 
-    --p2-color: #fbbf24;
-    --p2-foreground: #1c1917;
-    --p2-hover: #f59e0b;
-    --p2-tint: #451a03;
-    --p2-tint-foreground: #fde68a;
+    --p1-color: #ef6f6c;
+    --p1-foreground: #1b2438;
+    --p1-hover: #e05a57;
+    --p1-tint: #451a1a;
+    --p1-tint-foreground: #f6b3b0;
 
-    --joint-color: #38b2ac;
-    --joint-foreground: #11100f;
+    --p2-color: #2f8a63;
+    --p2-foreground: #ffffff;
+    --p2-hover: #3aa377;
+    --p2-tint: #132e22;
+    --p2-tint-foreground: #6ee7b7;
+
+    --joint-color: #2f8a63;
+    --joint-foreground: #ffffff;
     --brand-primary: var(--primary);
-    --brand-accent: var(--gold);
-    --brand-dot: var(--gold);
+    --brand-accent: #ef6f6c;
+    --brand-dot: #ef6f6c;
 
     --shadow-sticker: 0 1px 3px 0 rgb(0 0 0 / 0.3);
     --shadow-sticker-sm: 0 1px 2px 0 rgb(0 0 0 / 0.25);
@@ -141,46 +152,46 @@
     --shadow-sticker-modal: 0 20px 25px -5px rgb(0 0 0 / 0.45);
   }
 
-  /* Quando Pessoa 2 está ativa: o sistema primário vira Âmbar */
+  /* Quando Pessoa 2 está ativa */
   :root[data-persona="p2"],
   [data-persona="p2"] {
-    --primary: #d97706;
+    --primary: #1f5c43;
     --primary-foreground: #ffffff;
-    --primary-hover: #b45309;
-    --primary-tint: #fef3c7;
-    --primary-tint-foreground: #92400e;
-    --ring: #d97706;
+    --primary-hover: #2f8a63;
+    --primary-tint: #e7ece9;
+    --primary-tint-foreground: #1f5c43;
+    --ring: #1f5c43;
   }
 
   .dark[data-persona="p2"],
   .dark [data-persona="p2"] {
-    --primary: #fbbf24;
-    --primary-foreground: #1c1917;
-    --primary-hover: #f59e0b;
-    --primary-tint: #451a03;
-    --primary-tint-foreground: #fde68a;
-    --ring: #fbbf24;
+    --primary: #2f8a63;
+    --primary-foreground: #ffffff;
+    --primary-hover: #3aa377;
+    --primary-tint: #132e22;
+    --primary-tint-foreground: #6ee7b7;
+    --ring: #2f8a63;
   }
 
-  /* Quando Pessoa 1 está ativa: o sistema primário é Verde */
+  /* Quando Pessoa 1 está ativa */
   :root[data-persona="p1"],
   [data-persona="p1"] {
-    --primary: #2f7d5b;
-    --primary-foreground: #ffffff;
-    --primary-hover: #266b4d;
-    --primary-tint: #ecfdf5;
-    --primary-tint-foreground: #065f46;
-    --ring: #2f7d5b;
+    --primary: #ef6f6c;
+    --primary-foreground: #1b2438;
+    --primary-hover: #e05a57;
+    --primary-tint: #f6b3b0;
+    --primary-tint-foreground: #1b2438;
+    --ring: #ef6f6c;
   }
 
   .dark[data-persona="p1"],
   .dark [data-persona="p1"] {
-    --primary: #34d399;
-    --primary-foreground: #022c22;
-    --primary-hover: #10b981;
-    --primary-tint: #064e3b;
-    --primary-tint-foreground: #6ee7b7;
-    --ring: #34d399;
+    --primary: #ef6f6c;
+    --primary-foreground: #1b2438;
+    --primary-hover: #e05a57;
+    --primary-tint: #451a1a;
+    --primary-tint-foreground: #f6b3b0;
+    --ring: #ef6f6c;
   }
 
   * {
@@ -209,9 +220,9 @@
 }
 
 @theme {
-  --font-display: "Plus Jakarta Sans", "Outfit", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-brand: "Outfit", "Plus Jakarta Sans", sans-serif;
-  --font-sans: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-brand: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   --font-handwriting: "Caveat", cursive, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 

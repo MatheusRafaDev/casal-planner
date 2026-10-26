@@ -30,7 +30,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-dvh flex flex-col bg-background md:pl-64 font-sans text-foreground">
-
       {/* Sidebar Desktop */}
       <aside className="hidden md:flex md:flex-col w-64 border-r border-border bg-sidebar text-foreground fixed inset-y-0 left-0 z-50 overflow-hidden select-none">
         {/* Brand Header */}

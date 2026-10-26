@@ -7,7 +7,7 @@
  *  - Offline fallback → página HTML simples para navegação sem rede
  */
 
-const CACHE_NAME = "casal-planner-v6";
+const CACHE_NAME = "casal-planner-v7";
 const OFFLINE_URL = "/__offline";
 
 // Assets que queremos pré-cachear na instalação
@@ -157,7 +157,7 @@ function offlinePage() {
   <title>CasalPlanner - Sem conexão</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    html { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
     body {
       min-height: 100dvh;
       display: flex;
@@ -166,28 +166,31 @@ function offlinePage() {
       justify-content: center;
       gap: 1rem;
       padding: 2rem;
-      background: #faf9fb;
-      color: #1e1a2e;
+      background: #FAF6F1;
+      color: #1B2438;
       text-align: center;
     }
     .icon { font-size: 3rem; }
-    h1 { font-size: 1.5rem; font-weight: 600; }
-    p { font-size: 0.9rem; color: #6b7280; max-width: 28ch; }
+    h1 { font-size: 1.5rem; font-weight: 700; color: #1B2438; }
+    p { font-size: 0.95rem; color: #5B6470; max-width: 32ch; line-height: 1.5; }
     button {
       margin-top: 1rem;
-      padding: 0.6rem 1.4rem;
-      border-radius: 0.5rem;
-      border: none;
-      background: #7c3aed;
+      padding: 0.75rem 1.6rem;
+      border-radius: 14px;
+      border: 2px solid #1F5C43;
+      background: #1F5C43;
       color: #fff;
-      font-size: 0.9rem;
-      font-weight: 500;
+      font-size: 0.95rem;
+      font-weight: 700;
       cursor: pointer;
+      transition: background 0.15s ease;
     }
-    button:hover { background: #6d28d9; }
+    button:hover { background: #2F8A63; border-color: #2F8A63; }
     @media (prefers-color-scheme: dark) {
-      body { background: #1e1a2e; color: #f5f3ff; }
-      p { color: #a78bfa; }
+      body { background: #16382A; color: #FAF6F1; }
+      h1 { color: #FAF6F1; }
+      p { color: #A4B2AA; }
+      button { background: #2F8A63; border-color: #2F8A63; }
     }
   </style>
 </head>

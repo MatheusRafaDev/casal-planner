@@ -543,7 +543,9 @@ function PlanejamentoPage() {
           <span
             className="grid place-items-center h-12 w-12 rounded-xl text-white shrink-0 border-2 border-border/20 shadow-sm"
             style={{
-              backgroundColor: catAtual ? comodoColor(catAtual.bg, catAtual.nome) : "var(--primary)",
+              backgroundColor: catAtual
+                ? comodoColor(catAtual.bg, catAtual.nome)
+                : "var(--primary)",
             }}
           >
             {(() => {

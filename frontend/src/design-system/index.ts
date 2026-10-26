@@ -5,17 +5,17 @@ export { BRAND_CONFIG, type BrandConfig } from "./brand";
  * Retorna a cor padrão harmonizada para um cômodo pelo nome ou ID
  */
 export function getRoomDefaultColor(roomName?: string | null): string {
-  if (!roomName) return "#2F7D5B";
+  if (!roomName) return "#1F5C43";
   const norm = roomName.trim().toLowerCase();
-  
+
   const map: Record<string, string> = {
-    sala: "#2F7D5B",
-    cozinha: "#C85A32",
-    quarto: "#386877",
-    banheiro: "#4A7C59",
-    lavanderia: "#D49B2A",
-    escritorio: "#386877",
-    varanda: "#A84E38",
+    sala: "#1F5C43",
+    cozinha: "#EF6F6C",
+    quarto: "#2F8A63",
+    banheiro: "#2A7F8E",
+    lavanderia: "#16382A",
+    escritorio: "#5B6470",
+    varanda: "#C85A32",
     garagem: "#344C42",
     jardim: "#5E6E3B",
     gourmet: "#BC8A2C",
@@ -25,5 +25,5 @@ export function getRoomDefaultColor(roomName?: string | null): string {
   for (const [key, color] of Object.entries(map)) {
     if (norm.includes(key)) return color;
   }
-  return "#2F7D5B";
+  return "#1F5C43";
 }

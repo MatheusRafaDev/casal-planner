@@ -64,15 +64,16 @@ export function iconFor(name?: string | null): LucideIcon {
  * Tons acolhedores da casa (Verde Floresta, Dourado, Terracota, Sálvia, Madeira, Petróleo, Oliva, Caramelo).
  */
 export const CATEGORIA_COLORS = [
-  "#2F7D5B", // Verde Floresta (Cor oficial do CasalPlanner)
-  "#E8B63C", // Dourado Mostarda (Cor do casal)
+  "#1F5C43", // Verde Lar (Cor oficial do CasalPlanner)
+  "#EF6F6C", // Coral (Acento oficial do casal)
+  "#2F8A63", // Verde Folha
   "#C85A32", // Terracota / Argila aconchegante
   "#4A7C59", // Verde Sálvia / Alecrim
   "#386877", // Azul Petróleo / Ardósia
   "#B67332", // Madeira Carvalho / Caramelo
   "#5E6E3B", // Verde Oliva Natural
   "#2C5282", // Azul Noite Acolhedor
-  "#BC8A2C", // Ocre / Âmbar Dourado
+  "#BC8A2C", // Ocre / Âmbar
   "#A84E38", // Tijolinho / Cerâmica
   "#7A3E4D", // Marsala Suave
   "#344C42", // Grafite Floresta
@@ -80,14 +81,14 @@ export const CATEGORIA_COLORS = [
 
 /** Cores padrão recomendadas por nome de cômodo comum */
 export const COMODO_DEFAULT_COLORS: Record<string, string> = {
-  cozinha: DESIGN_TOKENS.colors.rooms.cozinha || "#C85A32",
-  sala: DESIGN_TOKENS.colors.rooms.sala || "#2F7D5B",
-  quarto: DESIGN_TOKENS.colors.rooms.quarto || "#386877",
-  banheiro: DESIGN_TOKENS.colors.rooms.banheiro || "#4A7C59",
-  lavanderia: DESIGN_TOKENS.colors.rooms.lavanderia || "#D49B2A",
-  escritório: DESIGN_TOKENS.colors.rooms.escritorio || "#386877",
-  escritorio: DESIGN_TOKENS.colors.rooms.escritorio || "#386877",
-  varanda: DESIGN_TOKENS.colors.rooms.varanda || "#A84E38",
+  cozinha: DESIGN_TOKENS.colors.rooms.cozinha || "#EF6F6C",
+  sala: DESIGN_TOKENS.colors.rooms.sala || "#1F5C43",
+  quarto: DESIGN_TOKENS.colors.rooms.quarto || "#2F8A63",
+  banheiro: DESIGN_TOKENS.colors.rooms.banheiro || "#2A7F8E",
+  lavanderia: DESIGN_TOKENS.colors.rooms.lavanderia || "#16382A",
+  escritório: DESIGN_TOKENS.colors.rooms.escritorio || "#5B6470",
+  escritorio: DESIGN_TOKENS.colors.rooms.escritorio || "#5B6470",
+  varanda: DESIGN_TOKENS.colors.rooms.varanda || "#C85A32",
   jardim: DESIGN_TOKENS.colors.rooms.jardim || "#5E6E3B",
   garagem: DESIGN_TOKENS.colors.rooms.garagem || "#344C42",
   gourmet: DESIGN_TOKENS.colors.rooms.gourmet || "#BC8A2C",
@@ -96,23 +97,24 @@ export const COMODO_DEFAULT_COLORS: Record<string, string> = {
 
 /** Mapeamento de cores legadas/antigas ou genéricas para os tons do sistema */
 const LEGACY_COLOR_MAP: Record<string, string> = {
-  "#27272a": "#2F7D5B",
-  "#2c5e2c": "#2F7D5B",
-  "#b84a2c": "#C85A32",
-  "#2c5280": "#386877",
-  "#6b5ea8": "#4A7C59",
-  "#e2d9ed": "#4A7C59",
-  "#97266d": "#D49B2A",
-  "#a78bfa": "#386877",
-  "#8b5cf6": "#386877",
+  "#27272a": "#1F5C43",
+  "#2c5e2c": "#1F5C43",
+  "#2f7d5b": "#1F5C43",
+  "#b84a2c": "#EF6F6C",
+  "#2c5280": "#2F8A63",
+  "#6b5ea8": "#2A7F8E",
+  "#e2d9ed": "#2A7F8E",
+  "#97266d": "#16382A",
+  "#a78bfa": "#2F8A63",
+  "#8b5cf6": "#2F8A63",
   "#7c3aed": "#344C42",
   "#c084fc": "#5E6E3B",
-  "#f472b6": "#C85A32",
-  "#f59e0b": "#E8B63C",
-  "#fb7185": "#A84E38",
-  "#34d399": "#2F7D5B",
-  "#38bdf8": "#386877",
-  "#facc15": "#E8B63C",
+  "#f472b6": "#EF6F6C",
+  "#f59e0b": "#EF6F6C",
+  "#fb7185": "#EF6F6C",
+  "#34d399": "#1F5C43",
+  "#38bdf8": "#2A7F8E",
+  "#facc15": "#EF6F6C",
 };
 
 /**
@@ -141,5 +143,5 @@ export function comodoColor(bg?: string | null, nome?: string | null): string {
     }
   }
 
-  return "#2F7D5B";
+  return "#1F5C43";
 }

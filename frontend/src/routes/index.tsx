@@ -443,7 +443,7 @@ function HomePage() {
           left: 0;
           width: 0;
           height: 2px;
-          background: #2F7D5B;
+          background: #1F5C43;
           border-radius: 99px;
           transition: width 0.25s ease;
         }

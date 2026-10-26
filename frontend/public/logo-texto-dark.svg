@@ -1,39 +1,34 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 48" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 56" width="280" height="56" fill="none">
   <defs>
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@700;800&amp;display=swap');
-      .brand-title-dark {
-        font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-        font-weight: 800;
-        font-size: 27px;
-        letter-spacing: -0.03em;
-      }
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&amp;display=swap');
+      .brand-casal { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-weight: 800; font-size: 35px; fill: #ffffff; letter-spacing: -0.04em; }
+      .brand-planner { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-weight: 300; font-size: 35px; fill: #ffffff; letter-spacing: -0.04em; }
+      .brand-dot { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-weight: 800; font-size: 35px; fill: #ef6f6c; letter-spacing: -0.04em; }
     </style>
   </defs>
-
-  <!-- Símbolo Oficial CasalPlanner (Dark) -->
-  <g transform="translate(4, 4) scale(0.833)">
-    <!-- Telhado com Beiral (Verde Esmeralda e Dourado) -->
-    <path d="M 7 21.5 L 24 7.5" stroke="#4FB387" stroke-width="4.2" stroke-linecap="round" />
-    <path d="M 41 21.5 L 24 7.5" stroke="#F5B938" stroke-width="4.2" stroke-linecap="round" />
-
-    <!-- Estrutura do Lar e Fundação -->
-    <path d="M 12 23.5 V 37.5 C 12 39.5 13.5 40.5 15.5 40.5 H 32.5 C 34.5 40.5 36 39.5 36 37.5 V 23.5"
-          stroke="#FAF6EE" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
-    <line x1="9" y1="41" x2="39" y2="41" stroke="#FAF6EE" stroke-width="3" stroke-linecap="round" />
-
-    <!-- Coração Duo Central -->
-    <path d="M 24 18 C 22 14.5 16.5 15 15 19.8 C 13.5 25.5 24 33.5 24 33.5 C 24 33.5 34.5 25.5 33 19.8 C 31.5 15 26 14.5 24 18 Z"
-          fill="#141A17" stroke="#FAF6EE" stroke-width="2" stroke-linejoin="round" />
-    <path d="M 24 18 C 22 14.5 16.5 15 15 19.8 C 13.5 25.5 24 33.5 24 33.5 V 18 Z" fill="#4FB387" />
-    <path d="M 24 18 C 26 14.5 31.5 15 33 19.8 C 34.5 25.5 24 33.5 24 33.5 V 18 Z" fill="#F5B938" />
+  <g transform="translate(0, 0) scale(0.35)">
+    <rect width="160" height="160" rx="36" fill="#1f5c43"/>
+    <rect x="40" y="30" width="84" height="100" rx="12" fill="#ef6f6c" transform="rotate(-8 80 80)"/>
+    <g transform="rotate(6 78 84)">
+      <rect x="36" y="34" width="84" height="100" rx="12" fill="#fff"/>
+      <path d="M64.36 51.64 A9 9 0 1 0 64.36 64.36" fill="none" stroke="#1f5c43" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="76" cy="64" r="4" fill="#ef6f6c"/>
+      <g transform="translate(92 50) scale(0.8)">
+        <path d="M12 21s-7-4.6-9.3-9C1 8.6 2.9 5 6.4 5c2 0 3.6 1.1 4.6 2.7C12 6.1 13.6 5 15.6 5c3.5 0 5.4 3.6 3.7 7C19 16.4 12 21 12 21z" fill="#ef6f6c"/>
+      </g>
+      <line x1="46" y1="76" x2="110" y2="76" stroke="#e7ece9" stroke-width="2"/>
+      <circle cx="52" cy="88" r="5.5" fill="#ef6f6c"/>
+      <path d="M49.5 88 l2 2 l3.5 -3.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="64" y1="88" x2="108" y2="88" stroke="#1f5c43" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="52" cy="104" r="5.5" fill="#1f5c43"/>
+      <path d="M49.5 104 l2 2 l3.5 -3.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="64" y1="104" x2="98" y2="104" stroke="#cfd8d2" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="52" cy="120" r="5" fill="none" stroke="#cfd8d2" stroke-width="2"/>
+      <line x1="64" y1="120" x2="104" y2="120" stroke="#cfd8d2" stroke-width="5" stroke-linecap="round"/>
+    </g>
   </g>
-
-  <!-- Tipografia Moderna Outfit (Dark) -->
-  <text x="50" y="32" class="brand-title-dark">
-    <tspan fill="#4FB387">Casal</tspan><tspan fill="#FAF6EE">Planner</tspan>
+  <text x="70" y="41">
+    <tspan class="brand-casal">casal</tspan><tspan class="brand-planner">planner</tspan><tspan class="brand-dot">.</tspan>
   </text>
-
-  <!-- Ponto Solar Dourado -->
-  <circle cx="210" cy="27" r="3.2" fill="#F5B938" />
 </svg>

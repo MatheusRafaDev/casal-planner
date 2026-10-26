@@ -105,16 +105,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: `${BRAND_CONFIG.assets.faviconSvg}?v=5`, type: "image/svg+xml" },
-      { rel: "icon", href: `${BRAND_CONFIG.assets.faviconPng}?v=5`, type: "image/png" },
-      { rel: "shortcut icon", href: "/favicon.ico?v=5" },
-      { rel: "apple-touch-icon", href: `${BRAND_CONFIG.assets.appleTouchIcon}?v=5` },
-      { rel: "manifest", href: "/manifest.json?v=5" },
+      { rel: "icon", href: `${BRAND_CONFIG.assets.faviconSvg}?v=7`, type: "image/svg+xml" },
+      { rel: "icon", href: `${BRAND_CONFIG.assets.faviconPng}?v=7`, type: "image/png" },
+      { rel: "shortcut icon", href: "/favicon.ico?v=7" },
+      { rel: "apple-touch-icon", href: `${BRAND_CONFIG.assets.appleTouchIcon}?v=7` },
+      { rel: "manifest", href: "/manifest.json?v=7" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Caveat:wght@600&display=swap",
       },
     ],
     scripts: [
