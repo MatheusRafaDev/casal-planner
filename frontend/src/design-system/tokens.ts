@@ -22,19 +22,19 @@ export const DESIGN_TOKENS = {
       tint: "#F6B3B0", // Coral Claro (fundos suaves)
       tintForeground: "#1B2438", // Tinta (contraste 4,5:1 sobre coral)
     },
-    // Sistema de Cores do Casal (Duas folhas da lista: Coral e Verde)
+    // Sistema de Cores do Casal
     couple: {
       p1: {
-        light: "#EF6F6C",
-        dark: "#EF6F6C",
-        name: "Pessoa 1",
-        label: "Coral",
-      },
-      p2: {
         light: "#1F5C43",
         dark: "#2F8A63",
-        name: "Pessoa 2",
+        name: "Pessoa 1",
         label: "Verde Lar",
+      },
+      p2: {
+        light: "#EF6F6C",
+        dark: "#EF6F6C",
+        name: "Pessoa 2",
+        label: "Coral (Complementar)",
       },
       joint: {
         light: "#2F8A63",

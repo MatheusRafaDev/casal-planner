@@ -63,9 +63,9 @@ Edite as variáveis em **`frontend/src/styles.css`**:
   --gold: #ef6f6c;
   --gold-hover: #e05a57;
 
-  /* Cores Individuais do Casal (Duas folhas da lista: Coral e Verde) */
-  --p1-color: #ef6f6c; /* Pessoa 1: Coral */
-  --p2-color: #1f5c43; /* Pessoa 2: Verde Lar */
+  /* Cores Individuais do Casal (Sistema SEMPRE VERDE, Coral Complementar) */
+  --p1-color: #1f5c43; /* Pessoa 1: Verde Lar */
+  --p2-color: #ef6f6c; /* Pessoa 2: Coral / Rosa Complementar */
   --joint-color: #2f8a63; /* Despesas conjuntas: Verde Folha */
 
   /* Neutros e Superfícies */

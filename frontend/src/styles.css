@@ -68,23 +68,25 @@
 
   /* ========================================================
      SISTEMA DE CORES DO CASAL
-     - Folha 1 (Pessoa 1) = Coral #EF6F6C 🌺
-     - Folha 2 (Pessoa 2) = Verde Lar #1F5C43 🌿
+     - Cor do Sistema: SEMPRE VERDE (Verde Lar #1F5C43)
+     - Acento Complementar: Coral / Rosa (#EF6F6C)
+     - Pessoa 1 = Verde Lar #1F5C43 🌿
+     - Pessoa 2 = Coral / Rosa Complementar #EF6F6C 🌺
      - Divisão Conjunta = Verde Folha #2F8A63 🍃
      ======================================================== */
 
   :root {
-    --p1-color: #ef6f6c;
-    --p1-foreground: #1b2438;
-    --p1-hover: #e05a57;
-    --p1-tint: #f6b3b0;
-    --p1-tint-foreground: #1b2438;
+    --p1-color: #1f5c43;
+    --p1-foreground: #ffffff;
+    --p1-hover: #2f8a63;
+    --p1-tint: #e7ece9;
+    --p1-tint-foreground: #1f5c43;
 
-    --p2-color: #1f5c43;
-    --p2-foreground: #ffffff;
-    --p2-hover: #2f8a63;
-    --p2-tint: #e7ece9;
-    --p2-tint-foreground: #1f5c43;
+    --p2-color: #ef6f6c;
+    --p2-foreground: #1b2438;
+    --p2-hover: #e05a57;
+    --p2-tint: #f6b3b0;
+    --p2-tint-foreground: #1b2438;
 
     /* Divisão Conjunta e Marca */
     --joint-color: #2f8a63;
@@ -128,17 +130,17 @@
     --coral-tint: #451a1a;
     --coral-tint-foreground: #f6b3b0;
 
-    --p1-color: #ef6f6c;
-    --p1-foreground: #1b2438;
-    --p1-hover: #e05a57;
-    --p1-tint: #451a1a;
-    --p1-tint-foreground: #f6b3b0;
+    --p1-color: #2f8a63;
+    --p1-foreground: #ffffff;
+    --p1-hover: #3aa377;
+    --p1-tint: #132e22;
+    --p1-tint-foreground: #6ee7b7;
 
-    --p2-color: #2f8a63;
-    --p2-foreground: #ffffff;
-    --p2-hover: #3aa377;
-    --p2-tint: #132e22;
-    --p2-tint-foreground: #6ee7b7;
+    --p2-color: #ef6f6c;
+    --p2-foreground: #1b2438;
+    --p2-hover: #e05a57;
+    --p2-tint: #451a1a;
+    --p2-tint-foreground: #f6b3b0;
 
     --joint-color: #2f8a63;
     --joint-foreground: #ffffff;
@@ -150,48 +152,6 @@
     --shadow-sticker-sm: 0 1px 2px 0 rgb(0 0 0 / 0.25);
     --shadow-sticker-lg: 0 4px 6px -1px rgb(0 0 0 / 0.35);
     --shadow-sticker-modal: 0 20px 25px -5px rgb(0 0 0 / 0.45);
-  }
-
-  /* Quando Pessoa 2 está ativa */
-  :root[data-persona="p2"],
-  [data-persona="p2"] {
-    --primary: #1f5c43;
-    --primary-foreground: #ffffff;
-    --primary-hover: #2f8a63;
-    --primary-tint: #e7ece9;
-    --primary-tint-foreground: #1f5c43;
-    --ring: #1f5c43;
-  }
-
-  .dark[data-persona="p2"],
-  .dark [data-persona="p2"] {
-    --primary: #2f8a63;
-    --primary-foreground: #ffffff;
-    --primary-hover: #3aa377;
-    --primary-tint: #132e22;
-    --primary-tint-foreground: #6ee7b7;
-    --ring: #2f8a63;
-  }
-
-  /* Quando Pessoa 1 está ativa */
-  :root[data-persona="p1"],
-  [data-persona="p1"] {
-    --primary: #ef6f6c;
-    --primary-foreground: #1b2438;
-    --primary-hover: #e05a57;
-    --primary-tint: #f6b3b0;
-    --primary-tint-foreground: #1b2438;
-    --ring: #ef6f6c;
-  }
-
-  .dark[data-persona="p1"],
-  .dark [data-persona="p1"] {
-    --primary: #ef6f6c;
-    --primary-foreground: #1b2438;
-    --primary-hover: #e05a57;
-    --primary-tint: #451a1a;
-    --primary-tint-foreground: #f6b3b0;
-    --ring: #ef6f6c;
   }
 
   * {
