@@ -428,31 +428,6 @@
   );
 }
 
-.home-details-content {
-  display: none;
-}
-
-.home-details[open] .home-details-content {
-  display: grid;
-  gap: 1.5rem;
-  margin-top: 1.5rem;
-}
-
-.home-details[open] .home-details-chevron {
-  transform: rotate(180deg);
-}
-
-@media (min-width: 768px) {
-  .home-details > summary {
-    display: none;
-  }
-
-  .home-details .home-details-content {
-    display: grid;
-    gap: 1.5rem;
-  }
-}
-
 /* ─── Utilitários de Responsividade & Mobile ─── */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

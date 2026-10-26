@@ -123,7 +123,7 @@ function PerfilPage() {
               "Conta individual"
             )}
           </span>
-          <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+          <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
             Minha conta
           </h1>
         </div>

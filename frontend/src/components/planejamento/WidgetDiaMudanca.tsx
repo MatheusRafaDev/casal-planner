@@ -276,11 +276,11 @@ export function WidgetDiaMudanca() {
           <div className="p-5 sm:p-6 rounded-2xl bg-muted/40 dark:bg-muted/20 border border-border/80 flex flex-col justify-between space-y-4">
             {diasRestantes !== null && diasRestantes > 0 ? (
               <>
-                <div className="flex items-baseline gap-3.5 flex-wrap">
-                  <span className="font-display font-black text-5xl sm:text-6xl text-primary leading-none tracking-tight tabular-nums">
+                <div className="flex items-baseline gap-3 flex-wrap">
+                  <span className="font-display font-extrabold text-3xl sm:text-4xl text-primary leading-none tracking-tight tabular-nums">
                     {diasRestantes}
                   </span>
-                  <span className="font-display font-bold text-lg sm:text-2xl text-foreground leading-tight">
+                  <span className="font-display font-bold text-base sm:text-lg text-foreground leading-tight">
                     {diasRestantes === 1 ? "dia para a mudança!" : "dias para o grande dia!"}
                   </span>
                 </div>

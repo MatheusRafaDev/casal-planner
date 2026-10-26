@@ -186,7 +186,7 @@ function ListaPublicaPage() {
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border-2 border-border bg-primary-tint text-primary-tint-foreground text-xs font-bold uppercase tracking-wider">
             <Gift className="h-3.5 w-3.5" /> Lista de presentes
           </div>
-          <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight text-foreground">
+          <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight text-foreground">
             {casal}
           </h1>
           <p className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto font-medium">

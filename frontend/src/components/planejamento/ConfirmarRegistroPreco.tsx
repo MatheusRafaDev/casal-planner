@@ -72,7 +72,7 @@ export function ConfirmarRegistroPreco({ open, onOpenChange, itemId, dados, onSa
               <CurrencyInput
                 value={form.preco || 0}
                 onValueChange={(value) => setField("preco", value)}
-                className="h-16 text-center text-3xl sm:text-4xl font-display font-bold bg-transparent border-none shadow-none focus-visible:ring-0"
+                className="h-14 text-center text-2xl sm:text-3xl font-display font-bold bg-transparent border-none shadow-none focus-visible:ring-0"
               />
               <div className="absolute inset-x-0 bottom-1 h-px bg-primary/30 group-hover:bg-primary/60 transition-colors" />
             </div>
