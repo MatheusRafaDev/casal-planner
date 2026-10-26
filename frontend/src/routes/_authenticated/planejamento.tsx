@@ -22,6 +22,7 @@ import {
   Users,
   Wallet,
   AlertTriangle,
+  Gift,
 } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -235,13 +236,16 @@ function PlanejamentoPage() {
     }
   });
 
-  const totalDinheiro = useMemo(() => {
-    const totalVr = itensCategoria
+  const { totalDinheiro, totalVr } = useMemo(() => {
+    const vr = itensCategoria
       .filter(
         (i) => i.pagamento === "vr" && !["ganho", "presente", "prometido"].includes(i.origem ?? ""),
       )
       .reduce((s, i) => s + i.preco * i.quantidade, 0);
-    return Math.max(0, totalCategoria - totalVr);
+    return {
+      totalVr: vr,
+      totalDinheiro: Math.max(0, totalCategoria - vr),
+    };
   }, [itensCategoria, totalCategoria]);
 
   const metaAtual = catAtual?.metaOrcamento || (catAtualId === "tudo" ? metaGeral : 0);
@@ -536,108 +540,185 @@ function PlanejamentoPage() {
         </Select>
       </div>
 
-      {/* Summary Card exactly matching media_1791749066370.png */}
-      <div className="card-sticker p-4 sm:p-5 bg-card flex flex-col lg:flex-row lg:items-center justify-between gap-5 shadow-[3px_3px_0_var(--border)]">
-        {/* Left: Category Icon & Title */}
-        <div className="flex items-center gap-3.5">
+      {/* Summary Card com visual premium do Design System */}
+      <div className="card-sticker p-4 sm:p-5 lg:p-6 bg-card flex flex-col xl:flex-row xl:items-center justify-between gap-6 shadow-[3px_3px_0_var(--border)] border-2 border-border/80">
+        {/* Left: Category Icon, Title, and Progress Info */}
+        <div className="flex items-center gap-3.5 sm:gap-4">
           <span
-            className="grid place-items-center h-12 w-12 rounded-xl text-white shrink-0 border-2 border-border/20 shadow-sm"
+            className="grid place-items-center h-12 w-12 sm:h-14 sm:w-14 rounded-2xl text-white shrink-0 border-2 border-border/20 shadow-xs"
             style={{
               backgroundColor: catAtual
                 ? comodoColor(catAtual.bg, catAtual.nome)
-                : "var(--primary)",
+                : "var(--primary, #1F5C43)",
             }}
           >
             {(() => {
               const I = catAtual ? iconFor(catAtual.icon) : Package;
-              return <I className="h-6 w-6" />;
+              return <I className="h-6 w-6 sm:h-7 sm:w-7" />;
             })()}
           </span>
-          <div>
-            <div className="font-display text-lg sm:text-xl font-bold flex items-center gap-2 capitalize text-foreground">
-              {catAtual ? catAtual.nome : "Todos Os Itens"}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-foreground capitalize">
+                {catAtual ? catAtual.nome : "Todos os itens"}
+              </h2>
               {catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento && (
-                <span title="Orçamento estourado" className="inline-flex">
-                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                <span
+                  title="Orçamento estourado"
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-destructive bg-destructive/10 px-2.5 py-0.5 rounded-full border border-destructive/20"
+                >
+                  <AlertTriangle className="h-3 w-3" /> Acima da meta
                 </span>
               )}
             </div>
-            <div className="text-xs text-muted-foreground font-semibold">
-              {ganhadosCategoria > 0
-                ? `${compradosCategoria} comprados · ${ganhadosCategoria} ganhados de ${itensCategoria.length} itens`
-                : `${compradosCategoria} comprados de ${itensCategoria.length} itens`}
+            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground font-semibold flex-wrap">
+              <span>
+                {compradosCategoria} {compradosCategoria === 1 ? "comprado" : "comprados"}
+              </span>
+              {ganhadosCategoria > 0 && (
+                <>
+                  <span className="text-border">·</span>
+                  <span className="text-amber-700 dark:text-amber-400 font-bold inline-flex items-center gap-1">
+                    <Gift className="w-3 h-3" />
+                    {ganhadosCategoria} {ganhadosCategoria === 1 ? "ganho" : "ganhos"}
+                  </span>
+                </>
+              )}
+              <span className="text-border">·</span>
+              <span>de {itensCategoria.length} itens</span>
+              {itensCategoria.length > 0 && (
+                <span className="ml-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                  {Math.round(
+                    ((compradosCategoria + ganhadosCategoria) / itensCategoria.length) * 100,
+                  )}
+                  % concluído
+                </span>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Right: Metrics (Total Gasto, Dinheiro, Casal) */}
-        <div className="flex items-center gap-6 sm:gap-8 flex-wrap">
-          <div className="flex flex-col">
-            <span className="text-xs text-muted-foreground font-semibold mb-0.5">Total gasto</span>
+        {/* Right: Metrics (Total Gasto, Dinheiro/VR, Divisão do Casal em Chips) */}
+        <div className="flex items-center gap-5 sm:gap-6 lg:gap-8 flex-wrap">
+          {/* Total Gasto */}
+          <div className="flex flex-col justify-center min-w-[120px]">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+              Total gasto
+            </span>
             <span
               className={cn(
-                "font-display text-xl sm:text-2xl font-bold leading-none tabular-nums",
-                (catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento) ||
-                  (!catAtual &&
-                    usuario?.metaGlobalEnxoval &&
-                    totalCategoria > usuario.metaGlobalEnxoval)
-                  ? "text-destructive"
-                  : "text-foreground",
+                "font-display text-2xl sm:text-3xl font-extrabold leading-none tabular-nums tracking-tight",
+                estourouAtual ? "text-destructive" : "text-foreground",
               )}
             >
               {brl(totalCategoria)}
             </span>
-            {catAtual?.metaOrcamento || (!catAtual && usuario?.metaGlobalEnxoval) ? (
-              <span className="text-[11px] text-muted-foreground mt-1 font-semibold">
-                meta: {brl(catAtual?.metaOrcamento || usuario?.metaGlobalEnxoval || 0)}
-              </span>
+            {metaAtual > 0 ? (
+              <div className="mt-1.5 flex items-center gap-1.5 text-[11px] font-semibold flex-wrap">
+                <span className="text-muted-foreground">meta: {brl(metaAtual)}</span>
+                {!estourouAtual ? (
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                    · resta {brl(restanteAtual)}
+                  </span>
+                ) : (
+                  <span className="text-destructive font-bold">
+                    · +{brl(totalCategoria - metaAtual)}
+                  </span>
+                )}
+              </div>
             ) : null}
           </div>
 
-          <div className="h-8 w-px bg-border/60 hidden sm:block" />
+          <div className="h-10 w-px bg-border/70 hidden sm:block" />
 
-          <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
-              <Wallet className="w-3.5 h-3.5" /> Dinheiro
+          {/* Dinheiro & VR */}
+          <div className="flex flex-col justify-center">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+              <Wallet className="w-3.5 h-3.5 text-primary" /> Dinheiro
             </div>
-            <span className="font-bold text-sm text-foreground tabular-nums">
+            <span className="font-display text-lg sm:text-xl font-bold text-foreground tabular-nums leading-none">
               {brl(totalDinheiro)}
             </span>
+            {totalVr > 0 && (
+              <span className="text-[11px] font-semibold text-muted-foreground mt-1.5">
+                VR: <span className="tabular-nums font-bold text-foreground">{brl(totalVr)}</span>
+              </span>
+            )}
           </div>
 
+          {/* Divisão do Casal */}
           {isCasal && (
             <>
-              <div className="h-8 w-px bg-border/60 hidden sm:block" />
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
-                  <Users className="w-3.5 h-3.5" /> Casal
+              <div className="h-10 w-px bg-border/70 hidden md:block" />
+              <div className="flex flex-col justify-center gap-1.5">
+                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <Users className="w-3.5 h-3.5 text-primary" /> Divisão do Casal
                 </div>
-                <div className="text-xs font-bold text-muted-foreground flex items-center gap-2 flex-wrap">
-                  <span>
-                    {p1.split(" ")[0]}:{" "}
-                    <span className="text-foreground tabular-nums">{brl(totalP1)}</span>
-                  </span>
-                  <span>|</span>
-                  <span>
-                    {p2.split(" ")[0]}:{" "}
-                    <span className="text-foreground tabular-nums">{brl(totalP2)}</span>
-                  </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Pessoa 1 (Verde Lar) */}
+                  <div
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card border-2 border-border/80 shadow-2xs hover:border-primary/50 transition-colors"
+                    title={`${p1}: ${brl(totalP1)}`}
+                  >
+                    <span className="w-4.5 h-4.5 rounded-md bg-primary text-primary-foreground font-bold text-[10px] grid place-items-center uppercase shrink-0">
+                      {p1.trim()[0]}
+                    </span>
+                    <span className="text-xs font-semibold text-muted-foreground truncate max-w-[80px]">
+                      {p1.split(" ")[0]}:
+                    </span>
+                    <span className="text-xs font-bold text-foreground tabular-nums">
+                      {brl(totalP1)}
+                    </span>
+                  </div>
+
+                  {/* Pessoa 2 (Coral Complementar) */}
+                  <div
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card border-2 border-border/80 shadow-2xs hover:border-[#EF6F6C]/60 transition-colors"
+                    title={`${p2}: ${brl(totalP2)}`}
+                  >
+                    <span className="w-4.5 h-4.5 rounded-md bg-[#EF6F6C] text-white font-bold text-[10px] grid place-items-center uppercase shrink-0">
+                      {p2.trim()[0]}
+                    </span>
+                    <span className="text-xs font-semibold text-muted-foreground truncate max-w-[80px]">
+                      {p2.split(" ")[0]}:
+                    </span>
+                    <span className="text-xs font-bold text-foreground tabular-nums">
+                      {brl(totalP2)}
+                    </span>
+                  </div>
+
+                  {/* Juntos */}
                   {totalConjunto > 0 && (
-                    <>
-                      <span>|</span>
-                      <span>
-                        Juntos:{" "}
-                        <span className="text-foreground tabular-nums">{brl(totalConjunto)}</span>
+                    <div
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/5 border-2 border-primary/20 shadow-2xs"
+                      title={`Juntos: ${brl(totalConjunto)}`}
+                    >
+                      <span className="w-4.5 h-4.5 rounded-md bg-primary/15 text-primary font-bold text-[10px] grid place-items-center shrink-0">
+                        <Users className="w-2.5 h-2.5" />
                       </span>
-                    </>
+                      <span className="text-xs font-semibold text-muted-foreground">Juntos:</span>
+                      <span className="text-xs font-bold text-foreground tabular-nums">
+                        {brl(totalConjunto)}
+                      </span>
+                    </div>
                   )}
+
+                  {/* Ganhos / Presentes */}
                   {totalGanhosCategoria > 0 && (
-                    <>
-                      <span>|</span>
-                      <span className="text-purple-600 dark:text-purple-400 font-bold">
-                        Ganho: <span className="tabular-nums">{brl(totalGanhosCategoria)}</span>
+                    <div
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 dark:bg-amber-500/15 border-2 border-amber-500/30 shadow-2xs"
+                      title={`Ganhos / Presentes: ${brl(totalGanhosCategoria)}`}
+                    >
+                      <span className="w-4.5 h-4.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-[10px] grid place-items-center shrink-0">
+                        <Gift className="w-2.5 h-2.5" />
                       </span>
-                    </>
+                      <span className="text-xs font-semibold text-amber-900 dark:text-amber-300">
+                        Ganhos:
+                      </span>
+                      <span className="text-xs font-bold text-amber-900 dark:text-amber-200 tabular-nums">
+                        {brl(totalGanhosCategoria)}
+                      </span>
+                    </div>
                   )}
                 </div>
               </div>
