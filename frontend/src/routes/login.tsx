@@ -68,26 +68,28 @@ function LoginPage() {
       {/* =========================================
           PAINEL ESQUERDO: APRESENTAÇÃO EDITORIAL
       ========================================= */}
-      <div className="hidden lg:flex flex-col justify-between border-r border-border bg-sidebar p-7 xl:p-10 relative overflow-hidden h-full">
+      <div className="hidden lg:flex flex-col justify-between border-r border-[#133c2b] bg-sidebar text-white p-7 xl:p-10 relative overflow-hidden h-full">
         {/* Topo: Logo Oficial */}
         <div className="flex items-center justify-between">
           <Link
             to="/"
-            className="flex items-center gap-3 font-bold tracking-tight text-foreground group"
+            className="flex items-center gap-3 font-bold tracking-tight text-white group"
           >
-            <BrandLogoIcon size="lg" className="h-10 w-10" />
-            <BrandLogoText size="lg" />
+            <div className="p-1 rounded-xl bg-white/10 border border-white/15 shadow-2xs">
+              <BrandLogoIcon size="md" className="h-8 w-8" />
+            </div>
+            <BrandLogoText size="lg" variant="on-dark" />
           </Link>
         </div>
 
         {/* Centro: Mensagem & Imagem Cartunesca Exclusiva */}
         <div className="my-auto py-2 space-y-4 max-w-lg">
           <div className="space-y-1.5">
-            <h1 className="font-display text-2xl xl:text-3xl font-bold tracking-tight text-foreground leading-tight">
+            <h1 className="font-display text-2xl xl:text-3xl font-bold tracking-tight text-white leading-tight">
               Planejar a dois é começar a casa com o{" "}
-              <span className="text-primary font-bold">pé direito.</span>
+              <span className="text-emerald-300 font-extrabold">pé direito.</span>
             </h1>
-            <p className="text-xs xl:text-sm text-muted-foreground leading-relaxed font-medium">
+            <p className="text-xs xl:text-sm text-emerald-100/90 leading-relaxed font-medium">
               Cada cômodo, cada compra e o orçamento da casa nova num lugar só.
             </p>
           </div>
@@ -95,62 +97,62 @@ function LoginPage() {
           {/* Ilustração Cartunesca Exclusiva */}
           <div className="relative pt-2 pb-2 max-w-[400px] mx-auto w-full">
             {/* Card Flutuante 1: Geladeira */}
-            <div className="hidden sm:flex absolute -top-1 -left-3 z-20 bg-card p-1.5 px-2 rounded-xl border border-border shadow-md items-center gap-2 transition-transform hover:scale-105">
+            <div className="hidden sm:flex absolute -top-1 -left-3 z-20 bg-white p-1.5 px-2 rounded-xl border border-white/20 shadow-lg items-center gap-2 transition-transform hover:scale-105">
               <img
                 src="/images/products/geladeira.jpg"
                 alt="Geladeira Duplex"
-                className="w-8 h-8 object-contain rounded-md bg-muted/50 p-0.5"
+                className="w-8 h-8 object-contain rounded-md bg-stone-50 p-0.5"
               />
               <div className="pr-1 text-left">
                 <span className="text-[9px] font-semibold block text-emerald-700 leading-tight">
                   ✓ Cozinha
                 </span>
-                <span className="text-[11px] font-bold text-foreground font-display leading-tight">
+                <span className="text-[11px] font-bold text-slate-900 font-display leading-tight">
                   Geladeira Duplex
                 </span>
-                <span className="text-[9px] font-semibold text-muted-foreground block">
+                <span className="text-[9px] font-semibold text-slate-500 block">
                   R$ 3.890
                 </span>
               </div>
             </div>
 
             {/* Card Flutuante 2: Air Fryer & Café */}
-            <div className="hidden sm:flex absolute -top-1 -right-3 z-20 bg-card p-1.5 px-2 rounded-xl border border-border shadow-md items-center gap-2 transition-transform hover:scale-105">
+            <div className="hidden sm:flex absolute -top-1 -right-3 z-20 bg-white p-1.5 px-2 rounded-xl border border-white/20 shadow-lg items-center gap-2 transition-transform hover:scale-105">
               <img
                 src="/images/products/air-fryer-cafeteira.jpg"
                 alt="Air fryer e cafeteira"
-                className="w-8 h-8 object-contain rounded-md bg-muted/50 p-0.5"
+                className="w-8 h-8 object-contain rounded-md bg-stone-50 p-0.5"
               />
               <div className="pr-1 text-left">
                 <span className="text-[9px] font-semibold block text-orange-700 leading-tight">
                   🎁 Presente
                 </span>
-                <span className="text-[11px] font-bold text-foreground font-display leading-tight">
+                <span className="text-[11px] font-bold text-slate-900 font-display leading-tight">
                   Air Fryer & Café
                 </span>
-                <span className="text-[9px] font-semibold text-muted-foreground block">
+                <span className="text-[9px] font-semibold text-slate-500 block">
                   Padrinhos
                 </span>
               </div>
             </div>
 
             {/* Card Central com a Ilustração Cartunesca Exclusiva do Login */}
-            <div className="rounded-2xl border border-border shadow-xl overflow-hidden bg-card relative">
+            <div className="rounded-2xl border border-white/15 shadow-2xl overflow-hidden bg-white relative">
               <img
                 src="/illustrations/login-couple.jpg"
                 alt="Casal celebrando as chaves e checklist da casa nova (ilustração exclusiva)"
                 className="w-full h-[230px] xl:h-[260px] object-cover block"
               />
-              <div className="p-3 bg-card/95 backdrop-blur-xs border-t border-border flex items-center justify-between">
+              <div className="p-3 bg-white border-t border-slate-100 flex items-center justify-between">
                 <div>
-                  <span className="font-display font-bold text-xs text-foreground block">
+                  <span className="font-display font-bold text-xs text-slate-900 block">
                     Nosso novo cantinho 🏡
                   </span>
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-[11px] text-slate-500">
                     Escolhas e orçamento sincronizados
                   </span>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full border border-emerald-600/20 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 font-semibold text-[11px]">
+                <span className="px-2.5 py-0.5 rounded-full border border-emerald-600/20 bg-emerald-50 text-emerald-800 font-semibold text-[11px]">
                   Tudo em ordem
                 </span>
               </div>
@@ -159,7 +161,7 @@ function LoginPage() {
         </div>
 
         {/* Rodapé esquerdo */}
-        <div className="text-[11px] text-muted-foreground font-medium">
+        <div className="text-[11px] text-emerald-200/80 font-medium">
           CasalPlanner • Feito para o casal e para conta individual.
         </div>
       </div>

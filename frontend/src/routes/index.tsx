@@ -2,160 +2,9 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { BrandLogoText, BrandLogoIcon } from "@/components/ui/BrandLogo";
-import {
-  Check,
-  Sparkles,
-  X,
-  ChevronRight,
-  ShoppingCart,
-  Heart,
-  Info,
-  ArrowUpRight,
-} from "lucide-react";
+import { Check, ChevronRight, ArrowUpRight } from "lucide-react";
 
-interface ProdutoEnxoval {
-  id: string;
-  nome: string;
-  comodo: string;
-  categoria: "sala" | "cozinha" | "quarto_jantar" | "lavanderia";
-  tagComodo: string;
-  status: string;
-  statusCor: string;
-  preco: string;
-  precoNum: number;
-  parcelas: string;
-  imagem: string;
-  responsavel: string;
-  quemPaga: { p1: number; p2: number; vr?: number };
-  detalhes: string;
-  menorPrecoLoja?: { loja: string; preco: string; economia: string };
-}
 
-const PRODUTOS_ENXOVAL: ProdutoEnxoval[] = [
-  {
-    id: "sofa",
-    nome: "Sofá Retrátil 3 Lugares Confort",
-    comodo: "Sala de Estar",
-    categoria: "sala",
-    tagComodo: "bg-[#FBEFD2] text-[#6B4A06]",
-    status: "Desejo do Casal",
-    statusCor: "bg-[#EFEAE0] text-[#4A4F45]",
-    preco: "R$ 2.450",
-    precoNum: 2450,
-    parcelas: "10x de R$ 245 sem juros",
-    imagem: "/images/products/sofa.jpg",
-    responsavel: "Dividido pelo Casal (50/50)",
-    quemPaga: { p1: 1225, p2: 1225 },
-    detalhes:
-      "Linho aconchegante com almofadas mostarda e verde oliva. Perfeito para o descanso dos dois.",
-    menorPrecoLoja: { loja: "Mobly / MadeiraMadeira", preco: "R$ 2.290", economia: "R$ 160" },
-  },
-  {
-    id: "geladeira",
-    nome: "Geladeira Frost Free Duplex",
-    comodo: "Cozinha",
-    categoria: "cozinha",
-    tagComodo: "bg-[#E8F3EC] text-[#1F5A41]",
-    status: "✓ Comprado",
-    statusCor: "bg-[#E3F3EA] text-[#16623A]",
-    preco: "R$ 3.890",
-    precoNum: 3890,
-    parcelas: "À vista com 10% desc. Pix",
-    imagem: "/images/products/geladeira.jpg",
-    responsavel: "Pessoa 1",
-    quemPaga: { p1: 3890, p2: 0 },
-    detalhes:
-      "Com ímãs e fotos do casal na porta, dispenser de água e espaço para o mercado de todo o mês.",
-    menorPrecoLoja: { loja: "Magazine Luiza", preco: "R$ 3.699", economia: "R$ 191" },
-  },
-  {
-    id: "smart-tv",
-    nome: 'Smart TV 55" 4K UHD com Rack',
-    comodo: "Sala de Estar",
-    categoria: "sala",
-    tagComodo: "bg-[#FBEFD2] text-[#6B4A06]",
-    status: "Prioridade Alta",
-    statusCor: "bg-[#FDE3D8] text-[#8A2E08]",
-    preco: "R$ 2.790",
-    precoNum: 2790,
-    parcelas: "12x de R$ 232,50 no cartão",
-    imagem: "/images/products/smart-tv.jpg",
-    responsavel: "Pessoa 2",
-    quemPaga: { p1: 0, p2: 2790 },
-    detalhes:
-      "Rack em madeira com espaço para console e plantinha. Para noites de maratona a dois.",
-    menorPrecoLoja: { loja: "Amazon Brasil", preco: "R$ 2.599", economia: "R$ 191" },
-  },
-  {
-    id: "cama-queen",
-    nome: "Cama Box Queen com Cabeceira",
-    comodo: "Quarto do Casal",
-    categoria: "quarto_jantar",
-    tagComodo: "bg-[#E8F3EC] text-[#1F5A41]",
-    status: "✓ Comprado",
-    statusCor: "bg-[#E3F3EA] text-[#16623A]",
-    preco: "R$ 2.150",
-    precoNum: 2150,
-    parcelas: "6x de R$ 358,33",
-    imagem: "/images/products/cama-queen.jpg",
-    responsavel: "Casal dividiu 50/50",
-    quemPaga: { p1: 1075, p2: 1075 },
-    detalhes:
-      "Molas ensacadas individuais (não balança o parceiro!) e cabeceira de madeira ripada.",
-    menorPrecoLoja: { loja: "Ortobom / Tok&Stok", preco: "R$ 1.990", economia: "R$ 160" },
-  },
-  {
-    id: "air-fryer-cafeteira",
-    nome: "Air Fryer Digital + Cafeteira",
-    comodo: "Cozinha",
-    categoria: "cozinha",
-    tagComodo: "bg-[#E8F3EC] text-[#1F5A41]",
-    status: "🎁 Presente de Casamento",
-    statusCor: "bg-[#FBEFD2] text-[#6B4A06]",
-    preco: "R$ 1.180",
-    precoNum: 1180,
-    parcelas: "Ganharam dos Padrinhos!",
-    imagem: "/images/products/air-fryer-cafeteira.jpg",
-    responsavel: "Padrinhos (Presente de Lista)",
-    quemPaga: { p1: 0, p2: 0 },
-    detalhes: "Café espresso cremoso de manhã e receitas sem óleo práticas no dia a dia do casal.",
-    menorPrecoLoja: { loja: "Mercado Livre", preco: "R$ 1.089", economia: "R$ 91" },
-  },
-  {
-    id: "mesa-jantar",
-    nome: "Mesa de Jantar 4 Lugares Madeira",
-    comodo: "Sala de Jantar",
-    categoria: "quarto_jantar",
-    tagComodo: "bg-[#FBEFD2] text-[#6B4A06]",
-    status: "Na Lista de Desejos",
-    statusCor: "bg-[#EFEAE0] text-[#4A4F45]",
-    preco: "R$ 1.620",
-    precoNum: 1620,
-    parcelas: "8x de R$ 202,50",
-    imagem: "/images/products/mesa-jantar.jpg",
-    responsavel: "Pessoa 1 & Pessoa 2",
-    quemPaga: { p1: 810, p2: 810 },
-    detalhes: "Design escandinavo com cadeiras estofadas cinza para receber a família e os amigos.",
-    menorPrecoLoja: { loja: "Westwing", preco: "R$ 1.490", economia: "R$ 130" },
-  },
-  {
-    id: "lava-e-seca",
-    nome: "Torre Lava e Seca 11kg Inox",
-    comodo: "Lavanderia",
-    categoria: "lavanderia",
-    tagComodo: "bg-[#FDE3D8] text-[#8A2E08]",
-    status: "Pendente",
-    statusCor: "border-border/60 bg-muted/40 text-muted-foreground",
-    preco: "R$ 3.490",
-    precoNum: 3490,
-    parcelas: "10x de R$ 349",
-    imagem: "/images/products/lava-e-seca.jpg",
-    responsavel: "Pessoa 1 (VR + Dinheiro)",
-    quemPaga: { p1: 2290, p2: 0, vr: 1200 },
-    detalhes: "Ciclo rápido, vapor antialérgico e economia essencial de espaço para apartamento.",
-    menorPrecoLoja: { loja: "Casas Bahia", preco: "R$ 3.299", economia: "R$ 191" },
-  },
-];
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -174,12 +23,7 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
-  const [filtro, setFiltro] = useState<string>("todos");
-  const [itemModal, setItemModal] = useState<ProdutoEnxoval | null>(null);
   const [highlightedSection, setHighlightedSection] = useState<string | null>(null);
-
-  const produtosFiltrados =
-    filtro === "todos" ? PRODUTOS_ENXOVAL : PRODUTOS_ENXOVAL.filter((p) => p.categoria === filtro);
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -395,7 +239,7 @@ function HomePage() {
           scroll-behavior: smooth;
         }
 
-        #enxoval, #recursos, #duvidas, #passos {
+        #passos, #recursos, #duvidas {
           scroll-margin-top: 32px;
         }
 
@@ -443,7 +287,7 @@ function HomePage() {
           left: 0;
           width: 0;
           height: 2px;
-          background: #1F5C43;
+          background: #6ee7b7;
           border-radius: 99px;
           transition: width 0.25s ease;
         }
@@ -463,36 +307,38 @@ function HomePage() {
         }
       `}</style>
 
-      {/* Header Sticky - fixo ao descer o scroll com efeito translúcido e borda sutil */}
-      <header className="sticky top-0 z-50 w-full bg-background/90 backdrop-blur-md border-b border-border transition-all">
+      {/* Header Sticky - Verde Lar Floresta translúcido com borda suave */}
+      <header className="sticky top-0 z-50 w-full bg-[#174a35]/95 backdrop-blur-md border-b border-[#133c2b] shadow-xs transition-all">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-8 h-[76px] flex items-center justify-between gap-2">
           <Link
             to="/"
             className="flex items-center gap-3 group transition-transform hover:scale-[1.01]"
             aria-label="CasalPlanner"
           >
-            <BrandLogoIcon size="sm" className="h-8 w-8" />
-            <BrandLogoText size="sm" />
+            <div className="p-1 rounded-xl bg-white/10 border border-white/15 shadow-2xs">
+              <BrandLogoIcon size="sm" className="h-7 w-7" />
+            </div>
+            <BrandLogoText size="sm" variant="on-dark" />
           </Link>
           <nav className="flex items-center gap-2 sm:gap-6" aria-label="Conta">
             <a
-              href="#enxoval"
-              onClick={(e) => scrollToSection(e, "enxoval")}
-              className="hide-s nav-section-link font-semibold text-stone-700 hover:text-emerald-700 text-sm"
+              href="#passos"
+              onClick={(e) => scrollToSection(e, "passos")}
+              className="hide-s nav-section-link font-semibold text-emerald-100/85 hover:text-white text-sm"
             >
-              Móveis & Eletros
+              Como Funciona
             </a>
             <a
               href="#recursos"
               onClick={(e) => scrollToSection(e, "recursos")}
-              className="hide-s nav-section-link font-semibold text-stone-700 hover:text-emerald-700 text-sm"
+              className="hide-s nav-section-link font-semibold text-emerald-100/85 hover:text-white text-sm"
             >
               Recursos
             </a>
             <a
               href="#duvidas"
               onClick={(e) => scrollToSection(e, "duvidas")}
-              className="hide-s nav-section-link font-semibold text-stone-700 hover:text-emerald-700 text-sm"
+              className="hide-s nav-section-link font-semibold text-emerald-100/85 hover:text-white text-sm"
             >
               Dúvidas
             </a>
@@ -500,13 +346,13 @@ function HomePage() {
               <Link
                 to="/login"
                 search={{ registrar: 1 }}
-                className="hidden sm:inline-flex px-4 sm:px-5 py-2 rounded-full border border-primary text-primary hover:bg-primary/5 font-semibold text-sm transition-all whitespace-nowrap shadow-xs"
+                className="hidden sm:inline-flex px-4 sm:px-5 py-2 rounded-full border border-white/25 text-white hover:bg-white/10 font-semibold text-sm transition-all whitespace-nowrap shadow-xs backdrop-blur-xs"
               >
                 Cadastre-se agora
               </Link>
               <Link
                 to="/login"
-                className="px-5 sm:px-6 py-2 rounded-full bg-primary border border-primary text-white hover:bg-primary-hover font-semibold text-sm transition-all whitespace-nowrap shadow-xs"
+                className="px-5 sm:px-6 py-2 rounded-full bg-white text-[#174a35] hover:bg-emerald-50 font-bold text-sm transition-all whitespace-nowrap shadow-xs"
               >
                 Entrar
               </Link>
@@ -533,13 +379,7 @@ function HomePage() {
 
           <div className="flex-1 basis-[420px] relative min-h-[460px] flex items-center justify-center">
             {/* Card Flutuante 1: Geladeira */}
-            <div
-              className="hidden sm:flex absolute -top-3 -left-4 z-20 bg-white p-2.5 rounded-2xl border border-slate-200 shadow-md items-center gap-2.5 transition-all hover:scale-105 cursor-pointer"
-              onClick={() =>
-                setItemModal(PRODUTOS_ENXOVAL.find((p) => p.id === "geladeira") || null)
-              }
-              title="Clique para ver detalhes do item"
-            >
+            <div className="hidden sm:flex absolute -top-3 -left-4 z-20 bg-white p-2.5 rounded-2xl border border-slate-200 shadow-md items-center gap-2.5 transition-all hover:scale-105">
               <img
                 src="/images/products/geladeira.jpg"
                 alt="Geladeira Duplex"
@@ -557,11 +397,7 @@ function HomePage() {
             </div>
 
             {/* Card Flutuante 2: Sofá */}
-            <div
-              className="hidden sm:flex absolute -bottom-3 -left-4 z-20 bg-white p-2.5 rounded-2xl border border-slate-200 shadow-md items-center gap-2.5 transition-all hover:scale-105 cursor-pointer"
-              onClick={() => setItemModal(PRODUTOS_ENXOVAL.find((p) => p.id === "sofa") || null)}
-              title="Clique para ver detalhes do item"
-            >
+            <div className="hidden sm:flex absolute -bottom-3 -left-4 z-20 bg-white p-2.5 rounded-2xl border border-slate-200 shadow-md items-center gap-2.5 transition-all hover:scale-105">
               <img
                 src="/images/products/sofa.jpg"
                 alt="Sofá Retrátil"
@@ -579,13 +415,7 @@ function HomePage() {
             </div>
 
             {/* Card Flutuante 3: Air Fryer & Café */}
-            <div
-              className="hidden md:flex absolute -top-3 -right-4 z-20 bg-white p-2.5 rounded-2xl border border-slate-200 shadow-md items-center gap-2.5 transition-all hover:scale-105 cursor-pointer"
-              onClick={() =>
-                setItemModal(PRODUTOS_ENXOVAL.find((p) => p.id === "air-fryer-cafeteira") || null)
-              }
-              title="Clique para ver detalhes do item"
-            >
+            <div className="hidden md:flex absolute -top-3 -right-4 z-20 bg-white p-2.5 rounded-2xl border border-slate-200 shadow-md items-center gap-2.5 transition-all hover:scale-105">
               <img
                 src="/images/products/air-fryer-cafeteira.jpg"
                 alt="Air fryer e cafeteira"
@@ -632,259 +462,8 @@ function HomePage() {
           </div>
         </section>
 
-        {/* ========================================================
-            VITRINE DO ENXOVAL: MÓVEIS E ELETRÔNICOS MODERNOS
-        ======================================================== */}
-        <section
-          id="enxoval"
-          className={`pb-24 pt-8 border-t border-slate-200 reveal-section transition-all duration-300 ${
-            highlightedSection === "enxoval" ? "section-highlight ring-4 ring-emerald-500/20" : ""
-          }`}
-        >
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-            <div>
-              <div className="section-highlight-badge inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-primary/20 bg-primary/5 font-semibold text-xs text-primary mb-3">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Móveis, Eletros & Decoração</span>
-              </div>
-              <h2 className="h2-anexo text-[34px] md:text-[42px] leading-[1.1]">
-                Do sofá à geladeira: o enxoval que vocês sonham
-              </h2>
-              <p className="p-anexo max-w-[650px] mt-3">
-                No CasalPlanner, cada produto ganha foto, preço real, prioridade, status e divisão
-                transparente de quem vai pagar. Veja alguns exemplos da nossa vitrine:
-              </p>
-            </div>
-          </div>
-
-          {/* Filtros em Pílulas */}
-          <div className="flex gap-2 flex-wrap mb-8">
-            {[
-              { id: "todos", label: "Todos os Itens (7)" },
-              { id: "sala", label: "🛋️ Sala de Estar" },
-              { id: "cozinha", label: "🍳 Cozinha & Eletros" },
-              { id: "quarto_jantar", label: "🛏️ Quarto & Jantar" },
-              { id: "lavanderia", label: "🧺 Lavanderia" },
-            ].map((f) => (
-              <button
-                key={f.id}
-                onClick={() => setFiltro(f.id)}
-                className={`px-4 py-2 rounded-xl border text-sm font-semibold transition-all cursor-pointer ${
-                  filtro === f.id
-                    ? "bg-primary text-white border-primary shadow-xs"
-                    : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Grid de Cards dos Produtos */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {produtosFiltrados.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => setItemModal(item)}
-                className="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all overflow-hidden flex flex-col cursor-pointer"
-              >
-                {/* Imagem do Produto */}
-                <div className="h-52 bg-slate-50/70 border-b border-slate-100 p-4 flex items-center justify-center relative overflow-hidden">
-                  {/* Badges superiores organizados em linha */}
-                  <div className="absolute top-2.5 inset-x-2.5 flex items-center justify-between gap-1 pointer-events-none z-10">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full border border-slate-200/60 text-[11px] font-semibold truncate max-w-[125px] shadow-xs ${item.tagComodo}`}
-                    >
-                      {item.comodo}
-                    </span>
-
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full border border-slate-200/60 text-[10px] font-semibold shrink-0 shadow-xs ${item.statusCor}`}
-                    >
-                      {item.status}
-                    </span>
-                  </div>
-
-                  <img
-                    src={item.imagem}
-                    alt={item.nome}
-                    className="max-h-36 w-auto object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-sm mt-4"
-                  />
-                </div>
-
-                {/* Conteúdo do Card */}
-                <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
-                  <div>
-                    <h3 className="font-display font-bold text-[17px] text-slate-900 leading-snug group-hover:text-primary transition-colors">
-                      {item.nome}
-                    </h3>
-                    <p className="text-xs text-slate-500 line-clamp-2 mt-1 leading-relaxed">
-                      {item.detalhes}
-                    </p>
-                  </div>
-
-                  <div className="border-t border-slate-100 pt-3 space-y-2">
-                    <div className="flex items-baseline justify-between">
-                      <span className="font-display font-bold text-xl text-slate-900">
-                        {item.preco}
-                      </span>
-                      <span className="text-[11px] font-medium text-slate-500">
-                        {item.parcelas}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs pt-1">
-                      <span className="text-slate-500 font-medium">Quem paga:</span>
-                      <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60">
-                        {item.responsavel}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Banner Interativo pós-vitrine */}
-          <div className="mt-12 bg-emerald-50/70 p-6 sm:p-8 rounded-2xl border border-emerald-600/20 shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="space-y-1.5 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-2 text-primary font-semibold text-sm">
-                <Heart className="w-4 h-4 fill-primary" />
-                <span>Personalizável para o par</span>
-              </div>
-              <h3 className="font-display font-bold text-2xl text-slate-900">
-                Vocês também podem adicionar fotos e links de qualquer loja
-              </h3>
-              <p className="text-sm text-slate-600 max-w-xl">
-                O CasalPlanner busca fotos, preços e dados automaticamente de lojas como Amazon,
-                Mercado Livre, Magazine Luiza, Mobly e Tok&Stok.
-              </p>
-            </div>
-
-            <a
-              href="#recursos"
-              onClick={(e) => scrollToSection(e, "recursos")}
-              className="btn-anexo bg-white text-slate-900 hover:bg-slate-50 shrink-0 text-sm font-semibold border-slate-200 shadow-xs"
-            >
-              Conhecer os recursos ↓
-            </a>
-          </div>
-        </section>
-
-        {/* Modal Interativo de Simulação do Item */}
-        {itemModal && (
-          <div className="fixed inset-y-0 inset-x-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-            <div
-              className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 relative selection:bg-emerald-500/20"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => setItemModal(null)}
-                className="absolute top-5 right-5 p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-xs cursor-pointer"
-                aria-label="Fechar modal"
-              >
-                <X className="w-4 h-4" />
-              </button>
-
-              <div className="flex items-center gap-2 mb-4">
-                <span
-                  className={`px-2.5 py-0.5 rounded-full border border-slate-200 text-xs font-semibold ${itemModal.tagComodo}`}
-                >
-                  {itemModal.comodo}
-                </span>
-                <span
-                  className={`px-2.5 py-0.5 rounded-full border border-slate-200 text-xs font-semibold ${itemModal.statusCor}`}
-                >
-                  {itemModal.status}
-                </span>
-              </div>
-
-              {/* Foto ampliada com moldura */}
-              <div className="h-56 bg-slate-50 rounded-xl border border-slate-200 p-4 flex items-center justify-center mb-6">
-                <img
-                  src={itemModal.imagem}
-                  alt={itemModal.nome}
-                  className="max-h-48 w-auto object-contain drop-shadow-sm"
-                />
-              </div>
-
-              <h3 className="font-display font-bold text-2xl text-slate-900 mb-2 leading-tight">
-                {itemModal.nome}
-              </h3>
-              <p className="text-sm text-slate-600 leading-relaxed mb-6 font-normal">
-                {itemModal.detalhes}
-              </p>
-
-              {/* Box de Simulação Financeira do App */}
-              <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-3 mb-6">
-                <div className="font-display font-bold text-sm text-primary flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4" />
-                  <span>Como o CasalPlanner gerencia este item:</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
-                    <span className="text-[11px] font-semibold text-slate-500 block">
-                      Valor Planejado
-                    </span>
-                    <span className="font-display font-bold text-lg text-slate-900">
-                      {itemModal.preco}
-                    </span>
-                  </div>
-                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
-                    <span className="text-[11px] font-semibold text-slate-500 block">
-                      Forma de Pagamento
-                    </span>
-                    <span className="font-sans font-semibold text-xs text-slate-900 block mt-1">
-                      {itemModal.parcelas}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs space-y-1.5">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-slate-700">Divisão entre o casal:</span>
-                    <span className="text-primary font-bold">{itemModal.responsavel}</span>
-                  </div>
-                  {itemModal.quemPaga.p1 > 0 && itemModal.quemPaga.p2 > 0 && (
-                    <div className="flex gap-2 text-xs font-semibold pt-1">
-                      <span className="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-200">
-                        Pessoa 1: R$ {itemModal.quemPaga.p1.toLocaleString("pt-BR")}
-                      </span>
-                      <span className="bg-amber-50 text-amber-800 px-2 py-0.5 rounded-md border border-amber-200">
-                        Pessoa 2: R$ {itemModal.quemPaga.p2.toLocaleString("pt-BR")}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {itemModal.menorPrecoLoja && (
-                  <div className="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="font-bold text-emerald-800 block">
-                        🔍 Comparador Inteligente:
-                      </span>
-                      <span className="text-slate-700 font-medium">
-                        Achado em {itemModal.menorPrecoLoja.loja}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-bold font-display text-sm text-emerald-800 block">
-                        {itemModal.menorPrecoLoja.preco}
-                      </span>
-                      <span className="text-[10px] font-semibold text-emerald-700">
-                        Economia de {itemModal.menorPrecoLoja.economia}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* 4 Passos */}
-        <section id="passos" className="pb-[72px] reveal-section">
+        <section id="passos" className="pb-[72px] pt-12 border-t border-slate-200 reveal-section">
           <h2 className="h2-anexo max-w-[640px]">Do primeiro cadastro à última compra</h2>
           <p className="p-anexo max-w-[640px]">
             O CasalPlanner organiza a montagem da casa em quatro passos simples.
