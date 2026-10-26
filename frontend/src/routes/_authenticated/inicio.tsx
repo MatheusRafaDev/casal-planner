@@ -516,14 +516,14 @@ function InicioPage() {
                         <div
                           className="h-full bg-joint transition-all duration-500"
                           style={{ width: `${conjPct}%` }}
-                          title={`Conjunto (Azul): ${brl(r?.totalConjunto)} (${conjPct.toFixed(1)}%)`}
+                          title={`Conjunto: ${brl(r?.totalConjunto)} (${conjPct.toFixed(1)}%)`}
                         />
                       )}
                       {totalEconomizadoGanhos > 0 && (
                         <div
-                          className="h-full bg-purple-500 transition-all duration-500"
+                          className="h-full bg-amber-500 transition-all duration-500"
                           style={{ width: `${ganhoPct}%` }}
-                          title={`Ganho (Roxo): ${brl(totalEconomizadoGanhos)} (${ganhoPct.toFixed(1)}%)`}
+                          title={`Presentes (Ganhos): ${brl(totalEconomizadoGanhos)} (${ganhoPct.toFixed(1)}%)`}
                         />
                       )}
                     </div>
@@ -541,14 +541,14 @@ function InicioPage() {
                       <>
                         <div className="flex items-center gap-1.5 sm:gap-2">
                           <span className="w-3 h-3 rounded-full border border-border bg-p1 inline-block shrink-0 shadow-xs" />
-                          <span className="text-muted-foreground">{p1Primeiro} (Verde):</span>
+                          <span className="text-muted-foreground">{p1Primeiro}:</span>
                           <span className="text-foreground tabular-nums">
                             {brl(r?.totalPessoa1)}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 sm:gap-2">
                           <span className="w-3 h-3 rounded-full border border-border bg-p2 inline-block shrink-0 shadow-xs" />
-                          <span className="text-muted-foreground">{p2Primeiro} (Dourado):</span>
+                          <span className="text-muted-foreground">{p2Primeiro}:</span>
                           <span className="text-foreground tabular-nums">
                             {brl(r?.totalPessoa2)}
                           </span>
@@ -556,19 +556,21 @@ function InicioPage() {
                         {(r?.totalConjunto ?? 0) > 0 && (
                           <div className="flex items-center gap-1.5 sm:gap-2">
                             <span className="w-3 h-3 rounded-full border border-border bg-joint inline-block shrink-0 shadow-xs" />
-                            <span className="text-muted-foreground">Conjunto (Azul):</span>
+                            <span className="text-muted-foreground">Conjunto:</span>
                             <span className="text-foreground tabular-nums">
                               {brl(r?.totalConjunto)}
                             </span>
                           </div>
                         )}
-                        <div className="flex items-center gap-1.5 sm:gap-2">
-                          <span className="w-3 h-3 rounded-full border border-border bg-purple-500 inline-block shrink-0 shadow-xs" />
-                          <span className="text-muted-foreground">Ganho (Roxo):</span>
-                          <span className="text-foreground tabular-nums">
-                            {brl(totalEconomizadoGanhos)}
-                          </span>
-                        </div>
+                        {totalEconomizadoGanhos > 0 && (
+                          <div className="flex items-center gap-1.5 sm:gap-2">
+                            <span className="w-3 h-3 rounded-full border border-border bg-amber-500 inline-block shrink-0 shadow-xs" />
+                            <span className="text-muted-foreground">Presentes:</span>
+                            <span className="text-foreground tabular-nums">
+                              {brl(totalEconomizadoGanhos)}
+                            </span>
+                          </div>
+                        )}
                       </>
                     ) : (
                       <div className="flex items-center gap-2">
@@ -588,16 +590,16 @@ function InicioPage() {
             </motion.div>
 
             {/* Coluna Direita: 2 Cards Menores */}
-            <div className="grid grid-cols-2 lg:flex lg:flex-col gap-3 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-col gap-3 md:gap-6">
               {/* Card 1: Parcelas deste mês */}
               <motion.div
                 variants={itemVariants}
-                className="card-sticker p-4 md:p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between lg:flex-1"
+                className="card-sticker p-4 md:p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between lg:flex-1 min-w-0"
               >
                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
                   Parcelas deste mês
                 </span>
-                <span className="font-display text-2xl sm:text-4xl font-bold tracking-tight text-foreground tabular-nums">
+                <span className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground tabular-nums truncate">
                   {brl(parcelasResumo.valorDesteMes)}
                 </span>
                 <span className="text-xs text-muted-foreground font-medium mt-1">
@@ -610,14 +612,14 @@ function InicioPage() {
               {/* Card 2: Itens comprados */}
               <motion.div
                 variants={itemVariants}
-                className="card-sticker p-4 md:p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between lg:flex-1"
+                className="card-sticker p-4 md:p-6 bg-card shadow-[3px_3px_0_var(--border)] flex flex-col justify-between lg:flex-1 min-w-0"
               >
                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
                   Itens comprados
                 </span>
-                <span className="font-display text-2xl sm:text-4xl font-bold tracking-tight text-foreground tabular-nums">
+                <span className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground tabular-nums truncate">
                   {r?.itensComprados}{" "}
-                  <span className="text-lg sm:text-3xl font-semibold text-muted-foreground">
+                  <span className="text-lg sm:text-2xl md:text-3xl font-semibold text-muted-foreground">
                     de {r?.totalItens}
                   </span>
                 </span>

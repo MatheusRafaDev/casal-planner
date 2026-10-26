@@ -148,8 +148,11 @@ function PerfilPage() {
           <motion.div variants={itemVariants} className="card-sticker p-5 md:p-6 bg-card space-y-5">
             {isCasal ? (
               <Tabs defaultValue={usuario.pessoaLogada === 2 ? "p2" : "p1"} className="w-full">
-                <TabsList className="grid grid-cols-2 mb-5">
-                  <TabsTrigger value="p1" className="flex items-center justify-center gap-2">
+                <TabsList className="grid grid-cols-2 mb-5 h-11 p-1 bg-muted/60 rounded-xl border border-border/60">
+                  <TabsTrigger
+                    value="p1"
+                    className="flex items-center justify-center gap-2 h-9 rounded-lg text-xs sm:text-sm font-bold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all"
+                  >
                     <span className="h-5 w-5 rounded-full bg-p1 text-p1-foreground text-[10px] font-bold grid place-items-center shrink-0">
                       {extrairIniciais(usuario.casalInfo?.pessoa1.nome, "1")}
                     </span>
@@ -157,7 +160,10 @@ function PerfilPage() {
                       {usuario.casalInfo?.pessoa1.nome ?? "Pessoa 1"}
                     </span>
                   </TabsTrigger>
-                  <TabsTrigger value="p2" className="flex items-center justify-center gap-2">
+                  <TabsTrigger
+                    value="p2"
+                    className="flex items-center justify-center gap-2 h-9 rounded-lg text-xs sm:text-sm font-bold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all"
+                  >
                     <span className="h-5 w-5 rounded-full bg-p2 text-p2-foreground text-[10px] font-bold grid place-items-center shrink-0">
                       {extrairIniciais(usuario.casalInfo?.pessoa2.nome, "2")}
                     </span>

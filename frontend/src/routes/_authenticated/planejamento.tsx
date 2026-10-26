@@ -517,27 +517,75 @@ function PlanejamentoPage() {
         </div>
       </header>
 
-      {/* Mobile Selector for Rooms (md:hidden) */}
-      <div className="md:hidden">
-        <Select
-          value={catAtualId}
-          onValueChange={(v) => setCategoriaSelecionada(v === "tudo" ? "tudo" : v)}
-        >
-          <SelectTrigger className="w-full card-sticker">
-            <SelectValue placeholder="Selecione um cômodo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="tudo">Todos os itens ({todosItens.length})</SelectItem>
-            {categorias.map((c) => {
-              const count = todosItens.filter((it) => it.categoriaId === c.id).length;
-              return (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.nome} ({count})
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
+      {/* Mobile Horizontal Room Carousel & Selector (md:hidden) */}
+      <div className="md:hidden space-y-2">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar touch-scroll -mx-4 px-4 py-1">
+          {/* Todos os Itens Pill */}
+          <button
+            type="button"
+            onClick={() => setCategoriaSelecionada("tudo")}
+            className={cn(
+              "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer border select-none active:scale-95",
+              catAtualId === "tudo"
+                ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                : "bg-card text-muted-foreground border-border hover:text-foreground",
+            )}
+          >
+            <Package className="h-3.5 w-3.5" />
+            <span>Todos</span>
+            <span
+              className={cn(
+                "text-[10px] px-1.5 py-0.2 rounded-full font-bold",
+                catAtualId === "tudo" ? "bg-white/20 text-white" : "bg-muted text-muted-foreground",
+              )}
+            >
+              {todosItens.length}
+            </span>
+          </button>
+
+          {/* Cômodos */}
+          {categorias.map((c) => {
+            const I = iconFor(c.icon);
+            const ativo = c.id === catAtualId;
+            const count = todosItens.filter((it) => it.categoriaId === c.id).length;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setCategoriaSelecionada(c.id)}
+                className={cn(
+                  "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer border select-none active:scale-95",
+                  ativo
+                    ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                    : "bg-card text-muted-foreground border-border hover:text-foreground",
+                )}
+              >
+                <span
+                  className="w-3.5 h-3.5 rounded-full shrink-0"
+                  style={{ backgroundColor: comodoColor(c.bg, c.nome) }}
+                />
+                <span className="capitalize">{c.nome}</span>
+                <span
+                  className={cn(
+                    "text-[10px] px-1.5 py-0.2 rounded-full font-bold",
+                    ativo ? "bg-white/20 text-white" : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+
+          {/* Botão Adicionar Novo Cômodo Rápido */}
+          <button
+            type="button"
+            onClick={() => setNovaCategoria(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold shrink-0 border border-dashed border-border text-muted-foreground hover:text-primary hover:border-primary/50 transition-colors"
+          >
+            <Plus className="h-3.5 w-3.5" /> Novo
+          </button>
+        </div>
       </div>
 
       {/* Summary Card com visual premium do Design System */}
@@ -739,12 +787,12 @@ function PlanejamentoPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto shrink-0">
           <Select
             value={filtroStatus}
             onValueChange={(v) => setFiltroStatus(v as typeof filtroStatus)}
           >
-            <SelectTrigger className="h-10 text-xs sm:text-sm card-sticker w-28 sm:w-32">
+            <SelectTrigger className="h-10 text-xs sm:text-sm card-sticker w-full sm:w-32">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -759,7 +807,7 @@ function PlanejamentoPage() {
             value={filtroPagamento}
             onValueChange={(v) => setFiltroPagamento(v as typeof filtroPagamento)}
           >
-            <SelectTrigger className="h-10 text-xs sm:text-sm card-sticker w-32 sm:w-36">
+            <SelectTrigger className="h-10 text-xs sm:text-sm card-sticker w-full sm:w-32">
               <SelectValue placeholder="Pagamento" />
             </SelectTrigger>
             <SelectContent>
@@ -770,19 +818,21 @@ function PlanejamentoPage() {
           </Select>
 
           {isCasal && (
-            <Select
-              value={filtroResponsavel}
-              onValueChange={(v) => setFiltroResponsavel(v as typeof filtroResponsavel)}
-            >
-              <SelectTrigger className="h-10 text-xs sm:text-sm card-sticker w-32 sm:w-36">
-                <SelectValue placeholder="Responsável" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Responsável</SelectItem>
-                <SelectItem value="1">{p1.split(" ")[0]}</SelectItem>
-                <SelectItem value="2">{p2.split(" ")[0]}</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="col-span-2 sm:col-span-1">
+              <Select
+                value={filtroResponsavel}
+                onValueChange={(v) => setFiltroResponsavel(v as typeof filtroResponsavel)}
+              >
+                <SelectTrigger className="h-10 text-xs sm:text-sm card-sticker w-full sm:w-32">
+                  <SelectValue placeholder="Responsável" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Responsável</SelectItem>
+                  <SelectItem value="1">{p1.split(" ")[0]}</SelectItem>
+                  <SelectItem value="2">{p2.split(" ")[0]}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           )}
         </div>
       </div>
@@ -1035,7 +1085,7 @@ function PlanejamentoPage() {
               </div>
 
               {/* Right: Price + Installments + Menu */}
-              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 sm:pl-3 sm:border-l sm:border-border/30">
+              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pt-2.5 sm:pt-0 border-t border-border/40 sm:border-t-0 sm:pl-3 sm:border-l sm:border-border/30">
                 <div className="text-left sm:text-right">
                   <div
                     className={cn(

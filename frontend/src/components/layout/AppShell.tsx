@@ -163,17 +163,85 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
+      {/* Header Mobile Nativo com Branding e Status do Perfil */}
+      <header className="md:hidden sticky top-0 z-40 bg-background/90 backdrop-blur-md border-b border-border/80 px-4 py-2.5 flex items-center justify-between select-none">
+        <Link
+          to="/inicio"
+          className="flex items-center gap-2.5 transition-transform active:scale-95"
+        >
+          <BrandLogoIcon size="sm" className="h-7 w-7" />
+          <div className="flex flex-col">
+            <BrandLogoText size="sm" />
+            <span className="text-[10px] font-semibold text-muted-foreground leading-none">
+              {isCasal ? `${p1Primeiro} & ${p2Primeiro}` : "Gestão do lar"}
+            </span>
+          </div>
+        </Link>
+
+        <div className="flex items-center gap-2">
+          {installPrompt && (
+            <button
+              onClick={triggerInstall}
+              className="flex items-center gap-1 py-1 px-2.5 rounded-lg text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-colors cursor-pointer"
+              title="Instalar aplicativo"
+            >
+              <Download className="h-3 w-3" /> App
+            </button>
+          )}
+          <Link
+            to="/perfil"
+            className="flex items-center p-0.5 rounded-full hover:ring-2 hover:ring-primary/20 transition-all"
+            title={`Conectado como ${logadoNome}`}
+          >
+            {isCasal ? (
+              <div className="relative flex items-center -space-x-1.5 shrink-0">
+                <div
+                  className={cn(
+                    "h-6 w-6 rounded-full border border-card flex items-center justify-center font-bold text-[10px] shadow-xs",
+                    usuario?.pessoaLogada === 1
+                      ? "bg-p1 text-p1-foreground z-10 ring-1 ring-p1"
+                      : "bg-p1/40 text-p1-foreground/70 opacity-60",
+                  )}
+                >
+                  {p1Primeiro.charAt(0)}
+                </div>
+                <div
+                  className={cn(
+                    "h-6 w-6 rounded-full border border-card flex items-center justify-center font-bold text-[10px] shadow-xs",
+                    usuario?.pessoaLogada === 2
+                      ? "bg-p2 text-p2-foreground z-10 ring-1 ring-p2"
+                      : "bg-p2/40 text-p2-foreground/70 opacity-60",
+                  )}
+                >
+                  {p2Primeiro.charAt(0)}
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 border border-card z-20" />
+              </div>
+            ) : (
+              <div className="relative shrink-0">
+                <div className="h-7 w-7 rounded-full border border-border bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs shadow-xs">
+                  {logadoNome.charAt(0).toUpperCase()}
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 border border-card" />
+              </div>
+            )}
+          </Link>
+        </div>
+      </header>
+
       {/* Conteúdo Principal */}
-      <main className="flex-1 min-w-0 pt-[env(safe-area-inset-top,0px)] md:pt-0 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-8">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8">{children}</div>
+      <main className="flex-1 min-w-0 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-10">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 lg:py-8">
+          {children}
+        </div>
       </main>
 
       {/* Bottom Nav Mobile */}
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 bg-card border-t border-border z-50 shadow-lg"
+        className="md:hidden fixed bottom-0 inset-x-0 bg-card/95 backdrop-blur-md border-t border-border/80 z-50 shadow-lg"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
-        <div className="flex h-16 items-center justify-around px-2">
+        <div className="flex h-16 items-center justify-around px-3">
           {nav.map((n) => {
             const active = pathname.startsWith(n.to);
             return (
@@ -181,7 +249,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={n.to}
                 to={n.to}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 w-full h-full transition-all",
+                  "flex flex-col items-center justify-center gap-1 w-full h-full transition-all active:scale-95",
                   active
                     ? "text-primary font-bold"
                     : "text-muted-foreground hover:text-foreground font-semibold",
@@ -190,15 +258,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               >
                 <div
                   className={cn(
-                    "flex items-center justify-center h-8 w-12 rounded-full transition-all",
+                    "flex items-center justify-center h-8 w-12 rounded-full transition-all duration-200",
                     active
-                      ? "bg-primary-tint text-primary-tint-foreground border border-primary/20"
-                      : "bg-transparent",
+                      ? "bg-primary/10 text-primary border border-primary/25 shadow-2xs"
+                      : "bg-transparent text-muted-foreground",
                   )}
                 >
                   <n.icon className="h-4 w-4" />
                 </div>
-                <span className="text-[11px] leading-none">{n.label}</span>
+                <span className="text-[11px] leading-none tracking-tight">{n.label}</span>
               </Link>
             );
           })}
