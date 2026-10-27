@@ -4,12 +4,10 @@ import { useAuth } from "@/lib/auth-context";
 import { BrandLogoText, BrandLogoIcon } from "@/components/ui/BrandLogo";
 import { Check, ChevronRight, ArrowUpRight } from "lucide-react";
 
-
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CasalPlanner — Planejar a dois é começar a casa com o pé direito" },
+      { title: "CasalPlanner | Planejar a dois é começar a casa com o pé direito" },
       {
         name: "description",
         content:

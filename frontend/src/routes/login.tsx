@@ -22,7 +22,7 @@ export const Route = createFileRoute("/login")({
   },
   head: () => ({
     meta: [
-      { title: "CasalPlanner - Acesso e Cadastro" },
+      { title: "CasalPlanner | Login" },
       {
         name: "description",
         content:
@@ -110,9 +110,7 @@ function LoginPage() {
                 <span className="text-[11px] font-bold text-slate-900 font-display leading-tight">
                   Geladeira Duplex
                 </span>
-                <span className="text-[9px] font-semibold text-slate-500 block">
-                  R$ 3.890
-                </span>
+                <span className="text-[9px] font-semibold text-slate-500 block">R$ 3.890</span>
               </div>
             </div>
 
@@ -130,9 +128,7 @@ function LoginPage() {
                 <span className="text-[11px] font-bold text-slate-900 font-display leading-tight">
                   Air Fryer & Café
                 </span>
-                <span className="text-[9px] font-semibold text-slate-500 block">
-                  Padrinhos
-                </span>
+                <span className="text-[9px] font-semibold text-slate-500 block">Padrinhos</span>
               </div>
             </div>
 

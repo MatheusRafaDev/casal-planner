@@ -83,7 +83,7 @@ export const Route = createFileRoute("/_authenticated/planejamento")({
     comodo: typeof search.comodo === "string" ? search.comodo : undefined,
   }),
   head: () => ({
-    meta: [{ title: "CasalPlanner - Planejamento" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "CasalPlanner | Planejamento" }, { name: "robots", content: "noindex" }],
   }),
   component: PlanejamentoPage,
 });

@@ -57,7 +57,7 @@ function extrairIniciais(nome?: string | null, fallback = "U"): string {
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
-    meta: [{ title: "CasalPlanner - Minha conta" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "CasalPlanner | Minha conta" }, { name: "robots", content: "noindex" }],
   }),
   component: PerfilPage,
 });
@@ -772,7 +772,7 @@ function ExportarCard() {
       const doc = new jsPDF();
       doc.setFontSize(20);
       doc.setTextColor(47, 125, 91);
-      doc.text("CasalPlanner - Lista de Itens", 14, 20);
+      doc.text("CasalPlanner | Lista de Itens", 14, 20);
 
       doc.setFontSize(11);
       doc.setTextColor(36, 48, 42);

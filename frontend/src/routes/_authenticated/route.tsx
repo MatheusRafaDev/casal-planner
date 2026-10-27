@@ -33,9 +33,7 @@ function AuthGate() {
             <BrandLogoIcon size="sm" className="h-8 w-8" />
             <div className="absolute -inset-2.5 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
           </div>
-          <span className="text-xs text-muted-foreground font-medium">
-            Carregando...
-          </span>
+          <span className="text-xs text-muted-foreground font-medium">Carregando...</span>
         </motion.div>
       </div>
     );

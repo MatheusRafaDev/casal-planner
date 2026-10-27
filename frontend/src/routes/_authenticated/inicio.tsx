@@ -30,7 +30,7 @@ import { DESIGN_TOKENS } from "@/design-system";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   head: () => ({
-    meta: [{ title: "CasalPlanner - Início" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "CasalPlanner | Início" }, { name: "robots", content: "noindex" }],
   }),
   component: InicioPage,
 });

@@ -13,7 +13,7 @@ export const Route = createFileRoute("/recuperar-senha")({
   },
   head: () => ({
     meta: [
-      { title: `${BRAND_CONFIG.name} - Recuperar senha` },
+      { title: `${BRAND_CONFIG.name} | Recuperar senha` },
       { name: "robots", content: "noindex" },
     ],
   }),

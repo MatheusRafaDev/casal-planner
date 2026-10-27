@@ -157,10 +157,7 @@ export function BrandLogoText({
           {prefix}
         </span>
         <span
-          className={cn(
-            "font-light",
-            variant === "on-dark" ? "text-white" : "text-foreground",
-          )}
+          className={cn("font-light", variant === "on-dark" ? "text-white" : "text-foreground")}
         >
           {suffix}
         </span>

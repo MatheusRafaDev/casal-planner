@@ -7,7 +7,7 @@ import { BRAND_CONFIG } from "@/design-system";
 
 export const Route = createFileRoute("/trocar-senha")({
   head: () => ({
-    meta: [{ title: "CasalPlanner - Trocar senha" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "CasalPlanner | Trocar senha" }, { name: "robots", content: "noindex" }],
   }),
   component: TrocarSenhaPage,
 });

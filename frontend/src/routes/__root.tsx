@@ -84,13 +84,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: `${BRAND_CONFIG.name} - ${BRAND_CONFIG.slogan}` },
+      { title: `${BRAND_CONFIG.name} | ${BRAND_CONFIG.slogan}` },
       {
         name: "description",
         content: BRAND_CONFIG.description,
       },
       { name: "author", content: BRAND_CONFIG.author },
-      { property: "og:title", content: `${BRAND_CONFIG.name} - ${BRAND_CONFIG.slogan}` },
+      { property: "og:title", content: `${BRAND_CONFIG.name} | ${BRAND_CONFIG.slogan}` },
       {
         property: "og:description",
         content: BRAND_CONFIG.description,
