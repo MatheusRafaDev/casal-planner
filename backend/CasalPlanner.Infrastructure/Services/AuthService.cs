@@ -165,7 +165,7 @@ namespace CasalPlanner.Infrastructure.Services
 
         // ========== TOKEN ==========
 
-        public string GerarToken(Usuario usuario)
+        public string GerarToken(Usuario usuario, bool isMobile = false)
         {
             if (usuario == null) throw new ArgumentNullException(nameof(usuario));
 
@@ -177,12 +177,12 @@ namespace CasalPlanner.Infrastructure.Services
                 new(ClaimTypes.Name, usuario.NomeCompleto ?? ""),
                 new("TipoConta", usuario.TipoConta.ToString()),
                 new("IsCasal", usuario.IsCasal.ToString()),
-            });
+            }, isMobile);
 
             return handler.WriteToken(handler.CreateToken(descriptor));
         }
 
-        public string GerarTokenCasal(Usuario usuario, string pessoa)
+        public string GerarTokenCasal(Usuario usuario, string pessoa, bool isMobile = false)
         {
             if (usuario == null) throw new ArgumentNullException(nameof(usuario));
 
@@ -206,12 +206,12 @@ namespace CasalPlanner.Infrastructure.Services
                 claims.Add(new(ClaimTypes.Name, usuario.CasalInfo.NomeCompletoPessoa2 ?? ""));
             }
 
-            var (handler, descriptor) = CriarTokenDescriptor(usuario.Id ?? "", claims);
+            var (handler, descriptor) = CriarTokenDescriptor(usuario.Id ?? "", claims, isMobile);
             return handler.WriteToken(handler.CreateToken(descriptor));
         }
 
         private (JwtSecurityTokenHandler handler, SecurityTokenDescriptor descriptor) CriarTokenDescriptor(
-            string _, List<Claim> claims)
+            string _, List<Claim> claims, bool isMobile = false)
         {
             var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? _configuration["Jwt:Key"];
             var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"] ?? "CasalPlanner";
@@ -223,11 +223,14 @@ namespace CasalPlanner.Infrastructure.Services
             var key = Encoding.UTF8.GetBytes(jwtKey);
             var handler = new JwtSecurityTokenHandler();
 
+            var tokenLifetime = int.TryParse(Environment.GetEnvironmentVariable("JWT_EXPIRES_IN"), out var expMin) && expMin > 0
+                ? TimeSpan.FromMinutes(expMin)
+                : (isMobile ? TimeSpan.FromDays(3650) : TimeSpan.FromDays(30));
+
             var descriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(
-                    int.TryParse(Environment.GetEnvironmentVariable("JWT_EXPIRES_IN"), out var expMin) && expMin > 0 ? expMin : 60),
+                Expires = DateTime.UtcNow.Add(tokenLifetime),
                 Issuer = jwtIssuer,
                 Audience = jwtAudience,
                 SigningCredentials = new SigningCredentials(
@@ -248,7 +251,7 @@ namespace CasalPlanner.Infrastructure.Services
             rng.GetBytes(tokenBytes);
             var token = Convert.ToBase64String(tokenBytes);
             var tokenHash = HashRefreshToken(token);
-            var expiraEm = isMobile ? DateTime.UtcNow.AddDays(3650) : DateTime.UtcNow.AddDays(7);
+            var expiraEm = isMobile ? DateTime.UtcNow.AddDays(3650) : DateTime.UtcNow.AddDays(30);
 
             var update = Builders<Usuario>.Update;
             UpdateDefinition<Usuario> updateDef;

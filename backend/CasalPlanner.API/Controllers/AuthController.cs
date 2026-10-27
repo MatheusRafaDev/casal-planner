@@ -50,8 +50,10 @@ namespace CasalPlanner.API.Controllers
         // Hash BCrypt fixo (workFactor 12) usado só para igualar o tempo de resposta.
         private const string DummyHash = "$2a$12$usesomesillystringfore7hnbRJHxXVLeakoG8K30oukPsA.ztMG";
 
-        private static int JwtExpiresInMinutes =>
-            int.TryParse(Environment.GetEnvironmentVariable("JWT_EXPIRES_IN"), out var m) && m > 0 ? m : 60;
+        private static TimeSpan GetTokenLifetime(bool isMobile) =>
+            int.TryParse(Environment.GetEnvironmentVariable("JWT_EXPIRES_IN"), out var m) && m > 0
+                ? TimeSpan.FromMinutes(m)
+                : SessionLifetimePolicy.GetLifetime(isMobile);
 
         private bool IsMobileDevice()
         {
@@ -60,12 +62,13 @@ namespace CasalPlanner.API.Controllers
 
         private void SetTokenCookie(string token, string? refreshToken = null, bool isMobile = false)
         {
+            var lifetime = GetTokenLifetime(isMobile);
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
                 Secure = !_environment.IsDevelopment(),
                 SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
-                Expires = DateTime.UtcNow.AddMinutes(JwtExpiresInMinutes)
+                Expires = DateTime.UtcNow.Add(lifetime)
             };
             Response.Cookies.Append("cp_token", token, cookieOptions);
 
@@ -77,7 +80,7 @@ namespace CasalPlanner.API.Controllers
                     Secure = !_environment.IsDevelopment(),
                     SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
                     Path = "/api/auth",
-                    Expires = isMobile ? DateTime.UtcNow.AddDays(3650) : DateTime.UtcNow.AddDays(7)
+                    Expires = isMobile ? DateTime.UtcNow.AddDays(3650) : DateTime.UtcNow.AddDays(30)
                 };
                 Response.Cookies.Append("cp_refresh_token", refreshToken, refreshCookieOptions);
             }
@@ -131,11 +134,11 @@ namespace CasalPlanner.API.Controllers
             );
             usuario.LastLoginAt = DateTime.UtcNow;
 
-            string token = isCasal
-                ? _authService.GerarTokenCasal(usuario, pessoa)
-                : _authService.GerarToken(usuario);
-
             var isMobile = IsMobileDevice();
+            string token = isCasal
+                ? _authService.GerarTokenCasal(usuario, pessoa, isMobile)
+                : _authService.GerarToken(usuario, isMobile);
+
             var refreshTokenResult = await _authService.GerarERegistrarRefreshToken(usuario.Id!, isCasal ? pessoa : null, isMobile);
 
             SetTokenCookie(token, refreshTokenResult.Token, isMobile);
@@ -219,11 +222,11 @@ namespace CasalPlanner.API.Controllers
                 Builders<Usuario>.Update.Set(u => u.LastLoginAt, DateTime.UtcNow));
             usuario.LastLoginAt = DateTime.UtcNow;
 
-            string token = isCasal
-                ? _authService.GerarTokenCasal(usuario, pessoa)
-                : _authService.GerarToken(usuario);
-
             var isMobile = IsMobileDevice();
+            string token = isCasal
+                ? _authService.GerarTokenCasal(usuario, pessoa, isMobile)
+                : _authService.GerarToken(usuario, isMobile);
+
             var refreshTokenResult = await _authService.GerarERegistrarRefreshToken(usuario.Id!, isCasal ? pessoa : null, isMobile);
 
             SetTokenCookie(token, refreshTokenResult.Token, isMobile);
@@ -321,11 +324,11 @@ namespace CasalPlanner.API.Controllers
 
             // Rotacionar refresh token
             var isCasal = usuario.TipoConta == TipoConta.Casal;
-            string token = isCasal
-                ? _authService.GerarTokenCasal(usuario, pessoa!)
-                : _authService.GerarToken(usuario);
-
             var isMobile = IsMobileDevice();
+            string token = isCasal
+                ? _authService.GerarTokenCasal(usuario, pessoa!, isMobile)
+                : _authService.GerarToken(usuario, isMobile);
+
             var novoRefreshToken = await _authService.GerarERegistrarRefreshToken(usuario.Id!, isCasal ? pessoa : null, isMobile);
 
             SetTokenCookie(token, novoRefreshToken.Token, isMobile);

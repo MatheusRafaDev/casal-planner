@@ -2,6 +2,7 @@ import { useState, Suspense, lazy } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { LayoutGrid, User, LogOut, Download, PieChart, Plus } from "lucide-react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { usePwa } from "@/hooks/use-pwa";
@@ -24,6 +25,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { usuario, logout } = useAuth();
   const { installPrompt, triggerInstall } = usePwa();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const search = useRouterState({
+    select: (s) => (s.location.search as Record<string, unknown>) ?? {},
+  });
+  const comodoAtual = typeof search.comodo === "string" ? search.comodo : "";
   const navigate = useNavigate();
 
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -189,92 +194,40 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Header Mobile Nativo com Branding e Status do Perfil */}
-      <header className="md:hidden sticky top-0 z-40 bg-background/90 backdrop-blur-md border-b border-border/80 px-4 py-2.5 flex items-center justify-between select-none">
-        <Link
-          to="/inicio"
-          className="flex items-center gap-2.5 transition-transform active:scale-95"
-        >
-          <BrandLogoIcon size="sm" className="h-7 w-7" />
-          <div className="flex flex-col">
-            <BrandLogoText size="sm" />
-            <span className="text-[10px] font-semibold text-muted-foreground leading-none">
-              {isCasal ? `${p1Primeiro} & ${p2Primeiro}` : "Gestão do lar"}
-            </span>
-          </div>
-        </Link>
-
-        <div className="flex items-center gap-2">
-          {installPrompt && (
-            <button
-              onClick={triggerInstall}
-              className="flex items-center gap-1 py-1 px-2.5 rounded-lg text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-colors cursor-pointer"
-              title="Instalar aplicativo"
-            >
-              <Download className="h-3 w-3" /> App
-            </button>
-          )}
-          <Link
-            to="/perfil"
-            className="flex items-center p-0.5 rounded-full hover:ring-2 hover:ring-primary/20 transition-all"
-            title={`Conectado como ${logadoNome}`}
-          >
-            {isCasal ? (
-              <div className="relative flex items-center -space-x-1.5 shrink-0">
-                <div
-                  className={cn(
-                    "h-6 w-6 rounded-full border border-card flex items-center justify-center font-bold text-[10px] shadow-xs",
-                    usuario?.pessoaLogada === 1
-                      ? "bg-p1 text-p1-foreground z-10 ring-1 ring-p1"
-                      : "bg-p1/40 text-p1-foreground/70 opacity-60",
-                  )}
-                >
-                  {p1Primeiro.charAt(0)}
-                </div>
-                <div
-                  className={cn(
-                    "h-6 w-6 rounded-full border border-card flex items-center justify-center font-bold text-[10px] shadow-xs",
-                    usuario?.pessoaLogada === 2
-                      ? "bg-p2 text-p2-foreground z-10 ring-1 ring-p2"
-                      : "bg-p2/40 text-p2-foreground/70 opacity-60",
-                  )}
-                >
-                  {p2Primeiro.charAt(0)}
-                </div>
-                <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 border border-card z-20" />
-              </div>
-            ) : (
-              <div className="relative shrink-0">
-                <div className="h-7 w-7 rounded-full border border-border bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs shadow-xs">
-                  {logadoNome.charAt(0).toUpperCase()}
-                </div>
-                <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 border border-card" />
-              </div>
-            )}
-          </Link>
-        </div>
-      </header>
-
-      {/* Conteúdo Principal */}
-      <main className="flex-1 min-w-0 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-10">
+      {/* Conteúdo Principal (Respeita o Notch do iPhone 11 e Safe Areas) */}
+      <main className="flex-1 min-w-0 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-10 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] md:pt-0 pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]">
         <div
           className={cn(
-            "w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 lg:py-8",
-            pathname.startsWith("/planejamento")
-              ? "max-w-none xl:px-10 2xl:px-12"
-              : "max-w-7xl",
+            "w-full mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-6 sm:py-6 lg:py-8",
+            pathname.startsWith("/planejamento") ? "max-w-none xl:px-10 2xl:px-12" : "max-w-7xl",
           )}
         >
           {children}
         </div>
       </main>
 
+      {/* Botão Flutuante (FAB) Adicionar Item Mobile */}
+      <motion.button
+        type="button"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        whileTap={{ scale: 0.93 }}
+        whileHover={{ scale: 1.04 }}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        onClick={abrirWizardAdicionar}
+        className="md:hidden fixed right-4 bottom-[calc(4.85rem+env(safe-area-inset-bottom,0px))] z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-primary-foreground font-bold text-sm shadow-[0_6px_20px_rgba(31,92,67,0.4)] border-2 border-white/20 active:bg-primary-hover transition-colors cursor-pointer select-none"
+        aria-label="Adicionar item"
+      >
+        <Plus className="h-5 w-5 stroke-[2.5]" />
+        <span>Adicionar item</span>
+      </motion.button>
+
       {/* Bottom Nav Mobile */}
       <nav
         className="md:hidden fixed bottom-0 inset-x-0 bg-card/95 backdrop-blur-md border-t border-border/80 z-50 shadow-lg select-none"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
-        <div className="grid grid-cols-4 h-16 items-center px-1">
+        <div className="grid grid-cols-3 h-16 items-center px-3">
           {/* 1. Início */}
           <Link
             to="/inicio"
@@ -323,22 +276,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="text-[10px] leading-none tracking-tight">Planejar</span>
           </Link>
 
-          {/* 3. Botão Adicionar Destacado (No meio das opções) */}
-          <button
-            type="button"
-            onClick={abrirWizardAdicionar}
-            className="flex flex-col items-center justify-center gap-0.5 w-full h-full transition-all active:scale-90 group cursor-pointer"
-            aria-label="Adicionar novo item"
-          >
-            <div className="flex items-center justify-center h-9 w-9 rounded-full bg-primary text-primary-foreground shadow-[0_2px_8px_rgba(31,92,67,0.35)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.5)] border border-primary/20 -translate-y-1 group-active:translate-y-0 transition-transform">
-              <Plus className="h-5 w-5 stroke-[2.5]" />
-            </div>
-            <span className="text-[10px] font-bold text-primary leading-none -translate-y-0.5 group-active:translate-y-0 transition-transform">
-              Adicionar
-            </span>
-          </button>
-
-          {/* 4. Minha Conta */}
+          {/* 3. Minha Conta */}
           <Link
             to="/perfil"
             className={cn(
@@ -371,7 +309,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             open={wizardOpen}
             onOpenChange={setWizardOpen}
             categorias={categorias}
-            categoriaInicialId=""
+            categoriaInicialId={comodoAtual}
           />
         </Suspense>
       )}

@@ -16,8 +16,8 @@ public interface IAuthService
     Task<Usuario?> ObterUsuarioPorId(string id);
 
     // Token
-    string GerarToken(Usuario usuario);
-    string GerarTokenCasal(Usuario usuario, string pessoa);
+    string GerarToken(Usuario usuario, bool isMobile = false);
+    string GerarTokenCasal(Usuario usuario, string pessoa, bool isMobile = false);
     Task<(string Token, DateTime ExpiraEm)> GerarERegistrarRefreshToken(
         string usuarioId,
         string? pessoa = null,

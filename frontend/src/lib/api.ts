@@ -31,6 +31,15 @@ function currentOrigin(): string {
   return typeof window !== "undefined" ? window.location.origin : "http://localhost";
 }
 
+function isMobileClient(): boolean {
+  if (typeof window === "undefined") return false;
+  return (
+    window.innerWidth <= 768 ||
+    /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    window.matchMedia("(display-mode: standalone)").matches
+  );
+}
+
 let refreshInFlight: Promise<boolean> | null = null;
 
 async function refreshSession(): Promise<boolean> {
@@ -39,7 +48,10 @@ async function refreshSession(): Promise<boolean> {
     refreshInFlight = fetch(refreshUrl, {
       method: "POST",
       credentials: "include",
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        ...(isMobileClient() ? { "X-Client-Type": "mobile" } : {}),
+      },
     })
       .then((response) => response.ok)
       .catch(() => false)
@@ -68,7 +80,11 @@ export async function api<T = unknown>(path: string, opts: ApiOptions = {}): Pro
     }
   }
 
-  const finalHeaders: Record<string, string> = { Accept: "application/json", ...headers };
+  const finalHeaders: Record<string, string> = {
+    Accept: "application/json",
+    ...(isMobileClient() ? { "X-Client-Type": "mobile" } : {}),
+    ...headers,
+  };
   if (body !== undefined && !(body instanceof FormData)) {
     finalHeaders["Content-Type"] = finalHeaders["Content-Type"] ?? "application/json";
   }

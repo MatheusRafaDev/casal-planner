@@ -43,7 +43,7 @@ public class UsuarioController : ControllerBase
     {
         var sameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None;
         var secure = !_environment.IsDevelopment();
-        var expires = isMobile ? DateTime.UtcNow.AddDays(3650) : DateTime.UtcNow.AddDays(7);
+        var expires = isMobile ? DateTime.UtcNow.AddDays(3650) : DateTime.UtcNow.AddDays(30);
         Response.Cookies.Append("cp_token", token, new CookieOptions { HttpOnly = true, Secure = secure, SameSite = sameSite, Expires = expires });
         Response.Cookies.Append("cp_refresh_token", refreshToken, new CookieOptions { HttpOnly = true, Secure = secure, SameSite = sameSite, Path = "/api/auth", Expires = expires });
     }
@@ -137,8 +137,8 @@ public class UsuarioController : ControllerBase
             _logger.LogError(ex, "Erro ao enviar email de boas-vindas para {Email}", usuario.Email);
         }
 
-        var token = _authService.GerarToken(usuario);
         var isMobile = SessionLifetimePolicy.IsMobileClient(Request);
+        var token = _authService.GerarToken(usuario, isMobile);
         var refreshToken = await _authService.GerarERegistrarRefreshToken(usuario.Id!, isMobile: isMobile);
         SetAuthCookies(token, refreshToken.Token, isMobile);
 
@@ -203,8 +203,8 @@ public class UsuarioController : ControllerBase
             }
         }
 
-        var token = _authService.GerarTokenCasal(usuario, "pessoa1");
         var isMobile = SessionLifetimePolicy.IsMobileClient(Request);
+        var token = _authService.GerarTokenCasal(usuario, "pessoa1", isMobile);
         var refreshToken = await _authService.GerarERegistrarRefreshToken(usuario.Id!, "pessoa1", isMobile);
         SetAuthCookies(token, refreshToken.Token, isMobile);
 
@@ -812,8 +812,8 @@ public class UsuarioController : ControllerBase
 
         // Gerar novo token para B (agora como pessoa2 na conta de A)
         var updatedInviter = await _context.Usuarios.Find(u => u.Id == inviter.Id).FirstOrDefaultAsync();
-        var newToken = _authService.GerarTokenCasal(updatedInviter!, "pessoa2");
         var isMobile = SessionLifetimePolicy.IsMobileClient(Request);
+        var newToken = _authService.GerarTokenCasal(updatedInviter!, "pessoa2", isMobile);
         var refreshToken = await _authService.GerarERegistrarRefreshToken(updatedInviter!.Id!, "pessoa2", isMobile);
         SetAuthCookies(newToken, refreshToken.Token, isMobile);
 

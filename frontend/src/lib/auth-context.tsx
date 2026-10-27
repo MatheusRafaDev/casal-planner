@@ -6,6 +6,7 @@ import { resumoService } from "@/services/resumo";
 import { categoriasService } from "@/services/categorias";
 import { itensService } from "@/services/itens";
 import { clearAppData } from "@/lib/clear-app-data";
+import { ApiError } from "@/lib/api";
 import type { Usuario } from "@/services/types";
 
 interface AuthState {
@@ -68,9 +69,34 @@ export function normalizarUsuario(raw: unknown): Usuario {
   return { ...(raw as Usuario), casalInfo, pessoaLogada };
 }
 
+const CACHED_USER_KEY = "cp_cached_user";
+
+function getCachedUser(): Usuario | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(CACHED_USER_KEY);
+    return raw ? normalizarUsuario(JSON.parse(raw)) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedUser(u: Usuario | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (u) {
+      localStorage.setItem(CACHED_USER_KEY, JSON.stringify(u));
+    } else {
+      localStorage.removeItem(CACHED_USER_KEY);
+    }
+  } catch {
+    // ignorar possíveis erros de quota
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [usuario, setUsuarioState] = useState<Usuario | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [usuario, setUsuarioState] = useState<Usuario | null>(() => getCachedUser());
+  const [loading, setLoading] = useState(() => !getCachedUser());
   const qc = useQueryClient();
 
   const preaquecerQueries = useCallback(() => {
@@ -89,9 +115,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined") return;
     try {
       const u = await authService.me();
-      setUsuarioState(normalizarUsuario(u));
-    } catch {
-      setUsuarioState(null);
+      const norm = normalizarUsuario(u);
+      setUsuarioState(norm);
+      setCachedUser(norm);
+    } catch (err: unknown) {
+      // Se for 401 ou 403 explícito (token e refresh token expirados ou inválidos):
+      const isAuthError = err instanceof ApiError && (err.status === 401 || err.status === 403);
+
+      if (isAuthError) {
+        setUsuarioState(null);
+        setCachedUser(null);
+      } else {
+        // Erro de conexão, offline ou instabilidade temporária:
+        // Mantém o usuário autenticado com cache para não derrubar a sessão no mobile!
+        console.warn("Falha de conexão ao validar sessão, mantendo usuário ativo:", err);
+      }
     } finally {
       setLoading(false);
     }
@@ -99,6 +137,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     refresh();
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("online", refresh);
+      return () => window.removeEventListener("online", refresh);
+    }
   }, [refresh]);
 
   const login = useCallback(
@@ -106,6 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await authService.login(email, senha);
       const u = normalizarUsuario(res.usuario);
       setUsuarioState(u);
+      setCachedUser(u);
       preaquecerQueries();
       return u;
     },
@@ -117,6 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await authService.loginComGoogle(token);
       const u = normalizarUsuario(res.usuario);
       setUsuarioState(u);
+      setCachedUser(u);
       preaquecerQueries();
       return u;
     },
@@ -124,6 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(() => {
+    setCachedUser(null);
     clearAppData();
     qc.clear();
     setUsuarioState(null);
@@ -132,7 +178,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setUsuario = useCallback(
     (u: Usuario | null | ((prev: Usuario | null) => Usuario | null)) => {
-      setUsuarioState(u);
+      setUsuarioState((prev) => {
+        const next = typeof u === "function" ? u(prev) : u;
+        setCachedUser(next);
+        return next;
+      });
     },
     [],
   );

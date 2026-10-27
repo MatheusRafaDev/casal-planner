@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState, useMemo, useDeferredValue, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import {
   useQuery,
   useInfiniteQuery,
@@ -23,6 +23,7 @@ import {
   Wallet,
   AlertTriangle,
   Gift,
+  ChevronDown,
 } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -87,6 +88,51 @@ export const Route = createFileRoute("/_authenticated/planejamento")({
   component: PlanejamentoPage,
 });
 
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.04,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.45,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
+
+const sidebarContainerVariants: Variants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.03,
+    },
+  },
+};
+
+const sidebarItemVariants: Variants = {
+  hidden: { opacity: 0, x: -8 },
+  show: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.3,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
+
 function PlanejamentoPage() {
   const qc = useQueryClient();
   const { comodo } = Route.useSearch();
@@ -120,6 +166,7 @@ function PlanejamentoPage() {
   const [imagemAmpliada, setImagemAmpliada] = useState<Item | null>(null);
   const [excluindoItem, setExcluindoItem] = useState<Item | null>(null);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const [detalhesResumoAberto, setDetalhesResumoAberto] = useState(false);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -331,13 +378,24 @@ function PlanejamentoPage() {
   }
 
   return (
-    <div className="w-full space-y-6">
+    <motion.div
+      className="w-full space-y-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+    >
       {/* Sidebar categories portaled into AppShell desktop sidebar */}
       {portalTarget &&
         createPortal(
-          <div className="flex flex-col gap-1.5 w-full shrink-0">
+          <motion.div
+            variants={sidebarContainerVariants}
+            initial="hidden"
+            animate="show"
+            className="flex flex-col gap-1.5 w-full shrink-0"
+          >
             {/* Card Todos Os Itens */}
-            <div
+            <motion.div
+              variants={sidebarItemVariants}
               onClick={() => setCategoriaSelecionada("tudo")}
               className={cn(
                 "group flex items-center gap-3 rounded-xl p-2.5 transition-all cursor-pointer border select-none",
@@ -362,7 +420,7 @@ function PlanejamentoPage() {
                   </span>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Cômodos */}
             {categorias.map((c) => {
@@ -375,8 +433,9 @@ function PlanejamentoPage() {
                 .reduce((s, it) => s + it.preco * it.quantidade, 0);
 
               return (
-                <div
+                <motion.div
                   key={c.id}
+                  variants={sidebarItemVariants}
                   onClick={() => setCategoriaSelecionada(c.id)}
                   className={cn(
                     "group flex items-center gap-3 rounded-xl p-2.5 transition-all cursor-pointer border select-none",
@@ -407,9 +466,7 @@ function PlanejamentoPage() {
                     <div className="text-[11px] font-semibold text-emerald-200/70 mt-0.5">
                       <span>
                         {cComprados}/{cItens.length} -{" "}
-                        <span className="tabular-nums font-bold text-white">
-                          {brl(cGasto)}
-                        </span>
+                        <span className="tabular-nums font-bold text-white">{brl(cGasto)}</span>
                       </span>
                       {c.metaOrcamento ? (
                         <div className="mt-1 h-1 w-full bg-white/20 rounded-full overflow-hidden border border-white/10">
@@ -454,12 +511,13 @@ function PlanejamentoPage() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                </div>
+                </motion.div>
               );
             })}
 
             {/* Botão Adicionar Novo Cômodo */}
-            <button
+            <motion.button
+              variants={sidebarItemVariants}
               type="button"
               id="sidebar-btn-novo-comodo"
               onClick={() => setNovaCategoria(true)}
@@ -477,13 +535,16 @@ function PlanejamentoPage() {
                   Criar novo espaço
                 </div>
               </div>
-            </button>
-          </div>,
+            </motion.button>
+          </motion.div>,
           portalTarget,
         )}
 
       {/* Page Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <motion.header
+        variants={itemVariants}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      >
         <div>
           <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
             Planejamento
@@ -502,7 +563,7 @@ function PlanejamentoPage() {
             <Plus className="h-3.5 w-3.5 mr-1" /> Novo cômodo
           </Button>
           <Button
-            className="btn-sticker bg-primary text-primary-foreground font-bold text-xs sm:text-sm"
+            className="btn-sticker bg-primary text-primary-foreground font-bold text-xs sm:text-sm hidden md:inline-flex"
             onClick={() => {
               if (categorias.length === 0) {
                 toast.info("Crie seu primeiro cômodo para organizar os itens!");
@@ -515,10 +576,10 @@ function PlanejamentoPage() {
             <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar item
           </Button>
         </div>
-      </header>
+      </motion.header>
 
       {/* Mobile Horizontal Room Carousel & Selector (md:hidden) */}
-      <div className="md:hidden space-y-2">
+      <motion.div variants={itemVariants} className="md:hidden space-y-2">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar touch-scroll -mx-4 px-4 py-1">
           {/* Todos os Itens Pill */}
           <button
@@ -528,7 +589,7 @@ function PlanejamentoPage() {
               "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer border select-none active:scale-95",
               catAtualId === "tudo"
                 ? "bg-primary text-primary-foreground border-primary shadow-xs"
-                : "bg-card text-muted-foreground border-border hover:text-foreground",
+                : "bg-card text-muted-foreground border-border hover:text-foreground shadow-2xs",
             )}
           >
             <Package className="h-3.5 w-3.5" />
@@ -557,11 +618,14 @@ function PlanejamentoPage() {
                   "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer border select-none active:scale-95",
                   ativo
                     ? "bg-primary text-primary-foreground border-primary shadow-xs"
-                    : "bg-card text-muted-foreground border-border hover:text-foreground",
+                    : "bg-card text-muted-foreground border-border hover:text-foreground shadow-2xs",
                 )}
               >
                 <span
-                  className="w-3.5 h-3.5 rounded-full shrink-0"
+                  className={cn(
+                    "w-3.5 h-3.5 rounded-full shrink-0 shadow-[0_1.5px_4px_rgba(0,0,0,0.28)] ring-1 transition-transform",
+                    ativo ? "ring-white/30 scale-105" : "ring-black/10 dark:ring-white/20",
+                  )}
                   style={{ backgroundColor: comodoColor(c.bg, c.nome) }}
                 />
                 <span className="capitalize">{c.nome}</span>
@@ -586,197 +650,264 @@ function PlanejamentoPage() {
             <Plus className="h-3.5 w-3.5" /> Novo
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Summary Card com visual Verde Lar Oficial do Design System */}
-      <div className="card-sticker p-4 sm:p-5 lg:p-6 bg-gradient-to-br from-[#1F5C43] via-[#1a4f3a] to-[#154230] text-white flex flex-col xl:flex-row xl:items-center justify-between gap-6 shadow-[3px_3px_0_rgba(19,60,43,0.6)] border-2 border-[#16382a]">
-        {/* Left: Category Icon, Title, and Progress Info */}
-        <div className="flex items-center gap-3.5 sm:gap-4">
-          <span
-            className="grid place-items-center h-12 w-12 sm:h-14 sm:w-14 rounded-2xl text-white shrink-0 border-2 border-white/20 shadow-xs"
-            style={{
-              backgroundColor: catAtual
-                ? comodoColor(catAtual.bg, catAtual.nome)
-                : "rgba(255, 255, 255, 0.2)",
-            }}
-          >
-            {(() => {
-              const I = catAtual ? iconFor(catAtual.icon) : Package;
-              return <I className="h-6 w-6 sm:h-7 sm:w-7" />;
-            })()}
-          </span>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-white capitalize">
-                {catAtual ? catAtual.nome : "Todos os itens"}
-              </h2>
-              {catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento && (
-                <span
-                  title="Orçamento estourado"
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-200 bg-rose-500/30 px-2.5 py-0.5 rounded-full border border-rose-400/40"
-                >
-                  <AlertTriangle className="h-3 w-3" /> Acima da meta
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2 mt-1 text-xs text-emerald-100/85 font-semibold flex-wrap">
-              <span>
-                {compradosCategoria} {compradosCategoria === 1 ? "comprado" : "comprados"}
+      <motion.div
+        variants={itemVariants}
+        className="card-sticker p-4 sm:p-5 bg-gradient-to-br from-[#1F5C43] via-[#1a4f3a] to-[#154230] text-white flex flex-col gap-3 shadow-[3px_3px_0_rgba(19,60,43,0.6)] border-2 border-[#16382a]"
+      >
+        <motion.div
+          key={catAtualId}
+          initial={{ opacity: 0.7, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+          className="w-full flex flex-col gap-3"
+        >
+          {/* Linha Principal: Informações do Cômodo e Total Gasto */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-6">
+            {/* Category Icon, Title, and Progress Info */}
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+              <span
+                className="grid place-items-center h-11 w-11 sm:h-13 sm:w-13 rounded-2xl text-white shrink-0 border-2 border-white/20 shadow-xs"
+                style={{
+                  backgroundColor: catAtual
+                    ? comodoColor(catAtual.bg, catAtual.nome)
+                    : "rgba(255, 255, 255, 0.2)",
+                }}
+              >
+                {(() => {
+                  const I = catAtual ? iconFor(catAtual.icon) : Package;
+                  return <I className="h-5 w-5 sm:h-6 sm:w-6" />;
+                })()}
               </span>
-              {ganhadosCategoria > 0 && (
-                <>
-                  <span className="text-white/40">·</span>
-                  <span className="text-amber-300 font-bold inline-flex items-center gap-1">
-                    <Gift className="w-3 h-3" />
-                    {ganhadosCategoria} {ganhadosCategoria === 1 ? "ganho" : "ganhos"}
-                  </span>
-                </>
-              )}
-              <span className="text-white/40">·</span>
-              <span>de {itensCategoria.length} itens</span>
-              {itensCategoria.length > 0 && (
-                <span className="ml-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white border border-white/30">
-                  {Math.round(
-                    ((compradosCategoria + ganhadosCategoria) / itensCategoria.length) * 100,
-                  )}
-                  % concluído
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Metrics (Total Gasto, Dinheiro/VR, Divisão do Casal em Chips) */}
-        <div className="flex items-center gap-5 sm:gap-6 lg:gap-8 flex-wrap">
-          {/* Total Gasto */}
-          <div className="flex flex-col justify-center min-w-[120px]">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-200/90 mb-1">
-              Total gasto
-            </span>
-            <span
-              className={cn(
-                "font-display text-2xl sm:text-3xl font-extrabold leading-none tabular-nums tracking-tight text-white",
-                estourouAtual && "text-rose-300",
-              )}
-            >
-              {brl(totalCategoria)}
-            </span>
-            {metaAtual > 0 ? (
-              <div className="mt-1.5 flex items-center gap-1.5 text-[11px] font-semibold flex-wrap">
-                <span className="text-emerald-200/75">meta: {brl(metaAtual)}</span>
-                {!estourouAtual ? (
-                  <span className="text-emerald-300 font-bold">
-                    · resta {brl(restanteAtual)}
-                  </span>
-                ) : (
-                  <span className="text-rose-300 font-bold">
-                    · +{brl(totalCategoria - metaAtual)}
-                  </span>
-                )}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="h-10 w-px bg-white/20 hidden sm:block" />
-
-          {/* Dinheiro & VR */}
-          <div className="flex flex-col justify-center">
-            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-200/90 mb-1">
-              <Wallet className="w-3.5 h-3.5 text-emerald-300" /> Dinheiro
-            </div>
-            <span className="font-display text-lg sm:text-xl font-bold text-white tabular-nums leading-none">
-              {brl(totalDinheiro)}
-            </span>
-            {totalVr > 0 && (
-              <span className="text-[11px] font-semibold text-emerald-200/80 mt-1.5">
-                VR: <span className="tabular-nums font-bold text-white">{brl(totalVr)}</span>
-              </span>
-            )}
-          </div>
-
-          {/* Divisão do Casal */}
-          {isCasal && (
-            <>
-              <div className="h-10 w-px bg-white/20 hidden md:block" />
-              <div className="flex flex-col justify-center gap-1.5">
-                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-200/90">
-                  <Users className="w-3.5 h-3.5 text-emerald-300" /> Divisão do Casal
-                </div>
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  {/* Pessoa 1 */}
-                  <div
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 border border-white/25 shadow-2xs backdrop-blur-xs"
-                    title={`${p1}: ${brl(totalP1)}`}
-                  >
-                    <span className="w-4.5 h-4.5 rounded-md bg-emerald-400 text-emerald-950 font-bold text-[10px] grid place-items-center uppercase shrink-0">
-                      {p1.trim()[0]}
-                    </span>
-                    <span className="text-xs font-semibold text-white/90">
-                      {p1.split(" ")[0]}:
-                    </span>
-                    <span className="text-xs font-bold text-white tabular-nums">
-                      {brl(totalP1)}
-                    </span>
-                  </div>
-
-                  {/* Pessoa 2 */}
-                  <div
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 border border-white/25 shadow-2xs backdrop-blur-xs"
-                    title={`${p2}: ${brl(totalP2)}`}
-                  >
-                    <span className="w-4.5 h-4.5 rounded-md bg-[#EF6F6C] text-white font-bold text-[10px] grid place-items-center uppercase shrink-0">
-                      {p2.trim()[0]}
-                    </span>
-                    <span className="text-xs font-semibold text-white/90">
-                      {p2.split(" ")[0]}:
-                    </span>
-                    <span className="text-xs font-bold text-white tabular-nums">
-                      {brl(totalP2)}
-                    </span>
-                  </div>
-
-                  {/* Conjunto */}
-                  {totalConjunto > 0 && (
-                    <div
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 border border-white/25 shadow-2xs backdrop-blur-xs"
-                      title={`Juntos: ${brl(totalConjunto)}`}
+                  <h2 className="font-display text-base sm:text-lg font-bold tracking-tight text-white capitalize truncate">
+                    {catAtual ? catAtual.nome : "Todos os itens"}
+                  </h2>
+                  {catAtual?.metaOrcamento && totalCategoria > catAtual.metaOrcamento && (
+                    <span
+                      title="Orçamento estourado"
+                      className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-rose-200 bg-rose-500/30 px-2 py-0.5 rounded-full border border-rose-400/40"
                     >
-                      <span className="w-4.5 h-4.5 rounded-md bg-emerald-300/30 text-emerald-200 font-bold text-[10px] grid place-items-center shrink-0">
-                        <Users className="w-2.5 h-2.5" />
-                      </span>
-                      <span className="text-xs font-semibold text-white/90">Juntos:</span>
-                      <span className="text-xs font-bold text-white tabular-nums">
-                        {brl(totalConjunto)}
-                      </span>
-                    </div>
+                      <AlertTriangle className="h-3 w-3" /> Acima da meta
+                    </span>
                   )}
-
-                  {/* Ganhos / Presentes */}
-                  {totalGanhosCategoria > 0 && (
-                    <div
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-400/20 border border-amber-300/35 shadow-2xs backdrop-blur-xs"
-                      title={`Ganhos / Presentes: ${brl(totalGanhosCategoria)}`}
-                    >
-                      <span className="w-4.5 h-4.5 rounded-md bg-amber-400 text-amber-950 font-bold text-[10px] grid place-items-center shrink-0">
-                        <Gift className="w-2.5 h-2.5" />
+                </div>
+                <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 text-xs text-emerald-100/85 font-semibold flex-wrap">
+                  <span>
+                    {compradosCategoria} {compradosCategoria === 1 ? "comprado" : "comprados"}
+                  </span>
+                  {ganhadosCategoria > 0 && (
+                    <>
+                      <span className="text-white/40">·</span>
+                      <span className="text-amber-300 font-bold inline-flex items-center gap-1">
+                        <Gift className="w-3 h-3" />
+                        {ganhadosCategoria} {ganhadosCategoria === 1 ? "ganho" : "ganhos"}
                       </span>
-                      <span className="text-xs font-semibold text-amber-200">
-                        Ganhos:
-                      </span>
-                      <span className="text-xs font-bold text-white tabular-nums">
-                        {brl(totalGanhosCategoria)}
-                      </span>
-                    </div>
+                    </>
+                  )}
+                  <span className="text-white/40">·</span>
+                  <span>de {itensCategoria.length} itens</span>
+                  {itensCategoria.length > 0 && (
+                    <span className="ml-1 text-[10px] sm:text-[11px] font-bold px-2 py-0.2 rounded-full bg-white/20 text-white border border-white/30">
+                      {Math.round(
+                        ((compradosCategoria + ganhadosCategoria) / itensCategoria.length) * 100,
+                      )}
+                      % concluído
+                    </span>
                   )}
                 </div>
               </div>
-            </>
-          )}
-        </div>
-      </div>
+            </div>
+
+            {/* Total Gasto */}
+            <div className="flex flex-col sm:items-end justify-center shrink-0">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-200/90 mb-0.5">
+                Total gasto
+              </span>
+              <span
+                className={cn(
+                  "font-display text-xl sm:text-2xl lg:text-3xl font-extrabold leading-none tabular-nums tracking-tight text-white",
+                  estourouAtual && "text-rose-300",
+                )}
+              >
+                {brl(totalCategoria)}
+              </span>
+              {metaAtual > 0 && (
+                <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold flex-wrap">
+                  <span className="text-emerald-200/75">meta: {brl(metaAtual)}</span>
+                  {!estourouAtual ? (
+                    <span className="text-emerald-300 font-bold">· resta {brl(restanteAtual)}</span>
+                  ) : (
+                    <span className="text-rose-300 font-bold">
+                      · +{brl(totalCategoria - metaAtual)}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Chavinha que abre e fecha os detalhes */}
+          <button
+            type="button"
+            onClick={() => setDetalhesResumoAberto((prev) => !prev)}
+            className="w-full flex items-center justify-between py-1.5 px-3 rounded-xl bg-black/20 hover:bg-black/30 border border-white/15 transition-all text-xs font-semibold text-emerald-100 cursor-pointer select-none active:scale-[0.99] group mt-0.5"
+            aria-expanded={detalhesResumoAberto}
+            aria-label="Alternar detalhes de pagamento e divisão do casal"
+          >
+            <div className="flex items-center gap-2.5">
+              {/* Visual da chavinha tipo switch toggle */}
+              <div
+                className={cn(
+                  "w-7 h-4 rounded-full p-0.5 transition-colors relative flex items-center shrink-0 duration-200",
+                  detalhesResumoAberto ? "bg-emerald-400" : "bg-white/25",
+                )}
+              >
+                <div
+                  className={cn(
+                    "w-3 h-3 rounded-full shadow-xs transition-transform duration-200",
+                    detalhesResumoAberto
+                      ? "translate-x-3 bg-emerald-950"
+                      : "translate-x-0 bg-white",
+                  )}
+                />
+              </div>
+              <span className="text-white/95 font-medium text-[11px] sm:text-xs">
+                {detalhesResumoAberto
+                  ? "Ocultar detalhes da divisão"
+                  : "Ver detalhes (Dinheiro, VR e divisão do casal)"}
+              </span>
+            </div>
+            <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-200 group-hover:text-white transition-colors">
+              <span>{detalhesResumoAberto ? "Recolher" : "Detalhes"}</span>
+              <ChevronDown
+                className={cn(
+                  "w-3.5 h-3.5 transition-transform duration-200",
+                  detalhesResumoAberto && "rotate-180",
+                )}
+              />
+            </div>
+          </button>
+
+          {/* Conteúdo Detalhado Expansível */}
+          <AnimatePresence initial={false}>
+            {detalhesResumoAberto && (
+              <motion.div
+                key="detalhes-resumo-casal"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                className="overflow-hidden w-full"
+              >
+                <div className="pt-3 border-t border-white/15 flex flex-col md:flex-row md:items-start gap-4 sm:gap-6 lg:gap-8 flex-wrap">
+                  {/* Dinheiro & VR */}
+                  <div className="flex flex-col justify-center min-w-[120px]">
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-200/90 mb-1">
+                      <Wallet className="w-3.5 h-3.5 text-emerald-300" /> Dinheiro
+                    </div>
+                    <span className="font-display text-lg sm:text-xl font-bold text-white tabular-nums leading-none">
+                      {brl(totalDinheiro)}
+                    </span>
+                    {totalVr > 0 && (
+                      <span className="text-[11px] font-semibold text-emerald-200/80 mt-1.5">
+                        VR:{" "}
+                        <span className="tabular-nums font-bold text-white">{brl(totalVr)}</span>
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Divisão do Casal */}
+                  {isCasal && (
+                    <>
+                      <div className="h-10 w-px bg-white/20 hidden md:block" />
+                      <div className="flex flex-col justify-center gap-1.5">
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-200/90">
+                          <Users className="w-3.5 h-3.5 text-emerald-300" /> Divisão do Casal
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* Pessoa 1 */}
+                          <div
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 border border-white/25 shadow-2xs backdrop-blur-xs"
+                            title={`${p1}: ${brl(totalP1)}`}
+                          >
+                            <span className="w-4.5 h-4.5 rounded-md bg-emerald-400 text-emerald-950 font-bold text-[10px] grid place-items-center uppercase shrink-0">
+                              {p1.trim()[0]}
+                            </span>
+                            <span className="text-xs font-semibold text-white/90">
+                              {p1.split(" ")[0]}:
+                            </span>
+                            <span className="text-xs font-bold text-white tabular-nums">
+                              {brl(totalP1)}
+                            </span>
+                          </div>
+
+                          {/* Pessoa 2 */}
+                          <div
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 border border-white/25 shadow-2xs backdrop-blur-xs"
+                            title={`${p2}: ${brl(totalP2)}`}
+                          >
+                            <span className="w-4.5 h-4.5 rounded-md bg-[#EF6F6C] text-white font-bold text-[10px] grid place-items-center uppercase shrink-0">
+                              {p2.trim()[0]}
+                            </span>
+                            <span className="text-xs font-semibold text-white/90">
+                              {p2.split(" ")[0]}:
+                            </span>
+                            <span className="text-xs font-bold text-white tabular-nums">
+                              {brl(totalP2)}
+                            </span>
+                          </div>
+
+                          {/* Conjunto */}
+                          {totalConjunto > 0 && (
+                            <div
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 border border-white/25 shadow-2xs backdrop-blur-xs"
+                              title={`Juntos: ${brl(totalConjunto)}`}
+                            >
+                              <span className="w-4.5 h-4.5 rounded-md bg-emerald-300/30 text-emerald-200 font-bold text-[10px] grid place-items-center shrink-0">
+                                <Users className="w-2.5 h-2.5" />
+                              </span>
+                              <span className="text-xs font-semibold text-white/90">Juntos:</span>
+                              <span className="text-xs font-bold text-white tabular-nums">
+                                {brl(totalConjunto)}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Ganhos / Presentes */}
+                          {totalGanhosCategoria > 0 && (
+                            <div
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-400/20 border border-amber-300/35 shadow-2xs backdrop-blur-xs"
+                              title={`Ganhos / Presentes: ${brl(totalGanhosCategoria)}`}
+                            >
+                              <span className="w-4.5 h-4.5 rounded-md bg-amber-400 text-amber-950 font-bold text-[10px] grid place-items-center shrink-0">
+                                <Gift className="w-2.5 h-2.5" />
+                              </span>
+                              <span className="text-xs font-semibold text-amber-200">Ganhos:</span>
+                              <span className="text-xs font-bold text-white tabular-nums">
+                                {brl(totalGanhosCategoria)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </motion.div>
 
       {/* Filter Bar */}
-      <div className="flex flex-col sm:flex-row items-center gap-2.5">
+      <motion.div
+        variants={itemVariants}
+        className="flex flex-col sm:flex-row items-center gap-2.5"
+      >
         <div className="relative w-full sm:flex-1">
           <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <Input
@@ -835,10 +966,11 @@ function PlanejamentoPage() {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Horizontal Items List matching media_1791749066370.png */}
-      <div
+      <motion.div
+        variants={itemVariants}
         className={cn(
           "flex flex-col gap-2.5 transition-opacity duration-200",
           itensQ.isFetching && !itensQ.isLoading && "opacity-80",
@@ -853,7 +985,12 @@ function PlanejamentoPage() {
         )}
 
         {!itensQ.isLoading && itensFiltrados.length === 0 && (
-          <div className="card-sticker p-12 text-center bg-card">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="card-sticker p-12 text-center bg-card"
+          >
             <Package className="h-10 w-10 mx-auto text-muted-foreground/60 mb-3" />
             <h3 className="font-display font-bold text-lg text-foreground mb-1">
               Nenhum item encontrado
@@ -874,330 +1011,340 @@ function PlanejamentoPage() {
             >
               <Plus className="h-4 w-4 mr-1.5" /> Adicionar item
             </Button>
-          </div>
+          </motion.div>
         )}
 
-        {itensFiltrados.map((it) => {
-          const itemCategoria = categorias.find((c) => c.id === it.categoriaId);
-          const Icon = iconFor(itemCategoria?.icon ?? "package");
-          const isPresente = ["ganho", "presente"].includes(it.origem ?? "");
-          const isPrometido = it.origem === "prometido";
-          const responsavelNum = it.responsavelId;
+        <AnimatePresence mode="popLayout" initial={false}>
+          {itensFiltrados.map((it, idx) => {
+            const itemCategoria = categorias.find((c) => c.id === it.categoriaId);
+            const Icon = iconFor(itemCategoria?.icon ?? "package");
+            const isPresente = ["ganho", "presente"].includes(it.origem ?? "");
+            const isPrometido = it.origem === "prometido";
+            const responsavelNum = it.responsavelId;
 
-          const nomeResponsavel =
-            responsavelNum === 1
-              ? p1.split(" ")[0]
-              : responsavelNum === 2
-                ? p2.split(" ")[0]
-                : "Casal";
+            const nomeResponsavel =
+              responsavelNum === 1
+                ? p1.split(" ")[0]
+                : responsavelNum === 2
+                  ? p2.split(" ")[0]
+                  : "Casal";
 
-          return (
-            <motion.div
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.15, ease: "easeOut" }}
-              key={it.id}
-              className={cn(
-                "group card-sticker p-3 sm:p-4 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[2px_2px_0_var(--border)] transition-all",
-                it.comprado && "bg-muted/30 border-border/60 shadow-none",
-              )}
-            >
-              {/* Left: Checkbox + Thumbnail + Info */}
-              <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
-                {/* Checkbox */}
-                <Checkbox
-                  className={cn(
-                    "h-5 w-5 rounded-md border-2 shrink-0 cursor-pointer",
-                    it.comprado &&
-                      "data-[state=checked]:bg-primary data-[state=checked]:border-primary",
-                  )}
-                  checked={it.comprado}
-                  onCheckedChange={() =>
-                    toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
-                  }
-                  aria-label={
-                    it.comprado
-                      ? isPresente
-                        ? "Desmarcar ganhado"
-                        : "Desmarcar comprado"
-                      : isPresente
-                        ? "Marcar como ganhado"
-                        : "Marcar como comprado"
-                  }
-                />
-
-                {/* Thumbnail / Room Icon */}
-                {it.fotoUrl && !imageErrors[it.id] ? (
-                  <button
-                    type="button"
-                    onClick={() => setImagemAmpliada(it)}
-                    className={cn(
-                      "h-12 w-12 rounded-xl border-2 border-border overflow-hidden shrink-0 bg-background transition-transform hover:scale-105",
-                      it.comprado && "opacity-60 grayscale",
-                    )}
-                    title="Ver foto do item"
-                  >
-                    <img
-                      src={it.fotoUrl}
-                      alt={it.nome}
-                      className="h-full w-full object-cover"
-                      onError={() => setImageErrors((prev) => ({ ...prev, [it.id]: true }))}
-                    />
-                  </button>
-                ) : (
-                  <div
-                    className={cn(
-                      "h-12 w-12 rounded-xl border-2 border-border/60 grid place-items-center text-white shrink-0 shadow-xs",
-                      it.comprado && "opacity-60 grayscale",
-                    )}
-                    style={{
-                      backgroundColor: itemCategoria
-                        ? comodoColor(itemCategoria.bg, itemCategoria.nome)
-                        : "var(--primary)",
-                    }}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </div>
+            return (
+              <motion.div
+                key={it.id}
+                layout="position"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{
+                  duration: 0.28,
+                  delay: Math.min(idx * 0.025, 0.3),
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+                className={cn(
+                  "group card-sticker p-3 sm:p-4 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[2px_2px_0_var(--border)] transition-all",
+                  it.comprado && "bg-muted/30 border-border/60 shadow-none",
                 )}
+              >
+                {/* Left: Checkbox + Thumbnail + Info */}
+                <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
+                  {/* Checkbox */}
+                  <Checkbox
+                    className={cn(
+                      "h-5 w-5 rounded-md border-2 shrink-0 cursor-pointer",
+                      it.comprado &&
+                        "data-[state=checked]:bg-primary data-[state=checked]:border-primary",
+                    )}
+                    checked={it.comprado}
+                    onCheckedChange={() =>
+                      toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
+                    }
+                    aria-label={
+                      it.comprado
+                        ? isPresente
+                          ? "Desmarcar ganhado"
+                          : "Desmarcar comprado"
+                        : isPresente
+                          ? "Marcar como ganhado"
+                          : "Marcar como comprado"
+                    }
+                  />
 
-                {/* Main Title & Subtitle Info */}
-                <div className="flex-1 min-w-0 py-0.5">
-                  {/* Title + Badges */}
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                  {/* Thumbnail / Room Icon */}
+                  {it.fotoUrl && !imageErrors[it.id] ? (
                     <button
                       type="button"
-                      onClick={() => setEditandoItem(it)}
+                      onClick={() => setImagemAmpliada(it)}
                       className={cn(
-                        "font-bold text-sm sm:text-base text-foreground hover:text-primary transition-colors text-left truncate max-w-full block",
-                        it.comprado && "line-through text-muted-foreground",
+                        "h-12 w-12 rounded-xl border-2 border-border overflow-hidden shrink-0 bg-background transition-transform hover:scale-105",
+                        it.comprado && "opacity-60 grayscale",
                       )}
-                      title={it.nome}
+                      title="Ver foto do item"
                     >
-                      {toTitleCase(it.nome)}
+                      <img
+                        src={it.fotoUrl}
+                        alt={it.nome}
+                        className="h-full w-full object-cover"
+                        onError={() => setImageErrors((prev) => ({ ...prev, [it.id]: true }))}
+                      />
                     </button>
+                  ) : (
+                    <div
+                      className={cn(
+                        "h-12 w-12 rounded-xl border-2 border-border/60 grid place-items-center text-white shrink-0 shadow-xs",
+                        it.comprado && "opacity-60 grayscale",
+                      )}
+                      style={{
+                        backgroundColor: itemCategoria
+                          ? comodoColor(itemCategoria.bg, itemCategoria.nome)
+                          : "var(--primary)",
+                      }}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+                  )}
 
-                    {/* Badge Origem (Ganho/Presente/Prometido) */}
-                    {isPresente && (
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] py-0 px-2 h-4.5 font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300"
-                      >
-                        {it.comprado ? "Ganhado" : "Ganho"}
-                      </Badge>
-                    )}
-                    {isPrometido && (
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] py-0 px-2 h-4.5 font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300"
-                      >
-                        Prometido
-                      </Badge>
-                    )}
-
-                    {/* Badge Prioridade Alta / Urgente */}
-                    {it.prioridade === "alta" && (
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] py-0 px-2 h-4.5 font-bold bg-destructive/10 text-destructive border-destructive/30"
-                      >
-                        Urgente
-                      </Badge>
-                    )}
-
-                    {/* Badge Responsável / Casal */}
-                    {isCasal && (
-                      <Badge
-                        variant="outline"
+                  {/* Main Title & Subtitle Info */}
+                  <div className="flex-1 min-w-0 py-0.5">
+                    {/* Title + Badges */}
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <button
+                        type="button"
+                        onClick={() => setEditandoItem(it)}
                         className={cn(
-                          "text-[10px] py-0 px-2 h-4.5 font-bold border",
-                          responsavelNum === 1
-                            ? "bg-p1/10 text-p1 border-p1/30"
-                            : responsavelNum === 2
-                              ? "bg-p2/15 text-p2 border-p2/40"
-                              : "bg-muted text-muted-foreground border-border",
+                          "font-bold text-sm sm:text-base text-foreground hover:text-primary transition-colors text-left truncate max-w-full block",
+                          it.comprado && "line-through text-muted-foreground",
                         )}
+                        title={it.nome}
                       >
-                        {nomeResponsavel}
-                      </Badge>
-                    )}
-                  </div>
+                        {toTitleCase(it.nome)}
+                      </button>
 
-                  {/* Subtitle details: Cômodo • Forma Pagto • Marca • Loja */}
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap font-medium">
-                    <span className="truncate">{itemCategoria?.nome ?? "Sem cômodo"}</span>
-                    <span>•</span>
-                    <span>{it.pagamento === "vr" ? "VR/VA" : "Dinheiro"}</span>
-
-                    {it.marca && (
-                      <>
-                        <span>•</span>
-                        <span className="text-foreground/80 font-semibold">
-                          {toTitleCase(it.marca)}
-                        </span>
-                      </>
-                    )}
-
-                    {it.loja && (
-                      <>
-                        <span>•</span>
-                        <div className="flex items-center gap-1 text-foreground/85 font-semibold">
-                          <LogoBadge
-                            urls={getLogoUrls(it.loja, it.linkProduto)}
-                            className="w-3.5 h-3.5 rounded object-contain shrink-0"
-                          />
-                          <span>em {toTitleCase(it.loja)}</span>
-                          {it.linkProduto && (
-                            <a
-                              href={it.linkProduto}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-muted-foreground hover:text-primary transition-colors ml-0.5"
-                              title="Abrir no site da loja"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <ExternalLink className="h-3 w-3 inline" />
-                            </a>
-                          )}
-                        </div>
-                      </>
-                    )}
-                    {it.dataCompra && (
-                      <>
-                        <span>•</span>
-                        <span
-                          className={
-                            it.comprado
-                              ? "text-emerald-700 dark:text-emerald-400 font-semibold"
-                              : "text-amber-700 dark:text-amber-400 font-semibold"
-                          }
+                      {/* Badge Origem (Ganho/Presente/Prometido) */}
+                      {isPresente && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] py-0 px-2 h-4.5 font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300"
                         >
-                          {it.comprado
-                            ? isPresente
-                              ? "Ganhado em "
-                              : "Comprado em "
-                            : "Previsão: "}
-                          {formatDate(it.dataCompra)}
-                        </span>
-                      </>
-                    )}
+                          {it.comprado ? "Ganhado" : "Ganho"}
+                        </Badge>
+                      )}
+                      {isPrometido && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] py-0 px-2 h-4.5 font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300"
+                        >
+                          Prometido
+                        </Badge>
+                      )}
+
+                      {/* Badge Prioridade Alta / Urgente */}
+                      {it.prioridade === "alta" && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] py-0 px-2 h-4.5 font-bold bg-destructive/10 text-destructive border-destructive/30"
+                        >
+                          Urgente
+                        </Badge>
+                      )}
+
+                      {/* Badge Responsável / Casal */}
+                      {isCasal && (
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "text-[10px] py-0 px-2 h-4.5 font-bold border",
+                            responsavelNum === 1
+                              ? "bg-p1/10 text-p1 border-p1/30"
+                              : responsavelNum === 2
+                                ? "bg-p2/15 text-p2 border-p2/40"
+                                : "bg-muted text-muted-foreground border-border",
+                          )}
+                        >
+                          {nomeResponsavel}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Subtitle details: Cômodo • Forma Pagto • Marca • Loja */}
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap font-medium">
+                      <span className="truncate">{itemCategoria?.nome ?? "Sem cômodo"}</span>
+                      <span>•</span>
+                      <span>{it.pagamento === "vr" ? "VR/VA" : "Dinheiro"}</span>
+
+                      {it.marca && (
+                        <>
+                          <span>•</span>
+                          <span className="text-foreground/80 font-semibold">
+                            {toTitleCase(it.marca)}
+                          </span>
+                        </>
+                      )}
+
+                      {it.loja && (
+                        <>
+                          <span>•</span>
+                          <div className="flex items-center gap-1 text-foreground/85 font-semibold">
+                            <LogoBadge
+                              urls={getLogoUrls(it.loja, it.linkProduto)}
+                              className="w-3.5 h-3.5 rounded object-contain shrink-0"
+                            />
+                            <span>em {toTitleCase(it.loja)}</span>
+                            {it.linkProduto && (
+                              <a
+                                href={it.linkProduto}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-muted-foreground hover:text-primary transition-colors ml-0.5"
+                                title="Abrir no site da loja"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <ExternalLink className="h-3 w-3 inline" />
+                              </a>
+                            )}
+                          </div>
+                        </>
+                      )}
+                      {it.dataCompra && (
+                        <>
+                          <span>•</span>
+                          <span
+                            className={
+                              it.comprado
+                                ? "text-emerald-700 dark:text-emerald-400 font-semibold"
+                                : "text-amber-700 dark:text-amber-400 font-semibold"
+                            }
+                          >
+                            {it.comprado
+                              ? isPresente
+                                ? "Ganhado em "
+                                : "Comprado em "
+                              : "Previsão: "}
+                            {formatDate(it.dataCompra)}
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Right: Price + Installments + Menu */}
-              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pt-2.5 sm:pt-0 border-t border-border/40 sm:border-t-0 sm:pl-3 sm:border-l sm:border-border/30">
-                <div className="text-left sm:text-right">
-                  <div
-                    className={cn(
-                      "font-display font-bold text-base sm:text-lg tabular-nums leading-none",
-                      it.comprado ? "text-muted-foreground" : "text-foreground",
-                    )}
-                  >
-                    {brl(it.preco * it.quantidade)}
-                  </div>
-                  <div className="text-[11px] text-muted-foreground font-semibold mt-1">
-                    {(it.parcelas ?? 1) > 1 ? (
-                      (() => {
-                        const status = calcularStatusParcelas(it);
-                        if (it.comprado && status.quitado) {
-                          return (
-                            <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold">
+                {/* Right: Price + Installments + Menu */}
+                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pt-2.5 sm:pt-0 border-t border-border/40 sm:border-t-0 sm:pl-3 sm:border-l sm:border-border/30">
+                  <div className="text-left sm:text-right">
+                    <div
+                      className={cn(
+                        "font-display font-bold text-base sm:text-lg tabular-nums leading-none",
+                        it.comprado ? "text-muted-foreground" : "text-foreground",
+                      )}
+                    >
+                      {brl(it.preco * it.quantidade)}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground font-semibold mt-1">
+                      {(it.parcelas ?? 1) > 1 ? (
+                        (() => {
+                          const status = calcularStatusParcelas(it);
+                          if (it.comprado && status.quitado) {
+                            return (
+                              <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold">
+                                <span>
+                                  {it.quantidade > 1 ? `${it.quantidade} un · ` : ""}
+                                  {it.parcelas}x de {brl(status.valorParcela)}
+                                </span>
+                                <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9px] uppercase tracking-wide">
+                                  Quitado
+                                </span>
+                              </span>
+                            );
+                          }
+                          if (it.comprado && status.ativo && status.parcelaAtualMes > 0) {
+                            return (
                               <span>
                                 {it.quantidade > 1 ? `${it.quantidade} un · ` : ""}
-                                {it.parcelas}x de {brl(status.valorParcela)}
+                                <strong className="text-foreground">
+                                  {status.parcelaAtualMes}ª de {it.parcelas}x
+                                </strong>{" "}
+                                de {brl(status.valorParcela)}
+                                {status.parcelasRestantes > 1 && (
+                                  <span className="text-muted-foreground font-normal">
+                                    {" "}
+                                    ({status.parcelasRestantes} restantes)
+                                  </span>
+                                )}
+                                {(it.jurosMensal ?? 0) > 0 && " (com juros)"}
                               </span>
-                              <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9px] uppercase tracking-wide">
-                                Quitado
-                              </span>
-                            </span>
-                          );
-                        }
-                        if (it.comprado && status.ativo && status.parcelaAtualMes > 0) {
+                            );
+                          }
                           return (
                             <span>
                               {it.quantidade > 1 ? `${it.quantidade} un · ` : ""}
-                              <strong className="text-foreground">
-                                {status.parcelaAtualMes}ª de {it.parcelas}x
-                              </strong>{" "}
-                              de {brl(status.valorParcela)}
-                              {status.parcelasRestantes > 1 && (
-                                <span className="text-muted-foreground font-normal">
-                                  {" "}
-                                  ({status.parcelasRestantes} restantes)
-                                </span>
-                              )}
+                              {it.parcelas}x de {brl(status.valorParcela)}
                               {(it.jurosMensal ?? 0) > 0 && " (com juros)"}
                             </span>
                           );
-                        }
-                        return (
-                          <span>
-                            {it.quantidade > 1 ? `${it.quantidade} un · ` : ""}
-                            {it.parcelas}x de {brl(status.valorParcela)}
-                            {(it.jurosMensal ?? 0) > 0 && " (com juros)"}
-                          </span>
-                        );
-                      })()
-                    ) : it.quantidade > 1 ? (
-                      <span>
-                        {it.quantidade}x {brl(it.preco)}
-                      </span>
-                    ) : (
-                      <span>À vista</span>
-                    )}
+                        })()
+                      ) : it.quantidade > 1 ? (
+                        <span>
+                          {it.quantidade}x {brl(it.preco)}
+                        </span>
+                      ) : (
+                        <span>À vista</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Menu Actions */}
+                  <div className="shrink-0">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                          title="Opções"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => setEditandoItem(it)}>
+                          <Pencil className="h-4 w-4 mr-2" /> Editar item
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            toggleComprado.mutate({ id: it.id, comprado: !it.comprado })
+                          }
+                        >
+                          <Check className="h-4 w-4 mr-2" />
+                          {it.comprado
+                            ? isPresente
+                              ? "Desmarcar ganhado"
+                              : "Marcar pendente"
+                            : isPresente
+                              ? "Marcar como ganhado"
+                              : "Marcar comprado"}
+                        </DropdownMenuItem>
+                        {it.linkProduto && (
+                          <DropdownMenuItem asChild>
+                            <a href={it.linkProduto} target="_blank" rel="noreferrer">
+                              <ExternalLink className="h-4 w-4 mr-2" /> Abrir no site
+                            </a>
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => setExcluindoItem(it)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" /> Remover
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
-
-                {/* Menu Actions */}
-                <div className="shrink-0">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                        title="Opções"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem onClick={() => setEditandoItem(it)}>
-                        <Pencil className="h-4 w-4 mr-2" /> Editar item
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => toggleComprado.mutate({ id: it.id, comprado: !it.comprado })}
-                      >
-                        <Check className="h-4 w-4 mr-2" />
-                        {it.comprado
-                          ? isPresente
-                            ? "Desmarcar ganhado"
-                            : "Marcar pendente"
-                          : isPresente
-                            ? "Marcar como ganhado"
-                            : "Marcar comprado"}
-                      </DropdownMenuItem>
-                      {it.linkProduto && (
-                        <DropdownMenuItem asChild>
-                          <a href={it.linkProduto} target="_blank" rel="noreferrer">
-                            <ExternalLink className="h-4 w-4 mr-2" /> Abrir no site
-                          </a>
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => setExcluindoItem(it)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" /> Remover
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
 
         {/* Loading skeleton for next page */}
         {itensQ.isFetchingNextPage && (
@@ -1220,7 +1367,7 @@ function PlanejamentoPage() {
             </Button>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Modals & Dialogs (All original features preserved) */}
       <CategoriaFormModal open={novaCategoria} onOpenChange={setNovaCategoria} />
@@ -1327,6 +1474,6 @@ function PlanejamentoPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </motion.div>
   );
 }

@@ -74,7 +74,7 @@ public class AuthServiceTests
 
         Assert.NotNull(token);
         Assert.True(token.Length > 0);
-        Assert.InRange(expiraEm, DateTime.UtcNow.AddDays(6).AddHours(23), DateTime.UtcNow.AddDays(7).AddSeconds(1));
+        Assert.InRange(expiraEm, DateTime.UtcNow.AddDays(29).AddHours(23), DateTime.UtcNow.AddDays(30).AddSeconds(1));
 
         mockCollection.Verify(c => c.UpdateOneAsync(
             It.IsAny<FilterDefinition<Usuario>>(),
