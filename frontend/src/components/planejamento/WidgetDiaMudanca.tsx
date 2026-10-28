@@ -270,13 +270,13 @@ export function WidgetDiaMudanca() {
           </Button>
         </div>
 
-        {/* Corpo Principal: Grid equilibrado entre Contagem Regressiva e Radar do Tempo */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-4 sm:gap-5 items-stretch relative z-10">
-          {/* Lado Esquerdo: Contagem Regressiva Hero */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-muted/40 dark:bg-muted/20 border border-border/80 flex flex-col justify-between space-y-4">
+        {/* Corpo Principal: Contagem Regressiva e Radar do Tempo unificados no mesmo card */}
+        <div className="p-5 sm:p-6 rounded-2xl bg-muted/40 dark:bg-muted/20 border border-border/80 space-y-4 relative z-10">
+          {/* Topo do card: Contagem Regressiva e Data Prevista */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             {diasRestantes !== null && diasRestantes > 0 ? (
               <>
-                <div className="flex items-baseline gap-3 flex-wrap">
+                <div className="flex items-baseline gap-2.5 flex-wrap">
                   <span className="font-display font-extrabold text-3xl sm:text-4xl text-primary leading-none tracking-tight tabular-nums">
                     {diasRestantes}
                   </span>
@@ -285,7 +285,7 @@ export function WidgetDiaMudanca() {
                   </span>
                 </div>
 
-                <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-card border border-border text-xs sm:text-sm font-semibold text-foreground shadow-2xs self-start">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-card border border-border text-xs sm:text-sm font-semibold text-foreground shadow-2xs self-start sm:self-auto">
                   <Calendar className="h-4 w-4 text-primary shrink-0" />
                   <span>
                     Data prevista:{" "}
@@ -294,20 +294,20 @@ export function WidgetDiaMudanca() {
                 </div>
               </>
             ) : diasRestantes === 0 ? (
-              <div className="space-y-2">
-                <h4 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-primary flex items-center gap-2">
+              <div className="space-y-1">
+                <h4 className="font-display text-xl sm:text-2xl font-black tracking-tight text-primary flex items-center gap-2">
                   É Hoje! Feliz Casa Nova! 🎉
                 </h4>
-                <p className="text-sm text-muted-foreground font-medium">
+                <p className="text-xs sm:text-sm text-muted-foreground font-medium">
                   Chegou o grande momento de começar essa nova etapa a dois! 🏠🥂
                 </p>
               </div>
             ) : (
-              <div className="space-y-2">
-                <h4 className="font-display text-xl sm:text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
+              <div className="space-y-1">
+                <h4 className="font-display text-lg sm:text-xl font-black tracking-tight text-foreground flex items-center gap-2">
                   Mudança realizada! 🏠🥂
                 </h4>
-                <p className="text-sm text-muted-foreground font-medium">
+                <p className="text-xs sm:text-sm text-muted-foreground font-medium">
                   Celebrando o novo lar desde{" "}
                   <strong className="text-foreground font-bold">{dataMudancaFormatada}</strong>
                 </p>
@@ -315,99 +315,96 @@ export function WidgetDiaMudanca() {
             )}
           </div>
 
-          {/* Lado Direito: Radar Meteorológico Open-Meteo */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-muted/40 dark:bg-muted/20 border border-border/80 flex flex-col justify-between">
-            {loadingClima ? (
-              <div className="flex flex-col items-center justify-center gap-2.5 text-xs text-muted-foreground py-6 my-auto">
-                <Loader2 className="h-5 w-5 animate-spin text-primary shrink-0" />
-                <span>Consultando previsão Open-Meteo...</span>
-              </div>
-            ) : previsaoDiaMudanca ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-card rounded-xl border border-border shadow-xs shrink-0">
-                      {renderIconeClima(infoClima?.icone)}
-                    </div>
-                    <div>
-                      <div className="flex items-baseline gap-1.5 font-display font-bold text-base sm:text-lg text-foreground">
-                        <span>{previsaoDiaMudanca.tempMax}°C</span>
-                        <span className="text-xs text-muted-foreground font-semibold">
-                          / {previsaoDiaMudanca.tempMin}°C
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground capitalize font-medium leading-none mt-0.5">
-                        {infoClima?.descricao}
-                      </p>
-                    </div>
-                  </div>
+          {/* Divisor interno suave entre a contagem e a previsão */}
+          <div className="border-t border-border/70" />
 
-                  <Badge
+          {/* Base do card: Radar Meteorológico Open-Meteo */}
+          {loadingClima ? (
+            <div className="flex items-center gap-2.5 text-xs text-muted-foreground py-1">
+              <Loader2 className="h-4 w-4 animate-spin text-primary shrink-0" />
+              <span>Consultando previsão Open-Meteo...</span>
+            </div>
+          ) : previsaoDiaMudanca ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-card rounded-xl border border-border shadow-xs shrink-0">
+                    {renderIconeClima(infoClima?.icone)}
+                  </div>
+                  <div>
+                    <div className="flex items-baseline gap-1.5 font-display font-bold text-base sm:text-lg text-foreground">
+                      <span>{previsaoDiaMudanca.tempMax}°C</span>
+                      <span className="text-xs text-muted-foreground font-semibold">
+                        / {previsaoDiaMudanca.tempMin}°C
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground capitalize font-medium leading-none mt-0.5">
+                      {infoClima?.descricao}
+                    </p>
+                  </div>
+                </div>
+
+                <Badge
+                  variant="outline"
+                  className={`text-[10px] font-bold uppercase px-2.5 py-0.5 border shadow-none ${
+                    risco.nivel === "alto"
+                      ? "border-red-500/30 text-red-600 bg-red-500/10"
+                      : risco.nivel === "medio"
+                        ? "border-amber-500/30 text-amber-600 bg-amber-500/10"
+                        : "border-emerald-500/30 text-emerald-600 bg-emerald-500/10"
+                  }`}
+                >
+                  {risco.badge}
+                </Badge>
+              </div>
+
+              <div className="flex items-center justify-between text-xs pt-2.5 border-t border-border/60 font-semibold text-muted-foreground">
+                <span className="flex items-center gap-1.5 text-foreground">
+                  <CloudRain className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                  {previsaoDiaMudanca.probabilidadeChuva}% chance de chuva
+                </span>
+                <span className="text-[11px] text-muted-foreground">{risco.titulo}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 font-display font-bold text-sm text-foreground">
+                <CloudSun className="h-4 w-4 text-amber-500" />
+                <span>Previsão do Tempo</span>
+              </div>
+
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed font-medium">
+                {usuario.cidadeMudanca
+                  ? `O monitoramento em tempo real de chuva e temperatura para ${
+                      usuario.cidadeMudanca.split(",")[0]
+                    } será ativado automaticamente 16 dias antes da data para proteger o transporte do enxoval.`
+                  : "Defina sua cidade para ativar a previsão meteorológica e alertas de chuva."}
+              </p>
+
+              {!usuario.cidadeMudanca && (
+                <div className="pt-1">
+                  <Button
                     variant="outline"
-                    className={`text-[10px] font-bold uppercase px-2.5 py-0.5 border shadow-none ${
-                      risco.nivel === "alto"
-                        ? "border-red-500/30 text-red-600 bg-red-500/10"
-                        : risco.nivel === "medio"
-                          ? "border-amber-500/30 text-amber-600 bg-amber-500/10"
-                          : "border-emerald-500/30 text-emerald-600 bg-emerald-500/10"
-                    }`}
+                    size="sm"
+                    onClick={() => setModalOpen(true)}
+                    className="h-7 px-2.5 text-xs font-bold rounded-lg cursor-pointer"
                   >
-                    {risco.badge}
-                  </Badge>
+                    Configurar local
+                  </Button>
                 </div>
+              )}
+            </div>
+          )}
 
-                <div className="flex items-center justify-between text-xs pt-2.5 border-t border-border/60 font-semibold text-muted-foreground">
-                  <span className="flex items-center gap-1.5 text-foreground">
-                    <CloudRain className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                    {previsaoDiaMudanca.probabilidadeChuva}% chance de chuva
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">{risco.titulo}</span>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3 my-auto">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 font-display font-bold text-sm text-foreground">
-                    <CloudSun className="h-4 w-4 text-amber-500" />
-                    <span>Previsão do Tempo</span>
-                  </div>
-                </div>
-
-                <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                  {usuario.cidadeMudanca
-                    ? `O monitoramento em tempo real de chuva e temperatura para ${
-                        usuario.cidadeMudanca.split(",")[0]
-                      } será ativado automaticamente 16 dias antes da data para proteger o transporte do enxoval.`
-                    : "Defina sua cidade para ativar a previsão meteorológica e alertas de chuva."}
-                </p>
-
-                <div className="pt-2.5 border-t border-border/60 flex items-center justify-between text-[11px] text-muted-foreground font-semibold">
-                  {!usuario.cidadeMudanca && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setModalOpen(true)}
-                      className="h-6 px-2 text-[10px] font-bold rounded-lg cursor-pointer"
-                    >
-                      Configurar local
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Dicas logísticas de transporte */}
-        {previsaoDiaMudanca && risco.dicas.length > 0 && (
-          <div className="mt-4 pt-3.5 border-t border-border/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs relative z-10">
-            <div className="flex items-center gap-2 text-foreground font-medium">
+          {/* Dicas logísticas de transporte */}
+          {previsaoDiaMudanca && risco.dicas.length > 0 && (
+            <div className="pt-2.5 border-t border-border/60 flex items-center gap-2 text-xs">
               <Info className="h-4 w-4 text-primary shrink-0" />
               <span className="font-bold text-foreground">Dica Logística:</span>
               <span className="text-muted-foreground italic">"{risco.dicas[0]}"</span>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {renderModal()}
