@@ -166,7 +166,7 @@ function PlanejamentoPage() {
   const [imagemAmpliada, setImagemAmpliada] = useState<Item | null>(null);
   const [excluindoItem, setExcluindoItem] = useState<Item | null>(null);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
-  const [detalhesResumoAberto, setDetalhesResumoAberto] = useState(false);
+  const [detalhesResumoAberto, setDetalhesResumoAberto] = useState(true);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -750,81 +750,160 @@ function PlanejamentoPage() {
             </div>
           </div>
 
-          {/* Chavinha que abre e fecha os detalhes */}
-          <button
-            type="button"
-            onClick={() => setDetalhesResumoAberto((prev) => !prev)}
-            className="w-full flex items-center justify-between py-1.5 px-3 rounded-xl bg-black/20 hover:bg-black/30 border border-white/15 transition-all text-xs font-semibold text-emerald-100 cursor-pointer select-none active:scale-[0.99] group mt-0.5"
-            aria-expanded={detalhesResumoAberto}
-            aria-label="Alternar detalhes de pagamento e divisão do casal"
-          >
-            <div className="flex items-center gap-2.5">
-              {/* Visual da chavinha tipo switch toggle */}
-              <div
-                className={cn(
-                  "w-7 h-4 rounded-full p-0.5 transition-colors relative flex items-center shrink-0 duration-200",
-                  detalhesResumoAberto ? "bg-emerald-400" : "bg-white/25",
+          {/* Conteúdo Detalhado: Sempre aberto e visível no PC/Desktop (md:block) */}
+          <div className="hidden md:block pt-3 border-t border-white/15 w-full">
+            <div className="flex flex-col md:flex-row md:items-start gap-4 sm:gap-6 lg:gap-8 flex-wrap">
+              {/* Dinheiro & VR */}
+              <div className="flex flex-col justify-center min-w-[120px]">
+                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-200/90 mb-1">
+                  <Wallet className="w-3.5 h-3.5 text-emerald-300" /> Dinheiro
+                </div>
+                <span className="font-display text-lg sm:text-xl font-bold text-white tabular-nums leading-none">
+                  {brl(totalDinheiro)}
+                </span>
+                {totalVr > 0 && (
+                  <span className="text-[11px] font-semibold text-emerald-200/80 mt-1.5">
+                    VR:{" "}
+                    <span className="tabular-nums font-bold text-white">{brl(totalVr)}</span>
+                  </span>
                 )}
-              >
-                <div
+              </div>
+
+              {/* Divisão do Casal */}
+              {isCasal && (
+                <>
+                  <div className="h-10 w-px bg-white/20 hidden md:block" />
+                  <div className="flex flex-col justify-center gap-1.5">
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-200/90">
+                      <Users className="w-3.5 h-3.5 text-emerald-300" /> Divisão do Casal
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Pessoa 1 */}
+                      <div
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 border border-white/25 shadow-2xs backdrop-blur-xs"
+                        title={`${p1}: ${brl(totalP1)}`}
+                      >
+                        <span className="w-4.5 h-4.5 rounded-md bg-emerald-400 text-emerald-950 font-bold text-[10px] grid place-items-center uppercase shrink-0">
+                          {p1.trim()[0]}
+                        </span>
+                        <span className="text-xs font-semibold text-white/90">
+                          {p1.split(" ")[0]}:
+                        </span>
+                        <span className="text-xs font-bold text-white tabular-nums">
+                          {brl(totalP1)}
+                        </span>
+                      </div>
+
+                      {/* Pessoa 2 */}
+                      <div
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 border border-white/25 shadow-2xs backdrop-blur-xs"
+                        title={`${p2}: ${brl(totalP2)}`}
+                      >
+                        <span className="w-4.5 h-4.5 rounded-md bg-[#EF6F6C] text-white font-bold text-[10px] grid place-items-center uppercase shrink-0">
+                          {p2.trim()[0]}
+                        </span>
+                        <span className="text-xs font-semibold text-white/90">
+                          {p2.split(" ")[0]}:
+                        </span>
+                        <span className="text-xs font-bold text-white tabular-nums">
+                          {brl(totalP2)}
+                        </span>
+                      </div>
+
+                      {/* Conjunto */}
+                      {totalConjunto > 0 && (
+                        <div
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 border border-white/25 shadow-2xs backdrop-blur-xs"
+                          title={`Juntos: ${brl(totalConjunto)}`}
+                        >
+                          <span className="w-4.5 h-4.5 rounded-md bg-emerald-300/30 text-emerald-200 font-bold text-[10px] grid place-items-center shrink-0">
+                            <Users className="w-2.5 h-2.5" />
+                          </span>
+                          <span className="text-xs font-semibold text-white/90">Juntos:</span>
+                          <span className="text-xs font-bold text-white tabular-nums">
+                            {brl(totalConjunto)}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Ganhos / Presentes */}
+                      {totalGanhosCategoria > 0 && (
+                        <div
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-400/20 border border-amber-300/35 shadow-2xs backdrop-blur-xs"
+                          title={`Ganhos / Presentes: ${brl(totalGanhosCategoria)}`}
+                        >
+                          <span className="w-4.5 h-4.5 rounded-md bg-amber-400 text-amber-950 font-bold text-[10px] grid place-items-center shrink-0">
+                            <Gift className="w-2.5 h-2.5" />
+                          </span>
+                          <span className="text-xs font-semibold text-amber-200">Ganhos:</span>
+                          <span className="text-xs font-bold text-white tabular-nums">
+                            {brl(totalGanhosCategoria)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile: Recolher / Expandir detalhes da divisão (apenas em telas pequenas md:hidden, sem chavinha de toggle) */}
+          <div className="md:hidden w-full flex flex-col gap-2 mt-0.5">
+            <button
+              type="button"
+              onClick={() => setDetalhesResumoAberto((prev) => !prev)}
+              className="w-full flex items-center justify-between py-1.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all text-xs font-semibold text-emerald-100 cursor-pointer select-none active:scale-[0.99] group"
+              aria-expanded={detalhesResumoAberto}
+              aria-label="Recolher ou ver detalhes da divisão"
+            >
+              <span className="text-white/95 font-medium text-[11px] sm:text-xs">
+                {detalhesResumoAberto
+                  ? "Detalhes da divisão e pagamentos"
+                  : "Ver detalhes (Dinheiro, VR e divisão)"}
+              </span>
+              <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-200 group-hover:text-white transition-colors">
+                <span>{detalhesResumoAberto ? "Recolher" : "Expandir"}</span>
+                <ChevronDown
                   className={cn(
-                    "w-3 h-3 rounded-full shadow-xs transition-transform duration-200",
-                    detalhesResumoAberto
-                      ? "translate-x-3 bg-emerald-950"
-                      : "translate-x-0 bg-white",
+                    "w-3.5 h-3.5 transition-transform duration-200",
+                    detalhesResumoAberto && "rotate-180",
                   )}
                 />
               </div>
-              <span className="text-white/95 font-medium text-[11px] sm:text-xs">
-                {detalhesResumoAberto
-                  ? "Ocultar detalhes da divisão"
-                  : "Ver detalhes (Dinheiro, VR e divisão do casal)"}
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-200 group-hover:text-white transition-colors">
-              <span>{detalhesResumoAberto ? "Recolher" : "Detalhes"}</span>
-              <ChevronDown
-                className={cn(
-                  "w-3.5 h-3.5 transition-transform duration-200",
-                  detalhesResumoAberto && "rotate-180",
-                )}
-              />
-            </div>
-          </button>
+            </button>
 
-          {/* Conteúdo Detalhado Expansível */}
-          <AnimatePresence initial={false}>
-            {detalhesResumoAberto && (
-              <motion.div
-                key="detalhes-resumo-casal"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                className="overflow-hidden w-full"
-              >
-                <div className="pt-3 border-t border-white/15 flex flex-col md:flex-row md:items-start gap-4 sm:gap-6 lg:gap-8 flex-wrap">
-                  {/* Dinheiro & VR */}
-                  <div className="flex flex-col justify-center min-w-[120px]">
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-200/90 mb-1">
-                      <Wallet className="w-3.5 h-3.5 text-emerald-300" /> Dinheiro
-                    </div>
-                    <span className="font-display text-lg sm:text-xl font-bold text-white tabular-nums leading-none">
-                      {brl(totalDinheiro)}
-                    </span>
-                    {totalVr > 0 && (
-                      <span className="text-[11px] font-semibold text-emerald-200/80 mt-1.5">
-                        VR:{" "}
-                        <span className="tabular-nums font-bold text-white">{brl(totalVr)}</span>
+            {/* Conteúdo Detalhado Expansível no Mobile */}
+            <AnimatePresence initial={false}>
+              {detalhesResumoAberto && (
+                <motion.div
+                  key="detalhes-resumo-mobile"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                  className="overflow-hidden w-full pt-2.5 border-t border-white/15"
+                >
+                  <div className="flex flex-col gap-3.5">
+                    {/* Dinheiro & VR */}
+                    <div className="flex flex-col justify-center min-w-[120px]">
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-200/90 mb-1">
+                        <Wallet className="w-3.5 h-3.5 text-emerald-300" /> Dinheiro
+                      </div>
+                      <span className="font-display text-lg font-bold text-white tabular-nums leading-none">
+                        {brl(totalDinheiro)}
                       </span>
-                    )}
-                  </div>
+                      {totalVr > 0 && (
+                        <span className="text-[11px] font-semibold text-emerald-200/80 mt-1.5">
+                          VR:{" "}
+                          <span className="tabular-nums font-bold text-white">{brl(totalVr)}</span>
+                        </span>
+                      )}
+                    </div>
 
-                  {/* Divisão do Casal */}
-                  {isCasal && (
-                    <>
-                      <div className="h-10 w-px bg-white/20 hidden md:block" />
-                      <div className="flex flex-col justify-center gap-1.5">
+                    {/* Divisão do Casal */}
+                    {isCasal && (
+                      <div className="flex flex-col justify-center gap-1.5 pt-2 border-t border-white/10">
                         <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-200/90">
                           <Users className="w-3.5 h-3.5 text-emerald-300" /> Divisão do Casal
                         </div>
@@ -894,12 +973,12 @@ function PlanejamentoPage() {
                           )}
                         </div>
                       </div>
-                    </>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
       </motion.div>
 
@@ -1036,14 +1115,20 @@ function PlanejamentoPage() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96 }}
+                whileHover={{
+                  y: -2,
+                  transition: { duration: 0.18, ease: "easeOut" },
+                }}
                 transition={{
                   duration: 0.28,
                   delay: Math.min(idx * 0.025, 0.3),
                   ease: [0.16, 1, 0.3, 1],
                 }}
                 className={cn(
-                  "group card-sticker p-3 sm:p-4 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[2px_2px_0_var(--border)] transition-all",
-                  it.comprado && "bg-muted/30 border-border/60 shadow-none",
+                  "group card-sticker p-3 sm:p-4 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-[border-color,box-shadow,background-color,opacity] duration-200",
+                  it.comprado
+                    ? "bg-muted/30 border-border/60 shadow-none hover:border-border hover:shadow-xs opacity-80 hover:opacity-100"
+                    : "hover:border-primary/50 hover:shadow-md",
                 )}
               >
                 {/* Left: Checkbox + Thumbnail + Info */}
@@ -1051,7 +1136,7 @@ function PlanejamentoPage() {
                   {/* Checkbox */}
                   <Checkbox
                     className={cn(
-                      "h-5 w-5 rounded-md border-2 shrink-0 cursor-pointer",
+                      "h-5 w-5 rounded-md border-2 shrink-0 cursor-pointer transition-all duration-150 group-hover:border-primary/60 hover:scale-110 active:scale-95",
                       it.comprado &&
                         "data-[state=checked]:bg-primary data-[state=checked]:border-primary",
                     )}
@@ -1076,7 +1161,7 @@ function PlanejamentoPage() {
                       type="button"
                       onClick={() => setImagemAmpliada(it)}
                       className={cn(
-                        "h-12 w-12 rounded-xl border-2 border-border overflow-hidden shrink-0 bg-background transition-transform hover:scale-105",
+                        "h-12 w-12 rounded-xl border border-border overflow-hidden shrink-0 bg-background transition-transform duration-200 group-hover:scale-105",
                         it.comprado && "opacity-60 grayscale",
                       )}
                       title="Ver foto do item"
@@ -1084,14 +1169,14 @@ function PlanejamentoPage() {
                       <img
                         src={it.fotoUrl}
                         alt={it.nome}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                         onError={() => setImageErrors((prev) => ({ ...prev, [it.id]: true }))}
                       />
                     </button>
                   ) : (
                     <div
                       className={cn(
-                        "h-12 w-12 rounded-xl border-2 border-border/60 grid place-items-center text-white shrink-0 shadow-xs",
+                        "h-12 w-12 rounded-xl border border-border/60 grid place-items-center text-white shrink-0 shadow-xs transition-transform duration-200 group-hover:scale-105",
                         it.comprado && "opacity-60 grayscale",
                       )}
                       style={{
@@ -1112,8 +1197,8 @@ function PlanejamentoPage() {
                         type="button"
                         onClick={() => setEditandoItem(it)}
                         className={cn(
-                          "font-bold text-sm sm:text-base text-foreground hover:text-primary transition-colors text-left truncate max-w-full block",
-                          it.comprado && "line-through text-muted-foreground",
+                          "font-bold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors text-left truncate max-w-full block",
+                          it.comprado && "line-through text-muted-foreground group-hover:text-muted-foreground",
                         )}
                         title={it.nome}
                       >
@@ -1299,7 +1384,7 @@ function PlanejamentoPage() {
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                          className="h-8 w-8 text-muted-foreground/70 group-hover:text-foreground hover:bg-muted transition-colors"
                           title="Opções"
                         >
                           <MoreVertical className="h-4 w-4" />

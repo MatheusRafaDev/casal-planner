@@ -68,7 +68,7 @@ function LoginPage() {
       {/* =========================================
           PAINEL ESQUERDO: APRESENTAÇÃO EDITORIAL
       ========================================= */}
-      <div className="hidden lg:flex flex-col justify-between border-r border-[#133c2b] bg-sidebar text-white p-7 xl:p-10 relative overflow-hidden h-full">
+      <div className="hidden lg:flex flex-col justify-between border-r border-[#133c2b] bg-sidebar text-white px-7 xl:px-10 pt-[calc(1.75rem+env(safe-area-inset-top,0px))] pb-[calc(1.75rem+env(safe-area-inset-bottom,0px))] relative overflow-hidden h-full">
         {/* Topo: Logo Oficial */}
         <div className="flex items-center justify-between">
           <Link
@@ -165,7 +165,7 @@ function LoginPage() {
       {/* =========================================
           PAINEL DIREITO: FORMULÁRIO COM LARGURA AMPLIADA E ZERO JUMP
       ========================================= */}
-      <div className="flex-1 flex flex-col justify-between p-6 sm:p-8 lg:p-8 xl:p-10 h-full relative overflow-y-auto lg:overflow-hidden bg-card">
+      <div className="flex-1 flex flex-col justify-between px-6 sm:px-8 lg:px-8 xl:px-10 pt-[calc(1.25rem+env(safe-area-inset-top,0px))] pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] pl-[calc(1.5rem+env(safe-area-inset-left,0px))] pr-[calc(1.5rem+env(safe-area-inset-right,0px))] h-full relative overflow-y-auto lg:overflow-hidden bg-card">
         {/* Topbar: Voltar ao site */}
         <div className="flex items-center justify-between w-full max-w-[520px] mx-auto mb-2 shrink-0">
           <Link

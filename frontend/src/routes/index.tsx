@@ -1,10 +1,21 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { BrandLogoText, BrandLogoIcon } from "@/components/ui/BrandLogo";
 import { Check, ChevronRight, ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
+  beforeLoad: () => {
+    if (typeof window !== "undefined") {
+      try {
+        if (localStorage.getItem("cp_cached_user")) {
+          throw redirect({ to: "/inicio", replace: true });
+        }
+      } catch (err) {
+        throw err;
+      }
+    }
+  },
   head: () => ({
     meta: [
       { title: "CasalPlanner | Planejar a dois é começar a casa com o pé direito" },
@@ -305,9 +316,9 @@ function HomePage() {
         }
       `}</style>
 
-      {/* Header Sticky - Verde Lar Floresta translúcido com borda suave */}
-      <header className="sticky top-0 z-50 w-full bg-[#174a35]/95 backdrop-blur-md border-b border-[#133c2b] shadow-xs transition-all">
-        <div className="max-w-[1120px] mx-auto px-4 sm:px-8 h-[76px] flex items-center justify-between gap-2">
+      {/* Header Sticky - Verde Lar Floresta translúcido com borda suave e respeito ao notch do iPhone */}
+      <header className="sticky top-0 z-50 w-full bg-[#174a35]/95 backdrop-blur-md border-b border-[#133c2b] shadow-xs transition-all pt-[env(safe-area-inset-top,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]">
+        <div className="max-w-[1120px] mx-auto px-4 sm:px-8 h-16 sm:h-[72px] flex items-center justify-between gap-2">
           <Link
             to="/"
             className="flex items-center gap-3 group transition-transform hover:scale-[1.01]"
@@ -341,6 +352,14 @@ function HomePage() {
               Dúvidas
             </a>
             <div className="flex items-center gap-2.5">
+
+              <Link
+                to="/login"
+                className="px-5 sm:px-6 py-2 rounded-full bg-white text-[#174a35] hover:bg-emerald-50 font-bold text-sm transition-all whitespace-nowrap shadow-xs"
+              >
+                Entrar
+              </Link>
+
               <Link
                 to="/login"
                 search={{ registrar: 1 }}
@@ -348,12 +367,9 @@ function HomePage() {
               >
                 Cadastre-se agora
               </Link>
-              <Link
-                to="/login"
-                className="px-5 sm:px-6 py-2 rounded-full bg-white text-[#174a35] hover:bg-emerald-50 font-bold text-sm transition-all whitespace-nowrap shadow-xs"
-              >
-                Entrar
-              </Link>
+
+
+
             </div>
           </nav>
         </div>
@@ -970,7 +986,7 @@ function HomePage() {
         </section>
 
         {/* Footer */}
-        <footer className="pb-9 text-[14px] text-slate-500 flex justify-between items-center flex-wrap gap-2 border-t border-slate-200 pt-6">
+        <footer className="pb-[calc(2.25rem+env(safe-area-inset-bottom,0px))] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)] text-[14px] text-slate-500 flex justify-between items-center flex-wrap gap-2 border-t border-slate-200 pt-6">
           <div className="flex items-center gap-2.5">
             <BrandLogoIcon size="xs" className="h-6 w-6" />
             <BrandLogoText size="sm" withTagline={false} />

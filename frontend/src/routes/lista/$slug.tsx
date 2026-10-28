@@ -175,9 +175,9 @@ function ListaPublicaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-gold/30">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-gold/30 pb-[calc(2rem+env(safe-area-inset-bottom,0px))]">
       {/* Header com Branding */}
-      <header className="pt-14 pb-12 px-4 text-center bg-card border-b-2 border-border relative overflow-hidden">
+      <header className="pt-[calc(2.5rem+env(safe-area-inset-top,0px))] pb-12 px-4 text-center bg-card border-b-2 border-border relative overflow-hidden pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]">
         <div className="max-w-4xl mx-auto space-y-4">
           <div className="flex justify-center items-center gap-3">
             <BrandLogoIcon size="xl" className="h-12 w-12" />

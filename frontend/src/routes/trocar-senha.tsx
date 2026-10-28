@@ -17,7 +17,7 @@ function TrocarSenhaPage() {
   const email = usuario?.email ?? usuario?.casalInfo?.pessoa1?.email ?? "";
 
   return (
-    <div className="min-h-screen bg-background relative flex flex-col items-center justify-center p-4 selection:bg-gold/30 font-sans">
+    <div className="min-h-screen bg-background relative flex flex-col items-center justify-center selection:bg-gold/30 font-sans px-4 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] pl-[calc(1rem+env(safe-area-inset-left,0px))] pr-[calc(1rem+env(safe-area-inset-right,0px))]">
       <div className="card-sticker-lg w-full max-w-[420px] bg-card p-6 sm:p-10 shadow-[5px_5px_0_var(--border)]">
         <div className="flex flex-col items-center text-center space-y-4 mb-8">
           <Link to="/" className="mb-2 inline-flex items-center justify-center gap-3">

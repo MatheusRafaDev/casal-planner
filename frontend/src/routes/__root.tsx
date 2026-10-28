@@ -188,6 +188,16 @@ function RootComponent() {
     };
     window.addEventListener("vite:preloadError", handlePreloadError);
 
+    // Registrar e manter o Service Worker atualizado para carregamento instantâneo do PWA
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .then((reg) => {
+          reg.update();
+        })
+        .catch(() => {});
+    }
+
     return () => {
       window.removeEventListener("vite:preloadError", handlePreloadError);
     };

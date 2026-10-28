@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { resumoService } from "@/services/resumo";
+import { categoriasService } from "@/services/categorias";
+import { itensService } from "@/services/itens";
 import type { ResumoCategoria } from "@/services/types";
 import { brl } from "@/lib/formatters";
 import { valorParcela, calcularStatusParcelas, parseDataReferencia } from "@/lib/parcelas";
@@ -47,12 +49,12 @@ function InicioPage() {
 
   const { data: categorias = [], isLoading: loadingCategorias } = useQuery({
     queryKey: ["categorias"],
-    queryFn: () => import("@/services/categorias").then((m) => m.categoriasService.listar()),
+    queryFn: () => categoriasService.listar(),
   });
 
   const { data: itens = [], isLoading: loadingItens } = useQuery({
     queryKey: ["itens"],
-    queryFn: () => import("@/services/itens").then((m) => m.itensService.listar()),
+    queryFn: () => itensService.listar(),
     retry: false,
   });
 

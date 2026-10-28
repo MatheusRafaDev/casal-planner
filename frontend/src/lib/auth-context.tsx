@@ -136,13 +136,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (getCachedUser()) {
+      preaquecerQueries();
+    }
     refresh();
 
     if (typeof window !== "undefined") {
       window.addEventListener("online", refresh);
       return () => window.removeEventListener("online", refresh);
     }
-  }, [refresh]);
+  }, [refresh, preaquecerQueries]);
 
   const login = useCallback(
     async (email: string, senha: string) => {

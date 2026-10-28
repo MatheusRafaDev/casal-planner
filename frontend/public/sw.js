@@ -7,12 +7,13 @@
  *  - Offline fallback → página HTML simples para navegação sem rede
  */
 
-const CACHE_NAME = "casal-planner-v7";
+const CACHE_NAME = "casal-planner-v8";
 const OFFLINE_URL = "/__offline";
 
 // Assets que queremos pré-cachear na instalação
 const PRECACHE_URLS = [
   "/",
+  "/inicio",
   "/manifest.json",
   "/favicon.ico",
   "/favicon.png",
@@ -62,6 +63,12 @@ self.addEventListener("fetch", (event) => {
   // Ignorar requisições não-http (chrome-extension, etc.)
   if (!url.protocol.startsWith("http")) return;
 
+  // Fontes externas do Google Fonts → Cache-First
+  if (url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com") {
+    event.respondWith(cacheFirst(request));
+    return;
+  }
+
   // Ignorar requests de outros origins
   if (url.origin !== self.location.origin) return;
 
@@ -81,7 +88,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Navegação (HTML) → Network-first com fallback offline
+  // Navegação (HTML) → Stale-While-Revalidate com resposta imediata do cache para PWA
   if (request.mode === "navigate") {
     event.respondWith(navigateFetch(request));
     return;
@@ -99,7 +106,7 @@ async function cacheFirst(request) {
 
   try {
     const response = await fetch(request);
-    if (response.ok) {
+    if (response && (response.ok || response.type === "opaque")) {
       const cache = await caches.open(CACHE_NAME);
       cache.put(request, response.clone());
     }
@@ -128,24 +135,44 @@ async function networkFirst(request) {
 }
 
 async function navigateFetch(request) {
-  try {
-    const response = await fetch(request);
-    return response;
-  } catch {
-    // Tentar cache primeiro
-    const cached = await caches.match(request);
-    if (cached) return cached;
+  const cache = await caches.open(CACHE_NAME);
 
-    // Tentar a raiz cacheada
-    const root = await caches.match("/");
-    if (root) return root;
+  // 1. Tentar encontrar no cache a URL solicitada ou as cascas principais (/inicio ou /)
+  const cached =
+    (await cache.match(request)) ||
+    (await cache.match("/inicio")) ||
+    (await cache.match("/"));
 
-    // Fallback offline HTML
-    return new Response(offlinePage(), {
-      status: 200,
-      headers: { "Content-Type": "text/html; charset=utf-8" },
-    });
+  // 2. Disparar a busca da rede em paralelo (revalidação em segundo plano)
+  const fetchPromise = fetch(request)
+    .then((networkResponse) => {
+      if (networkResponse && networkResponse.status === 200) {
+        cache.put(request, networkResponse.clone());
+        if (request.url.includes("/inicio")) {
+          cache.put("/", networkResponse.clone());
+        }
+      }
+      return networkResponse;
+    })
+    .catch(() => null);
+
+  // 3. Se já temos no cache, responder IMEDIATAMENTE (PWA instantâneo < 30ms)
+  // O fetchPromise acima continua atualizando o cache em segundo plano (Stale-While-Revalidate)
+  if (cached) {
+    return cached;
   }
+
+  // 4. Se não tem em cache ainda (primeira abertura pós-instalação), aguarda a rede
+  try {
+    const networkResponse = await fetchPromise;
+    if (networkResponse) return networkResponse;
+  } catch {}
+
+  // 5. Fallback offline se não houver rede nem cache
+  return new Response(offlinePage(), {
+    status: 200,
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
 }
 
 function offlinePage() {

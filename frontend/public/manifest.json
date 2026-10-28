@@ -2,7 +2,7 @@
   "name": "CasalPlanner",
   "short_name": "CasalPlanner",
   "description": "Organizador de compras do casal: planeje o enxoval da casa nova por cômodo, controle orçamentos e tome decisões a dois.",
-  "start_url": "/",
+  "start_url": "/inicio",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
