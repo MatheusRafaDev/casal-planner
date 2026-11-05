@@ -325,6 +325,23 @@ export function AchadinhosReelsFeed({
             <span className="text-[9px] font-bold text-white/90 drop-shadow-md">Enviar</span>
           </div>
 
+          {/* Botão de Som / Dica de Volume */}
+          <div className="flex flex-col items-center gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                toast.info("🔊 Dica de Som", {
+                  description: "Os vídeos iniciam com som. Se o seu navegador ou celular bloqueou o áudio, toque no ícone de volume dentro do vídeo para ouvir!",
+                });
+              }}
+              className="h-10 w-10 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 flex items-center justify-center backdrop-blur-md shadow-md transition-transform active:scale-90 cursor-pointer"
+              title="Informações de som do vídeo"
+            >
+              <Volume2 className="h-4 w-4 text-emerald-400" />
+            </button>
+            <span className="text-[9px] font-bold text-white/90 drop-shadow-md">Áudio</span>
+          </div>
+
           {/* Setas de Próximo / Anterior */}
           <div className="pt-2 flex flex-col gap-1.5 border-t border-white/20">
             <button

@@ -89,7 +89,7 @@ export function resolverVideoUrlLocal(url: string, fallbackTitle?: string): Vide
       author,
       platform: "tiktok",
       videoUrl: cleanUrl.startsWith("http") ? cleanUrl : `https://www.tiktok.com/@${author}/video/${videoId}`,
-      playerUrl: `https://www.tiktok.com/player/v1/${videoId}?autoplay=1&muted=1&music_info=1&description=1`,
+      playerUrl: `https://www.tiktok.com/player/v1/${videoId}?autoplay=1&music_info=1&description=1`,
       thumbnailUrl: "",
     };
   }
@@ -104,7 +104,7 @@ export function resolverVideoUrlLocal(url: string, fallbackTitle?: string): Vide
       author: "YouTube",
       platform: "youtube",
       videoUrl: cleanUrl,
-      playerUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`,
+      playerUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0`,
       thumbnailUrl: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
     };
   }

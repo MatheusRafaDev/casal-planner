@@ -292,7 +292,7 @@ namespace CasalPlanner.Infrastructure.Services
                 Id = videoId,
                 Title = string.IsNullOrWhiteSpace(title) ? $"Demonstração de @{author}" : title,
                 VideoUrl = link,
-                PlayerUrl = $"https://www.tiktok.com/player/v1/{videoId}?embed_from=oembed&music_info=1&description=1&autoplay=1&muted=1",
+                PlayerUrl = $"https://www.tiktok.com/player/v1/{videoId}?embed_from=oembed&music_info=1&description=1&autoplay=1",
                 EmbedHtml = CriarIframeTikTok(videoId),
                 Author = author,
                 AuthorUrl = $"https://www.tiktok.com/@{author}",
@@ -302,7 +302,7 @@ namespace CasalPlanner.Infrastructure.Services
 
         private static string CriarIframeTikTok(string videoId)
         {
-            return $"<iframe height=\"578\" width=\"325\" src=\"https://www.tiktok.com/player/v1/{videoId}?embed_from=oembed&music_info=1&description=1&autoplay=1&muted=1\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture; web-share\" allowfullscreen loading=\"lazy\"></iframe>";
+            return $"<iframe height=\"578\" width=\"325\" src=\"https://www.tiktok.com/player/v1/{videoId}?embed_from=oembed&music_info=1&description=1&autoplay=1\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture; web-share\" allowfullscreen loading=\"lazy\"></iframe>";
         }
 
         private static string LimparQuery(string q)
