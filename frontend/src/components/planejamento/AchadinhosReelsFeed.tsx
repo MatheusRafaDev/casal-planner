@@ -56,6 +56,15 @@ export function AchadinhosReelsFeed({
 
   const currentItem = items[currentIndex];
 
+  // Resetar loading e adicionar timer de segurança para conexões lentas ou adblockers
+  useEffect(() => {
+    setVideoLoading(true);
+    const timer = setTimeout(() => {
+      setVideoLoading(false);
+    }, 3500);
+    return () => clearTimeout(timer);
+  }, [currentIndex]);
+
   const handleNext = useCallback(() => {
     if (currentIndex < items.length - 1) {
       setVideoLoading(true);
@@ -341,6 +350,22 @@ export function AchadinhosReelsFeed({
             </button>
             <span className="text-[9px] font-bold text-white/90 drop-shadow-md">Áudio</span>
           </div>
+
+          {/* Botão Assistir Vídeo Original no YouTube / TikTok */}
+          {resolvedVideo?.videoUrl && (
+            <div className="flex flex-col items-center gap-1">
+              <a
+                href={resolvedVideo.videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-10 w-10 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 flex items-center justify-center backdrop-blur-md shadow-md transition-transform active:scale-90"
+                title={`Assistir no ${resolvedVideo.platform === "tiktok" ? "TikTok" : "YouTube"}`}
+              >
+                <ExternalLink className="h-4 w-4 text-white" />
+              </a>
+              <span className="text-[9px] font-bold text-white/90 drop-shadow-md">Original</span>
+            </div>
+          )}
 
           {/* Setas de Próximo / Anterior */}
           <div className="pt-2 flex flex-col gap-1.5 border-t border-white/20">

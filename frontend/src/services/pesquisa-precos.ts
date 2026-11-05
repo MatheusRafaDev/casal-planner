@@ -104,7 +104,7 @@ export function resolverVideoUrlLocal(url: string, fallbackTitle?: string): Vide
       author: "YouTube",
       platform: "youtube",
       videoUrl: cleanUrl,
-      playerUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0`,
+      playerUrl: `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1`,
       thumbnailUrl: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
     };
   }

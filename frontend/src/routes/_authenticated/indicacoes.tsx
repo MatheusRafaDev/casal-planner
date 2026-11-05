@@ -83,16 +83,20 @@ function IndicacoesPage() {
   const [reelsAberto, setReelsAberto] = useState(false);
   const [reelsInitialIndex, setReelsInitialIndex] = useState(0);
 
-  // Buscar categorias do usuário para vincular itens
+  // Buscar categorias do usuário para vincular itens (somente no cliente para evitar 503 de SSR no Vercel)
   const { data: categorias = [] } = useQuery<Categoria[]>({
     queryKey: ["categorias"],
     queryFn: () => categoriasService.listar(),
+    enabled: typeof window !== "undefined",
+    retry: false,
   });
 
   // Buscar itens do usuário no planejamento para saber quais já foram adicionados
   const { data: itensDoUsuario = [] } = useQuery<Item[]>({
     queryKey: ["itens"],
     queryFn: () => itensService.listar(),
+    enabled: typeof window !== "undefined",
+    retry: false,
   });
 
   // Mapeia quais achadinhos já estão adicionados ao planejamento do casal
@@ -291,21 +295,21 @@ function IndicacoesPage() {
   }, [busca, filtroAtivo]);
 
   return (
-    <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-12 space-y-4 sm:space-y-6">
+    <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-12 space-y-4 sm:space-y-5">
       {/* Cabeçalho Editorial e Acolhedor no Padrão CasalPlanner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-border/70">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/60">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
-              Curadoria da Casa Nova
+              Curadoria para Casa Nova
             </span>
           </div>
-          <h1 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-            Achadinhos para o Lar
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            Achadinhos & Enxoval
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 max-w-xl">
-            Itens virais selecionados com demonstrações reais em vídeo para planejar seu enxoval a dois.
+            Demonstrações reais em vídeo e produtos virais testados para o dia a dia do casal.
           </p>
         </div>
 
@@ -314,7 +318,7 @@ function IndicacoesPage() {
           <Button
             type="button"
             onClick={() => abrirReels(0)}
-            className="h-10 px-4 rounded-xl font-bold text-xs sm:text-sm gap-2 bg-primary hover:bg-primary-hover text-white shadow-sticker active:scale-95 transition-all cursor-pointer shrink-0"
+            className="h-10 px-4 rounded-xl font-bold text-xs sm:text-sm gap-2 bg-primary hover:bg-primary-hover text-primary-foreground shadow-sticker active:scale-95 transition-all cursor-pointer shrink-0"
           >
             <Film className="h-4 w-4" />
             <span>Assistir no Reels</span>
@@ -329,7 +333,7 @@ function IndicacoesPage() {
             <Input
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              placeholder="Buscar produto..."
+              placeholder="Buscar nos achadinhos..."
               className="pl-9 h-10 text-xs sm:text-sm bg-card border-border rounded-xl shadow-sticker-sm focus-ring"
             />
             {busca && (
@@ -345,16 +349,16 @@ function IndicacoesPage() {
         </div>
       </div>
 
-      {/* Barra de Filtros Sofisticada e Limpa */}
+      {/* Barra de Filtros com Estilo Sticker do CasalPlanner */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-1">
         {[
           { id: "todos", label: "Todos", count: ACHADINHOS_DATA.length },
-          { id: "cozinha", label: "Cozinha", count: ACHADINHOS_DATA.filter((i) => i.comodo === "cozinha").length },
-          { id: "quarto", label: "Quarto", count: ACHADINHOS_DATA.filter((i) => i.comodo === "quarto").length },
-          { id: "sala", label: "Sala", count: ACHADINHOS_DATA.filter((i) => i.comodo === "sala").length },
-          { id: "lavanderia", label: "Lavanderia", count: ACHADINHOS_DATA.filter((i) => i.comodo === "lavanderia").length },
-          { id: "banheiro", label: "Banheiro", count: ACHADINHOS_DATA.filter((i) => i.comodo === "banheiro").length },
-          { id: "organizacao", label: "Smart & Organização", count: ACHADINHOS_DATA.filter((i) => i.comodo === "organizacao").length },
+          { id: "cozinha", label: "🍳 Cozinha", count: ACHADINHOS_DATA.filter((i) => i.comodo === "cozinha").length },
+          { id: "quarto", label: "🛏️ Quarto", count: ACHADINHOS_DATA.filter((i) => i.comodo === "quarto").length },
+          { id: "sala", label: "🛋️ Sala", count: ACHADINHOS_DATA.filter((i) => i.comodo === "sala").length },
+          { id: "lavanderia", label: "🧺 Lavanderia", count: ACHADINHOS_DATA.filter((i) => i.comodo === "lavanderia").length },
+          { id: "banheiro", label: "🚿 Banheiro", count: ACHADINHOS_DATA.filter((i) => i.comodo === "banheiro").length },
+          { id: "organizacao", label: "💡 Smart Home", count: ACHADINHOS_DATA.filter((i) => i.comodo === "organizacao").length },
         ].map((c) => {
           const isAtivo = filtroAtivo === c.id;
           return (
@@ -368,7 +372,7 @@ function IndicacoesPage() {
               className={cn(
                 "px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer select-none border flex items-center gap-1.5",
                 isAtivo
-                  ? "bg-primary text-white border-primary shadow-sticker"
+                  ? "bg-primary text-primary-foreground border-primary shadow-sticker"
                   : "bg-card text-muted-foreground hover:text-foreground border-border hover:border-primary/30 shadow-sticker-sm",
               )}
             >
@@ -450,7 +454,7 @@ function IndicacoesPage() {
                         {r.loja}
                       </span>
                       <p className="text-xs font-bold text-foreground line-clamp-1">{r.titulo}</p>
-                      <p className="text-xs font-extrabold text-primary">
+                      <p className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">
                         {r.precoFormatado}
                       </p>
                     </div>
@@ -466,7 +470,7 @@ function IndicacoesPage() {
                           productName: r.titulo,
                         })
                       }
-                      className="h-7 px-2 text-[11px] font-bold gap-1 text-primary border-primary/30 hover:bg-primary/10"
+                      className="h-7 px-2 text-[11px] font-bold gap-1 text-pink-600 border-pink-500/30"
                     >
                       <Film className="h-3 w-3" />
                       Vídeo
@@ -474,7 +478,7 @@ function IndicacoesPage() {
                     <Button
                       size="sm"
                       onClick={() => iniciarAdicaoWeb(r)}
-                      className="h-7 px-2 text-[11px] font-bold gap-1 flex-1 bg-primary text-white"
+                      className="h-7 px-2 text-[11px] font-bold gap-1 flex-1 bg-primary text-primary-foreground"
                     >
                       <Plus className="h-3 w-3" />
                       Adicionar
@@ -503,10 +507,10 @@ function IndicacoesPage() {
                 className="card-sticker rounded-2xl overflow-hidden flex flex-col justify-between border border-border bg-card shadow-sticker hover:shadow-sticker-lg hover:-translate-y-0.5 transition-all duration-200 group"
               >
                 <div>
-                  {/* Container da Imagem: fundo branco puro com vitrine limpa */}
+                  {/* Container da Imagem: fundo branco puro de vitrine */}
                   <div
                     onClick={() => iniciarAdicaoAchadinho(item)}
-                    className="relative w-full h-52 sm:h-56 bg-white border-b border-border/60 flex items-center justify-center p-4 cursor-pointer overflow-hidden"
+                    className="relative w-full h-48 bg-white dark:bg-muted/30 border-b border-border/60 flex items-center justify-center p-4 cursor-pointer overflow-hidden"
                     title="Clique para ver detalhes e personalizar"
                   >
                     <img
@@ -516,8 +520,8 @@ function IndicacoesPage() {
                       loading="lazy"
                     />
 
-                    {/* Tag do Cômodo Discreta em Frosted Glass */}
-                    <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-white/90 backdrop-blur-md text-foreground text-[10px] font-bold border border-black/5 shadow-2xs">
+                    {/* Tag do Cômodo Discreta e Elegante */}
+                    <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-card/90 dark:bg-card/90 backdrop-blur-md text-foreground text-[10px] font-bold border border-border shadow-2xs">
                       {item.comodoNome}
                     </span>
 
@@ -542,31 +546,23 @@ function IndicacoesPage() {
                   >
                     {/* Preço e Média de Mercado */}
                     <div className="flex items-baseline justify-between gap-1">
-                      <span className="font-display font-extrabold text-xl text-primary">
+                      <span className="font-display font-black text-lg sm:text-xl text-primary">
                         {brl(item.precoEstimado)}
                       </span>
-                      <span className="text-[11px] text-muted-foreground font-semibold">
+                      <span className="text-[10px] text-muted-foreground font-semibold">
                         médio {item.precoFaixa}
                       </span>
                     </div>
 
                     {/* Nome do Produto com peso agradável */}
-                    <h3 className="font-display font-bold text-sm text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                    <h3 className="font-display font-bold text-xs sm:text-sm text-foreground line-clamp-2 leading-snug">
                       {item.nome}
                     </h3>
 
-                    {/* Metadados: Loja e Marca Sugerida */}
-                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-medium pt-0.5">
-                      <span className="inline-flex items-center gap-1">
-                        <Store className="h-3 w-3 text-primary/70 shrink-0" />
-                        {item.lojaNome || "Amazon / Lojas Online"}
-                      </span>
-                      {item.marcaSugerida && (
-                        <>
-                          <span className="text-border">•</span>
-                          <span className="truncate">{item.marcaSugerida}</span>
-                        </>
-                      )}
+                    {/* Dica do Casal em card creme suave */}
+                    <div className="p-2 rounded-xl bg-background border border-border/80 flex items-start gap-1.5 text-[11px] text-muted-foreground leading-relaxed">
+                      <span className="text-amber-500 font-bold shrink-0">💡</span>
+                      <span className="line-clamp-2">{item.dica}</span>
                     </div>
                   </div>
                 </div>
@@ -582,13 +578,13 @@ function IndicacoesPage() {
                       "flex-1 h-9 rounded-xl font-bold text-xs gap-1.5 transition-all cursor-pointer shadow-sticker-sm",
                       isJaAdicionado
                         ? "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15 cursor-default"
-                        : "bg-primary text-white hover:bg-primary-hover active:scale-95",
+                        : "bg-primary text-primary-foreground hover:bg-primary-hover active:scale-95",
                     )}
                   >
                     {isJaAdicionado ? (
                       <>
                         <Check className="h-3.5 w-3.5 stroke-[3]" />
-                        No Planejamento
+                        Adicionado
                       </>
                     ) : (
                       <>
