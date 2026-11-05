@@ -16,6 +16,9 @@ export interface ItemInputDTO {
   linkProduto?: string;
   fotoUrl?: string;
   fotoFile?: File;
+  videoUrl?: string | null;
+  videoThumbnail?: string | null;
+  clearVideoUrl?: boolean;
   parcelas?: number;
   jurosMensal?: number;
   varianteSelecionadaId?: string | null;
@@ -90,10 +93,5 @@ export const itensService = {
       method: "PUT",
       body: { categoriaId },
     }),
-  excluir: (id: string) => api(`/api/itens/${id}`, { method: "DELETE" }),
-  limparVariante: (id: string) =>
-    api<Item>(`/api/itens/${id}`, {
-      method: "PUT",
-      body: { clearVarianteSelecionadaId: true },
-    }),
+  excluir: (id: string) => api<void>(`/api/itens/${id}`, { method: "DELETE" }),
 };

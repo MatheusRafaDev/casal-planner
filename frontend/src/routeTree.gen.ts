@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as TrocarSenhaRouteImport } from './routes/trocar-senha'
+import { Route as AuthenticatedIndicacoesRouteImport } from './routes/_authenticated/indicacoes'
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedPlanejamentoRouteImport } from './routes/_authenticated/planejamento'
@@ -43,6 +44,11 @@ const TrocarSenhaRoute = TrocarSenhaRouteImport.update({
   path: '/trocar-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedIndicacoesRoute = AuthenticatedIndicacoesRouteImport.update({
+  id: '/indicacoes',
+  path: '/indicacoes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
   id: '/inicio',
   path: '/inicio',
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/trocar-senha': typeof TrocarSenhaRoute
+  '/indicacoes': typeof AuthenticatedIndicacoesRoute
   '/inicio': typeof AuthenticatedInicioRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/planejamento': typeof AuthenticatedPlanejamentoRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/trocar-senha': typeof TrocarSenhaRoute
+  '/indicacoes': typeof AuthenticatedIndicacoesRoute
   '/inicio': typeof AuthenticatedInicioRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/planejamento': typeof AuthenticatedPlanejamentoRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/trocar-senha': typeof TrocarSenhaRoute
+  '/_authenticated/indicacoes': typeof AuthenticatedIndicacoesRoute
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/planejamento': typeof AuthenticatedPlanejamentoRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/recuperar-senha'
     | '/trocar-senha'
+    | '/indicacoes'
     | '/inicio'
     | '/perfil'
     | '/planejamento'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/recuperar-senha'
     | '/trocar-senha'
+    | '/indicacoes'
     | '/inicio'
     | '/perfil'
     | '/planejamento'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/recuperar-senha'
     | '/trocar-senha'
+    | '/_authenticated/indicacoes'
     | '/_authenticated/inicio'
     | '/_authenticated/perfil'
     | '/_authenticated/planejamento'
@@ -177,6 +189,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrocarSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/indicacoes': {
+      id: '/_authenticated/indicacoes'
+      path: '/indicacoes'
+      fullPath: '/indicacoes'
+      preLoaderRoute: typeof AuthenticatedIndicacoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/inicio': {
       id: '/_authenticated/inicio'
       path: '/inicio'
@@ -209,12 +228,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedIndicacoesRoute: typeof AuthenticatedIndicacoesRoute
   AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedPlanejamentoRoute: typeof AuthenticatedPlanejamentoRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedIndicacoesRoute: AuthenticatedIndicacoesRoute,
   AuthenticatedInicioRoute: AuthenticatedInicioRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedPlanejamentoRoute: AuthenticatedPlanejamentoRoute,

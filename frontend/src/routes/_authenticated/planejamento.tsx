@@ -24,7 +24,9 @@ import {
   AlertTriangle,
   Gift,
   ChevronDown,
+  Film,
 } from "lucide-react";
+import { VideoPreviewModal } from "@/components/planejamento/VideoPreviewModal";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { Input } from "@/components/ui/input";
@@ -167,6 +169,16 @@ function PlanejamentoPage() {
   const [excluindoItem, setExcluindoItem] = useState<Item | null>(null);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [detalhesResumoAberto, setDetalhesResumoAberto] = useState(true);
+  const [videoModal, setVideoModal] = useState<{
+    isOpen: boolean;
+    productName: string;
+    videoUrl?: string | null;
+    itemId?: string;
+  }>({
+    isOpen: false,
+    productName: "",
+    videoUrl: null,
+  });
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -344,6 +356,26 @@ function PlanejamentoPage() {
       qc.invalidateQueries({ queryKey: ["itens-paginado"] });
       qc.invalidateQueries({ queryKey: ["itens"] });
       qc.invalidateQueries({ queryKey: ["resumo"] });
+    },
+  });
+
+  const salvarVideoItem = useMutation({
+    mutationFn: ({
+      id,
+      videoUrl,
+      videoThumbnail,
+    }: {
+      id: string;
+      videoUrl: string;
+      videoThumbnail?: string;
+    }) => itensService.atualizar(id, { videoUrl, videoThumbnail }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["itens-paginado"] });
+      qc.invalidateQueries({ queryKey: ["itens"] });
+      toast.success("Vídeo do TikTok vinculado ao item!");
+    },
+    onError: () => {
+      toast.error("Erro ao salvar vídeo no item");
     },
   });
 
@@ -1249,6 +1281,27 @@ function PlanejamentoPage() {
                           {nomeResponsavel}
                         </Badge>
                       )}
+
+                      {/* Botão Ver Demonstração TikTok */}
+                      {it.videoUrl && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setVideoModal({
+                              isOpen: true,
+                              productName: it.nome,
+                              videoUrl: it.videoUrl,
+                              itemId: it.id,
+                            });
+                          }}
+                          className="inline-flex items-center gap-1 text-[10px] py-0 px-2 h-4.5 font-bold rounded-md bg-pink-500/10 text-pink-700 dark:text-pink-400 border border-pink-500/30 hover:bg-pink-500/20 transition-all cursor-pointer shadow-2xs active:scale-95"
+                          title="Assistir demonstração no TikTok"
+                        >
+                          <Film className="h-3 w-3 text-pink-500" />
+                          <span>Ver no TikTok</span>
+                        </button>
+                      )}
                     </div>
 
                     {/* Subtitle details: Cômodo • Forma Pagto • Marca • Loja */}
@@ -1415,6 +1468,19 @@ function PlanejamentoPage() {
                             </a>
                           </DropdownMenuItem>
                         )}
+                        <DropdownMenuItem
+                          onClick={() =>
+                            setVideoModal({
+                              isOpen: true,
+                              productName: it.nome,
+                              videoUrl: it.videoUrl,
+                              itemId: it.id,
+                            })
+                          }
+                        >
+                          <Film className="h-4 w-4 mr-2 text-pink-500" />
+                          {it.videoUrl ? "Ver demonstração" : "Buscar no TikTok"}
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
@@ -1559,6 +1625,25 @@ function PlanejamentoPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal de Vídeo Preview do TikTok */}
+      <VideoPreviewModal
+        isOpen={videoModal.isOpen}
+        onClose={() => setVideoModal((prev) => ({ ...prev, isOpen: false }))}
+        productName={videoModal.productName}
+        initialVideoUrl={videoModal.videoUrl}
+        onSelectVideo={
+          videoModal.itemId
+            ? (url, thumb) => {
+                salvarVideoItem.mutate({
+                  id: videoModal.itemId!,
+                  videoUrl: url,
+                  videoThumbnail: thumb,
+                });
+              }
+            : undefined
+        }
+      />
     </motion.div>
   );
 }

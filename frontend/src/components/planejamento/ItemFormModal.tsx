@@ -26,7 +26,10 @@ import {
   Loader2,
   Barcode,
   Calendar,
+  Film,
+  Play,
 } from "lucide-react";
+import { VideoPreviewModal } from "./VideoPreviewModal";
 import { BarcodeScannerModal } from "./BarcodeScannerModal";
 import {
   Dialog,
@@ -75,6 +78,8 @@ const empty = (categoriaId: string): ItemInputDTO => ({
   loja: "",
   linkProduto: "",
   fotoUrl: "",
+  videoUrl: "",
+  videoThumbnail: "",
   parcelas: 1,
   origem: "comprado",
 });
@@ -92,6 +97,7 @@ export function ItemFormModal({
   const [form, setForm] = useState<ItemInputDTO>(empty(categoriaId));
   const [jurosTexto, setJurosTexto] = useState("");
   const [showLink, setShowLink] = useState(false);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [dividir, setDividir] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
@@ -126,6 +132,8 @@ export function ItemFormModal({
           loja: item.loja ?? "",
           linkProduto: item.linkProduto ?? "",
           fotoUrl: item.fotoUrl ?? "",
+          videoUrl: item.videoUrl ?? "",
+          videoThumbnail: item.videoThumbnail ?? "",
           parcelas: item.parcelas ?? 1,
           jurosMensal: item.jurosMensal ?? 0,
           origem: item.origem ?? "comprado",
@@ -483,6 +491,57 @@ export function ItemFormModal({
                       </motion.div>
                     )}
                   </AnimatePresence>
+                </div>
+
+                {/* Card de Demonstração no TikTok */}
+                <div className="rounded-[var(--radius-lg)] border-2 border-border/80 bg-card p-3.5 space-y-2.5 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Film className="w-4 h-4 text-pink-500 shrink-0" />
+                      <div>
+                        <Label className="text-xs font-bold text-foreground block">
+                          Demonstração no TikTok
+                        </Label>
+                        <p className="text-[11px] text-muted-foreground">
+                          Vídeo de review ou teste prático
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setVideoModalOpen(true)}
+                      className="h-7 text-[11px] gap-1 font-bold text-pink-600 dark:text-pink-400 border-pink-500/30 hover:bg-pink-500/10 cursor-pointer"
+                      disabled={!form.nome.trim()}
+                      title={!form.nome.trim() ? "Digite o nome do produto primeiro" : "Buscar vídeos"}
+                    >
+                      <Sparkles className="h-3 w-3" />
+                      Buscar no TikTok
+                    </Button>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Input
+                      value={form.videoUrl ?? ""}
+                      onChange={(e) => set("videoUrl", e.target.value)}
+                      placeholder="https://www.tiktok.com/@..."
+                      className="bg-background text-xs sm:text-sm flex-1 h-9"
+                    />
+                    {form.videoUrl && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setVideoModalOpen(true)}
+                        className="btn-sticker shrink-0 h-9 px-2.5 flex items-center gap-1 font-bold text-xs bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border-pink-500/30 cursor-pointer"
+                        title="Assistir prévia"
+                      >
+                        <Play className="h-3 w-3 fill-current" />
+                        Ver
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -1015,6 +1074,17 @@ export function ItemFormModal({
         open={scannerOpen}
         onOpenChange={setScannerOpen}
         onProdutoDetectado={handleBarcodeDetectado}
+      />
+
+      <VideoPreviewModal
+        isOpen={videoModalOpen}
+        onClose={() => setVideoModalOpen(false)}
+        productName={form.nome}
+        initialVideoUrl={form.videoUrl}
+        onSelectVideo={(videoUrl, thumb) => {
+          set("videoUrl", videoUrl);
+          if (thumb) set("videoThumbnail", thumb);
+        }}
       />
     </>
   );

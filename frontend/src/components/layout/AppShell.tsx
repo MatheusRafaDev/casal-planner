@@ -1,7 +1,7 @@
 import { useState, Suspense, lazy } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { LayoutGrid, User, LogOut, Download, PieChart, Plus } from "lucide-react";
+import { LayoutGrid, User, LogOut, Download, PieChart, Plus, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
@@ -18,6 +18,7 @@ const AddItemWizard = lazy(() =>
 const nav = [
   { to: "/inicio", label: "Dashboard", icon: PieChart },
   { to: "/planejamento", label: "Planejamento", icon: LayoutGrid },
+  { to: "/indicacoes", label: "Achadinhos & Dicas", icon: Sparkles },
   { to: "/perfil", label: "Minha conta", icon: User },
 ] as const;
 
@@ -227,7 +228,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         className="md:hidden fixed bottom-0 inset-x-0 bg-card/95 backdrop-blur-md border-t border-border/80 z-50 shadow-lg select-none"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
-        <div className="grid grid-cols-3 h-16 items-center px-3">
+        <div className="grid grid-cols-4 h-16 items-center px-2">
           {/* 1. Início */}
           <Link
             to="/inicio"
@@ -276,7 +277,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="text-[10px] leading-none tracking-tight">Planejar</span>
           </Link>
 
-          {/* 3. Minha Conta */}
+          {/* 3. Achadinhos & Dicas */}
+          <Link
+            to="/indicacoes"
+            className={cn(
+              "flex flex-col items-center justify-center gap-0.5 w-full h-full transition-all active:scale-95",
+              pathname.startsWith("/indicacoes")
+                ? "text-primary font-bold"
+                : "text-muted-foreground hover:text-foreground font-semibold",
+            )}
+            aria-current={pathname.startsWith("/indicacoes") ? "page" : undefined}
+          >
+            <div
+              className={cn(
+                "flex items-center justify-center h-7 w-11 rounded-full transition-all duration-200",
+                pathname.startsWith("/indicacoes")
+                  ? "bg-primary/10 text-primary border border-primary/25 shadow-2xs"
+                  : "bg-transparent text-muted-foreground",
+              )}
+            >
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <span className="text-[10px] leading-none tracking-tight">Dicas</span>
+          </Link>
+
+          {/* 4. Minha Conta */}
           <Link
             to="/perfil"
             className={cn(

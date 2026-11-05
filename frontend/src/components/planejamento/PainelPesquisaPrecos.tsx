@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, ExternalLink, Loader2, ShieldCheck, Store, Package } from "lucide-react";
+import { Search, ExternalLink, Loader2, ShieldCheck, Store, Package, Film } from "lucide-react";
+import { VideoPreviewModal } from "./VideoPreviewModal";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +36,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
   const [sort, setSort] = useState<"relevancia" | "menor_preco" | "maior_preco" | "melhor_escolha">(
     "relevancia",
   );
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
 
   useEffect(() => {
     setQ(initialQuery);
@@ -123,14 +125,29 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
           </Button>
         </form>
 
-        {query.data?.marcaDetectada && (
-          <div className="flex items-center gap-2 text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-md w-fit border border-primary/20">
-            <Badge className="bg-primary hover:bg-primary uppercase text-[10px] tracking-wider px-1">
-              Marca Extraída
-            </Badge>
-            <span className="font-semibold">{toTitleCase(query.data.marcaDetectada)}</span>
-          </div>
-        )}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          {query.data?.marcaDetectada ? (
+            <div className="flex items-center gap-2 text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-md w-fit border border-primary/20">
+              <Badge className="bg-primary hover:bg-primary uppercase text-[10px] tracking-wider px-1">
+                Marca Extraída
+              </Badge>
+              <span className="font-semibold">{toTitleCase(query.data.marcaDetectada)}</span>
+            </div>
+          ) : <div />}
+
+          {(ativa.trim().length > 1 || q.trim().length > 1) && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setVideoModalOpen(true)}
+              className="h-8 px-2.5 text-xs font-bold gap-1.5 text-pink-600 dark:text-pink-400 border-pink-500/30 hover:bg-pink-500/10 cursor-pointer shadow-2xs ml-auto"
+            >
+              <Film className="h-3.5 w-3.5 text-pink-500" />
+              Ver reviews no TikTok
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Estados da Pesquisa & Resultados */}
@@ -326,6 +343,12 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
           </div>
         )}
       </div>
+
+      <VideoPreviewModal
+        isOpen={videoModalOpen}
+        onClose={() => setVideoModalOpen(false)}
+        productName={ativa || q}
+      />
     </div>
   );
 }

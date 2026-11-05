@@ -72,6 +72,8 @@ export interface Item {
   loja?: string | null;
   linkProduto?: string | null;
   fotoUrl?: string | null;
+  videoUrl?: string | null;
+  videoThumbnail?: string | null;
   parcelas?: number | null;
   jurosMensal?: number | null;
   variantes?: ItemVariante[];
@@ -137,4 +139,16 @@ export interface PesquisaPrecoResposta {
   marcaDetectada?: string;
   nomeCorrigido?: string;
   resultados: PesquisaPrecoResultado[];
+}
+
+export interface VideoPreview {
+  id: string;
+  title: string;
+  videoUrl: string;
+  playerUrl: string;
+  embedHtml?: string;
+  author?: string;
+  authorUrl?: string;
+  thumbnailUrl?: string;
+  platform: "tiktok" | "youtube";
 }

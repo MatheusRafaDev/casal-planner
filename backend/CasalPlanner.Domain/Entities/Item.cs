@@ -32,6 +32,8 @@ public class Item
     public string LinkProduto { get; set; } = "";
     public string FotoUrl { get; set; } = "";
     public string? FotoPublicId { get; set; }
+    public string? VideoUrl { get; set; }
+    public string? VideoThumbnail { get; set; }
 
     public int Parcelas { get; set; } = 1;
     public decimal JurosMensal { get; set; } = 0;

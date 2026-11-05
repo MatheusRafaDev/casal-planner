@@ -12,6 +12,7 @@ import {
   CheckCircle,
   AlertTriangle,
   ChevronDown,
+  Sparkles,
 } from "lucide-react";
 import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { resumoService } from "@/services/resumo";
@@ -442,6 +443,36 @@ function InicioPage() {
       {/* ─── Widget Data da Mudança & Previsão ─────────────────────────────────── */}
       <motion.div variants={itemVariants}>
         <WidgetDiaMudanca />
+      </motion.div>
+
+      {/* ─── Banner Achadinhos & Dicas para a Casa Nova ─────────────────────── */}
+      <motion.div variants={itemVariants}>
+        <Link
+          to="/indicacoes"
+          className="card-sticker p-4 sm:p-5 bg-gradient-to-r from-emerald-500/10 via-pink-500/10 to-amber-500/10 border-2 border-primary/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group hover:border-primary transition-all cursor-pointer shadow-xs hover:shadow-md"
+        >
+          <div className="flex items-center gap-3">
+            <span className="grid place-items-center h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-primary text-primary-foreground shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              <Sparkles className="h-5 w-5" />
+            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors">
+                  Achadinhos & Dicas para a Casa Nova
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-500 text-white uppercase tracking-wider">
+                  Novo
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Veja produtos testados no TikTok, unboxings e dicas práticas para economizar no enxoval.
+              </p>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1 text-xs font-bold text-primary group-hover:translate-x-1 transition-transform self-end sm:self-center shrink-0">
+            Conferir Achadinhos &rarr;
+          </span>
+        </Link>
       </motion.div>
 
       {semDados ? (

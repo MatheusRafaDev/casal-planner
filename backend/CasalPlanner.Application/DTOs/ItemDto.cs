@@ -35,6 +35,8 @@ namespace CasalPlanner.Application.DTOs
         public string? LinkProduto { get; set; }
         public string? FotoUrl { get; set; }
         public string? FotoPublicId { get; set; }
+        public string? VideoUrl { get; set; }
+        public string? VideoThumbnail { get; set; }
 
         [JsonPropertyName("parcelas")]
         public int Parcelas { get; set; } = 1;
@@ -79,6 +81,10 @@ namespace CasalPlanner.Application.DTOs
         public string? LinkProduto { get; set; }
         public string? FotoUrl { get; set; }
         public string? FotoPublicId { get; set; }
+        public string? VideoUrl { get; set; }
+        public string? VideoThumbnail { get; set; }
+        public bool ClearVideoUrl { get; set; }
+
         [JsonPropertyName("parcelas")]
         public int? Parcelas { get; set; }
         public decimal? JurosMensal { get; set; }
@@ -121,10 +127,11 @@ namespace CasalPlanner.Application.DTOs
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
 
-        // Adicione no DTO de criação
         public string Loja { get; set; } = string.Empty;
         public string LinkProduto { get; set; } = string.Empty;
         public string FotoUrl { get; set; } = string.Empty;
+        public string? VideoUrl { get; set; }
+        public string? VideoThumbnail { get; set; }
         public int Parcelas { get; set; } = 1;
         public decimal JurosMensal { get; set; } = 0;
         public List<string> Variantes { get; set; } = new List<string>();

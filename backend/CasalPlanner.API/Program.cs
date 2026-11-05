@@ -244,6 +244,12 @@ builder.Services.AddHttpClient<IExtratorLinkService, ExtratorLinkService>(client
     client.Timeout = TimeSpan.FromSeconds(15);
 });
 
+builder.Services.AddHttpClient<ITikTokPreviewService, TikTokPreviewService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(20);
+    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+});
+
 // ===== 7.1. PRICE SEARCH - HttpClients com Resilience =====
 builder.Services.AddHttpClient("MercadoLivreClient", client =>
 {

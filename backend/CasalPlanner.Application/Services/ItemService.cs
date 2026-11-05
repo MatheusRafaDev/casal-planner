@@ -125,6 +125,8 @@ namespace CasalPlanner.Application.Services
                 LinkProduto = linkProdutoFinal,
                 FotoUrl = dto.FotoUrl ?? string.Empty,
                 FotoPublicId = dto.FotoPublicId,
+                VideoUrl = dto.VideoUrl,
+                VideoThumbnail = dto.VideoThumbnail,
                 Origem = dto.Origem ?? "comprado",
                 OrigemDescricao = dto.OrigemDescricao,
                 Parcelas = dto.Parcelas,

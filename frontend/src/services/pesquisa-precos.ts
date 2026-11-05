@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import { brl } from "@/lib/formatters";
-import type { PesquisaPrecoResposta, PesquisaPrecoResultado } from "./types";
+import type { PesquisaPrecoResposta, PesquisaPrecoResultado, VideoPreview } from "./types";
 
 interface PesquisaPrecoRespostaBruta {
   produtos?: Array<{
@@ -62,19 +62,18 @@ function mapearResposta(
 }
 
 export const pesquisaPrecosService = {
-  buscar: async (q: string, marca?: string): Promise<PesquisaPrecoResposta> => {
-    const raw = await api<PesquisaPrecoRespostaBruta>("/api/pesquisaprecos", {
-      query: { q, marca },
-    });
-
-    return mapearResposta(raw, q);
+  async buscar(termo: string): Promise<PesquisaPrecoResposta> {
+    const raw = await api<PesquisaPrecoRespostaBruta>(
+      `/api/pesquisaprecos?q=${encodeURIComponent(termo)}`,
+    );
+    return mapearResposta(raw, termo);
   },
 
-  extrairDeLink: async (url: string): Promise<PesquisaPrecoResultado> => {
+  async extrairLink(url: string): Promise<PesquisaPrecoResultado> {
     interface ExtracaoResposta {
       nome?: string;
       loja?: string;
-      preco?: number;
+      preco?: number | null;
       url?: string;
       imagem?: string;
       marca?: string;
@@ -111,5 +110,30 @@ export const pesquisaPrecosService = {
       isMarketplace: Boolean(produto.isMarketplace ?? produto.is_marketplace),
       isUsed: Boolean(produto.isUsed ?? produto.is_used),
     };
+  },
+
+  async buscarVideos(q: string): Promise<VideoPreview[]> {
+    if (!q || !q.trim()) return [];
+    try {
+      const res = await api<VideoPreview[]>(
+        `/api/pesquisaprecos/videos?q=${encodeURIComponent(q.trim())}`,
+      );
+      return res ?? [];
+    } catch {
+      return [];
+    }
+  },
+
+  async obterPreviewVideo(url: string): Promise<VideoPreview | null> {
+    if (!url || !url.trim()) return null;
+    try {
+      const res = await api<VideoPreview>("/api/pesquisaprecos/video-preview", {
+        method: "POST",
+        body: { url: url.trim() },
+      });
+      return res ?? null;
+    } catch {
+      return null;
+    }
   },
 };

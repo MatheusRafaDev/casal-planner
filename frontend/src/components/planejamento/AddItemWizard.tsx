@@ -24,7 +24,10 @@ import {
   Type,
   LayoutGrid,
   Calendar,
+  Film,
+  Play,
 } from "lucide-react";
+import { VideoPreviewModal } from "./VideoPreviewModal";
 import { BarcodeScannerModal } from "./BarcodeScannerModal";
 import type { ProdutoBarcodeInfo } from "@/services/barcode";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -176,6 +179,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   const [analisandoFoto, setAnalisandoFoto] = useState(false);
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoPreviewUrl, setFotoPreviewUrl] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState("");
+  const [videoThumbnail, setVideoThumbnail] = useState("");
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
 
   const handleBarcodeDetectado = (produto: ProdutoBarcodeInfo) => {
@@ -419,6 +425,8 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         linkProduto: escolhido?.link ?? undefined,
         fotoUrl: escolhido?.thumbnail ?? undefined,
         fotoFile: fotoFile ?? undefined,
+        videoUrl: videoUrl.trim() || undefined,
+        videoThumbnail: videoThumbnail.trim() || undefined,
         marca: marca.trim() || undefined,
         comprado,
         dataCompra: dataCompra ? new Date(dataCompra + "T12:00:00Z").toISOString() : undefined,
@@ -965,6 +973,48 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                             className="h-9 bg-background text-xs sm:text-sm"
                           />
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Card de Demonstração no TikTok */}
+                    <div className="rounded-[var(--radius-lg)] border-2 border-border/80 bg-card p-3.5 space-y-2.5 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                          <Film className="w-3.5 h-3.5 text-pink-500" /> Demonstração no TikTok
+                        </Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setVideoModalOpen(true)}
+                          className="h-6 text-[11px] gap-1 text-pink-600 dark:text-pink-400 border-pink-500/30 hover:bg-pink-500/10 font-bold cursor-pointer"
+                          disabled={!nome.trim()}
+                        >
+                          <Sparkles className="h-3 w-3" />
+                          Buscar
+                        </Button>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Input
+                          value={videoUrl}
+                          onChange={(e) => setVideoUrl(e.target.value)}
+                          placeholder="https://www.tiktok.com/@..."
+                          className="h-9 bg-background text-xs sm:text-sm flex-1"
+                        />
+                        {videoUrl && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setVideoModalOpen(true)}
+                            className="btn-sticker shrink-0 h-9 px-2.5 flex items-center gap-1 font-bold text-xs bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border-pink-500/30 cursor-pointer"
+                            title="Assistir prévia"
+                          >
+                            <Play className="h-3 w-3 fill-current" />
+                            Ver
+                          </Button>
+                        )}
                       </div>
                     </div>
 
@@ -1523,6 +1573,17 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         open={scannerOpen}
         onOpenChange={setScannerOpen}
         onProdutoDetectado={handleBarcodeDetectado}
+      />
+
+      <VideoPreviewModal
+        isOpen={videoModalOpen}
+        onClose={() => setVideoModalOpen(false)}
+        productName={nome}
+        initialVideoUrl={videoUrl}
+        onSelectVideo={(vUrl, thumb) => {
+          setVideoUrl(vUrl);
+          if (thumb) setVideoThumbnail(thumb);
+        }}
       />
     </>
   );
