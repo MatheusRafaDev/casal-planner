@@ -214,21 +214,30 @@ export function AchadinhosReelsFeed({
 
       {/* Container Central do Reel no formato 9:16 (Estilo Smartphone / Instagram Reels) */}
       <div className="relative w-full max-w-[420px] h-full sm:h-[92vh] max-h-[860px] bg-neutral-950 sm:rounded-3xl overflow-hidden shadow-2xl border-0 sm:border-2 border-white/15 flex flex-col justify-between">
-        {/* Barra de Progresso Segmentada no Topo */}
+        {/* Barra de Progresso no Topo */}
         <div className="absolute top-2 left-3 right-3 z-30 flex items-center gap-1">
-          {items.slice(0, 25).map((_, i) => (
-            <div
-              key={i}
-              className={cn(
-                "h-1 rounded-full flex-1 transition-all",
-                i === currentIndex
-                  ? "bg-white shadow-xs"
-                  : i < currentIndex
-                    ? "bg-white/50"
-                    : "bg-white/20",
-              )}
-            />
-          ))}
+          {items.length <= 30 ? (
+            items.map((_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "h-1 rounded-full flex-1 transition-all",
+                  i === currentIndex
+                    ? "bg-white shadow-xs"
+                    : i < currentIndex
+                      ? "bg-white/50"
+                      : "bg-white/20",
+                )}
+              />
+            ))
+          ) : (
+            <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-white transition-all duration-300 rounded-full shadow-xs"
+                style={{ width: `${((currentIndex + 1) / items.length) * 100}%` }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Player de Vídeo em Tela Cheia no Fundo do Reel */}
