@@ -6,9 +6,7 @@ import {
   ExternalLink,
   Loader2,
   Check,
-  Search,
-  Sparkles,
-  Link as LinkIcon,
+  Plus,
   Video,
 } from "lucide-react";
 import {
@@ -19,7 +17,6 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { pesquisaPrecosService, resolverVideoUrlLocal } from "@/services/pesquisa-precos";
 import type { VideoPreview } from "@/services/types";
@@ -32,6 +29,8 @@ interface VideoPreviewModalProps {
   productName: string;
   initialVideoUrl?: string | null;
   onSelectVideo?: (videoUrl: string, thumbnailUrl?: string) => void;
+  onAdicionarProduto?: (videoUrl?: string, thumbnailUrl?: string) => void;
+  confirmButtonLabel?: string;
 }
 
 export function VideoPreviewModal({
@@ -40,19 +39,13 @@ export function VideoPreviewModal({
   productName,
   initialVideoUrl,
   onSelectVideo,
+  onAdicionarProduto,
+  confirmButtonLabel,
 }: VideoPreviewModalProps) {
-  const [searchQuery, setSearchQuery] = useState(productName);
-  const [activeQuery, setActiveQuery] = useState(productName);
   const [activeVideo, setActiveVideo] = useState<VideoPreview | null>(null);
-  const [customUrl, setCustomUrl] = useState("");
-  const [loadingCustom, setLoadingCustom] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setSearchQuery(productName);
-      setActiveQuery(productName);
-      setCustomUrl("");
-
       if (initialVideoUrl) {
         // Carrega preview imediato no cliente para zero latência
         const instant = resolverVideoUrlLocal(initialVideoUrl, productName);
@@ -71,9 +64,9 @@ export function VideoPreviewModal({
   }, [isOpen, productName, initialVideoUrl]);
 
   const { data: videos = [], isLoading, isFetching } = useQuery({
-    queryKey: ["video-previews", activeQuery],
-    queryFn: () => pesquisaPrecosService.buscarVideos(activeQuery),
-    enabled: isOpen && activeQuery.trim().length > 1,
+    queryKey: ["video-previews", productName],
+    queryFn: () => pesquisaPrecosService.buscarVideos(productName),
+    enabled: isOpen && productName.trim().length > 1,
     staleTime: 1000 * 60 * 15, // 15 minutos
   });
 
@@ -84,37 +77,16 @@ export function VideoPreviewModal({
     }
   }, [videos, activeVideo]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim().length > 1) {
-      setActiveQuery(searchQuery.trim());
-    }
-  };
-
-  const handleCarregarUrl = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!customUrl.trim()) return;
-
-    setLoadingCustom(true);
-    try {
-      const prev = await pesquisaPrecosService.obterPreviewVideo(customUrl.trim(), "Vídeo demonstrativo");
-      if (prev) {
-        setActiveVideo(prev);
-        toast.success("Vídeo carregado com sucesso!");
-      } else {
-        toast.error("Não foi possível carregar a prévia deste vídeo. Certifique-se de que é um link válido do TikTok ou YouTube.");
-      }
-    } catch {
-      toast.error("Erro ao carregar o vídeo. Verifique o link e tente novamente.");
-    } finally {
-      setLoadingCustom(false);
-    }
-  };
-
   const handleSalvarVideo = () => {
     if (!activeVideo || !onSelectVideo) return;
     onSelectVideo(activeVideo.videoUrl, activeVideo.thumbnailUrl);
-    toast.success("Vídeo demonstrativo vinculado ao item!");
+    toast.success("Vídeo vinculado ao item!");
+    onClose();
+  };
+
+  const handleAdicionar = () => {
+    if (!onAdicionarProduto) return;
+    onAdicionarProduto(activeVideo?.videoUrl, activeVideo?.thumbnailUrl);
     onClose();
   };
 
@@ -123,44 +95,25 @@ export function VideoPreviewModal({
       <DialogContent className="max-w-4xl max-h-[92vh] flex flex-col p-4 sm:p-6 overflow-hidden">
         <DialogHeader className="shrink-0 pb-2">
           <div className="flex items-center gap-2">
-            <span className="grid place-items-center h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span className="grid place-items-center h-8 w-8 rounded-lg bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/20">
               <Film className="h-4 w-4" />
             </span>
             <div>
               <DialogTitle className="text-base sm:text-lg font-bold flex items-center gap-2">
-                Demonstrações e Reviews no TikTok
+                Demonstração em Vídeo
                 <Badge variant="outline" className="text-[10px] bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/30">
-                  TikTok & Vídeos
+                  TikTok & Reviews
                 </Badge>
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground truncate max-w-xl">
-                {productName ? `Vídeos e reviews para "${productName}"` : "Veja o produto em ação com vídeos reais"}
+                {productName ? `Vídeos de review e teste prático para "${productName}"` : "Veja o produto em ação com vídeos reais"}
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        {/* Barra de Pesquisa */}
-        <div className="shrink-0 mb-3">
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Pesquisar demonstração do produto..."
-                className="pl-9 text-xs sm:text-sm h-9"
-              />
-            </div>
-            <Button type="submit" size="sm" className="h-9 px-3 text-xs font-bold gap-1.5" disabled={isFetching}>
-              {isFetching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-              Buscar
-            </Button>
-          </form>
-        </div>
-
         {/* Conteúdo Principal: Player + Lista de Vídeos */}
-        <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-12 gap-4 min-h-[360px] max-h-[58vh] pr-1">
+        <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-12 gap-4 min-h-[360px] max-h-[64vh] pr-1 pt-1">
           {/* Coluna Esquerda: Player do Vídeo (5 cols) */}
           <div className="md:col-span-5 flex flex-col items-center justify-start bg-muted/40 rounded-2xl p-3 border border-border/60">
             {activeVideo ? (
@@ -200,29 +153,29 @@ export function VideoPreviewModal({
               </div>
             ) : isLoading ? (
               <div className="h-full min-h-[300px] flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                <Loader2 className="h-7 w-7 animate-spin text-primary" />
-                <span className="text-xs font-medium">Buscando reviews no TikTok...</span>
+                <Loader2 className="h-7 w-7 animate-spin text-pink-500" />
+                <span className="text-xs font-medium">Carregando demonstração do produto...</span>
               </div>
             ) : (
               <div className="h-full min-h-[300px] flex flex-col items-center justify-center gap-2 text-center text-muted-foreground p-4">
                 <Video className="h-8 w-8 opacity-40" />
                 <span className="text-xs font-semibold">Nenhum vídeo selecionado</span>
-                <span className="text-[11px] opacity-80">Escolha um vídeo ao lado ou cole o link direto</span>
+                <span className="text-[11px] opacity-80">Escolha uma demonstração ao lado</span>
               </div>
             )}
           </div>
 
-          {/* Coluna Direita: Lista de Vídeos Encontrados + Link Manual (7 cols) */}
+          {/* Coluna Direita: Lista de Vídeos Encontrados (7 cols) */}
           <div className="md:col-span-7 flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Vídeos encontrados ({videos.length})
+                Demonstrações Disponíveis ({videos.length})
               </span>
               {isFetching && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
             </div>
 
-            {/* Lista com Scroll */}
-            <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[160px] max-h-[310px]">
+            {/* Lista com Scroll Amplo */}
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[220px] max-h-[460px]">
               {isLoading ? (
                 <div className="space-y-2">
                   {[1, 2, 3].map((i) => (
@@ -240,7 +193,7 @@ export function VideoPreviewModal({
                       className={cn(
                         "w-full text-left p-2.5 rounded-xl border transition-all flex items-center gap-3 cursor-pointer",
                         isSelected
-                          ? "bg-primary/10 border-primary shadow-xs"
+                          ? "bg-primary/10 border-primary shadow-xs ring-1 ring-primary/30"
                           : "bg-card hover:bg-muted/50 border-border/80 shadow-2xs",
                       )}
                     >
@@ -297,58 +250,42 @@ export function VideoPreviewModal({
               ) : (
                 <div className="text-center py-8 px-4 rounded-xl border border-dashed border-border bg-muted/20">
                   <Film className="h-6 w-6 text-muted-foreground/60 mx-auto mb-2" />
-                  <p className="text-xs font-semibold text-foreground">Nenhum vídeo encontrado</p>
+                  <p className="text-xs font-semibold text-foreground">Demonstração carregada</p>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
-                    Tente buscar por um termo mais simples ou cole o link do TikTok abaixo.
+                    Assista à prévia ao lado antes de adicionar o produto à sua lista.
                   </p>
                 </div>
               )}
             </div>
-
-            {/* Input para Colar Link Manual */}
-            <form onSubmit={handleCarregarUrl} className="pt-2 border-t border-border/60">
-              <label className="text-[11px] font-bold text-muted-foreground flex items-center gap-1 mb-1.5">
-                <LinkIcon className="h-3 w-3" /> Colar link direto do TikTok ou YouTube:
-              </label>
-              <div className="flex gap-2">
-                <Input
-                  value={customUrl}
-                  onChange={(e) => setCustomUrl(e.target.value)}
-                  placeholder="https://www.tiktok.com/@usuario/video/..."
-                  className="text-xs h-8.5"
-                />
-                <Button
-                  type="submit"
-                  variant="outline"
-                  size="sm"
-                  className="h-8.5 text-xs font-bold shrink-0"
-                  disabled={loadingCustom || !customUrl.trim()}
-                >
-                  {loadingCustom ? <Loader2 className="h-3 w-3 animate-spin" /> : "Carregar"}
-                </Button>
-              </div>
-            </form>
           </div>
         </div>
 
         {/* Rodapé / Ações */}
         <div className="shrink-0 pt-3 border-t border-border/60 flex items-center justify-between gap-3">
-          <Button variant="ghost" size="sm" onClick={onClose} className="text-xs font-bold">
+          <Button variant="ghost" size="sm" onClick={onClose} className="text-xs font-bold cursor-pointer">
             Fechar
           </Button>
 
-          {onSelectVideo && activeVideo && (
+          {onAdicionarProduto ? (
+            <Button
+              size="sm"
+              onClick={handleAdicionar}
+              className="bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-bold gap-1.5 shadow-sm px-4 cursor-pointer active:scale-95 transition-all"
+            >
+              <Plus className="h-4 w-4" />
+              Adicionar Produto à Lista
+            </Button>
+          ) : onSelectVideo && activeVideo ? (
             <Button
               size="sm"
               onClick={handleSalvarVideo}
-              className="bg-primary text-primary-foreground text-xs font-bold gap-1.5 shadow-xs"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-bold gap-1.5 shadow-sm px-4 cursor-pointer active:scale-95 transition-all"
             >
-              <Check className="h-3.5 w-3.5" /> Salvar este vídeo no produto
+              <Check className="h-3.5 w-3.5" /> {confirmButtonLabel || "Usar este vídeo"}
             </Button>
-          )}
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
   );
 }
-

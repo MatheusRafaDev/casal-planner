@@ -72,10 +72,12 @@ export function IndicacoesPage() {
     isOpen: boolean;
     productName: string;
     videoUrl?: string | null;
+    achadinho?: Achadinho | null;
   }>({
     isOpen: false,
     productName: "",
     videoUrl: null,
+    achadinho: null,
   });
 
   // Estado para o Modal Padrão do Sistema de Adicionar Item (ItemFormModal)
@@ -90,7 +92,7 @@ export function IndicacoesPage() {
   });
 
   // Abre o modal padrão do sistema com os dados do achadinho pré-preenchidos
-  const iniciarAdicaoAchadinho = async (achadinho: Achadinho) => {
+  const iniciarAdicaoAchadinho = async (achadinho: Achadinho, videoUrlOverride?: string) => {
     let catId = "";
 
     if (categorias.length === 0) {
@@ -119,7 +121,7 @@ export function IndicacoesPage() {
       preco: achadinho.precoEstimado,
       quantidade: 1,
       fotoUrl: achadinho.fotoUrl,
-      videoUrl: achadinho.videoUrl,
+      videoUrl: videoUrlOverride !== undefined ? videoUrlOverride : achadinho.videoUrl,
       loja: achadinho.lojaNome || "Amazon / Online",
       linkProduto: achadinho.linkLoja || "",
       marca: achadinho.marcaSugerida || "",
@@ -421,16 +423,11 @@ export function IndicacoesPage() {
                 className="bg-card border border-border/80 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-primary/50 hover:shadow-md transition-all group"
               >
                 <div>
-                  {/* Container da Imagem com Gatilho do Vídeo */}
+                  {/* Container da Imagem: clica e abre diretamente para adicionar o produto */}
                   <div
-                    onClick={() =>
-                      setVideoModal({
-                        isOpen: true,
-                        productName: item.nome,
-                        videoUrl: item.videoUrl,
-                      })
-                    }
+                    onClick={() => iniciarAdicaoAchadinho(item)}
                     className="relative w-full h-48 bg-white dark:bg-muted/20 border-b border-border/60 flex items-center justify-center p-4 cursor-pointer overflow-hidden"
+                    title="Clique para adicionar este item"
                   >
                     <img
                       src={item.fotoUrl}
@@ -447,6 +444,15 @@ export function IndicacoesPage() {
                     {/* Botão Flutuante de Vídeo do TikTok */}
                     <button
                       type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setVideoModal({
+                          isOpen: true,
+                          productName: item.nome,
+                          videoUrl: item.videoUrl,
+                          achadinho: item,
+                        });
+                      }}
                       className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-600 hover:bg-pink-700 text-white text-[11px] font-bold shadow-md transition-transform active:scale-90 select-none cursor-pointer"
                     >
                       <Play className="h-3 w-3 fill-white" />
@@ -455,7 +461,10 @@ export function IndicacoesPage() {
                   </div>
 
                   {/* Informações Diretas e Limpas */}
-                  <div className="p-3.5 space-y-1.5">
+                  <div
+                    onClick={() => iniciarAdicaoAchadinho(item)}
+                    className="p-3.5 space-y-1.5 cursor-pointer"
+                  >
                     {/* Preço em Destaque */}
                     <div className="flex items-baseline justify-between">
                       <span className="font-display font-black text-base sm:text-lg text-emerald-700 dark:text-emerald-400">
@@ -586,9 +595,18 @@ export function IndicacoesPage() {
       {videoModal.isOpen && (
         <VideoPreviewModal
           isOpen={videoModal.isOpen}
-          onClose={() => setVideoModal((prev) => ({ ...prev, isOpen: false }))}
+          onClose={() => setVideoModal((prev) => ({ ...prev, isOpen: false, achadinho: null }))}
           productName={videoModal.productName}
           initialVideoUrl={videoModal.videoUrl}
+          onAdicionarProduto={
+            videoModal.achadinho
+              ? (selVideo) => {
+                  const ach = videoModal.achadinho!;
+                  setVideoModal((prev) => ({ ...prev, isOpen: false, achadinho: null }));
+                  iniciarAdicaoAchadinho(ach, selVideo);
+                }
+              : undefined
+          }
         />
       )}
     </div>
