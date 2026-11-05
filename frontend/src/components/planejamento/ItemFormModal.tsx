@@ -28,6 +28,7 @@ import {
   Calendar,
   Film,
   Play,
+  Search,
 } from "lucide-react";
 import { VideoPreviewModal } from "./VideoPreviewModal";
 import { BarcodeScannerModal } from "./BarcodeScannerModal";
@@ -52,6 +53,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/lib/auth-context";
 import { itensService, type ItemInputDTO } from "@/services/itens";
+import { resolverVideoUrlLocal } from "@/services/pesquisa-precos";
 import type { Categoria, Item } from "@/services/types";
 import { brl, formatDate } from "@/lib/formatters";
 import { groqService } from "@/services/groq";
@@ -102,6 +104,10 @@ export function ItemFormModal({
   const [imageError, setImageError] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const resolvedVideo = form.videoUrl
+    ? resolverVideoUrlLocal(form.videoUrl, form.nome || "Demonstração do produto")
+    : null;
 
   const handleBarcodeDetectado = (prod: {
     nome?: string;
@@ -503,45 +509,92 @@ export function ItemFormModal({
                           Demonstração no TikTok
                         </Label>
                         <p className="text-[11px] text-muted-foreground">
-                          Vídeo de review ou teste prático
+                          {resolvedVideo ? "Review em vídeo vinculado" : "Vídeo de review ou teste prático"}
                         </p>
                       </div>
                     </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setVideoModalOpen(true)}
-                      className="h-7 text-[11px] gap-1 font-bold text-pink-600 dark:text-pink-400 border-pink-500/30 hover:bg-pink-500/10 cursor-pointer"
-                      disabled={!form.nome.trim()}
-                      title={!form.nome.trim() ? "Digite o nome do produto primeiro" : "Buscar vídeos"}
-                    >
-                      <Sparkles className="h-3 w-3" />
-                      Buscar no TikTok
-                    </Button>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Input
-                      value={form.videoUrl ?? ""}
-                      onChange={(e) => set("videoUrl", e.target.value)}
-                      placeholder="https://www.tiktok.com/@..."
-                      className="bg-background text-xs sm:text-sm flex-1 h-9"
-                    />
-                    {form.videoUrl && (
+                    {form.videoUrl ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          set("videoUrl", "");
+                          set("videoThumbnail", "");
+                        }}
+                        className="text-[11px] font-bold text-destructive hover:underline cursor-pointer"
+                      >
+                        Remover
+                      </button>
+                    ) : (
                       <Button
                         type="button"
-                        variant="secondary"
+                        variant="outline"
                         size="sm"
                         onClick={() => setVideoModalOpen(true)}
-                        className="btn-sticker shrink-0 h-9 px-2.5 flex items-center gap-1 font-bold text-xs bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border-pink-500/30 cursor-pointer"
-                        title="Assistir prévia"
+                        className="h-7 text-[11px] gap-1 font-bold text-pink-600 dark:text-pink-400 border-pink-500/30 hover:bg-pink-500/10 cursor-pointer"
+                        disabled={!form.nome.trim()}
+                        title={!form.nome.trim() ? "Digite o nome do produto primeiro" : "Buscar vídeos"}
                       >
-                        <Play className="h-3 w-3 fill-current" />
-                        Ver
+                        <Sparkles className="h-3 w-3" />
+                        Buscar no TikTok
                       </Button>
                     )}
                   </div>
+
+                  {resolvedVideo ? (
+                    <div className="space-y-2.5">
+                      {/* Player de Vídeo Embutido (Zero Latência) */}
+                      <div className="relative w-full aspect-[9/16] max-h-[320px] rounded-xl overflow-hidden bg-black border border-border/80 shadow-md mx-auto">
+                        <iframe
+                          src={resolvedVideo.playerUrl}
+                          title={resolvedVideo.title || "Demonstração do produto"}
+                          className="w-full h-full border-0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                          loading="lazy"
+                        />
+                      </div>
+
+                      {/* Ações do Vídeo */}
+                      <div className="flex items-center justify-between gap-2 pt-0.5">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setVideoModalOpen(true)}
+                          className="h-7 text-[11px] gap-1 font-bold text-pink-600 dark:text-pink-400 border-pink-500/30 hover:bg-pink-500/10 cursor-pointer"
+                        >
+                          <Sparkles className="h-3 w-3" />
+                          Trocar vídeo
+                        </Button>
+
+                        {form.videoUrl && (
+                          <a
+                            href={form.videoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline ml-auto"
+                          >
+                            Abrir no {resolvedVideo.platform === "youtube" ? "YouTube" : "TikTok"}
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          value={form.videoUrl ?? ""}
+                          onChange={(e) => set("videoUrl", e.target.value)}
+                          placeholder="Cole o link: https://www.tiktok.com/@..."
+                          className="bg-background text-xs sm:text-sm flex-1 h-9"
+                        />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        Cole o link de um vídeo do TikTok ou clique em &quot;Buscar no TikTok&quot;.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

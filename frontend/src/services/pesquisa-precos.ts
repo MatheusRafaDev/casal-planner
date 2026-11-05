@@ -68,10 +68,16 @@ function mapearResposta(
  */
 export function resolverVideoUrlLocal(url: string, fallbackTitle?: string): VideoPreview | null {
   if (!url || !url.trim()) return null;
-  const cleanUrl = url.trim();
+  let cleanUrl = url.trim();
 
-  // 1. TikTok: ID de vídeo ou embed
-  const tiktokMatch = cleanUrl.match(/(?:video\/|embed\/v2\/)(\d+)/i);
+  // Se o usuário colou uma tag <iframe> completa, extrai a URL do src
+  const iframeMatch = cleanUrl.match(/src=["']([^"']+)["']/i);
+  if (iframeMatch) {
+    cleanUrl = iframeMatch[1];
+  }
+
+  // 1. TikTok: ID numérico de vídeo, /v/, embed/v2/ ou player/v1/
+  const tiktokMatch = cleanUrl.match(/(?:video\/|embed\/v2\/|player\/v1\/|\/v\/)(\d+)/i);
   const authorMatch = cleanUrl.match(/@([^/?#]+)/i);
 
   if (tiktokMatch) {
@@ -82,7 +88,7 @@ export function resolverVideoUrlLocal(url: string, fallbackTitle?: string): Vide
       title: fallbackTitle || `Review no TikTok (@${author})`,
       author,
       platform: "tiktok",
-      videoUrl: cleanUrl,
+      videoUrl: cleanUrl.startsWith("http") ? cleanUrl : `https://www.tiktok.com/@${author}/video/${videoId}`,
       playerUrl: `https://www.tiktok.com/player/v1/${videoId}?autoplay=1&muted=1&music_info=1&description=1`,
       thumbnailUrl: "",
     };
@@ -100,6 +106,22 @@ export function resolverVideoUrlLocal(url: string, fallbackTitle?: string): Vide
       videoUrl: cleanUrl,
       playerUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`,
       thumbnailUrl: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+    };
+  }
+
+  // 3. Se já for uma URL de player/embed direta
+  if (
+    (cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://")) &&
+    (cleanUrl.includes("/embed/") || cleanUrl.includes("/player/"))
+  ) {
+    return {
+      id: `embed-${Date.now()}`,
+      title: fallbackTitle || "Demonstração em Vídeo",
+      author: cleanUrl.includes("tiktok") ? "TikTok" : "Vídeo",
+      platform: cleanUrl.includes("tiktok") ? "tiktok" : "youtube",
+      videoUrl: cleanUrl,
+      playerUrl: cleanUrl,
+      thumbnailUrl: "",
     };
   }
 
