@@ -9,6 +9,8 @@ import {
   Plus,
   Video,
   Search,
+  Trash2,
+  Link as LinkIcon,
 } from "lucide-react";
 import {
   Dialog,
@@ -19,6 +21,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { pesquisaPrecosService, resolverVideoUrlLocal } from "@/services/pesquisa-precos";
 import { VideoPlayer } from "./VideoPlayer";
 import type { VideoPreview } from "@/services/types";
@@ -45,9 +49,11 @@ export function VideoPreviewModal({
   confirmButtonLabel,
 }: VideoPreviewModalProps) {
   const [activeVideo, setActiveVideo] = useState<VideoPreview | null>(null);
+  const [inputUrl, setInputUrl] = useState("");
 
   useEffect(() => {
     if (isOpen) {
+      setInputUrl(initialVideoUrl || "");
       if (initialVideoUrl) {
         // Carrega preview imediato no cliente para zero latência
         const instant = resolverVideoUrlLocal(initialVideoUrl, productName);
@@ -74,10 +80,25 @@ export function VideoPreviewModal({
 
   // Se a lista mudar e não houver vídeo ativo, seleciona o primeiro
   useEffect(() => {
-    if (videos.length > 0 && (!activeVideo || !videos.some((v) => v.id === activeVideo.id))) {
+    if (videos.length > 0 && !activeVideo && !initialVideoUrl) {
       setActiveVideo(videos[0]);
     }
-  }, [videos, activeVideo]);
+  }, [videos, activeVideo, initialVideoUrl]);
+
+  const handleAplicarUrl = (urlParaAplicar?: string) => {
+    const raw = (urlParaAplicar ?? inputUrl).trim();
+    if (!raw) {
+      toast.info("Digite ou cole uma URL de vídeo.");
+      return;
+    }
+    const resolved = resolverVideoUrlLocal(raw, productName || "Demonstração do produto");
+    if (resolved) {
+      setActiveVideo(resolved);
+      toast.success("Vídeo carregado com sucesso!");
+    } else {
+      toast.error("Link de vídeo não reconhecido. Use um link do YouTube ou TikTok.");
+    }
+  };
 
   const handleSalvarVideo = () => {
     if (!activeVideo || !onSelectVideo) return;
@@ -134,11 +155,49 @@ export function VideoPreviewModal({
             )}
           </div>
 
-          {/* Coluna Direita: Lista de Vídeos Encontrados (7 cols) */}
+          {/* Coluna Direita: Lista de Vídeos Encontrados e Campo de URL (7 cols) */}
           <div className="md:col-span-7 flex flex-col gap-3">
-            <div className="flex items-center justify-between">
+            {/* Campo Direto para Colar ou Trocar Link */}
+            <div className="p-3 rounded-xl bg-card border border-border/80 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <LinkIcon className="h-3.5 w-3.5 text-primary" /> Colar ou alterar link do vídeo:
+                </span>
+                {activeVideo && (
+                  <span className="text-[10px] text-primary font-semibold">
+                    {activeVideo.platform === "youtube" ? "YouTube detectado" : "TikTok detectado"}
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={inputUrl}
+                  onChange={(e) => setInputUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAplicarUrl();
+                    }
+                  }}
+                  placeholder="https://www.youtube.com/watch?v=... ou TikTok"
+                  className="h-8 text-xs bg-background flex-1"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => handleAplicarUrl()}
+                  disabled={!inputUrl.trim()}
+                  className="h-8 text-xs font-bold px-3 cursor-pointer shrink-0"
+                >
+                  Visualizar
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
               <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Demonstrações Disponíveis ({videos.length})
+                Sugestões Automáticas ({videos.length})
               </span>
               {isFetching && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
             </div>
@@ -304,9 +363,27 @@ export function VideoPreviewModal({
 
         {/* Rodapé / Ações */}
         <div className="shrink-0 pt-3 border-t border-border/60 flex items-center justify-between gap-3">
-          <Button variant="ghost" size="sm" onClick={onClose} className="text-xs font-bold cursor-pointer">
-            Fechar
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={onClose} className="text-xs font-bold cursor-pointer">
+              Fechar
+            </Button>
+            {onSelectVideo && (initialVideoUrl || activeVideo) && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  onSelectVideo("", "");
+                  toast.success("Vídeo removido deste item!");
+                  onClose();
+                }}
+                className="text-destructive hover:bg-destructive/10 text-xs font-bold gap-1 cursor-pointer"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Remover Vídeo
+              </Button>
+            )}
+          </div>
 
           {onAdicionarProduto ? (
             <Button

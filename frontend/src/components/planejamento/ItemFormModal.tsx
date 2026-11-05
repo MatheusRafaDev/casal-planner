@@ -29,6 +29,8 @@ import {
   Film,
   Play,
   Search,
+  Trash2,
+  Link as LinkIcon,
 } from "lucide-react";
 import { VideoPreviewModal } from "./VideoPreviewModal";
 import { VideoPlayer } from "./VideoPlayer";
@@ -225,6 +227,15 @@ export function ItemFormModal({
       payload.clearDataCompra = true;
     } else {
       payload.dataCompra = new Date(payload.dataCompra + "T12:00:00Z").toISOString();
+    }
+
+    if (!payload.videoUrl || !payload.videoUrl.trim()) {
+      payload.clearVideoUrl = true;
+      payload.videoUrl = "";
+      payload.videoThumbnail = "";
+    } else {
+      payload.clearVideoUrl = false;
+      payload.videoUrl = payload.videoUrl.trim();
     }
 
     mutation.mutate({ id: isEdit && item ? item.id : undefined, dto: payload });
@@ -520,7 +531,7 @@ export function ItemFormModal({
                   </AnimatePresence>
                 </div>
 
-                {/* Card de Demonstração no TikTok */}
+                {/* Card de Demonstração em Vídeo */}
                 <div className="rounded-[var(--radius-lg)] border-2 border-border/80 bg-card p-3.5 space-y-2.5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -535,16 +546,20 @@ export function ItemFormModal({
                       </div>
                     </div>
                     {form.videoUrl ? (
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => {
                           set("videoUrl", "");
                           set("videoThumbnail", "");
+                          toast.info("Vídeo removido. Salve o item para confirmar.");
                         }}
-                        className="text-[11px] font-bold text-destructive hover:underline cursor-pointer"
+                        className="h-7 px-2 text-xs font-bold text-destructive hover:bg-destructive/10 gap-1 cursor-pointer"
                       >
+                        <Trash2 className="w-3.5 h-3.5" />
                         Remover
-                      </button>
+                      </Button>
                     ) : (
                       <Button
                         type="button"
@@ -566,8 +581,26 @@ export function ItemFormModal({
                       {/* Player de Vídeo Aprimorado com Controles e Carregamento Fluido */}
                       <VideoPlayer video={resolvedVideo} showDetails={false} />
 
+                      {/* Campo Direto para Ver, Colar ou Alterar Link */}
+                      <div className="space-y-1 pt-1">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-semibold text-muted-foreground flex items-center gap-1">
+                            <LinkIcon className="w-3 h-3 text-primary" /> Link do vídeo (YouTube ou TikTok):
+                          </span>
+                          <span className="text-[10px] text-primary font-medium">
+                            {resolvedVideo.platform === "youtube" ? "YouTube" : "TikTok"}
+                          </span>
+                        </div>
+                        <Input
+                          value={form.videoUrl ?? ""}
+                          onChange={(e) => set("videoUrl", e.target.value)}
+                          placeholder="Cole o link: https://www.youtube.com/... ou TikTok"
+                          className="bg-background text-xs h-8"
+                        />
+                      </div>
+
                       {/* Ações do Vídeo */}
-                      <div className="flex items-center justify-between gap-2 pt-0.5">
+                      <div className="flex items-center justify-between gap-2 pt-0.5 flex-wrap">
                         <Button
                           type="button"
                           variant="outline"
@@ -576,7 +609,22 @@ export function ItemFormModal({
                           className="h-7 text-[11px] gap-1 font-bold text-primary border-primary/25 hover:bg-primary/10 cursor-pointer"
                         >
                           <Sparkles className="h-3 w-3" />
-                          Trocar vídeo
+                          Buscar outros vídeos
+                        </Button>
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            set("videoUrl", "");
+                            set("videoThumbnail", "");
+                            toast.info("Vídeo removido.");
+                          }}
+                          className="h-7 text-[11px] font-bold text-destructive hover:bg-destructive/10 gap-1 cursor-pointer"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Remover vídeo
                         </Button>
 
                         {form.videoUrl && (
@@ -598,13 +646,26 @@ export function ItemFormModal({
                         <Input
                           value={form.videoUrl ?? ""}
                           onChange={(e) => set("videoUrl", e.target.value)}
-                          placeholder="Cole o link: https://www.tiktok.com/@..."
+                          placeholder="Cole o link do YouTube ou TikTok: https://..."
                           className="bg-background text-xs sm:text-sm flex-1 h-9"
                         />
                       </div>
-                      <p className="text-[10px] text-muted-foreground">
-                        Cole o link de um vídeo do TikTok ou clique em &quot;Buscar no TikTok&quot;.
-                      </p>
+                      <div className="flex items-center justify-between flex-wrap gap-1">
+                        <p className="text-[10px] text-muted-foreground">
+                          Cole o link de um vídeo do YouTube ou TikTok, ou busque sugestões.
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setVideoModalOpen(true)}
+                          className="h-7 text-[11px] gap-1 font-bold text-primary border-primary/25 hover:bg-primary/10 cursor-pointer shrink-0"
+                          disabled={!form.nome.trim()}
+                        >
+                          <Sparkles className="h-3 w-3" />
+                          Buscar sugestões
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>

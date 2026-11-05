@@ -367,15 +367,26 @@ function PlanejamentoPage() {
       id,
       videoUrl,
       videoThumbnail,
+      clearVideoUrl,
     }: {
       id: string;
       videoUrl: string;
       videoThumbnail?: string;
-    }) => itensService.atualizar(id, { videoUrl, videoThumbnail }),
-    onSuccess: () => {
+      clearVideoUrl?: boolean;
+    }) =>
+      itensService.atualizar(id, {
+        videoUrl: videoUrl || "",
+        videoThumbnail: videoThumbnail || "",
+        clearVideoUrl: clearVideoUrl || !videoUrl.trim(),
+      }),
+    onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["itens-paginado"] });
       qc.invalidateQueries({ queryKey: ["itens"] });
-      toast.success("Vídeo do TikTok vinculado ao item!");
+      if (vars.clearVideoUrl || !vars.videoUrl.trim()) {
+        toast.success("Vídeo removido do item!");
+      } else {
+        toast.success("Vídeo vinculado ao item!");
+      }
     },
     onError: () => {
       toast.error("Erro ao salvar vídeo no item");

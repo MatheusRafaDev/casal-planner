@@ -27,6 +27,7 @@ import {
   Film,
   Play,
   ExternalLink,
+  Link as LinkIcon,
 } from "lucide-react";
 import { resolverVideoUrlLocal } from "@/services/pesquisa-precos";
 import { VideoPreviewModal } from "./VideoPreviewModal";
@@ -990,16 +991,20 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                           <Film className="w-3.5 h-3.5 text-primary" /> Demonstração em Vídeo
                         </Label>
                         {videoUrl ? (
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => {
                               setVideoUrl("");
                               setVideoThumbnail("");
+                              toast.info("Vídeo removido.");
                             }}
-                            className="text-[11px] font-bold text-destructive hover:underline cursor-pointer"
+                            className="h-6 text-[11px] font-bold text-destructive hover:bg-destructive/10 gap-1 cursor-pointer"
                           >
+                            <Trash2 className="w-3 h-3" />
                             Remover
-                          </button>
+                          </Button>
                         ) : (
                           <Button
                             type="button"
@@ -1020,8 +1025,26 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                           {/* Player de Vídeo Aprimorado com Controles e Carregamento Fluido */}
                           <VideoPlayer video={resolvedVideo} showDetails={false} />
 
+                          {/* Campo Direto para Colar ou Alterar Link */}
+                          <div className="space-y-1 pt-1">
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="font-semibold text-muted-foreground flex items-center gap-1">
+                                <LinkIcon className="w-3 h-3 text-primary" /> Link do vídeo (YouTube ou TikTok):
+                              </span>
+                              <span className="text-[10px] text-primary font-medium">
+                                {resolvedVideo.platform === "youtube" ? "YouTube" : "TikTok"}
+                              </span>
+                            </div>
+                            <Input
+                              value={videoUrl}
+                              onChange={(e) => setVideoUrl(e.target.value)}
+                              placeholder="Cole o link: https://www.youtube.com/... ou TikTok"
+                              className="h-8 bg-background text-xs"
+                            />
+                          </div>
+
                           {/* Ações do Vídeo */}
-                          <div className="flex items-center justify-between gap-2 pt-0.5">
+                          <div className="flex items-center justify-between gap-2 pt-0.5 flex-wrap">
                             <Button
                               type="button"
                               variant="outline"
@@ -1030,7 +1053,22 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                               className="h-7 text-[11px] gap-1 font-bold text-primary border-primary/25 hover:bg-primary/10 cursor-pointer"
                             >
                               <Sparkles className="h-3 w-3" />
-                              Trocar vídeo
+                              Buscar outros vídeos
+                            </Button>
+
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setVideoUrl("");
+                                setVideoThumbnail("");
+                                toast.info("Vídeo removido.");
+                              }}
+                              className="h-7 text-[11px] font-bold text-destructive hover:bg-destructive/10 gap-1 cursor-pointer"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              Remover vídeo
                             </Button>
 
                             {videoUrl && (
@@ -1052,12 +1090,12 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                             <Input
                               value={videoUrl}
                               onChange={(e) => setVideoUrl(e.target.value)}
-                              placeholder="Cole o link: https://www.tiktok.com/@..."
+                              placeholder="Cole o link do YouTube ou TikTok: https://..."
                               className="h-9 bg-background text-xs sm:text-sm flex-1"
                             />
                           </div>
                           <p className="text-[10px] text-muted-foreground">
-                            Cole o link de um vídeo do TikTok ou clique em &quot;Buscar&quot;.
+                            Cole o link de um vídeo do YouTube ou TikTok, ou clique em &quot;Buscar&quot;.
                           </p>
                         </div>
                       )}

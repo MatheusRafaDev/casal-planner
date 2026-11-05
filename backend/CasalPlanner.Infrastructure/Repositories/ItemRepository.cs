@@ -97,14 +97,14 @@ namespace CasalPlanner.Infrastructure.Repositories
             if (dto.LinkProduto != null) updates.Add(update.Set(i => i.LinkProduto, dto.LinkProduto));
             if (dto.FotoUrl != null) updates.Add(update.Set(i => i.FotoUrl, dto.FotoUrl));
             if (dto.FotoPublicId != null) updates.Add(update.Set(i => i.FotoPublicId, dto.FotoPublicId));
-            if (dto.ClearVideoUrl)
+            if (dto.ClearVideoUrl || (dto.VideoUrl != null && string.IsNullOrWhiteSpace(dto.VideoUrl)))
             {
                 updates.Add(update.Set(i => i.VideoUrl, null));
                 updates.Add(update.Set(i => i.VideoThumbnail, null));
             }
-            else
+            else if (!string.IsNullOrWhiteSpace(dto.VideoUrl))
             {
-                if (dto.VideoUrl != null) updates.Add(update.Set(i => i.VideoUrl, dto.VideoUrl));
+                updates.Add(update.Set(i => i.VideoUrl, dto.VideoUrl.Trim()));
                 if (dto.VideoThumbnail != null) updates.Add(update.Set(i => i.VideoThumbnail, dto.VideoThumbnail));
             }
             if (!string.IsNullOrEmpty(dto.Origem)) updates.Add(update.Set(i => i.Origem, dto.Origem));
