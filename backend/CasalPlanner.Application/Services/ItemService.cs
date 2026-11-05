@@ -19,6 +19,7 @@ namespace CasalPlanner.Application.Services
         private readonly IMemoryCache _cache;
         private readonly IScrapeDoService _scrapeDoService;
         private readonly ICacheService? _cacheService;
+        private readonly ITikTokPreviewService? _tikTokPreviewService;
 
         public ItemService(
             IItemRepository itemRepository,
@@ -28,7 +29,8 @@ namespace CasalPlanner.Application.Services
             IEmailService emailService,
             IMemoryCache cache,
             IScrapeDoService scrapeDoService,
-            ICacheService? cacheService = null)
+            ICacheService? cacheService = null,
+            ITikTokPreviewService? tikTokPreviewService = null)
         {
             _itemRepository = itemRepository;
             _usuarioRepository = usuarioRepository;
@@ -38,6 +40,7 @@ namespace CasalPlanner.Application.Services
             _cache = cache;
             _scrapeDoService = scrapeDoService;
             _cacheService = cacheService;
+            _tikTokPreviewService = tikTokPreviewService;
         }
 
         public async Task<List<Item>> GetItensByUsuarioId(string usuarioId)
@@ -177,6 +180,29 @@ namespace CasalPlanner.Application.Services
                 } : null,
                 DataCompra = dto.DataCompra
             };
+
+            // Busca automática de vídeo de demonstração caso não tenha sido informado
+            if (string.IsNullOrWhiteSpace(item.VideoUrl) && !string.IsNullOrWhiteSpace(dto.Nome) && _tikTokPreviewService != null)
+            {
+                try
+                {
+                    using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(3));
+                    var videos = await _tikTokPreviewService.BuscarVideosAsync(dto.Nome, cts.Token);
+                    if (videos != null && videos.Count > 0)
+                    {
+                        var best = videos.FirstOrDefault(v => EhVideoRelevante(v.Title, dto.Nome));
+                        if (best != null)
+                        {
+                            item.VideoUrl = best.VideoUrl;
+                            item.VideoThumbnail = best.ThumbnailUrl;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Busca automática de vídeo falhou para {Produto}", dto.Nome);
+                }
+            }
 
             await _itemRepository.CreateAsync(item);
 
@@ -354,6 +380,54 @@ namespace CasalPlanner.Application.Services
             {
                 _logger.LogWarning(ex, "Falha ao enviar notificação (background). Item: {Nome}", itemNome);
             }
+        }
+
+        private static bool EhVideoRelevante(string? videoTitle, string? productName)
+        {
+            if (string.IsNullOrWhiteSpace(videoTitle) || string.IsNullOrWhiteSpace(productName))
+                return false;
+
+            var normTitle = NormalizarTexto(videoTitle);
+            var normProduct = NormalizarTexto(productName);
+
+            if (normTitle.Contains(normProduct) || normProduct.Contains(normTitle))
+                return true;
+
+            var stopwords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "com", "para", "sem", "de", "da", "do", "das", "dos", "em", "um", "uma", "uns", "umas",
+                "kit", "conjunto", "jogo", "pecas", "peca", "modelo", "tipo", "e", "ou", "a", "o", "as", "os",
+                "por", "sobre", "novo", "nova", "unidade", "unidades", "ref", "cod"
+            };
+
+            var titleWords = new HashSet<string>(normTitle.Split(' ', StringSplitOptions.RemoveEmptyEntries), StringComparer.OrdinalIgnoreCase);
+            var productWords = normProduct.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Where(w => w.Length >= 3 && !stopwords.Contains(w))
+                .ToList();
+
+            if (productWords.Count == 0) return false;
+
+            int matches = productWords.Count(pw => titleWords.Contains(pw) || normTitle.Contains(pw));
+
+            return productWords.Count <= 2 ? matches >= 1 : matches >= 2;
+        }
+
+        private static string NormalizarTexto(string text)
+        {
+            var normalized = text.Normalize(System.Text.NormalizationForm.FormD);
+            var sb = new System.Text.StringBuilder();
+            foreach (var c in normalized)
+            {
+                var uc = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+                if (uc != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    if (char.IsLetterOrDigit(c) || char.IsWhiteSpace(c))
+                        sb.Append(char.ToLowerInvariant(c));
+                    else
+                        sb.Append(' ');
+                }
+            }
+            return System.Text.RegularExpressions.Regex.Replace(sb.ToString(), @"\s+", " ").Trim();
         }
     }
 }

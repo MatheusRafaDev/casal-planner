@@ -187,4 +187,101 @@ public class ItemServiceTests
         Assert.Equal("item-recente-2", result.Id);
         _itemRepositoryMock.Verify(r => r.CreateAsync(It.IsAny<Item>()), Times.Never);
     }
+
+    [Fact]
+    public async Task CriarItem_SemVideo_VideoRelevanteEncontrado_VinculaVideoAutomaticamente()
+    {
+        // Arrange
+        var previewMock = new Mock<CasalPlanner.Application.Interfaces.ITikTokPreviewService>();
+        previewMock.Setup(p => p.BuscarVideosAsync("Canto Alemão Cash com 2 Cadeiras Sol Viero", It.IsAny<System.Threading.CancellationToken>()))
+            .ReturnsAsync(new List<VideoPreviewDto>
+            {
+                new VideoPreviewDto
+                {
+                    Id = "v1",
+                    Title = "Review: Conjunto Canto Alemão com 2 Cadeiras Viero Móveis",
+                    VideoUrl = "https://www.youtube.com/watch?v=uUIpRbXVhDY",
+                    ThumbnailUrl = "https://i.ytimg.com/vi/uUIpRbXVhDY/hqdefault.jpg"
+                }
+            });
+
+        var customService = new ItemService(
+            _itemRepositoryMock.Object,
+            _usuarioRepositoryMock.Object,
+            _pushServiceMock.Object,
+            _loggerMock.Object,
+            _emailServiceMock.Object,
+            _cache,
+            _scrapeDoServiceMock.Object,
+            null,
+            previewMock.Object
+        );
+
+        var dto = new CriarItemDto
+        {
+            Nome = "Canto Alemão Cash com 2 Cadeiras Sol Viero",
+            CategoriaId = "cat1",
+            Preco = 926.91m,
+            Quantidade = 1
+        };
+
+        Item? itemCriado = null;
+        _itemRepositoryMock.Setup(r => r.CreateAsync(It.IsAny<Item>()))
+            .Callback<Item>(i => itemCriado = i)
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var res = await customService.CriarItem(dto, "user1", "teste@teste.com");
+
+        // Assert
+        Assert.NotNull(res);
+        Assert.Equal("https://www.youtube.com/watch?v=uUIpRbXVhDY", res.VideoUrl);
+        Assert.Equal("https://i.ytimg.com/vi/uUIpRbXVhDY/hqdefault.jpg", res.VideoThumbnail);
+    }
+
+    [Fact]
+    public async Task CriarItem_SemVideo_VideoIrrelevante_NaoVinculaVideo()
+    {
+        // Arrange: Se não achar vídeo relevante ("se nao achar n coloque"), deve deixar nulo
+        var previewMock = new Mock<CasalPlanner.Application.Interfaces.ITikTokPreviewService>();
+        previewMock.Setup(p => p.BuscarVideosAsync("Parafuso Sextavado 3/8", It.IsAny<System.Threading.CancellationToken>()))
+            .ReturnsAsync(new List<VideoPreviewDto>
+            {
+                new VideoPreviewDto
+                {
+                    Id = "v2",
+                    Title = "Receita de Bolo de Cenoura Fácil e Rápido",
+                    VideoUrl = "https://www.youtube.com/watch?v=xyz123",
+                    ThumbnailUrl = "https://i.ytimg.com/vi/xyz123/hqdefault.jpg"
+                }
+            });
+
+        var customService = new ItemService(
+            _itemRepositoryMock.Object,
+            _usuarioRepositoryMock.Object,
+            _pushServiceMock.Object,
+            _loggerMock.Object,
+            _emailServiceMock.Object,
+            _cache,
+            _scrapeDoServiceMock.Object,
+            null,
+            previewMock.Object
+        );
+
+        var dto = new CriarItemDto
+        {
+            Nome = "Parafuso Sextavado 3/8",
+            CategoriaId = "cat1",
+            Preco = 5.00m,
+            Quantidade = 10
+        };
+
+        // Act
+        var res = await customService.CriarItem(dto, "user1", "teste@teste.com");
+
+        // Assert
+        Assert.NotNull(res);
+        Assert.Null(res.VideoUrl);
+        Assert.Null(res.VideoThumbnail);
+    }
 }

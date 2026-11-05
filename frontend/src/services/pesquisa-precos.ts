@@ -281,4 +281,64 @@ export const pesquisaPrecosService = {
 
     return local;
   },
+
+  async buscarVideoAutomatico(productName: string): Promise<VideoPreview | null> {
+    if (!productName || productName.trim().length < 3) return null;
+
+    try {
+      const videos = await this.buscarVideos(productName.trim());
+      if (!videos || videos.length === 0) return null;
+
+      // Filtra apenas vídeos que sejam verdadeiramente relevantes para este produto
+      const relevantes = videos.filter((v) => isVideoRelevant(v.title, productName));
+      if (relevantes.length > 0) {
+        return relevantes[0];
+      }
+    } catch {
+      // Ignora falhas em busca automática silenciosamente
+    }
+
+    return null;
+  },
 };
+
+function normalizeText(str: string): string {
+  return (str || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+const STOPWORDS_RELEVANCIA = new Set([
+  "com", "para", "sem", "de", "da", "do", "das", "dos", "em", "um", "uma", "uns", "umas",
+  "kit", "conjunto", "jogo", "pecas", "peca", "modelo", "tipo", "e", "ou", "a", "o", "as", "os",
+  "por", "sobre", "novo", "nova", "unidade", "unidades", "ref", "cod"
+]);
+
+export function isVideoRelevant(videoTitle: string, productName: string): boolean {
+  if (!videoTitle || !productName) return false;
+  const normTitle = normalizeText(videoTitle);
+  const normProduct = normalizeText(productName);
+
+  if (normTitle.includes(normProduct) || normProduct.includes(normTitle)) return true;
+
+  const titleWords = new Set(normTitle.split(" "));
+  const productWords = normProduct.split(" ").filter((w) => w.length >= 3 && !STOPWORDS_RELEVANCIA.has(w));
+
+  if (productWords.length === 0) return false;
+
+  let matchCount = 0;
+  for (const pw of productWords) {
+    if (titleWords.has(pw) || normTitle.includes(pw)) {
+      matchCount++;
+    }
+  }
+
+  if (productWords.length <= 2) {
+    return matchCount >= 1;
+  }
+  return matchCount >= 2;
+}

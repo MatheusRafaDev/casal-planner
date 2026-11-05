@@ -56,7 +56,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/lib/auth-context";
 import { itensService, type ItemInputDTO } from "@/services/itens";
-import { resolverVideoUrlLocal } from "@/services/pesquisa-precos";
+import { pesquisaPrecosService, resolverVideoUrlLocal } from "@/services/pesquisa-precos";
 import type { Categoria, Item } from "@/services/types";
 import { brl, formatDate } from "@/lib/formatters";
 import { groqService } from "@/services/groq";
@@ -106,6 +106,10 @@ export function ItemFormModal({
   const [dividir, setDividir] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [showManualVideoInput, setShowManualVideoInput] = useState(false);
+  const [buscandoVideoAuto, setBuscandoVideoAuto] = useState(false);
+  const userRemovedVideoRef = useRef(false);
+  const ultimaBuscaVideoNomeRef = useRef("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const resolvedVideo = form.videoUrl
@@ -128,6 +132,10 @@ export function ItemFormModal({
 
   useEffect(() => {
     if (open) {
+      userRemovedVideoRef.current = false;
+      setShowManualVideoInput(false);
+      ultimaBuscaVideoNomeRef.current = "";
+
       if (item) {
         setForm({
           nome: item.nome,
@@ -177,6 +185,44 @@ export function ItemFormModal({
     queryFn: () => groqService.detectarDuplicata(debouncedNome, form.categoriaId),
     enabled: !isEdit && debouncedNome.trim().length >= 3 && !!form.categoriaId,
   });
+
+  // Busca automática do vídeo de demonstração sem exigir ação do usuário
+  useEffect(() => {
+    if (!open) return;
+    const nomeAtual = form.nome.trim();
+    if (nomeAtual.length < 3) return;
+    if (form.videoUrl || userRemovedVideoRef.current) return;
+    if (ultimaBuscaVideoNomeRef.current === nomeAtual) return;
+
+    ultimaBuscaVideoNomeRef.current = nomeAtual;
+    setBuscandoVideoAuto(true);
+
+    const timer = setTimeout(() => {
+      pesquisaPrecosService
+        .buscarVideoAutomatico(nomeAtual)
+        .then((video) => {
+          setBuscandoVideoAuto(false);
+          if (video && !userRemovedVideoRef.current) {
+            setForm((prev) => {
+              if (!prev.videoUrl) {
+                return {
+                  ...prev,
+                  videoUrl: video.videoUrl,
+                  videoThumbnail: video.thumbnailUrl || prev.videoThumbnail,
+                };
+              }
+              return prev;
+            });
+            toast.success("Demonstração em vídeo encontrada automaticamente!");
+          }
+        })
+        .catch(() => {
+          setBuscandoVideoAuto(false);
+        });
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [open, form.nome, form.videoUrl]);
 
   const isSubmittingRef = useRef(false);
 
@@ -552,7 +598,11 @@ export function ItemFormModal({
                           Demonstração em Vídeo
                         </Label>
                         <p className="text-[11px] text-muted-foreground">
-                          {resolvedVideo ? "Review em vídeo vinculado" : "Vídeo de review ou teste prático"}
+                          {resolvedVideo
+                            ? "Review em vídeo vinculado"
+                            : buscandoVideoAuto
+                            ? "Buscando automaticamente..."
+                            : "Busca automática de review"}
                         </p>
                       </div>
                     </div>
@@ -562,8 +612,10 @@ export function ItemFormModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => {
+                          userRemovedVideoRef.current = true;
                           set("videoUrl", "");
                           set("videoThumbnail", "");
+                          setShowManualVideoInput(false);
                           toast.info("Vídeo removido. Salve o item para confirmar.");
                         }}
                         className="h-7 px-2 text-xs font-bold text-destructive hover:bg-destructive/10 gap-1 cursor-pointer"
@@ -571,44 +623,18 @@ export function ItemFormModal({
                         <Trash2 className="w-3.5 h-3.5" />
                         Remover
                       </Button>
-                    ) : (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setVideoModalOpen(true)}
-                        className="h-7 text-[11px] gap-1 font-bold text-primary border-primary/25 hover:bg-primary/10 cursor-pointer"
-                        disabled={!form.nome.trim()}
-                        title={!form.nome.trim() ? "Digite o nome do produto primeiro" : "Buscar vídeos"}
-                      >
-                        <Sparkles className="h-3 w-3" />
-                        Buscar vídeo
-                      </Button>
-                    )}
+                    ) : null}
                   </div>
 
-                  {resolvedVideo ? (
+                  {buscandoVideoAuto ? (
+                    <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-center gap-2.5 text-xs text-primary font-medium animate-pulse">
+                      <Loader2 className="w-4 h-4 animate-spin text-primary shrink-0" />
+                      <span>Buscando vídeo de demonstração automaticamente...</span>
+                    </div>
+                  ) : resolvedVideo ? (
                     <div className="space-y-2.5">
                       {/* Player de Vídeo Aprimorado com Controles e Carregamento Fluido */}
                       <VideoPlayer video={resolvedVideo} showDetails={false} />
-
-                      {/* Campo Direto para Ver, Colar ou Alterar Link */}
-                      <div className="space-y-1 pt-1">
-                        <div className="flex items-center justify-between text-[11px]">
-                          <span className="font-semibold text-muted-foreground flex items-center gap-1">
-                            <LinkIcon className="w-3 h-3 text-primary" /> Link do vídeo (YouTube ou TikTok):
-                          </span>
-                          <span className="text-[10px] text-primary font-medium">
-                            {resolvedVideo.platform === "youtube" ? "YouTube" : "TikTok"}
-                          </span>
-                        </div>
-                        <Input
-                          value={form.videoUrl ?? ""}
-                          onChange={(e) => set("videoUrl", e.target.value)}
-                          placeholder="Cole o link: https://www.youtube.com/... ou TikTok"
-                          className="bg-background text-xs h-8"
-                        />
-                      </div>
 
                       {/* Ações do Vídeo */}
                       <div className="flex items-center justify-between gap-2 pt-0.5 flex-wrap">
@@ -620,7 +646,7 @@ export function ItemFormModal({
                           className="h-7 text-[11px] gap-1 font-bold text-primary border-primary/25 hover:bg-primary/10 cursor-pointer"
                         >
                           <Sparkles className="h-3 w-3" />
-                          Buscar outros vídeos
+                          Trocar vídeo
                         </Button>
 
                         <Button
@@ -628,8 +654,10 @@ export function ItemFormModal({
                           variant="ghost"
                           size="sm"
                           onClick={() => {
+                            userRemovedVideoRef.current = true;
                             set("videoUrl", "");
                             set("videoThumbnail", "");
+                            setShowManualVideoInput(false);
                             toast.info("Vídeo removido.");
                           }}
                           className="h-7 text-[11px] font-bold text-destructive hover:bg-destructive/10 gap-1 cursor-pointer"
@@ -653,30 +681,46 @@ export function ItemFormModal({
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <Input
-                          value={form.videoUrl ?? ""}
-                          onChange={(e) => set("videoUrl", e.target.value)}
-                          placeholder="Cole o link do YouTube ou TikTok: https://..."
-                          className="bg-background text-xs sm:text-sm flex-1 h-9"
-                        />
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/70 text-xs text-muted-foreground gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Film className="w-4 h-4 text-muted-foreground/60 shrink-0" />
+                          <span className="truncate">Nenhuma demonstração encontrada automaticamente.</span>
+                        </div>
+                        {!showManualVideoInput && (
+                          <button
+                            type="button"
+                            onClick={() => setShowManualVideoInput(true)}
+                            className="text-[11px] font-semibold text-primary hover:underline cursor-pointer shrink-0"
+                          >
+                            Colar link manual
+                          </button>
+                        )}
                       </div>
-                      <div className="flex items-center justify-between flex-wrap gap-1">
-                        <p className="text-[10px] text-muted-foreground">
-                          Cole o link de um vídeo do YouTube ou TikTok, ou busque sugestões.
-                        </p>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setVideoModalOpen(true)}
-                          className="h-7 text-[11px] gap-1 font-bold text-primary border-primary/25 hover:bg-primary/10 cursor-pointer shrink-0"
-                          disabled={!form.nome.trim()}
+
+                      {showManualVideoInput && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          className="space-y-1.5 pt-1"
                         >
-                          <Sparkles className="h-3 w-3" />
-                          Buscar sugestões
-                        </Button>
-                      </div>
+                          <Input
+                            value={form.videoUrl ?? ""}
+                            onChange={(e) => set("videoUrl", e.target.value)}
+                            placeholder="Cole o link do YouTube ou TikTok: https://..."
+                            className="bg-background text-xs h-8"
+                          />
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                            <span>Opcional: cole uma URL direta caso tenha</span>
+                            <button
+                              type="button"
+                              onClick={() => setShowManualVideoInput(false)}
+                              className="text-destructive hover:underline"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
                     </div>
                   )}
                 </div>

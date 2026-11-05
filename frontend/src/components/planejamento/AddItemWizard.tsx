@@ -188,6 +188,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   const [videoUrl, setVideoUrl] = useState("");
   const [videoThumbnail, setVideoThumbnail] = useState("");
   const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [showManualVideoInput, setShowManualVideoInput] = useState(false);
+  const [buscandoVideoAuto, setBuscandoVideoAuto] = useState(false);
+  const userRemovedVideoRef = useRef(false);
+  const ultimaBuscaVideoNomeRef = useRef("");
   const [scannerOpen, setScannerOpen] = useState(false);
 
   const resolvedVideo = videoUrl
@@ -232,6 +236,11 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     setSuggestions([]);
     setShowSuggestions(false);
     setFotoFile(null);
+    setVideoUrl("");
+    setVideoThumbnail("");
+    setShowManualVideoInput(false);
+    userRemovedVideoRef.current = false;
+    ultimaBuscaVideoNomeRef.current = "";
     setFotoPreviewUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return null;
@@ -259,6 +268,36 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  // Busca automática do vídeo de demonstração sem exigir ação do usuário
+  useEffect(() => {
+    if (!open) return;
+    const nomeAtual = nome.trim();
+    if (nomeAtual.length < 3) return;
+    if (videoUrl || userRemovedVideoRef.current) return;
+    if (ultimaBuscaVideoNomeRef.current === nomeAtual) return;
+
+    ultimaBuscaVideoNomeRef.current = nomeAtual;
+    setBuscandoVideoAuto(true);
+
+    const timer = setTimeout(() => {
+      pesquisaPrecosService
+        .buscarVideoAutomatico(nomeAtual)
+        .then((video) => {
+          setBuscandoVideoAuto(false);
+          if (video && !userRemovedVideoRef.current) {
+            setVideoUrl(video.videoUrl);
+            if (video.thumbnailUrl) setVideoThumbnail(video.thumbnailUrl);
+            toast.success("Demonstração em vídeo encontrada automaticamente!");
+          }
+        })
+        .catch(() => {
+          setBuscandoVideoAuto(false);
+        });
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [open, nome, videoUrl]);
 
   const handleNomeChange = (value: string) => {
     setNome(value);
@@ -1008,8 +1047,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                             variant="ghost"
                             size="sm"
                             onClick={() => {
+                              userRemovedVideoRef.current = true;
                               setVideoUrl("");
                               setVideoThumbnail("");
+                              setShowManualVideoInput(false);
                               toast.info("Vídeo removido.");
                             }}
                             className="h-6 text-[11px] font-bold text-destructive hover:bg-destructive/10 gap-1 cursor-pointer"
@@ -1017,43 +1058,18 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                             <Trash2 className="w-3 h-3" />
                             Remover
                           </Button>
-                        ) : (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setVideoModalOpen(true)}
-                            className="h-6 text-[11px] gap-1 text-primary border-primary/25 hover:bg-primary/10 font-bold cursor-pointer"
-                            disabled={!nome.trim()}
-                          >
-                            <Sparkles className="h-3 w-3" />
-                            Buscar
-                          </Button>
-                        )}
+                        ) : null}
                       </div>
 
-                      {resolvedVideo ? (
+                      {buscandoVideoAuto ? (
+                        <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-center gap-2.5 text-xs text-primary font-medium animate-pulse">
+                          <Loader2 className="w-4 h-4 animate-spin text-primary shrink-0" />
+                          <span>Buscando vídeo de demonstração automaticamente...</span>
+                        </div>
+                      ) : resolvedVideo ? (
                         <div className="space-y-2.5">
                           {/* Player de Vídeo Aprimorado com Controles e Carregamento Fluido */}
                           <VideoPlayer video={resolvedVideo} showDetails={false} />
-
-                          {/* Campo Direto para Colar ou Alterar Link */}
-                          <div className="space-y-1 pt-1">
-                            <div className="flex items-center justify-between text-[11px]">
-                              <span className="font-semibold text-muted-foreground flex items-center gap-1">
-                                <LinkIcon className="w-3 h-3 text-primary" /> Link do vídeo (YouTube ou TikTok):
-                              </span>
-                              <span className="text-[10px] text-primary font-medium">
-                                {resolvedVideo.platform === "youtube" ? "YouTube" : "TikTok"}
-                              </span>
-                            </div>
-                            <Input
-                              value={videoUrl}
-                              onChange={(e) => setVideoUrl(e.target.value)}
-                              placeholder="Cole o link: https://www.youtube.com/... ou TikTok"
-                              className="h-8 bg-background text-xs"
-                            />
-                          </div>
 
                           {/* Ações do Vídeo */}
                           <div className="flex items-center justify-between gap-2 pt-0.5 flex-wrap">
@@ -1065,7 +1081,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                               className="h-7 text-[11px] gap-1 font-bold text-primary border-primary/25 hover:bg-primary/10 cursor-pointer"
                             >
                               <Sparkles className="h-3 w-3" />
-                              Buscar outros vídeos
+                              Trocar vídeo
                             </Button>
 
                             <Button
@@ -1073,8 +1089,10 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                               variant="ghost"
                               size="sm"
                               onClick={() => {
+                                userRemovedVideoRef.current = true;
                                 setVideoUrl("");
                                 setVideoThumbnail("");
+                                setShowManualVideoInput(false);
                                 toast.info("Vídeo removido.");
                               }}
                               className="h-7 text-[11px] font-bold text-destructive hover:bg-destructive/10 gap-1 cursor-pointer"
@@ -1098,17 +1116,42 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                         </div>
                       ) : (
                         <div className="space-y-2">
-                          <div className="flex gap-2">
-                            <Input
-                              value={videoUrl}
-                              onChange={(e) => setVideoUrl(e.target.value)}
-                              placeholder="Cole o link do YouTube ou TikTok: https://..."
-                              className="h-9 bg-background text-xs sm:text-sm flex-1"
-                            />
+                          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/70 text-xs text-muted-foreground gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Film className="w-4 h-4 text-muted-foreground/60 shrink-0" />
+                              <span className="truncate">Nenhuma demonstração encontrada automaticamente.</span>
+                            </div>
+                            {!showManualVideoInput && (
+                              <button
+                                type="button"
+                                onClick={() => setShowManualVideoInput(true)}
+                                className="text-[11px] font-semibold text-primary hover:underline cursor-pointer shrink-0"
+                              >
+                                Colar link manual
+                              </button>
+                            )}
                           </div>
-                          <p className="text-[10px] text-muted-foreground">
-                            Cole o link de um vídeo do YouTube ou TikTok, ou clique em &quot;Buscar&quot;.
-                          </p>
+
+                          {showManualVideoInput && (
+                            <div className="space-y-1.5 pt-1">
+                              <Input
+                                value={videoUrl}
+                                onChange={(e) => setVideoUrl(e.target.value)}
+                                placeholder="Cole o link do YouTube ou TikTok: https://..."
+                                className="h-8 bg-background text-xs"
+                              />
+                              <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                                <span>Opcional: cole uma URL direta caso tenha</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowManualVideoInput(false)}
+                                  className="text-destructive hover:underline"
+                                >
+                                  Cancelar
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
