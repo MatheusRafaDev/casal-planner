@@ -32,6 +32,7 @@ export interface ItemInputDTO {
     valorPessoa2: number;
   } | null;
   clearDivisaoPagamento?: boolean;
+  idempotencyKey?: string;
 }
 
 export interface PagedResult<T> {
@@ -83,7 +84,11 @@ export const itensService = {
   },
   porCategoria: (categoriaId: string) => api<Item[]>(`/api/itens/categoria/${categoriaId}`),
   criar: (dto: ItemInputDTO) =>
-    api<Item>("/api/itens", { method: "POST", body: objectToFormData(dto) }),
+    api<Item>("/api/itens", {
+      method: "POST",
+      headers: dto.idempotencyKey ? { "X-Idempotency-Key": dto.idempotencyKey } : undefined,
+      body: objectToFormData(dto),
+    }),
   atualizar: (id: string, dto: Partial<ItemInputDTO>) =>
     api<Item>(`/api/itens/${id}`, { method: "PUT", body: objectToFormData(dto) }),
   toggleComprado: (id: string, comprado: boolean) =>

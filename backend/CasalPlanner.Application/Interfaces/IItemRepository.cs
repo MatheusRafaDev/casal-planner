@@ -10,6 +10,8 @@ namespace CasalPlanner.Application.Interfaces
         Task<List<Item>> GetByUsuarioIdAsync(string usuarioId);
         Task<(List<Item> Items, long TotalCount)> GetPaginatedAsync(string usuarioId, string? categoriaId, string? busca, string? status, string? pagamento, int? responsavelId, int page, int pageSize);
         Task<Item?> GetByIdAsync(string id, string usuarioId);
+        Task<Item?> GetByIdempotencyKeyAsync(string usuarioId, string idempotencyKey);
+        Task<Item?> GetRecentDuplicateAsync(string usuarioId, string? nome, string categoriaId, decimal preco, TimeSpan maxAge);
         Task CreateAsync(Item item);
         
         // Retorna o item atualizado

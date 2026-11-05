@@ -50,6 +50,8 @@ public class Item
 
     public string? UndoToken { get; set; }
     public DateTime? UndoExpiresAt { get; set; }
+
+    public string? IdempotencyKey { get; set; }
 }
 
 [BsonIgnoreExtraElements]

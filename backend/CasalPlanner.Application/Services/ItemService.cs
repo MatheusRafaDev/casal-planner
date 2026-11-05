@@ -81,6 +81,41 @@ namespace CasalPlanner.Application.Services
 
         public async Task<Item> CriarItem(CriarItemDto dto, string usuarioId, string emailAutenticado)
         {
+            var key = dto.IdempotencyKey?.Trim();
+            if (!string.IsNullOrWhiteSpace(key))
+            {
+                var inFlightKey = $"idemp_item_{usuarioId}_{key}";
+                if (_cache.TryGetValue(inFlightKey, out Item? cachedItem) && cachedItem != null)
+                {
+                    _logger.LogInformation("Item com IdempotencyKey '{Key}' retornado da memória para usuário {UsuarioId}.", key, usuarioId);
+                    return cachedItem;
+                }
+
+                var existingByKey = await _itemRepository.GetByIdempotencyKeyAsync(usuarioId, key);
+                if (existingByKey != null)
+                {
+                    _logger.LogInformation("Item com IdempotencyKey '{Key}' já existe no banco ({Id}). Retornando existente sem duplicar.", key, existingByKey.Id);
+                    _cache.Set(inFlightKey, existingByKey, TimeSpan.FromSeconds(30));
+                    return existingByKey;
+                }
+            }
+
+            var nomeTrim = (dto.Nome ?? string.Empty).Trim().ToLowerInvariant();
+            var dedupCacheKey = $"dedup_item_{usuarioId}_{nomeTrim}_{dto.CategoriaId}_{dto.Preco}";
+            if (_cache.TryGetValue(dedupCacheKey, out Item? recentCached) && recentCached != null)
+            {
+                _logger.LogInformation("Duplicata rápida detectada no cache de memória para {UsuarioId} ('{Nome}', R$ {Preco}). Retornando existente.", usuarioId, dto.Nome, dto.Preco);
+                return recentCached;
+            }
+
+            var recentDuplicate = await _itemRepository.GetRecentDuplicateAsync(usuarioId, dto.Nome, dto.CategoriaId, dto.Preco, TimeSpan.FromSeconds(4));
+            if (recentDuplicate != null)
+            {
+                _logger.LogInformation("Item duplicado recente detectado no banco para {UsuarioId} ('{Nome}', R$ {Preco}). Retornando existente.", usuarioId, dto.Nome, dto.Preco);
+                _cache.Set(dedupCacheKey, recentDuplicate, TimeSpan.FromSeconds(5));
+                return recentDuplicate;
+            }
+
             if (dto.DivisaoPagamento != null)
             {
                 var soma = dto.DivisaoPagamento.ValorPessoa1 + dto.DivisaoPagamento.ValorPessoa2;
@@ -111,6 +146,7 @@ namespace CasalPlanner.Application.Services
 
             var item = new Item
             {
+                IdempotencyKey = key,
                 Nome = dto.Nome,
                 Marca = dto.Marca ?? string.Empty,
                 Preco = dto.Preco,
@@ -143,6 +179,12 @@ namespace CasalPlanner.Application.Services
             };
 
             await _itemRepository.CreateAsync(item);
+
+            _cache.Set(dedupCacheKey, item, TimeSpan.FromSeconds(5));
+            if (!string.IsNullOrWhiteSpace(key))
+            {
+                _cache.Set($"idemp_item_{usuarioId}_{key}", item, TimeSpan.FromSeconds(30));
+            }
 
             var usuario = await _usuarioRepository.GetByIdAsync(usuarioId);
             if (usuario != null && usuario.IsCasal)

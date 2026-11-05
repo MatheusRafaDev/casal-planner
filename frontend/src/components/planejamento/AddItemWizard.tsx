@@ -178,6 +178,8 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isSubmittingRef = useRef(false);
+  const idempotencyKeyRef = useRef<string | null>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const itemFotoInputRef = useRef<HTMLInputElement>(null);
   const [analisandoFoto, setAnalisandoFoto] = useState(false);
@@ -206,6 +208,8 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   };
 
   const reset = () => {
+    isSubmittingRef.current = false;
+    idempotencyKeyRef.current = null;
     setStep(1);
     setNome("");
     setQuantidade(1);
@@ -424,7 +428,12 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
         }
       }
 
+      if (!idempotencyKeyRef.current) {
+        idempotencyKeyRef.current = `wiz-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      }
+
       return itensService.criar({
+        idempotencyKey: idempotencyKeyRef.current,
         nome: nome.trim(),
         categoriaId,
         quantidade,
@@ -461,6 +470,9 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     onError: (e: Error) => {
       toast.error(e.message);
       onOpenChange(true);
+    },
+    onSettled: () => {
+      isSubmittingRef.current = false;
     },
   });
 
@@ -1624,6 +1636,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
               <Button
                 className="bg-primary hover:bg-primary/90 min-w-[140px]"
                 onClick={() => {
+                  if (isSubmittingRef.current || criar.isPending) return;
                   if (!categoriaId) {
                     return toast.error("Selecione um cômodo antes de adicionar.");
                   }
@@ -1636,6 +1649,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                       );
                     }
                   }
+                  isSubmittingRef.current = true;
                   criar.mutate();
                 }}
                 disabled={criar.isPending}

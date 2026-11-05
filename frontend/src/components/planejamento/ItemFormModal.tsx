@@ -178,6 +178,8 @@ export function ItemFormModal({
     enabled: !isEdit && debouncedNome.trim().length >= 3 && !!form.categoriaId,
   });
 
+  const isSubmittingRef = useRef(false);
+
   const mutation = useMutation({
     mutationFn: async (vars: { id?: string; dto: ItemInputDTO }) => {
       if (vars.id) return itensService.atualizar(vars.id, vars.dto);
@@ -197,13 +199,21 @@ export function ItemFormModal({
       toast.error(e.message);
       onOpenChange(true); // reabre se falhar
     },
+    onSettled: () => {
+      isSubmittingRef.current = false;
+    },
   });
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingRef.current || mutation.isPending) return;
     if (!form.nome.trim()) return toast.error("Informe o nome");
 
+    isSubmittingRef.current = true;
     const payload = { ...form };
+    if (!isEdit && !payload.idempotencyKey) {
+      payload.idempotencyKey = `modal-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    }
 
     if (dividir && payload.divisaoPagamento) {
       const soma = payload.divisaoPagamento.valorPessoa1 + payload.divisaoPagamento.valorPessoa2;

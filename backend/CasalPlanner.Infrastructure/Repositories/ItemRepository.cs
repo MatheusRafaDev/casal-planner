@@ -75,6 +75,36 @@ namespace CasalPlanner.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<Item?> GetByIdempotencyKeyAsync(string usuarioId, string idempotencyKey)
+        {
+            if (string.IsNullOrWhiteSpace(idempotencyKey)) return null;
+            return await _context.Itens
+                .Find(i => i.UsuarioId == usuarioId && i.IdempotencyKey == idempotencyKey)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<Item?> GetRecentDuplicateAsync(string usuarioId, string? nome, string categoriaId, decimal preco, TimeSpan maxAge)
+        {
+            if (string.IsNullOrWhiteSpace(nome)) return null;
+
+            var cutoff = DateTime.UtcNow.Subtract(maxAge);
+            var nomeTrim = nome.Trim().ToLowerInvariant();
+
+            var builder = Builders<Item>.Filter;
+            var filter = builder.Eq(i => i.UsuarioId, usuarioId)
+                       & builder.Eq(i => i.CategoriaId, categoriaId)
+                       & builder.Eq(i => i.Preco, preco)
+                       & builder.Gte(i => i.CreatedAt, cutoff);
+
+            var recents = await _context.Itens
+                .Find(filter)
+                .SortByDescending(i => i.CreatedAt)
+                .Limit(5)
+                .ToListAsync();
+
+            return recents.FirstOrDefault(i => (i.Nome ?? string.Empty).Trim().Equals(nomeTrim, StringComparison.OrdinalIgnoreCase));
+        }
+
         public async Task CreateAsync(Item item)
         {
             await _context.Itens.InsertOneAsync(item);

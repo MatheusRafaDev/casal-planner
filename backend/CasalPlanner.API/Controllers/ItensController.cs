@@ -75,6 +75,12 @@ namespace CasalPlanner.API.Controllers
             var usuarioId = GetUsuarioId();
             var email = GetUsuarioEmailAutenticado();
 
+            if (string.IsNullOrWhiteSpace(dto.IdempotencyKey))
+            {
+                dto.IdempotencyKey = Request.Headers["X-Idempotency-Key"].FirstOrDefault()
+                                  ?? Request.Headers["Idempotency-Key"].FirstOrDefault();
+            }
+
             if (fotoFile != null && fotoFile.Length > 0)
             {
                 var (url, publicId) = await _cloudinaryService.UploadImageAsync(fotoFile);

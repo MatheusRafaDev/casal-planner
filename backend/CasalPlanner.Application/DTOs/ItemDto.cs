@@ -54,6 +54,9 @@ namespace CasalPlanner.Application.DTOs
         public DateTime? DataCompra { get; set; }
         [JsonPropertyName("comprado")]
         public bool Comprado { get; set; } = false;
+
+        [JsonPropertyName("idempotencyKey")]
+        public string? IdempotencyKey { get; set; }
     }
 
     public class UpdateCompradoDto

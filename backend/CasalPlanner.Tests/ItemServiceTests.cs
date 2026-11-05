@@ -120,4 +120,71 @@ public class ItemServiceTests
         // Assert
         Assert.False(result);
     }
+
+    [Fact]
+    public async Task CriarItem_ComIdempotencyKeyExistente_RetornaItemExistenteSemCriarNovo()
+    {
+        // Arrange
+        var existing = new Item
+        {
+            Id = "item-existente-1",
+            Nome = "Jogo de Panelas",
+            Preco = 350m,
+            UsuarioId = "user1",
+            IdempotencyKey = "key-123"
+        };
+
+        _itemRepositoryMock.Setup(r => r.GetByIdempotencyKeyAsync("user1", "key-123"))
+            .ReturnsAsync(existing);
+
+        var dto = new CriarItemDto
+        {
+            Nome = "Jogo de Panelas",
+            CategoriaId = "cat1",
+            Preco = 350m,
+            Quantidade = 1,
+            IdempotencyKey = "key-123"
+        };
+
+        // Act
+        var result = await _service.CriarItem(dto, "user1", "teste@teste.com");
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("item-existente-1", result.Id);
+        _itemRepositoryMock.Verify(r => r.CreateAsync(It.IsAny<Item>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CriarItem_DuplicadoRecenteSemIdempotencyKey_RetornaItemExistenteSemCriarNovo()
+    {
+        // Arrange
+        var existing = new Item
+        {
+            Id = "item-recente-2",
+            Nome = "Jogo de Pratos",
+            Preco = 120m,
+            CategoriaId = "cat1",
+            UsuarioId = "user1"
+        };
+
+        _itemRepositoryMock.Setup(r => r.GetRecentDuplicateAsync("user1", "Jogo de Pratos", "cat1", 120m, It.IsAny<System.TimeSpan>()))
+            .ReturnsAsync(existing);
+
+        var dto = new CriarItemDto
+        {
+            Nome = "Jogo de Pratos",
+            CategoriaId = "cat1",
+            Preco = 120m,
+            Quantidade = 1
+        };
+
+        // Act
+        var result = await _service.CriarItem(dto, "user1", "teste@teste.com");
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("item-recente-2", result.Id);
+        _itemRepositoryMock.Verify(r => r.CreateAsync(It.IsAny<Item>()), Times.Never);
+    }
 }

@@ -44,6 +44,7 @@ export function AchadinhosReelsFeed({
 }: AchadinhosReelsFeedProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isAdding, setIsAdding] = useState(false);
+  const isAddingRef = useRef(false);
   const [localAddedIds, setLocalAddedIds] = useState<Set<string>>(new Set());
   const [videoLoading, setVideoLoading] = useState(true);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
@@ -139,7 +140,8 @@ export function AchadinhosReelsFeed({
   };
 
   const handleAdicionar = async () => {
-    if (!currentItem || isAdding) return;
+    if (!currentItem || isAddingRef.current || isAdding) return;
+    isAddingRef.current = true;
     setIsAdding(true);
     try {
       const sucesso = await onAdicionarAutomatico(currentItem);
@@ -147,6 +149,7 @@ export function AchadinhosReelsFeed({
         setLocalAddedIds((prev) => new Set(prev).add(currentItem.id));
       }
     } finally {
+      isAddingRef.current = false;
       setIsAdding(false);
     }
   };

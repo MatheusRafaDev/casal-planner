@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -85,6 +85,10 @@ function IndicacoesPage() {
   const [reelsAberto, setReelsAberto] = useState(false);
   const [reelsInitialIndex, setReelsInitialIndex] = useState(0);
 
+  // Trava de idempotência no frontend para evitar clique duplo
+  const pendingAddRef = useRef<Set<string>>(new Set());
+  const [addingIds, setAddingIds] = useState<Set<string>>(new Set());
+
   // Buscar categorias do usuário para vincular itens (somente quando autenticado e no browser)
   const { data: categorias = [] } = useQuery<Categoria[]>({
     queryKey: ["categorias"],
@@ -147,32 +151,39 @@ function IndicacoesPage() {
 
   // Adiciona o produto automaticamente com todos os dados preenchidos ao planejamento
   const handleAdicionarAutomatico = async (achadinho: Achadinho): Promise<boolean> => {
+    if (pendingAddRef.current.has(achadinho.id)) {
+      return false;
+    }
+    pendingAddRef.current.add(achadinho.id);
+    setAddingIds((prev) => new Set(prev).add(achadinho.id));
+
     let catId = "";
 
-    if (categorias.length === 0) {
-      try {
-        const estilo = getEstiloComodo(achadinho.comodo);
-        const nova = await categoriasService.criar({
-          nome: achadinho.comodoNome || "Cozinha",
-          icon: estilo.icon,
-          bg: estilo.bg,
-        });
-        queryClient.invalidateQueries({ queryKey: ["categorias"] });
-        catId = nova.id;
-      } catch {
-        catId = "";
-      }
-    } else {
-      const match = categorias.find(
-        (c) =>
-          c.nome.toLowerCase().includes(achadinho.comodo.toLowerCase()) ||
-          achadinho.comodoNome.toLowerCase().includes(c.nome.toLowerCase()),
-      );
-      catId = match ? match.id : categorias[0].id;
-    }
-
     try {
+      if (categorias.length === 0) {
+        try {
+          const estilo = getEstiloComodo(achadinho.comodo);
+          const nova = await categoriasService.criar({
+            nome: achadinho.comodoNome || "Cozinha",
+            icon: estilo.icon,
+            bg: estilo.bg,
+          });
+          queryClient.invalidateQueries({ queryKey: ["categorias"] });
+          catId = nova.id;
+        } catch {
+          catId = "";
+        }
+      } else {
+        const match = categorias.find(
+          (c) =>
+            c.nome.toLowerCase().includes(achadinho.comodo.toLowerCase()) ||
+            achadinho.comodoNome.toLowerCase().includes(c.nome.toLowerCase()),
+        );
+        catId = match ? match.id : categorias[0].id;
+      }
+
       await itensService.criar({
+        idempotencyKey: `achadinho-${achadinho.id}`,
         nome: achadinho.nome,
         preco: achadinho.precoEstimado,
         quantidade: 1,
@@ -201,6 +212,13 @@ function IndicacoesPage() {
       console.error("Erro ao adicionar produto automaticamente:", err);
       toast.error("Não foi possível adicionar o produto automaticamente.");
       return false;
+    } finally {
+      pendingAddRef.current.delete(achadinho.id);
+      setAddingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(achadinho.id);
+        return next;
+      });
     }
   };
 
@@ -600,18 +618,25 @@ function IndicacoesPage() {
                     type="button"
                     size="sm"
                     onClick={() => handleAdicionarAutomatico(item)}
-                    disabled={isJaAdicionado}
+                    disabled={isJaAdicionado || addingIds.has(item.id)}
                     className={cn(
                       "flex-1 h-9 rounded-xl font-bold text-xs gap-1.5 transition-all cursor-pointer shadow-sticker-sm",
                       isJaAdicionado
                         ? "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15 cursor-default"
-                        : "bg-primary text-primary-foreground hover:bg-primary-hover active:scale-95",
+                        : addingIds.has(item.id)
+                          ? "opacity-80 cursor-wait bg-primary text-primary-foreground"
+                          : "bg-primary text-primary-foreground hover:bg-primary-hover active:scale-95",
                     )}
                   >
                     {isJaAdicionado ? (
                       <>
                         <Check className="h-3.5 w-3.5 stroke-[3]" />
                         Adicionado
+                      </>
+                    ) : addingIds.has(item.id) ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        Adicionando...
                       </>
                     ) : (
                       <>
