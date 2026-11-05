@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { VideoPreviewModal } from "@/components/planejamento/VideoPreviewModal";
 import { ItemFormModal } from "@/components/planejamento/ItemFormModal";
 import { AchadinhosReelsFeed } from "@/components/planejamento/AchadinhosReelsFeed";
+import { AchadinhoCardImage } from "@/components/indicacoes/AchadinhoCardImage";
 import {
   ACHADINHOS_DATA,
   type Achadinho,
@@ -487,13 +488,22 @@ function IndicacoesPage() {
                       <img
                         src={r.thumbnail}
                         alt=""
+                        referrerPolicy="no-referrer"
+                        loading="lazy"
                         className="w-12 h-12 rounded-lg object-contain bg-white p-1 border shrink-0"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = "flex";
+                        }}
                       />
-                    ) : (
-                      <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                        <Store className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    )}
+                    ) : null}
+                    <div
+                      style={{ display: r.thumbnail ? "none" : "flex" }}
+                      className="w-12 h-12 rounded-lg bg-muted items-center justify-center shrink-0 border"
+                    >
+                      <Store className="h-4 w-4 text-muted-foreground" />
+                    </div>
                     <div className="min-w-0 flex-1">
                       <span className="text-[10px] text-muted-foreground block truncate">
                         {r.loja}
@@ -558,20 +568,11 @@ function IndicacoesPage() {
                     className="relative w-full h-48 bg-white dark:bg-muted/30 border-b border-border/60 flex items-center justify-center p-4 cursor-pointer overflow-hidden"
                     title="Clique para ver detalhes e personalizar"
                   >
-                    <img
+                    <AchadinhoCardImage
                       src={item.fotoUrl}
                       alt={item.nome}
-                      className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
-                      loading="lazy"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        if (item.videoUrl) {
-                          const match = item.videoUrl.match(/(?:embed\/|v=|youtu\.be\/|\/v\/)([a-zA-Z0-9_-]{11})/);
-                          if (match && !target.src.includes(match[1])) {
-                            target.src = `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
-                          }
-                        }
-                      }}
+                      videoUrl={item.videoUrl}
+                      comodoNome={item.comodoNome}
                     />
 
                     {/* Tag do Cômodo Discreta e Elegante */}

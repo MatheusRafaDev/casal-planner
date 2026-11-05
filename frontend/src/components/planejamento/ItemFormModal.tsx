@@ -380,6 +380,7 @@ export function ItemFormModal({
                         <img
                           src={form.fotoUrl}
                           alt=""
+                          referrerPolicy="no-referrer"
                           className="relative h-full w-full object-contain p-2"
                           onError={() => setImageError(true)}
                         />

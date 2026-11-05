@@ -313,6 +313,7 @@ export function AchadinhosReelsFeed({
                     <img
                       src={currentItem.fotoUrl}
                       alt=""
+                      referrerPolicy="no-referrer"
                       className="absolute inset-0 w-full h-full object-cover opacity-20 blur-md"
                       onError={(e) => {
                         const target = e.currentTarget;
@@ -346,7 +347,8 @@ export function AchadinhosReelsFeed({
             <div className="relative w-full h-full flex flex-col items-center justify-center p-6 text-center text-white">
               <img
                 src={currentItem.fotoUrl}
-                alt={currentItem.nome}
+                alt=""
+                referrerPolicy="no-referrer"
                 className="w-56 h-56 object-contain p-2 bg-white/10 rounded-2xl border border-white/20 mb-4"
               />
               <p className="text-sm font-bold text-white max-w-xs">{currentItem.nome}</p>
@@ -506,7 +508,8 @@ export function AchadinhosReelsFeed({
             <div className="w-12 h-12 rounded-xl bg-white p-1 border border-white/40 shrink-0 overflow-hidden shadow-md">
               <img
                 src={currentItem.fotoUrl}
-                alt={currentItem.nome}
+                alt=""
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-contain"
                 onError={(e) => {
                   const target = e.currentTarget;

@@ -228,7 +228,9 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
                       {r.thumbnail && !imageErrors[`${r.link}-${i}`] ? (
                         <img
                           src={r.thumbnail}
-                          alt={r.titulo}
+                          alt=""
+                          aria-label={r.titulo}
+                          referrerPolicy="no-referrer"
                           className="h-full w-full object-contain p-1"
                           loading="lazy"
                           onError={() =>
