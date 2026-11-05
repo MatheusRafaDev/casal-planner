@@ -39,11 +39,11 @@ export const Route = createFileRoute("/_authenticated/indicacoes")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "CasalPlanner | Achadinhos Virais do TikTok" },
+      { title: "CasalPlanner | Achadinhos & Enxoval" },
       {
         name: "description",
         content:
-          "Os produtos mais virais do TikTok com reviews em vídeo e fotos reais para montar sua casa nova.",
+          "Achadinhos virais com reviews em vídeo e fotos reais para montar o enxoval e a casa nova do casal.",
       },
     ],
   }),

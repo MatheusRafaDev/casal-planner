@@ -1,19 +1,17 @@
 /**
- * CasalPlanner — Service Worker
+ * CasalPlanner — Service Worker (v10)
  *
  * Estratégia:
- *  - Cache-first  → assets estáticos (JS, CSS, fontes, imagens)
- *  - Network-first → chamadas de API (/api/**)
- *  - Offline fallback → página HTML simples para navegação sem rede
+ *  - Navegação (HTML) → Network-first com fallback para cache da rota exata ou página offline amigável.
+ *    (Nunca devolve o HTML de uma rota para outra para evitar React Hydration Mismatch #418).
+ *  - Assets estáticos (JS, CSS, fontes, imagens) → Cache-first com revalidação.
+ *  - Chamadas de API (/api/**) → Ignoradas pelo SW (rede nativa com credenciais HttpOnly).
  */
 
-const CACHE_NAME = "casal-planner-v8";
-const OFFLINE_URL = "/__offline";
+const CACHE_NAME = "casal-planner-v10";
 
-// Assets que queremos pré-cachear na instalação
+// Assets estáticos imutáveis que são pré-cacheados na instalação
 const PRECACHE_URLS = [
-  "/",
-  "/inicio",
   "/manifest.json",
   "/favicon.ico",
   "/favicon.png",
@@ -35,11 +33,11 @@ self.addEventListener("install", (event) => {
       cache
         .addAll(PRECACHE_URLS.map((url) => new Request(url, { cache: "reload" })).filter(Boolean))
         .catch(() => {
-          // Falha silenciosa: o SW instala mesmo que algum precache falhe
+          // Falha silenciosa: o SW instala mesmo que algum asset secundário falhe
         }),
     ),
   );
-  // Ativar imediatamente sem aguardar reload
+  // Ativar imediatamente a nova versão do Service Worker
   self.skipWaiting();
 });
 
@@ -49,6 +47,7 @@ self.addEventListener("activate", (event) => {
     caches
       .keys()
       .then((keys) =>
+        // Deletar caches de versões anteriores (v8, v9, etc.) para garantir frescor dos bundles
         Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))),
       ),
   );
@@ -60,7 +59,7 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Ignorar requisições não-http (chrome-extension, etc.)
+  // Ignorar requisições não-http (chrome-extension, schemes desconhecidos, etc.)
   if (!url.protocol.startsWith("http")) return;
 
   // Fontes externas do Google Fonts → Cache-First
@@ -69,10 +68,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Ignorar requests de outros origins
+  // Ignorar requests de outros domínios
   if (url.origin !== self.location.origin) return;
 
-  // Em localhost ou requisições de desenvolvimento do Vite (HMR), repassar direto para a rede nativa
+  // Em localhost ou desenvolvimento Vite (HMR), repassar direto para a rede nativa
   if (
     url.hostname === "localhost" ||
     url.hostname === "127.0.0.1" ||
@@ -83,18 +82,31 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // API → Não interceptar, deixar o navegador tratar autenticação e streaming diretamente
+  // API → Não interceptar, deixar o navegador tratar cookies e requisições diretamente
   if (url.pathname.startsWith("/api/")) {
     return;
   }
 
-  // Navegação (HTML) → Stale-While-Revalidate com resposta imediata do cache para PWA
+  // Navegação do usuário (HTML de páginas) → Network-First
   if (request.mode === "navigate") {
     event.respondWith(navigateFetch(request));
     return;
   }
 
-  // Assets estáticos → Cache-first
+  // Verificar se é de fato um asset estático (JS, CSS, imagens, fontes, etc.)
+  const isStaticAsset =
+    url.pathname.startsWith("/assets/") ||
+    url.pathname.startsWith("/icons/") ||
+    url.pathname.startsWith("/images/") ||
+    /\.(js|mjs|css|png|jpg|jpeg|svg|webp|ico|woff|woff2|ttf|json)$/i.test(url.pathname);
+
+  if (!isStaticAsset) {
+    // É uma rota interna da SPA ou prefetch do roteador sem ser navegação de página cheia:
+    // Não interceptar para nunca gerar 503 falsos
+    return;
+  }
+
+  // Assets estáticos reais → Cache-first
   event.respondWith(cacheFirst(request));
 });
 
@@ -111,68 +123,35 @@ async function cacheFirst(request) {
       cache.put(request, response.clone());
     }
     return response;
-  } catch {
-    return new Response("Recurso não disponível offline.", { status: 503 });
-  }
-}
-
-async function networkFirst(request) {
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch {
-    const cached = await caches.match(request);
-    if (cached) return cached;
-    return new Response(JSON.stringify({ error: "Sem conexão com a internet." }), {
-      status: 503,
-      headers: { "Content-Type": "application/json" },
-    });
+  } catch (err) {
+    // Não sintetizar 503 para evitar poluir o roteador em caso de cancelamento de requisição
+    throw err;
   }
 }
 
 async function navigateFetch(request) {
   const cache = await caches.open(CACHE_NAME);
 
-  // 1. Tentar encontrar no cache a URL solicitada ou as cascas principais (/inicio ou /)
-  const cached =
-    (await cache.match(request)) ||
-    (await cache.match("/inicio")) ||
-    (await cache.match("/"));
-
-  // 2. Disparar a busca da rede em paralelo (revalidação em segundo plano)
-  const fetchPromise = fetch(request)
-    .then((networkResponse) => {
-      if (networkResponse && networkResponse.status === 200) {
-        cache.put(request, networkResponse.clone());
-        if (request.url.includes("/inicio")) {
-          cache.put("/", networkResponse.clone());
-        }
-      }
-      return networkResponse;
-    })
-    .catch(() => null);
-
-  // 3. Se já temos no cache, responder IMEDIATAMENTE (PWA instantâneo < 30ms)
-  // O fetchPromise acima continua atualizando o cache em segundo plano (Stale-While-Revalidate)
-  if (cached) {
-    return cached;
-  }
-
-  // 4. Se não tem em cache ainda (primeira abertura pós-instalação), aguarda a rede
+  // 1. Prioriza a rede (Network-First) para que cada rota receba seu HTML exato e atualizado
   try {
-    const networkResponse = await fetchPromise;
-    if (networkResponse) return networkResponse;
-  } catch {}
+    const networkResponse = await fetch(request);
+    if (networkResponse && networkResponse.status === 200) {
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch {
+    // 2. Se offline, tenta a cópia exata previamente salva para ESTA rota específica
+    const cached = await cache.match(request);
+    if (cached) {
+      return cached;
+    }
 
-  // 5. Fallback offline se não houver rede nem cache
-  return new Response(offlinePage(), {
-    status: 200,
-    headers: { "Content-Type": "text/html; charset=utf-8" },
-  });
+    // 3. Fallback se não houver conexão nem cache prévio da rota
+    return new Response(offlinePage(), {
+      status: 200,
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
+  }
 }
 
 function offlinePage() {
@@ -193,13 +172,13 @@ function offlinePage() {
       justify-content: center;
       gap: 1rem;
       padding: 2rem;
-      background: #FAF6F1;
-      color: #1B2438;
+      background: #FAF7F2;
+      color: #18201E;
       text-align: center;
     }
     .icon { font-size: 3rem; }
-    h1 { font-size: 1.5rem; font-weight: 700; color: #1B2438; }
-    p { font-size: 0.95rem; color: #5B6470; max-width: 32ch; line-height: 1.5; }
+    h1 { font-size: 1.5rem; font-weight: 800; color: #18201E; }
+    p { font-size: 0.95rem; color: #5B6470; max-width: 34ch; line-height: 1.5; font-weight: 500; }
     button {
       margin-top: 1rem;
       padding: 0.75rem 1.6rem;
@@ -210,21 +189,16 @@ function offlinePage() {
       font-size: 0.95rem;
       font-weight: 700;
       cursor: pointer;
-      transition: background 0.15s ease;
+      box-shadow: 2px 2px 0 #18201E;
+      transition: all 0.15s ease;
     }
-    button:hover { background: #2F8A63; border-color: #2F8A63; }
-    @media (prefers-color-scheme: dark) {
-      body { background: #16382A; color: #FAF6F1; }
-      h1 { color: #FAF6F1; }
-      p { color: #A4B2AA; }
-      button { background: #2F8A63; border-color: #2F8A63; }
-    }
+    button:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 #18201E; }
   </style>
 </head>
 <body>
   <div class="icon">📶</div>
-  <h1>Sem conexão</h1>
-  <p>Você está offline. Verifique sua conexão e tente novamente.</p>
+  <h1>Sem conexão com a internet</h1>
+  <p>Você está offline no momento. Conecte-se à internet para continuar planejando suas compras.</p>
   <button onclick="window.location.reload()">Tentar novamente</button>
 </body>
 </html>`;

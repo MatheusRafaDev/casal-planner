@@ -95,9 +95,19 @@ function setCachedUser(u: Usuario | null) {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [usuario, setUsuarioState] = useState<Usuario | null>(() => getCachedUser());
-  const [loading, setLoading] = useState(() => !getCachedUser());
+  // Inicializa nulo para garantir paridade 100% idêntica entre SSR e primeiro frame da hidratação (evita Error #418)
+  const [usuario, setUsuarioState] = useState<Usuario | null>(null);
+  const [loading, setLoading] = useState(true);
   const qc = useQueryClient();
+
+  useEffect(() => {
+    // Hidrata do cache local no cliente imediatamente após a montagem
+    const cached = getCachedUser();
+    if (cached) {
+      setUsuarioState(cached);
+      setLoading(false);
+    }
+  }, []);
 
   const preaquecerQueries = useCallback(() => {
     // Pré-carrega no React Query em paralelo com o pré-aquecimento do Redis
