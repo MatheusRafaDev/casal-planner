@@ -41,6 +41,7 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
   useEffect(() => {
     setQ(initialQuery);
     setAtiva(initialQuery);
+    setImageErrors({});
   }, [initialQuery]);
 
   const query = useQuery({

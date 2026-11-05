@@ -192,6 +192,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   const [buscandoVideoAuto, setBuscandoVideoAuto] = useState(false);
   const userRemovedVideoRef = useRef(false);
   const ultimaBuscaVideoNomeRef = useRef("");
+  const nomeOriginalDoVideoRef = useRef("");
   const [scannerOpen, setScannerOpen] = useState(false);
 
   const resolvedVideo = videoUrl
@@ -269,13 +270,53 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Busca automática do vídeo de demonstração sem exigir ação do usuário
+  // Quando o usuário troca de produto no Wizard, limpa o vídeo anterior e reinicia a busca
+  useEffect(() => {
+    if (!open) return;
+    const nomeAtual = nome.trim();
+
+    if (nomeAtual.length < 3) {
+      if (nomeOriginalDoVideoRef.current && videoUrl) {
+        setVideoUrl("");
+        setVideoThumbnail("");
+        nomeOriginalDoVideoRef.current = "";
+      }
+      return;
+    }
+
+    if (
+      nomeOriginalDoVideoRef.current &&
+      nomeAtual.toLowerCase() !== nomeOriginalDoVideoRef.current.toLowerCase()
+    ) {
+      // Trocou de produto! Limpa o vídeo do produto antigo e autoriza nova busca
+      setVideoUrl("");
+      setVideoThumbnail("");
+      userRemovedVideoRef.current = false;
+      setShowManualVideoInput(false);
+      nomeOriginalDoVideoRef.current = nomeAtual;
+      ultimaBuscaVideoNomeRef.current = "";
+    } else if (!nomeOriginalDoVideoRef.current) {
+      nomeOriginalDoVideoRef.current = nomeAtual;
+    }
+  }, [open, nome]);
+
+  // Busca automática do vídeo de demonstração quando o produto muda ou abre
   useEffect(() => {
     if (!open) return;
     const nomeAtual = nome.trim();
     if (nomeAtual.length < 3) return;
-    if (videoUrl || userRemovedVideoRef.current) return;
-    if (ultimaBuscaVideoNomeRef.current === nomeAtual) return;
+    if (userRemovedVideoRef.current) return;
+
+    // Se já tem um vídeo e pertence a este mesmo produto, não busca novamente
+    if (
+      videoUrl &&
+      nomeOriginalDoVideoRef.current &&
+      nomeOriginalDoVideoRef.current.toLowerCase() === nomeAtual.toLowerCase()
+    ) {
+      return;
+    }
+
+    if (ultimaBuscaVideoNomeRef.current.toLowerCase() === nomeAtual.toLowerCase()) return;
 
     ultimaBuscaVideoNomeRef.current = nomeAtual;
     setBuscandoVideoAuto(true);
@@ -288,6 +329,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
           if (video && !userRemovedVideoRef.current) {
             setVideoUrl(video.videoUrl);
             if (video.thumbnailUrl) setVideoThumbnail(video.thumbnailUrl);
+            nomeOriginalDoVideoRef.current = nomeAtual;
             toast.success("Demonstração em vídeo encontrada automaticamente!");
           }
         })

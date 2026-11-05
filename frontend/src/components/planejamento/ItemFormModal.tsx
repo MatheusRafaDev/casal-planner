@@ -110,6 +110,7 @@ export function ItemFormModal({
   const [buscandoVideoAuto, setBuscandoVideoAuto] = useState(false);
   const userRemovedVideoRef = useRef(false);
   const ultimaBuscaVideoNomeRef = useRef("");
+  const nomeOriginalDoVideoRef = useRef("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const resolvedVideo = form.videoUrl
@@ -122,7 +123,14 @@ export function ItemFormModal({
     fotoUrl?: string;
     quantidade?: string;
   }) => {
-    if (prod.nome) set("nome", prod.nome);
+    if (prod.nome) {
+      set("nome", prod.nome);
+      set("videoUrl", "");
+      set("videoThumbnail", "");
+      userRemovedVideoRef.current = false;
+      nomeOriginalDoVideoRef.current = prod.nome.trim();
+      ultimaBuscaVideoNomeRef.current = "";
+    }
     if (prod.marca) set("marca", prod.marca);
     if (prod.fotoUrl && !form.fotoUrl && !form.fotoFile) {
       set("fotoUrl", prod.fotoUrl);
@@ -137,6 +145,7 @@ export function ItemFormModal({
       ultimaBuscaVideoNomeRef.current = "";
 
       if (item) {
+        nomeOriginalDoVideoRef.current = item.nome.trim();
         setForm({
           nome: item.nome,
           marca: item.marca ?? "",
@@ -162,6 +171,7 @@ export function ItemFormModal({
         setDividir(!!item.divisaoPagamento);
         setShowLink(false);
       } else {
+        nomeOriginalDoVideoRef.current = initial?.nome ? initial.nome.trim() : "";
         setForm({ ...empty(categoriaId), ...initial });
         setJurosTexto("");
         setDividir(false);
@@ -186,13 +196,51 @@ export function ItemFormModal({
     enabled: !isEdit && debouncedNome.trim().length >= 3 && !!form.categoriaId,
   });
 
-  // Busca automática do vídeo de demonstração sem exigir ação do usuário
+  // Quando o usuário troca de produto (edita o nome), limpa o vídeo anterior e reinicia a busca
+  useEffect(() => {
+    if (!open) return;
+    const nomeAtual = form.nome.trim();
+
+    if (nomeAtual.length < 3) {
+      if (nomeOriginalDoVideoRef.current && form.videoUrl) {
+        setForm((prev) => ({ ...prev, videoUrl: "", videoThumbnail: "" }));
+        nomeOriginalDoVideoRef.current = "";
+      }
+      return;
+    }
+
+    if (
+      nomeOriginalDoVideoRef.current &&
+      nomeAtual.toLowerCase() !== nomeOriginalDoVideoRef.current.toLowerCase()
+    ) {
+      // O produto mudou! Desvincula o vídeo antigo e autoriza nova busca
+      setForm((prev) => ({ ...prev, videoUrl: "", videoThumbnail: "" }));
+      userRemovedVideoRef.current = false;
+      setShowManualVideoInput(false);
+      nomeOriginalDoVideoRef.current = nomeAtual;
+      ultimaBuscaVideoNomeRef.current = "";
+    } else if (!nomeOriginalDoVideoRef.current) {
+      nomeOriginalDoVideoRef.current = nomeAtual;
+    }
+  }, [open, form.nome]);
+
+  // Busca automática do vídeo de demonstração quando o produto muda ou abre
   useEffect(() => {
     if (!open) return;
     const nomeAtual = form.nome.trim();
     if (nomeAtual.length < 3) return;
-    if (form.videoUrl || userRemovedVideoRef.current) return;
-    if (ultimaBuscaVideoNomeRef.current === nomeAtual) return;
+    if (userRemovedVideoRef.current) return;
+
+    // Se já tem um vídeo e pertence a este mesmo produto, não busca de novo
+    if (
+      form.videoUrl &&
+      nomeOriginalDoVideoRef.current &&
+      nomeOriginalDoVideoRef.current.toLowerCase() === nomeAtual.toLowerCase()
+    ) {
+      return;
+    }
+
+    if (ultimaBuscaVideoNomeRef.current.toLowerCase() === nomeAtual.toLowerCase()) return;
 
     ultimaBuscaVideoNomeRef.current = nomeAtual;
     setBuscandoVideoAuto(true);
@@ -204,7 +252,8 @@ export function ItemFormModal({
           setBuscandoVideoAuto(false);
           if (video && !userRemovedVideoRef.current) {
             setForm((prev) => {
-              if (!prev.videoUrl) {
+              if (prev.nome.trim().toLowerCase() === nomeAtual.toLowerCase()) {
+                nomeOriginalDoVideoRef.current = nomeAtual;
                 return {
                   ...prev,
                   videoUrl: video.videoUrl,

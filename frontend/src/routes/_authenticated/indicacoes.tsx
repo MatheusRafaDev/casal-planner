@@ -325,6 +325,18 @@ function IndicacoesPage() {
     }
   };
 
+  // Quando troca o termo de busca e o painel web está ativo, reinicia a busca online automaticamente
+  useEffect(() => {
+    if (!pesquisaWebAtiva) return;
+    const termo = busca.trim();
+    if (termo.length < 2) return;
+
+    const timer = setTimeout(() => {
+      handleBuscarNaWeb();
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [busca, pesquisaWebAtiva]);
+
   // Filtragem dos achadinhos
   const achadinhosFiltrados = useMemo(() => {
     return ACHADINHOS_DATA.filter((item) => {
@@ -379,6 +391,12 @@ function IndicacoesPage() {
             <Input
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && busca.trim().length > 1) {
+                  e.preventDefault();
+                  handleBuscarNaWeb();
+                }
+              }}
               placeholder="Buscar nos achadinhos..."
               className="pl-9 h-10 text-xs sm:text-sm bg-card border-border rounded-xl shadow-sticker-sm focus-ring"
             />

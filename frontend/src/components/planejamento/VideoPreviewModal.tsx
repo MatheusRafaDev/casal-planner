@@ -78,12 +78,12 @@ export function VideoPreviewModal({
     staleTime: 1000 * 60 * 15, // 15 minutos
   });
 
-  // Se a lista mudar e não houver vídeo ativo, seleciona o primeiro
+  // Se a lista de vídeos mudar ou trocar de produto, seleciona o melhor vídeo da nova lista
   useEffect(() => {
-    if (videos.length > 0 && !activeVideo && !initialVideoUrl) {
+    if (videos.length > 0 && !initialVideoUrl) {
       setActiveVideo(videos[0]);
     }
-  }, [videos, activeVideo, initialVideoUrl]);
+  }, [videos, initialVideoUrl, productName]);
 
   const handleAplicarUrl = (urlParaAplicar?: string) => {
     const raw = (urlParaAplicar ?? inputUrl).trim();
