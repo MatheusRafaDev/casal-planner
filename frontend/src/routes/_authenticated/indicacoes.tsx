@@ -128,15 +128,34 @@ function IndicacoesPage() {
     setReelsAberto(true);
   };
 
+  const getEstiloComodo = (comodo?: string) => {
+    switch (comodo) {
+      case "cozinha":
+        return { icon: "UtensilsCrossed", bg: "#EF6F6C" };
+      case "quarto":
+        return { icon: "Bed", bg: "#2F8A63" };
+      case "sala":
+        return { icon: "Sofa", bg: "#1F5C43" };
+      case "banheiro":
+        return { icon: "Bath", bg: "#2A7F8E" };
+      case "lavanderia":
+        return { icon: "WashingMachine", bg: "#16382A" };
+      default:
+        return { icon: "Package", bg: "#1F5C43" };
+    }
+  };
+
   // Adiciona o produto automaticamente com todos os dados preenchidos ao planejamento
   const handleAdicionarAutomatico = async (achadinho: Achadinho): Promise<boolean> => {
     let catId = "";
 
     if (categorias.length === 0) {
       try {
+        const estilo = getEstiloComodo(achadinho.comodo);
         const nova = await categoriasService.criar({
           nome: achadinho.comodoNome || "Cozinha",
-          cor: "#1F5C43",
+          icon: estilo.icon,
+          bg: estilo.bg,
         });
         queryClient.invalidateQueries({ queryKey: ["categorias"] });
         catId = nova.id;
@@ -191,9 +210,11 @@ function IndicacoesPage() {
 
     if (categorias.length === 0) {
       try {
+        const estilo = getEstiloComodo(achadinho.comodo);
         const nova = await categoriasService.criar({
           nome: achadinho.comodoNome || "Cozinha",
-          cor: "#1F5C43",
+          icon: estilo.icon,
+          bg: estilo.bg,
         });
         queryClient.invalidateQueries({ queryKey: ["categorias"] });
         catId = nova.id;
@@ -232,7 +253,11 @@ function IndicacoesPage() {
     let catId = "";
     if (categorias.length === 0) {
       try {
-        const nova = await categoriasService.criar({ nome: "Geral", cor: "#1F5C43" });
+        const nova = await categoriasService.criar({
+          nome: "Geral",
+          icon: "Package",
+          bg: "#1F5C43",
+        });
         queryClient.invalidateQueries({ queryKey: ["categorias"] });
         catId = nova.id;
       } catch {
