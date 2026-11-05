@@ -18,6 +18,11 @@ import {
   Tag,
   Loader2,
   Lightbulb,
+  Copy,
+  Globe,
+  ArrowRight,
+  Store,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -47,7 +52,8 @@ import {
 } from "@/services/indicacoes";
 import { itensService } from "@/services/itens";
 import { categoriasService } from "@/services/categorias";
-import type { Categoria } from "@/services/types";
+import { pesquisaPrecosService } from "@/services/pesquisa-precos";
+import type { Categoria, PesquisaPrecoResultado } from "@/services/types";
 import { brl } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 
@@ -55,7 +61,11 @@ export const Route = createFileRoute("/_authenticated/indicacoes")({
   head: () => ({
     meta: [
       { title: "CasalPlanner | Achadinhos & Dicas para a Casa Nova" },
-      { name: "description", content: "Indicações de produtos, achadinhos do TikTok e conselhos de ouro para casais." },
+      {
+        name: "description",
+        content:
+          "Indicações de produtos, achadinhos virais do TikTok e conselhos de ouro para casais.",
+      },
     ],
   }),
   component: IndicacoesPage,
@@ -70,7 +80,12 @@ export function IndicacoesPage() {
   const [comodoFiltro, setComodoFiltro] = useState<string>("todos");
   const [seloFiltro, setSeloFiltro] = useState<string>("todos");
 
-  // Estado para visualização de vídeo do TikTok
+  // Estado para pesquisa ao vivo na web (Google Shopping / Lojas)
+  const [pesquisaWebAtiva, setPesquisaWebAtiva] = useState(false);
+  const [buscandoWeb, setBuscandoWeb] = useState(false);
+  const [resultadosWeb, setResultadosWeb] = useState<PesquisaPrecoResultado[]>([]);
+
+  // Estado para visualização de vídeo do TikTok / YouTube
   const [videoModal, setVideoModal] = useState<{
     isOpen: boolean;
     productName: string;
@@ -82,8 +97,20 @@ export function IndicacoesPage() {
   });
 
   // Estado para adicionar achadinho ao planejamento
-  const [adicionandoAchadinho, setAdicionandoAchadinho] = useState<Achadinho | null>(null);
+  const [adicionandoItem, setAdicionandoItem] = useState<{
+    nome: string;
+    preco: number;
+    fotoUrl?: string;
+    videoUrl?: string;
+    linkProduto?: string;
+    loja?: string;
+    marca?: string;
+    comodoSugerido?: string;
+  } | null>(null);
+
   const [categoriaEscolhidaId, setCategoriaEscolhidaId] = useState<string>("");
+  const [criandoNovoComodo, setCriandoNovoComodo] = useState<boolean>(false);
+  const [novoComodoNome, setNovoComodoNome] = useState<string>("");
 
   // Buscar categorias do usuário para vincular itens
   const { data: categorias = [] } = useQuery<Categoria[]>({
@@ -91,19 +118,37 @@ export function IndicacoesPage() {
     queryFn: () => categoriasService.listar(),
   });
 
+  // Criar categoria sob demanda se usuário não tiver nenhuma ou quiser uma nova
+  const criarCategoriaMutation = useMutation({
+    mutationFn: async (nome: string) => {
+      return categoriasService.criar({ nome: nome.trim(), cor: "#1F5C43" });
+    },
+    onSuccess: (novaCat) => {
+      queryClient.invalidateQueries({ queryKey: ["categorias"] });
+      setCategoriaEscolhidaId(novaCat.id);
+      setCriandoNovoComodo(false);
+    },
+  });
+
   // Adicionar item ao planejamento
   const adicionarAoPlanejamento = useMutation({
-    mutationFn: async ({ achadinho, categoriaId }: { achadinho: Achadinho; categoriaId: string }) => {
+    mutationFn: async ({
+      item,
+      categoriaId,
+    }: {
+      item: NonNullable<typeof adicionandoItem>;
+      categoriaId: string;
+    }) => {
       return itensService.criar({
-        nome: achadinho.nome,
+        nome: item.nome,
         categoriaId,
-        preco: achadinho.precoEstimado,
+        preco: item.preco,
         quantidade: 1,
-        marca: achadinho.marcaSugerida,
-        loja: achadinho.lojaNome,
-        linkProduto: achadinho.linkLoja,
-        fotoUrl: achadinho.fotoUrl,
-        videoUrl: achadinho.videoUrl,
+        marca: item.marca,
+        loja: item.loja,
+        linkProduto: item.linkProduto,
+        fotoUrl: item.fotoUrl,
+        videoUrl: item.videoUrl,
         origem: "comprado",
         pagamento: "normal",
         prioridade: "media",
@@ -113,7 +158,9 @@ export function IndicacoesPage() {
       queryClient.invalidateQueries({ queryKey: ["itens-paginado"] });
       queryClient.invalidateQueries({ queryKey: ["itens"] });
       queryClient.invalidateQueries({ queryKey: ["resumo"] });
-      setAdicionandoAchadinho(null);
+      setAdicionandoItem(null);
+      setCriandoNovoComodo(false);
+      setNovoComodoNome("");
       toast.success(`"${itemCriado.nome}" foi adicionado à sua lista!`, {
         action: {
           label: "Ver na lista",
@@ -127,26 +174,117 @@ export function IndicacoesPage() {
   });
 
   // Tentar encontrar uma categoria correspondente no enxoval do usuário
-  const iniciarAdicao = (achadinho: Achadinho) => {
-    if (categorias.length === 0) {
-      toast.info("Crie seu primeiro cômodo no Planejamento para organizar suas compras!");
-      navigate({ to: "/planejamento" });
-      return;
-    }
-
-    // Tenta correspondência inteligente por nome
-    const match = categorias.find((c) =>
-      c.nome.toLowerCase().includes(achadinho.comodo.toLowerCase()) ||
-      achadinho.comodoNome.toLowerCase().includes(c.nome.toLowerCase()),
+  const iniciarAdicaoAchadinho = (achadinho: Achadinho) => {
+    const match = categorias.find(
+      (c) =>
+        c.nome.toLowerCase().includes(achadinho.comodo.toLowerCase()) ||
+        achadinho.comodoNome.toLowerCase().includes(c.nome.toLowerCase()),
     );
 
     if (match) {
       setCategoriaEscolhidaId(match.id);
-    } else {
+      setCriandoNovoComodo(false);
+    } else if (categorias.length > 0) {
       setCategoriaEscolhidaId(categorias[0]?.id || "");
+      setCriandoNovoComodo(false);
+    } else {
+      setCategoriaEscolhidaId("");
+      setCriandoNovoComodo(true);
     }
 
-    setAdicionandoAchadinho(achadinho);
+    setNovoComodoNome(achadinho.comodoNome);
+    setAdicionandoItem({
+      nome: achadinho.nome,
+      preco: achadinho.precoEstimado,
+      fotoUrl: achadinho.fotoUrl,
+      videoUrl: achadinho.videoUrl,
+      linkProduto: achadinho.linkLoja,
+      loja: achadinho.lojaNome,
+      marca: achadinho.marcaSugerida,
+      comodoSugerido: achadinho.comodoNome,
+    });
+  };
+
+  const iniciarAdicaoWeb = (webItem: PesquisaPrecoResultado) => {
+    if (categorias.length > 0) {
+      setCategoriaEscolhidaId(categorias[0]?.id || "");
+      setCriandoNovoComodo(false);
+    } else {
+      setCategoriaEscolhidaId("");
+      setCriandoNovoComodo(true);
+    }
+
+    setNovoComodoNome("Geral");
+    setAdicionandoItem({
+      nome: webItem.titulo,
+      preco: webItem.preco,
+      fotoUrl: webItem.thumbnail,
+      linkProduto: webItem.link,
+      loja: webItem.loja,
+      marca: webItem.marca,
+      comodoSugerido: "Geral",
+    });
+  };
+
+  const handleConfirmarAdicao = async () => {
+    if (!adicionandoItem) return;
+
+    let targetCatId = categoriaEscolhidaId;
+
+    // Se estiver criando novo cômodo ou não houver categoria selecionada
+    if (criandoNovoComodo || !targetCatId) {
+      const nomeFinal = novoComodoNome.trim() || adicionandoItem.comodoSugerido || "Geral";
+      try {
+        const novaCat = await criarCategoriaMutation.mutateAsync(nomeFinal);
+        targetCatId = novaCat.id;
+      } catch {
+        toast.error("Erro ao criar cômodo. Tente novamente.");
+        return;
+      }
+    }
+
+    if (targetCatId) {
+      adicionarAoPlanejamento.mutate({
+        item: adicionandoItem,
+        categoriaId: targetCatId,
+      });
+    }
+  };
+
+  // Buscar produtos ao vivo na Web via Google Shopping / Mercado Livre
+  const handleBuscarNaWeb = async () => {
+    const termo = busca.trim();
+    if (!termo) {
+      toast.info("Digite o que procura no campo de busca para pesquisar nas lojas.");
+      return;
+    }
+
+    setBuscandoWeb(true);
+    setPesquisaWebAtiva(true);
+    try {
+      const resp = await pesquisaPrecosService.buscar(termo);
+      setResultadosWeb(resp.resultados ?? []);
+      if (!resp.resultados || resp.resultados.length === 0) {
+        toast.info(`Nenhuma oferta encontrada para "${termo}". Tente outro termo.`);
+      }
+    } catch {
+      toast.error("Não foi possível buscar na web agora. Tente novamente.");
+    } finally {
+      setBuscandoWeb(false);
+    }
+  };
+
+  // Copiar dica para a área de transferência
+  const handleCopiarDica = (dica: DicaCasaNova) => {
+    const texto = `💡 Dica CasalPlanner: ${dica.titulo}\n\n${dica.conteudo}\n\n⚡ ${dica.destaque}`;
+    navigator.clipboard
+      .writeText(texto)
+      .then(() => {
+        toast.success("Dica copiada para enviar no WhatsApp do parceiro(a)!");
+      })
+      .catch(() => {
+        toast.error("Não foi possível copiar.");
+      });
   };
 
   // Filtragem dos achadinhos
@@ -156,14 +294,16 @@ export function IndicacoesPage() {
         !busca.trim() ||
         item.nome.toLowerCase().includes(busca.toLowerCase()) ||
         item.dica.toLowerCase().includes(busca.toLowerCase()) ||
-        item.comodoNome.toLowerCase().includes(busca.toLowerCase());
+        item.comodoNome.toLowerCase().includes(busca.toLowerCase()) ||
+        (item.marcaSugerida && item.marcaSugerida.toLowerCase().includes(busca.toLowerCase()));
 
-      const matchComodo =
-        comodoFiltro === "todos" || item.comodo === comodoFiltro;
+      const matchComodo = comodoFiltro === "todos" || item.comodo === comodoFiltro;
 
       const matchSelo =
         seloFiltro === "todos" ||
-        item.selos.includes(seloFiltro as "tiktok" | "custo-beneficio" | "indispensavel" | "presente");
+        item.selos.includes(
+          seloFiltro as "tiktok" | "custo-beneficio" | "indispensavel" | "presente",
+        );
 
       return matchBusca && matchComodo && matchSelo;
     });
@@ -196,13 +336,14 @@ export function IndicacoesPage() {
         <div className="space-y-1.5 max-w-2xl">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-xs font-bold text-emerald-200">
             <Sparkles className="h-3.5 w-3.5 text-emerald-300" />
-            Curadoria do CasalPlanner
+            Curadoria & Reviews Reais
           </div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-white">
             Achadinhos & Dicas para o Lar
           </h1>
           <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed">
-            Produtos que realmente valem a pena, demonstrações reais do TikTok e conselhos de ouro para quem está montando a casa a dois.
+            Produtos testados que realmente valem a pena, demonstrações e reviews do TikTok em vídeo
+            e conselhos de ouro para quem está montando a casa a dois.
           </p>
         </div>
 
@@ -281,31 +422,142 @@ export function IndicacoesPage() {
             </div>
           </div>
 
-          {/* Filtros por Selo */}
-          <div className="flex items-center gap-2 flex-wrap text-xs">
-            <span className="font-bold text-muted-foreground flex items-center gap-1 text-[11px] uppercase tracking-wider mr-1">
-              <Tag className="h-3 w-3" /> Filtrar por:
-            </span>
-            {[
-              { id: "todos", label: "Ver todos" },
-              { id: "tiktok", label: "🎬 Viral no TikTok" },
-              { id: "custo-beneficio", label: "💰 Super Custo-Benefício" },
-              { id: "indispensavel", label: "🚨 Indispensável" },
-              { id: "presente", label: "🎁 Ideal para Presente" },
-            ].map((s) => (
-              <Badge
-                key={s.id}
-                variant={seloFiltro === s.id ? "default" : "outline"}
-                onClick={() => setSeloFiltro(s.id)}
-                className={cn(
-                  "cursor-pointer px-2.5 py-1 text-xs transition-all font-semibold",
-                  seloFiltro === s.id ? "shadow-2xs" : "hover:bg-muted",
-                )}
+          {/* Filtros por Selo + Botão de Busca na Web */}
+          <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-bold text-muted-foreground flex items-center gap-1 text-[11px] uppercase tracking-wider mr-1">
+                <Tag className="h-3 w-3" /> Filtrar por:
+              </span>
+              {[
+                { id: "todos", label: "Ver todos" },
+                { id: "tiktok", label: "🎬 Viral no TikTok" },
+                { id: "custo-beneficio", label: "💰 Super Custo-Benefício" },
+                { id: "indispensavel", label: "🚨 Indispensável" },
+                { id: "presente", label: "🎁 Ideal para Presente" },
+              ].map((s) => (
+                <Badge
+                  key={s.id}
+                  variant={seloFiltro === s.id ? "default" : "outline"}
+                  onClick={() => setSeloFiltro(s.id)}
+                  className={cn(
+                    "cursor-pointer px-2.5 py-1 text-xs transition-all font-semibold",
+                    seloFiltro === s.id ? "shadow-2xs" : "hover:bg-muted",
+                  )}
+                >
+                  {s.label}
+                </Badge>
+              ))}
+            </div>
+
+            {/* Ação rápida para buscar online */}
+            {busca.trim().length > 1 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBuscarNaWeb}
+                disabled={buscandoWeb}
+                className="h-8 text-xs font-bold gap-1.5 text-primary border-primary/40 hover:bg-primary/10 ml-auto"
               >
-                {s.label}
-              </Badge>
-            ))}
+                {buscandoWeb ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Globe className="h-3.5 w-3.5" />
+                )}
+                Buscar "{busca.trim()}" na Web
+              </Button>
+            )}
           </div>
+
+          {/* PAINEL DE RESULTADOS DA WEB (QUANDO O USUÁRIO PESQUISA PRODUTOS ONLINE) */}
+          {pesquisaWebAtiva && (
+            <div className="p-4 rounded-2xl bg-primary/5 border-2 border-primary/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-primary" />
+                  <span className="text-xs sm:text-sm font-bold text-foreground">
+                    Resultados ao vivo na Web para "{busca.trim()}" ({resultadosWeb.length})
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPesquisaWebAtiva(false)}
+                  className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {buscandoWeb ? (
+                <div className="py-8 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <span className="text-xs font-semibold">Pesquisando nas principais lojas...</span>
+                </div>
+              ) : resultadosWeb.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {resultadosWeb.slice(0, 8).map((r, i) => (
+                    <div
+                      key={i}
+                      className="p-3 rounded-xl bg-card border border-border flex flex-col justify-between gap-2 shadow-xs hover:border-primary/40 transition-all"
+                    >
+                      <div className="flex gap-2.5">
+                        {r.thumbnail ? (
+                          <img
+                            src={r.thumbnail}
+                            alt=""
+                            className="w-14 h-14 rounded-lg object-contain bg-white p-1 border shrink-0"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                            <Store className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[10px] font-bold text-muted-foreground block truncate">
+                            {r.loja}
+                          </span>
+                          <p className="text-xs font-bold text-foreground line-clamp-2 leading-tight">
+                            {r.titulo}
+                          </p>
+                          <p className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
+                            {r.precoFormatado}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 pt-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            setVideoModal({
+                              isOpen: true,
+                              productName: r.titulo,
+                            })
+                          }
+                          className="h-7 px-2 text-[11px] font-bold gap-1 text-pink-600 border-pink-500/30 hover:bg-pink-500/10"
+                        >
+                          <Film className="h-3 w-3" />
+                          Ver vídeo
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => iniciarAdicaoWeb(r)}
+                          className="h-7 px-2 text-[11px] font-bold gap-1 flex-1 bg-primary text-primary-foreground"
+                        >
+                          <Plus className="h-3 w-3" />
+                          Adicionar
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground py-2 text-center">
+                  Nenhum produto ao vivo encontrado. Tente pesquisar com um nome mais genérico.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Grid de Cards de Achadinhos */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -346,23 +598,22 @@ export function IndicacoesPage() {
                         </span>
                       </div>
 
-                      {/* Selo TikTok se tiver vídeo */}
-                      {item.videoUrl && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setVideoModal({
-                              isOpen: true,
-                              productName: item.nome,
-                              videoUrl: item.videoUrl,
-                            })
-                          }
-                          className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-pink-600/90 hover:bg-pink-600 text-white text-[11px] font-bold shadow-md backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
-                        >
-                          <Film className="h-3.5 w-3.5" />
-                          <span>Ver no TikTok</span>
-                        </button>
-                      )}
+                      {/* Botão Ver no TikTok 100% Funcional */}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setVideoModal({
+                            isOpen: true,
+                            productName: item.nome,
+                            videoUrl: item.videoUrl,
+                          })
+                        }
+                        className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-pink-600 hover:bg-pink-700 text-white text-[11px] font-bold shadow-md backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
+                        title="Ver review e demonstração em vídeo"
+                      >
+                        <Film className="h-3.5 w-3.5" />
+                        <span>Ver no TikTok</span>
+                      </button>
                     </div>
 
                     {/* Conteúdo do Card */}
@@ -370,22 +621,34 @@ export function IndicacoesPage() {
                       {/* Selos extras */}
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {item.selos.includes("tiktok") && (
-                          <Badge variant="outline" className="text-[10px] bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/25">
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/25"
+                          >
                             🎬 Viral TikTok
                           </Badge>
                         )}
                         {item.selos.includes("indispensavel") && (
-                          <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25 font-bold">
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25 font-bold"
+                          >
                             🚨 Indispensável
                           </Badge>
                         )}
                         {item.selos.includes("custo-beneficio") && (
-                          <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25">
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25"
+                          >
                             💰 Custo-Benefício
                           </Badge>
                         )}
                         {item.selos.includes("presente") && (
-                          <Badge variant="outline" className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/25">
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/25"
+                          >
                             🎁 Presente Ideal
                           </Badge>
                         )}
@@ -415,8 +678,8 @@ export function IndicacoesPage() {
                     {/* Botão Adicionar ao Planejamento */}
                     <Button
                       type="button"
-                      onClick={() => iniciarAdicao(item)}
-                      className="flex-1 bg-primary text-primary-foreground font-bold text-xs h-9 gap-1.5 shadow-2xs hover:shadow-xs transition-all"
+                      onClick={() => iniciarAdicaoAchadinho(item)}
+                      className="flex-1 bg-primary text-primary-foreground font-bold text-xs h-9 gap-1.5 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       Adicionar à Lista
@@ -441,24 +704,43 @@ export function IndicacoesPage() {
           </div>
 
           {achadinhosFiltrados.length === 0 && (
-            <div className="text-center py-16 p-6 rounded-2xl border-2 border-dashed border-border bg-card/50">
-              <ShoppingBag className="h-10 w-10 text-muted-foreground/50 mx-auto mb-2" />
-              <h3 className="font-bold text-base text-foreground">Nenhum achadinho encontrado</h3>
-              <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-                Tente buscar com outros termos ou selecione outros filtros de cômodo.
+            <div className="text-center py-16 p-6 rounded-2xl border-2 border-dashed border-border bg-card/50 space-y-3">
+              <ShoppingBag className="h-10 w-10 text-muted-foreground/50 mx-auto" />
+              <h3 className="font-bold text-base text-foreground">
+                Nenhum achadinho da curadoria encontrado para "{busca}"
+              </h3>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                Você pode buscar este produto ao vivo no Google Shopping ou limpar os filtros.
               </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setBusca("");
-                  setComodoFiltro("todos");
-                  setSeloFiltro("todos");
-                }}
-                className="mt-4 text-xs font-bold"
-              >
-                Limpar filtros
-              </Button>
+              <div className="flex items-center justify-center gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setBusca("");
+                    setComodoFiltro("todos");
+                    setSeloFiltro("todos");
+                  }}
+                  className="text-xs font-bold"
+                >
+                  Limpar filtros
+                </Button>
+                {busca.trim() && (
+                  <Button
+                    size="sm"
+                    onClick={handleBuscarNaWeb}
+                    disabled={buscandoWeb}
+                    className="text-xs font-bold gap-1.5 bg-primary text-primary-foreground"
+                  >
+                    {buscandoWeb ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Globe className="h-3.5 w-3.5" />
+                    )}
+                    Pesquisar na Web
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -485,33 +767,55 @@ export function IndicacoesPage() {
                   </Badge>
                 </div>
 
-                <h3 className="font-bold text-base text-foreground leading-snug">
-                  {dica.titulo}
-                </h3>
+                <h3 className="font-bold text-base text-foreground leading-snug">{dica.titulo}</h3>
 
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {dica.conteudo}
-                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{dica.conteudo}</p>
               </div>
 
-              {/* Destaque */}
-              <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 text-xs">
-                <span className="font-bold text-primary block text-[11px] uppercase tracking-wider mb-0.5">
-                  ⚡ O que você ganha:
-                </span>
-                <p className="text-foreground/90 font-medium leading-relaxed">
-                  {dica.destaque}
-                </p>
+              {/* Destaque + Ações da Dica */}
+              <div className="space-y-3 pt-2">
+                <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 text-xs">
+                  <span className="font-bold text-primary block text-[11px] uppercase tracking-wider mb-0.5">
+                    ⚡ O que você ganha:
+                  </span>
+                  <p className="text-foreground/90 font-medium leading-relaxed">{dica.destaque}</p>
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCopiarDica(dica)}
+                    className="flex-1 h-8 text-xs font-bold gap-1.5"
+                  >
+                    <Copy className="h-3 w-3" />
+                    Copiar Dica
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => navigate({ to: "/planejamento" })}
+                    className="h-8 px-3 text-xs font-bold gap-1 bg-primary text-primary-foreground"
+                    title="Aplicar no Planejamento"
+                  >
+                    <span>Planejar</span>
+                    <ArrowRight className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
             </motion.div>
           ))}
         </div>
       )}
 
-      {/* Dialog para Escolher o Cômodo antes de Adicionar */}
+      {/* Dialog para Escolher o Cômodo antes de Adicionar (com criação sob demanda) */}
       <Dialog
-        open={!!adicionandoAchadinho}
-        onOpenChange={(open) => !open && setAdicionandoAchadinho(null)}
+        open={!!adicionandoItem}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAdicionandoItem(null);
+            setCriandoNovoComodo(false);
+          }
+        }}
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -520,48 +824,98 @@ export function IndicacoesPage() {
               Adicionar ao Planejamento
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Escolha o cômodo onde deseja colocar este item na sua lista de enxoval.
+              Escolha ou crie o cômodo onde deseja colocar este item na lista do casal.
             </DialogDescription>
           </DialogHeader>
 
-          {adicionandoAchadinho && (
+          {adicionandoItem && (
             <div className="space-y-4 py-2">
               <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border">
-                <img
-                  src={adicionandoAchadinho.fotoUrl}
-                  alt=""
-                  className="w-14 h-14 rounded-lg object-cover shrink-0 border border-border"
-                />
+                {adicionandoItem.fotoUrl ? (
+                  <img
+                    src={adicionandoItem.fotoUrl}
+                    alt=""
+                    className="w-14 h-14 rounded-lg object-cover shrink-0 border border-border"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0 border">
+                    <ShoppingBag className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <p className="font-bold text-xs sm:text-sm text-foreground line-clamp-1">
-                    {adicionandoAchadinho.nome}
+                    {adicionandoItem.nome}
                   </p>
                   <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                    {brl(adicionandoAchadinho.precoEstimado)}
+                    {brl(adicionandoItem.preco)}
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">
-                  Selecione o Cômodo:
-                </label>
-                <Select
-                  value={categoriaEscolhidaId}
-                  onValueChange={setCategoriaEscolhidaId}
-                >
-                  <SelectTrigger className="h-10 text-xs sm:text-sm">
-                    <SelectValue placeholder="Selecione um cômodo..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categorias.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Seleção ou Criação do Cômodo */}
+              {categorias.length === 0 ? (
+                <div className="space-y-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-foreground">
+                  <p className="font-bold flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300">
+                    <Sparkles className="h-4 w-4" />
+                    Primeiro item da sua casa!
+                  </p>
+                  <p className="text-muted-foreground">
+                    Você ainda não tem cômodos criados. Vamos criar o cômodo abaixo automaticamente:
+                  </p>
+                  <div className="pt-1">
+                    <label className="text-[11px] font-bold text-muted-foreground block mb-1">
+                      Nome do Cômodo:
+                    </label>
+                    <Input
+                      value={novoComodoNome}
+                      onChange={(e) => setNovoComodoNome(e.target.value)}
+                      placeholder="Ex: Cozinha, Quarto, Sala..."
+                      className="h-9 text-xs bg-background"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-foreground">
+                      Selecione o Cômodo:
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setCriandoNovoComodo(!criandoNovoComodo)}
+                      className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
+                    >
+                      {criandoNovoComodo ? "Escolher existente" : "+ Criar novo cômodo"}
+                    </button>
+                  </div>
+
+                  {criandoNovoComodo ? (
+                    <Input
+                      value={novoComodoNome}
+                      onChange={(e) => setNovoComodoNome(e.target.value)}
+                      placeholder="Nome do novo cômodo (ex: Cozinha, Sala de Estar)"
+                      className="h-9 text-xs"
+                      autoFocus
+                    />
+                  ) : (
+                    <Select
+                      value={categoriaEscolhidaId}
+                      onValueChange={setCategoriaEscolhidaId}
+                    >
+                      <SelectTrigger className="h-10 text-xs sm:text-sm">
+                        <SelectValue placeholder="Selecione um cômodo..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categorias.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -569,25 +923,25 @@ export function IndicacoesPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setAdicionandoAchadinho(null)}
+              onClick={() => {
+                setAdicionandoItem(null);
+                setCriandoNovoComodo(false);
+              }}
               className="text-xs font-bold"
             >
               Cancelar
             </Button>
             <Button
               size="sm"
-              disabled={!categoriaEscolhidaId || adicionarAoPlanejamento.isPending}
-              onClick={() => {
-                if (adicionandoAchadinho && categoriaEscolhidaId) {
-                  adicionarAoPlanejamento.mutate({
-                    achadinho: adicionandoAchadinho,
-                    categoriaId: categoriaEscolhidaId,
-                  });
-                }
-              }}
+              disabled={
+                adicionarAoPlanejamento.isPending ||
+                criarCategoriaMutation.isPending ||
+                (!criandoNovoComodo && !categoriaEscolhidaId && categorias.length > 0)
+              }
+              onClick={handleConfirmarAdicao}
               className="bg-primary text-primary-foreground font-bold text-xs gap-1.5 shadow-2xs"
             >
-              {adicionarAoPlanejamento.isPending ? (
+              {adicionarAoPlanejamento.isPending || criarCategoriaMutation.isPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
                 <Check className="h-3.5 w-3.5" />
@@ -598,7 +952,7 @@ export function IndicacoesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Vídeo do TikTok */}
+      {/* Modal de Vídeo do TikTok e Reviews */}
       {videoModal.isOpen && (
         <VideoPreviewModal
           isOpen={videoModal.isOpen}
@@ -610,4 +964,3 @@ export function IndicacoesPage() {
     </div>
   );
 }
-

@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { pesquisaPrecosService } from "@/services/pesquisa-precos";
+import { pesquisaPrecosService, resolverVideoUrlLocal } from "@/services/pesquisa-precos";
 import type { VideoPreview } from "@/services/types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -54,12 +54,18 @@ export function VideoPreviewModal({
       setCustomUrl("");
 
       if (initialVideoUrl) {
-        // Se já tem uma URL inicial, tentar carregar o preview
-        pesquisaPrecosService.obterPreviewVideo(initialVideoUrl).then((prev) => {
+        // Carrega preview imediato no cliente para zero latência
+        const instant = resolverVideoUrlLocal(initialVideoUrl, productName);
+        if (instant) {
+          setActiveVideo(instant);
+        }
+        pesquisaPrecosService.obterPreviewVideo(initialVideoUrl, productName).then((prev) => {
           if (prev) {
             setActiveVideo(prev);
           }
         });
+      } else {
+        setActiveVideo(null);
       }
     }
   }, [isOpen, productName, initialVideoUrl]);
@@ -91,12 +97,12 @@ export function VideoPreviewModal({
 
     setLoadingCustom(true);
     try {
-      const prev = await pesquisaPrecosService.obterPreviewVideo(customUrl.trim());
+      const prev = await pesquisaPrecosService.obterPreviewVideo(customUrl.trim(), "Vídeo demonstrativo");
       if (prev) {
         setActiveVideo(prev);
         toast.success("Vídeo carregado com sucesso!");
       } else {
-        toast.error("Não foi possível carregar a prévia deste vídeo.");
+        toast.error("Não foi possível carregar a prévia deste vídeo. Certifique-se de que é um link válido do TikTok ou YouTube.");
       }
     } catch {
       toast.error("Erro ao carregar o vídeo. Verifique o link e tente novamente.");

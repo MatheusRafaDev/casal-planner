@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import { brl } from "@/lib/formatters";
 import type { PesquisaPrecoResposta, PesquisaPrecoResultado, VideoPreview } from "./types";
+import { ACHADINHOS_DATA } from "./indicacoes";
 
 interface PesquisaPrecoRespostaBruta {
   produtos?: Array<{
@@ -61,6 +62,50 @@ function mapearResposta(
   };
 }
 
+/**
+ * Resolve qualquer link de vídeo (TikTok ou YouTube) diretamente no cliente
+ * sem dependência obrigatória do backend.
+ */
+export function resolverVideoUrlLocal(url: string, fallbackTitle?: string): VideoPreview | null {
+  if (!url || !url.trim()) return null;
+  const cleanUrl = url.trim();
+
+  // 1. TikTok: ID de vídeo ou embed
+  const tiktokMatch = cleanUrl.match(/(?:video\/|embed\/v2\/)(\d+)/i);
+  const authorMatch = cleanUrl.match(/@([^/?#]+)/i);
+
+  if (tiktokMatch) {
+    const videoId = tiktokMatch[1];
+    const author = authorMatch ? authorMatch[1] : "tiktok";
+    return {
+      id: `tiktok-${videoId}`,
+      title: fallbackTitle || `Review no TikTok (@${author})`,
+      author,
+      platform: "tiktok",
+      videoUrl: cleanUrl,
+      playerUrl: `https://www.tiktok.com/player/v1/${videoId}?autoplay=1&muted=1&music_info=1&description=1`,
+      thumbnailUrl: "",
+    };
+  }
+
+  // 2. YouTube / Shorts
+  const ytMatch = cleanUrl.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
+  if (ytMatch) {
+    const videoId = ytMatch[1];
+    return {
+      id: `yt-${videoId}`,
+      title: fallbackTitle || "Demonstração no YouTube",
+      author: "YouTube",
+      platform: "youtube",
+      videoUrl: cleanUrl,
+      playerUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`,
+      thumbnailUrl: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+    };
+  }
+
+  return null;
+}
+
 export const pesquisaPrecosService = {
   async buscar(termo: string): Promise<PesquisaPrecoResposta> {
     const raw = await api<PesquisaPrecoRespostaBruta>(
@@ -114,26 +159,111 @@ export const pesquisaPrecosService = {
 
   async buscarVideos(q: string): Promise<VideoPreview[]> {
     if (!q || !q.trim()) return [];
+    const queryLimpa = q.trim();
+
+    // 1. Tentar buscar pelo backend
     try {
       const res = await api<VideoPreview[]>(
-        `/api/pesquisaprecos/videos?q=${encodeURIComponent(q.trim())}`,
+        `/api/pesquisaprecos/videos?q=${encodeURIComponent(queryLimpa)}`,
       );
-      return res ?? [];
+      if (res && res.length > 0) return res;
     } catch {
-      return [];
+      // Continua para fallback resiliente
     }
+
+    // 2. Fallback inteligente com a curadoria de achadinhos
+    const termo = queryLimpa.toLowerCase();
+    const palavras = termo.split(/\s+/).filter((w) => w.length > 2);
+    const matches: VideoPreview[] = [];
+
+    for (const item of ACHADINHOS_DATA) {
+      if (!item.videoUrl) continue;
+
+      const nomeLower = item.nome.toLowerCase();
+      const dicaLower = item.dica.toLowerCase();
+      const comodoLower = item.comodoNome.toLowerCase();
+      const marcaLower = (item.marcaSugerida ?? "").toLowerCase();
+
+      const matched =
+        nomeLower.includes(termo) ||
+        palavras.some(
+          (w) =>
+            nomeLower.includes(w) ||
+            dicaLower.includes(w) ||
+            marcaLower.includes(w) ||
+            comodoLower.includes(w),
+        );
+
+      if (matched) {
+        const prev = resolverVideoUrlLocal(item.videoUrl, item.nome);
+        if (prev && !matches.some((m) => m.id === prev.id)) {
+          matches.push({
+            ...prev,
+            title: `${item.nome} - Review no TikTok`,
+            thumbnailUrl: item.fotoUrl,
+          });
+        }
+      }
+    }
+
+    // Se nenhum match específico foi encontrado, retorna os virais mais populares
+    if (matches.length === 0) {
+      for (const item of ACHADINHOS_DATA.slice(0, 6)) {
+        if (!item.videoUrl) continue;
+        const prev = resolverVideoUrlLocal(item.videoUrl, item.nome);
+        if (prev && !matches.some((m) => m.id === prev.id)) {
+          matches.push({
+            ...prev,
+            title: `${item.nome} - Destaque TikTok`,
+            thumbnailUrl: item.fotoUrl,
+          });
+        }
+      }
+    }
+
+    return matches;
   },
 
-  async obterPreviewVideo(url: string): Promise<VideoPreview | null> {
+  async obterPreviewVideo(url: string, fallbackTitle?: string): Promise<VideoPreview | null> {
     if (!url || !url.trim()) return null;
+    const cleanUrl = url.trim();
+
+    // 1. Tentar obter pelo backend local/Vercel
     try {
       const res = await api<VideoPreview>("/api/pesquisaprecos/video-preview", {
         method: "POST",
-        body: { url: url.trim() },
+        body: { url: cleanUrl },
       });
-      return res ?? null;
+      if (res && res.playerUrl) return res;
     } catch {
-      return null;
+      // Ignora erro se backend não tiver o endpoint
     }
+
+    // 2. Resolução direta no navegador (100% resiliente)
+    const local = resolverVideoUrlLocal(cleanUrl, fallbackTitle);
+    if (!local) return null;
+
+    // 3. Tenta enriquecer com dados públicos do TikTok oEmbed com timeout curto
+    if (local.platform === "tiktok") {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const oembedRes = await fetch(
+          `https://www.tiktok.com/oembed?url=${encodeURIComponent(cleanUrl)}`,
+          { signal: controller.signal },
+        );
+        clearTimeout(timeoutId);
+        if (oembedRes.ok) {
+          const data = await oembedRes.json();
+          if (data.title) local.title = data.title;
+          if (data.author_name) local.author = data.author_name;
+          if (data.thumbnail_url) local.thumbnailUrl = data.thumbnail_url;
+        }
+      } catch {
+        // Já tem o playerUrl funcional
+      }
+    }
+
+    return local;
   },
 };
