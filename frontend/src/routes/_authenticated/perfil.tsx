@@ -531,9 +531,11 @@ function MetaEnxovalCard({
   onSaved: () => Promise<void> | void;
 }) {
   const qc = useQueryClient();
+  const { isAuthenticated } = useAuth();
   const resumoQ = useQuery({
     queryKey: ["resumo-meta"],
     queryFn: () => resumoService.obterRaw(),
+    enabled: typeof window !== "undefined" && isAuthenticated,
   });
   const metaResumo =
     (resumoQ.data as { enxoval?: { metaGlobalEnxoval?: number | null } } | undefined)?.enxoval

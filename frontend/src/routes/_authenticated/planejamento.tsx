@@ -154,7 +154,7 @@ function PlanejamentoPage() {
   const [filtroPagamento, setFiltroPagamento] = useState<"todos" | "normal" | "vr">("todos");
   const [filtroResponsavel, setFiltroResponsavel] = useState<"todos" | "1" | "2">("todos");
 
-  const { usuario } = useAuth();
+  const { usuario, isAuthenticated } = useAuth();
   const isCasal = usuario?.tipoConta === "Casal";
   const p1 = usuario?.casalInfo?.pessoa1?.nome || "Pessoa 1";
   const p2 = usuario?.casalInfo?.pessoa2?.nome || "Pessoa 2";
@@ -188,6 +188,7 @@ function PlanejamentoPage() {
   const categoriasQ = useQuery({
     queryKey: ["categorias"],
     queryFn: () => categoriasService.listar(),
+    enabled: typeof window !== "undefined" && isAuthenticated,
   });
 
   const categorias = useMemo(() => categoriasQ.data ?? [], [categoriasQ.data]);
@@ -219,6 +220,7 @@ function PlanejamentoPage() {
       lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
     initialPageParam: 1,
     placeholderData: keepPreviousData,
+    enabled: typeof window !== "undefined" && isAuthenticated,
   });
 
   const itensFiltrados = useMemo(
@@ -229,6 +231,7 @@ function PlanejamentoPage() {
   const todosItensQ = useQuery({
     queryKey: ["itens"],
     queryFn: () => itensService.listar(),
+    enabled: typeof window !== "undefined" && isAuthenticated,
   });
   const todosItens = useMemo(() => todosItensQ.data ?? [], [todosItensQ.data]);
 

@@ -34,6 +34,7 @@ import type { Categoria, Item, PesquisaPrecoResultado } from "@/services/types";
 import type { ItemInputDTO } from "@/services/itens";
 import { brl } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/_authenticated/indicacoes")({
   ssr: false,
@@ -52,6 +53,7 @@ export const Route = createFileRoute("/_authenticated/indicacoes")({
 
 function IndicacoesPage() {
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
 
   const [busca, setBusca] = useState("");
   const [filtroAtivo, setFiltroAtivo] = useState<string>("todos");
@@ -83,11 +85,11 @@ function IndicacoesPage() {
   const [reelsAberto, setReelsAberto] = useState(false);
   const [reelsInitialIndex, setReelsInitialIndex] = useState(0);
 
-  // Buscar categorias do usuário para vincular itens (somente no cliente para evitar 503 de SSR no Vercel)
+  // Buscar categorias do usuário para vincular itens (somente quando autenticado e no browser)
   const { data: categorias = [] } = useQuery<Categoria[]>({
     queryKey: ["categorias"],
     queryFn: () => categoriasService.listar(),
-    enabled: typeof window !== "undefined",
+    enabled: typeof window !== "undefined" && isAuthenticated,
     retry: false,
   });
 
@@ -95,7 +97,7 @@ function IndicacoesPage() {
   const { data: itensDoUsuario = [] } = useQuery<Item[]>({
     queryKey: ["itens"],
     queryFn: () => itensService.listar(),
-    enabled: typeof window !== "undefined",
+    enabled: typeof window !== "undefined" && isAuthenticated,
     retry: false,
   });
 

@@ -100,15 +100,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const qc = useQueryClient();
 
-  useEffect(() => {
-    // Hidrata do cache local no cliente imediatamente após a montagem
-    const cached = getCachedUser();
-    if (cached) {
-      setUsuarioState(cached);
-      setLoading(false);
-    }
-  }, []);
-
   const preaquecerQueries = useCallback(() => {
     // Pré-carrega no React Query em paralelo com o pré-aquecimento do Redis
     qc.prefetchQuery({ queryKey: ["resumo"], queryFn: () => resumoService.obter() });
@@ -123,6 +114,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     if (typeof window === "undefined") return;
+
+    // Se não há usuário no cache local, o visitante não está autenticado.
+    // Evita chamar /api/auth/me e disparar 401s desnecessários no console para usuários deslogados.
+    const cached = getCachedUser();
+    if (!cached) {
+      setUsuarioState(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       const u = await authService.me();
       const norm = normalizarUsuario(u);
@@ -139,12 +140,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         // Erro de conexão, offline ou instabilidade temporária:
         // Mantém o usuário autenticado com cache para não derrubar a sessão no mobile!
-        console.warn("Falha de conexão ao validar sessão, mantendo usuário ativo:", err);
+        console.warn("Falha de conexão ao validar sessão, mantendo usuário ativo offline:", err);
+        setUsuarioState(cached);
       }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [preaquecerQueries]);
 
   useEffect(() => {
     refresh();

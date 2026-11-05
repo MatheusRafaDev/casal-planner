@@ -23,7 +23,7 @@ const nav = [
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { usuario, logout } = useAuth();
+  const { usuario, logout, isAuthenticated } = useAuth();
   const { installPrompt, triggerInstall } = usePwa();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const search = useRouterState({
@@ -37,6 +37,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: categorias = [] } = useQuery({
     queryKey: ["categorias"],
     queryFn: () => import("@/services/categorias").then((m) => m.categoriasService.listar()),
+    enabled: typeof window !== "undefined" && isAuthenticated,
   });
 
   const abrirWizardAdicionar = () => {

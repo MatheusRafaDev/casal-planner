@@ -41,7 +41,7 @@ export const Route = createFileRoute("/_authenticated/inicio")({
 const FALLBACK_COLORS = [...DESIGN_TOKENS.colors.chartPalette];
 
 function InicioPage() {
-  const { usuario } = useAuth();
+  const { usuario, isAuthenticated } = useAuth();
   const isCasal = usuario?.tipoConta === "Casal";
   const p1 = usuario?.casalInfo?.pessoa1?.nome || "Pessoa 1";
   const p2 = usuario?.casalInfo?.pessoa2?.nome || "Pessoa 2";
@@ -51,17 +51,20 @@ function InicioPage() {
   const { data: categorias = [], isLoading: loadingCategorias } = useQuery({
     queryKey: ["categorias"],
     queryFn: () => categoriasService.listar(),
+    enabled: typeof window !== "undefined" && isAuthenticated,
   });
 
   const { data: itens = [], isLoading: loadingItens } = useQuery({
     queryKey: ["itens"],
     queryFn: () => itensService.listar(),
+    enabled: typeof window !== "undefined" && isAuthenticated,
     retry: false,
   });
 
   const { data: resumo } = useQuery({
     queryKey: ["resumo"],
     queryFn: () => resumoService.obterAdaptado(categorias),
+    enabled: typeof window !== "undefined" && isAuthenticated,
   });
 
   const isLoading =
