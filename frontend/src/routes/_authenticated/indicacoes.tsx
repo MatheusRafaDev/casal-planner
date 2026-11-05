@@ -1,12 +1,11 @@
 import { useState, useMemo } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
   Film,
   Plus,
-  Check,
   ExternalLink,
   Search,
   Zap,
@@ -27,32 +26,18 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { VideoPreviewModal } from "@/components/planejamento/VideoPreviewModal";
+import { ItemFormModal } from "@/components/planejamento/ItemFormModal";
 import {
   ACHADINHOS_DATA,
   DICAS_CASA_NOVA_DATA,
   type Achadinho,
   type DicaCasaNova,
 } from "@/services/indicacoes";
-import { itensService } from "@/services/itens";
 import { categoriasService } from "@/services/categorias";
 import { pesquisaPrecosService } from "@/services/pesquisa-precos";
 import type { Categoria, PesquisaPrecoResultado } from "@/services/types";
+import type { ItemInputDTO } from "@/services/itens";
 import { brl } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 
@@ -94,21 +79,10 @@ export function IndicacoesPage() {
     videoUrl: null,
   });
 
-  // Estado para adicionar achadinho ao planejamento
-  const [adicionandoItem, setAdicionandoItem] = useState<{
-    nome: string;
-    preco: number;
-    fotoUrl?: string;
-    videoUrl?: string;
-    linkProduto?: string;
-    loja?: string;
-    marca?: string;
-    comodoSugerido?: string;
-  } | null>(null);
-
-  const [categoriaEscolhidaId, setCategoriaEscolhidaId] = useState<string>("");
-  const [criandoNovoComodo, setCriandoNovoComodo] = useState<boolean>(false);
-  const [novoComodoNome, setNovoComodoNome] = useState<string>("");
+  // Estado para o Modal Padrão do Sistema de Adicionar Item (ItemFormModal)
+  const [modalItemAberto, setModalItemAberto] = useState(false);
+  const [modalCategoriaId, setModalCategoriaId] = useState<string>("");
+  const [modalInitial, setModalInitial] = useState<Partial<ItemInputDTO> | undefined>(undefined);
 
   // Buscar categorias do usuário para vincular itens
   const { data: categorias = [] } = useQuery<Categoria[]>({
@@ -116,135 +90,79 @@ export function IndicacoesPage() {
     queryFn: () => categoriasService.listar(),
   });
 
-  // Criar categoria sob demanda
-  const criarCategoriaMutation = useMutation({
-    mutationFn: async (nome: string) => {
-      return categoriasService.criar({ nome: nome.trim(), cor: "#1F5C43" });
-    },
-    onSuccess: (novaCat) => {
-      queryClient.invalidateQueries({ queryKey: ["categorias"] });
-      setCategoriaEscolhidaId(novaCat.id);
-      setCriandoNovoComodo(false);
-    },
-  });
+  // Abre o modal padrão do sistema com os dados do achadinho pré-preenchidos
+  const iniciarAdicaoAchadinho = async (achadinho: Achadinho) => {
+    let catId = "";
 
-  // Adicionar item ao planejamento
-  const adicionarAoPlanejamento = useMutation({
-    mutationFn: async ({
-      item,
-      categoriaId,
-    }: {
-      item: NonNullable<typeof adicionandoItem>;
-      categoriaId: string;
-    }) => {
-      return itensService.criar({
-        nome: item.nome,
-        categoriaId,
-        preco: item.preco,
-        quantidade: 1,
-        marca: item.marca,
-        loja: item.loja,
-        linkProduto: item.linkProduto,
-        fotoUrl: item.fotoUrl,
-        videoUrl: item.videoUrl,
-        origem: "comprado",
-        pagamento: "normal",
-        prioridade: "media",
-      });
-    },
-    onSuccess: (itemCriado) => {
-      queryClient.invalidateQueries({ queryKey: ["itens-paginado"] });
-      queryClient.invalidateQueries({ queryKey: ["itens"] });
-      queryClient.invalidateQueries({ queryKey: ["resumo"] });
-      setAdicionandoItem(null);
-      setCriandoNovoComodo(false);
-      setNovoComodoNome("");
-      toast.success(`"${itemCriado.nome}" adicionado à sua lista!`, {
-        action: {
-          label: "Ver na lista",
-          onClick: () => navigate({ to: "/planejamento" }),
-        },
-      });
-    },
-    onError: () => {
-      toast.error("Erro ao adicionar produto.");
-    },
-  });
-
-  const iniciarAdicaoAchadinho = (achadinho: Achadinho) => {
-    const match = categorias.find(
-      (c) =>
-        c.nome.toLowerCase().includes(achadinho.comodo.toLowerCase()) ||
-        achadinho.comodoNome.toLowerCase().includes(c.nome.toLowerCase()),
-    );
-
-    if (match) {
-      setCategoriaEscolhidaId(match.id);
-      setCriandoNovoComodo(false);
-    } else if (categorias.length > 0) {
-      setCategoriaEscolhidaId(categorias[0]?.id || "");
-      setCriandoNovoComodo(false);
+    // Se o usuário ainda não tiver nenhuma categoria, cria uma primeira automaticamente para não travar
+    if (categorias.length === 0) {
+      try {
+        const nova = await categoriasService.criar({
+          nome: achadinho.comodoNome || "Cozinha",
+          cor: "#1F5C43",
+        });
+        queryClient.invalidateQueries({ queryKey: ["categorias"] });
+        catId = nova.id;
+      } catch {
+        catId = "";
+      }
     } else {
-      setCategoriaEscolhidaId("");
-      setCriandoNovoComodo(true);
+      const match = categorias.find(
+        (c) =>
+          c.nome.toLowerCase().includes(achadinho.comodo.toLowerCase()) ||
+          achadinho.comodoNome.toLowerCase().includes(c.nome.toLowerCase()),
+      );
+      catId = match ? match.id : categorias[0].id;
     }
 
-    setNovoComodoNome(achadinho.comodoNome);
-    setAdicionandoItem({
+    setModalCategoriaId(catId);
+    setModalInitial({
       nome: achadinho.nome,
       preco: achadinho.precoEstimado,
+      quantidade: 1,
       fotoUrl: achadinho.fotoUrl,
       videoUrl: achadinho.videoUrl,
-      linkProduto: achadinho.linkLoja,
-      loja: achadinho.lojaNome,
-      marca: achadinho.marcaSugerida,
-      comodoSugerido: achadinho.comodoNome,
+      loja: achadinho.lojaNome || "Amazon / Online",
+      linkProduto: achadinho.linkLoja || "",
+      marca: achadinho.marcaSugerida || "",
+      prioridade: "media",
+      origem: "comprado",
+      pagamento: "normal",
+      categoriaId: catId,
     });
+    setModalItemAberto(true);
   };
 
-  const iniciarAdicaoWeb = (webItem: PesquisaPrecoResultado) => {
-    if (categorias.length > 0) {
-      setCategoriaEscolhidaId(categorias[0]?.id || "");
-      setCriandoNovoComodo(false);
+  // Abre o modal padrão do sistema com os dados do resultado da web pré-preenchidos
+  const iniciarAdicaoWeb = async (webItem: PesquisaPrecoResultado) => {
+    let catId = "";
+    if (categorias.length === 0) {
+      try {
+        const nova = await categoriasService.criar({ nome: "Geral", cor: "#1F5C43" });
+        queryClient.invalidateQueries({ queryKey: ["categorias"] });
+        catId = nova.id;
+      } catch {
+        catId = "";
+      }
     } else {
-      setCategoriaEscolhidaId("");
-      setCriandoNovoComodo(true);
+      catId = categorias[0].id;
     }
 
-    setNovoComodoNome("Geral");
-    setAdicionandoItem({
+    setModalCategoriaId(catId);
+    setModalInitial({
       nome: webItem.titulo,
       preco: webItem.preco,
+      quantidade: 1,
       fotoUrl: webItem.thumbnail,
       linkProduto: webItem.link,
       loja: webItem.loja,
-      marca: webItem.marca,
-      comodoSugerido: "Geral",
+      marca: webItem.marca || "",
+      prioridade: "media",
+      origem: "comprado",
+      pagamento: "normal",
+      categoriaId: catId,
     });
-  };
-
-  const handleConfirmarAdicao = async () => {
-    if (!adicionandoItem) return;
-
-    let targetCatId = categoriaEscolhidaId;
-
-    if (criandoNovoComodo || !targetCatId) {
-      const nomeFinal = novoComodoNome.trim() || adicionandoItem.comodoSugerido || "Geral";
-      try {
-        const novaCat = await criarCategoriaMutation.mutateAsync(nomeFinal);
-        targetCatId = novaCat.id;
-      } catch {
-        toast.error("Erro ao criar cômodo.");
-        return;
-      }
-    }
-
-    if (targetCatId) {
-      adicionarAoPlanejamento.mutate({
-        item: adicionandoItem,
-        categoriaId: targetCatId,
-      });
-    }
+    setModalItemAberto(true);
   };
 
   const handleBuscarNaWeb = async () => {
@@ -584,7 +502,7 @@ export function IndicacoesPage() {
                     </div>
                   </div>
 
-                  {/* Ações do Rodapé */}
+                  {/* Ações do Rodapé - Joga para o modal padrão do sistema */}
                   <div className="p-3.5 pt-0 flex items-center gap-2">
                     <Button
                       type="button"
@@ -711,150 +629,15 @@ export function IndicacoesPage() {
         </div>
       )}
 
-      {/* Dialog para Escolher o Cômodo antes de Adicionar */}
-      <Dialog
-        open={!!adicionandoItem}
-        onOpenChange={(open) => {
-          if (!open) {
-            setAdicionandoItem(null);
-            setCriandoNovoComodo(false);
-          }
-        }}
-      >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base font-bold">
-              <ShoppingBag className="h-5 w-5 text-primary" />
-              Adicionar ao Planejamento
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              Escolha ou crie o cômodo onde deseja colocar este item na lista do casal.
-            </DialogDescription>
-          </DialogHeader>
-
-          {adicionandoItem && (
-            <div className="space-y-4 py-2">
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border">
-                {adicionandoItem.fotoUrl ? (
-                  <img
-                    src={adicionandoItem.fotoUrl}
-                    alt=""
-                    className="w-14 h-14 rounded-lg object-contain bg-white p-1 shrink-0 border border-border"
-                  />
-                ) : (
-                  <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0 border">
-                    <ShoppingBag className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="font-bold text-xs sm:text-sm text-foreground line-clamp-1">
-                    {adicionandoItem.nome}
-                  </p>
-                  <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                    {brl(adicionandoItem.preco)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Seleção ou Criação do Cômodo */}
-              {categorias.length === 0 ? (
-                <div className="space-y-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-foreground">
-                  <p className="font-bold flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300">
-                    <Sparkles className="h-4 w-4" />
-                    Primeiro item da sua casa!
-                  </p>
-                  <p className="text-muted-foreground">
-                    Você ainda não tem cômodos criados. Vamos criar o cômodo abaixo automaticamente:
-                  </p>
-                  <div className="pt-1">
-                    <label className="text-[11px] font-bold text-muted-foreground block mb-1">
-                      Nome do Cômodo:
-                    </label>
-                    <Input
-                      value={novoComodoNome}
-                      onChange={(e) => setNovoComodoNome(e.target.value)}
-                      placeholder="Ex: Cozinha, Quarto, Sala..."
-                      className="h-9 text-xs bg-background"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-foreground">
-                      Selecione o Cômodo:
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setCriandoNovoComodo(!criandoNovoComodo)}
-                      className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
-                    >
-                      {criandoNovoComodo ? "Escolher existente" : "+ Criar novo cômodo"}
-                    </button>
-                  </div>
-
-                  {criandoNovoComodo ? (
-                    <Input
-                      value={novoComodoNome}
-                      onChange={(e) => setNovoComodoNome(e.target.value)}
-                      placeholder="Nome do novo cômodo (ex: Cozinha, Sala de Estar)"
-                      className="h-9 text-xs"
-                      autoFocus
-                    />
-                  ) : (
-                    <Select
-                      value={categoriaEscolhidaId}
-                      onValueChange={setCategoriaEscolhidaId}
-                    >
-                      <SelectTrigger className="h-10 text-xs sm:text-sm">
-                        <SelectValue placeholder="Selecione um cômodo..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categorias.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setAdicionandoItem(null);
-                setCriandoNovoComodo(false);
-              }}
-              className="text-xs font-bold"
-            >
-              Cancelar
-            </Button>
-            <Button
-              size="sm"
-              disabled={
-                adicionarAoPlanejamento.isPending ||
-                criarCategoriaMutation.isPending ||
-                (!criandoNovoComodo && !categoriaEscolhidaId && categorias.length > 0)
-              }
-              onClick={handleConfirmarAdicao}
-              className="bg-primary text-primary-foreground font-bold text-xs gap-1.5 shadow-2xs"
-            >
-              {adicionarAoPlanejamento.isPending || criarCategoriaMutation.isPending ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Check className="h-3.5 w-3.5" />
-              )}
-              Confirmar e Adicionar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Modal Padrão do Sistema para Adicionar Item (ItemFormModal) */}
+      <ItemFormModal
+        open={modalItemAberto}
+        onOpenChange={setModalItemAberto}
+        categorias={categorias}
+        categoriaId={modalCategoriaId}
+        item={null}
+        initial={modalInitial}
+      />
 
       {/* Modal de Vídeo do TikTok e Reviews */}
       {videoModal.isOpen && (
