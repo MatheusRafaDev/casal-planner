@@ -118,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const norm = normalizarUsuario(u);
       setUsuarioState(norm);
       setCachedUser(norm);
+      preaquecerQueries();
     } catch (err: unknown) {
       // Se for 401 ou 403 explícito (token e refresh token expirados ou inválidos):
       const isAuthError = err instanceof ApiError && (err.status === 401 || err.status === 403);
@@ -136,16 +137,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (getCachedUser()) {
-      preaquecerQueries();
-    }
     refresh();
 
     if (typeof window !== "undefined") {
       window.addEventListener("online", refresh);
       return () => window.removeEventListener("online", refresh);
     }
-  }, [refresh, preaquecerQueries]);
+  }, [refresh]);
 
   const login = useCallback(
     async (email: string, senha: string) => {

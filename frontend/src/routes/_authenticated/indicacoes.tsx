@@ -36,6 +36,7 @@ import { brl } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/indicacoes")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "CasalPlanner | Achadinhos Virais do TikTok" },
@@ -49,7 +50,7 @@ export const Route = createFileRoute("/_authenticated/indicacoes")({
   component: IndicacoesPage,
 });
 
-export function IndicacoesPage() {
+function IndicacoesPage() {
   const queryClient = useQueryClient();
 
   const [busca, setBusca] = useState("");
