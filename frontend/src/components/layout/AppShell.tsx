@@ -196,7 +196,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Conteúdo Principal (Respeita o Notch do iPhone 11 e Safe Areas) */}
-      <main className="flex-1 min-w-0 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-10 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] md:pt-0 pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]">
+      <main className="flex-1 min-w-0 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-10 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] md:pt-0 pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]">
         <div
           className={cn(
             "w-full mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-6 sm:py-6 lg:py-8",
@@ -207,28 +207,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </main>
 
-      {/* Botão Flutuante (FAB) Adicionar Item Mobile */}
-      <motion.button
-        type="button"
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        whileTap={{ scale: 0.93 }}
-        whileHover={{ scale: 1.04 }}
-        transition={{ type: "spring", stiffness: 400, damping: 25 }}
-        onClick={abrirWizardAdicionar}
-        className="md:hidden fixed right-4 bottom-[calc(4.85rem+env(safe-area-inset-bottom,0px))] z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-primary-foreground font-bold text-sm shadow-[0_6px_20px_rgba(31,92,67,0.4)] border-2 border-white/20 active:bg-primary-hover transition-colors cursor-pointer select-none"
-        aria-label="Adicionar item"
-      >
-        <Plus className="h-5 w-5 stroke-[2.5]" />
-        <span>Adicionar item</span>
-      </motion.button>
-
       {/* Bottom Nav Mobile */}
       <nav
         className="md:hidden fixed bottom-0 inset-x-0 bg-card/95 backdrop-blur-md border-t border-border/80 z-50 shadow-lg select-none"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
-        <div className="grid grid-cols-4 h-16 items-center px-2">
+        <div className="grid grid-cols-5 h-16 items-center px-1">
           {/* 1. Início */}
           <Link
             to="/inicio"
@@ -277,7 +261,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="text-[10px] leading-none tracking-tight">Planejar</span>
           </Link>
 
-          {/* 3. Achadinhos & Dicas */}
+          {/* 3. Bolinha Central: Adicionar Item */}
+          <div className="flex flex-col items-center justify-center w-full h-full">
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.06 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              onClick={abrirWizardAdicionar}
+              className="-mt-5 flex items-center justify-center h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-[0_4px_16px_rgba(31,92,67,0.45)] border-4 border-card active:bg-primary-hover transition-colors cursor-pointer select-none"
+              aria-label="Adicionar item"
+              title="Adicionar novo item"
+            >
+              <Plus className="h-6 w-6 stroke-[2.75]" />
+            </motion.button>
+            <span className="text-[10px] leading-none tracking-tight font-semibold text-muted-foreground mt-0.5">
+              Adicionar
+            </span>
+          </div>
+
+          {/* 4. Achadinhos & Dicas */}
           <Link
             to="/indicacoes"
             className={cn(
@@ -301,7 +304,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="text-[10px] leading-none tracking-tight">Dicas</span>
           </Link>
 
-          {/* 4. Minha Conta */}
+          {/* 5. Minha Conta */}
           <Link
             to="/perfil"
             className={cn(
