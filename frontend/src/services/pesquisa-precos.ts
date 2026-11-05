@@ -225,7 +225,18 @@ export const pesquisaPrecosService = {
       }
     }
 
-    return matches;
+    // Prioriza vídeos em Português do Brasil (PT-BR)
+    return matches.sort((a, b) => {
+      const aLower = `${a.author ?? ""} ${a.title ?? ""}`.toLowerCase();
+      const bLower = `${b.author ?? ""} ${b.title ?? ""}`.toLowerCase();
+      const scoreA =
+        (aLower.includes("br") || aLower.includes("brasil") ? 20 : 0) +
+        (aLower.includes("review") || aLower.includes("unboxing") || aLower.includes("teste") ? 10 : 0);
+      const scoreB =
+        (bLower.includes("br") || bLower.includes("brasil") ? 20 : 0) +
+        (bLower.includes("review") || bLower.includes("unboxing") || bLower.includes("teste") ? 10 : 0);
+      return scoreB - scoreA;
+    });
   },
 
   async obterPreviewVideo(url: string, fallbackTitle?: string): Promise<VideoPreview | null> {

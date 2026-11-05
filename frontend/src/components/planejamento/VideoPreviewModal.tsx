@@ -261,22 +261,22 @@ export function VideoPreviewModal({
                   </div>
                   <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
                     <a
-                      href={`https://www.tiktok.com/search?q=${encodeURIComponent(productName)}`}
+                      href={`https://www.tiktok.com/search?q=${encodeURIComponent(productName + " brasil")}`}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-pink-500/10 text-pink-600 dark:text-pink-400 hover:bg-pink-500/20 border border-pink-500/30 transition-colors"
                     >
-                      TikTok <ExternalLink className="h-3 w-3" />
+                      TikTok Brasil <ExternalLink className="h-3 w-3" />
                     </a>
                     <a
                       href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
-                        productName + " review unboxing",
-                      )}`}
+                        productName + " review brasil",
+                      )}&gl=BR&hl=pt`}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-colors"
                     >
-                      YouTube <ExternalLink className="h-3 w-3" />
+                      YouTube Brasil <ExternalLink className="h-3 w-3" />
                     </a>
                     <a
                       href={`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(
@@ -301,23 +301,23 @@ export function VideoPreviewModal({
                 </span>
                 <div className="flex items-center gap-2 font-semibold">
                   <a
-                    href={`https://www.tiktok.com/search?q=${encodeURIComponent(productName)}`}
+                    href={`https://www.tiktok.com/search?q=${encodeURIComponent(productName + " brasil")}`}
                     target="_blank"
                     rel="noreferrer"
                     className="hover:underline text-pink-600 dark:text-pink-400 flex items-center gap-0.5"
                   >
-                    TikTok <ExternalLink className="h-2.5 w-2.5" />
+                    TikTok (PT-BR) <ExternalLink className="h-2.5 w-2.5" />
                   </a>
                   <span className="text-muted-foreground/40">•</span>
                   <a
                     href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
-                      productName + " review",
-                    )}`}
+                      productName + " review brasil",
+                    )}&gl=BR&hl=pt`}
                     target="_blank"
                     rel="noreferrer"
                     className="hover:underline text-red-600 dark:text-red-400 flex items-center gap-0.5"
                   >
-                    YouTube <ExternalLink className="h-2.5 w-2.5" />
+                    YouTube (PT-BR) <ExternalLink className="h-2.5 w-2.5" />
                   </a>
                   <span className="text-muted-foreground/40">•</span>
                   <a

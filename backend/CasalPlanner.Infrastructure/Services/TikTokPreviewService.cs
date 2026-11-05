@@ -58,9 +58,9 @@ namespace CasalPlanner.Infrastructure.Services
             {
                 try
                 {
-                    // 1. Busca vídeos no TikTok via SerpApi com o texto exato do item
-                    var tiktokQuery = $"site:tiktok.com {cleanQuery}";
-                    var url = $"https://serpapi.com/search.json?engine=duckduckgo&q={Uri.EscapeDataString(tiktokQuery)}&api_key={apiKey}";
+                    // 1. Busca vídeos no TikTok via SerpApi priorizando criadores do Brasil (PT-BR)
+                    var tiktokQuery = $"site:tiktok.com {cleanQuery} brasil";
+                    var url = $"https://serpapi.com/search.json?engine=duckduckgo&q={Uri.EscapeDataString(tiktokQuery)}&kl=br-pt&api_key={apiKey}";
 
                     using var res = await _httpClient.GetAsync(url, cancellationToken);
                     if (res.IsSuccessStatusCode)
@@ -105,7 +105,8 @@ namespace CasalPlanner.Infrastructure.Services
                 {
                     try
                     {
-                        var ytUrl = $"https://serpapi.com/search.json?engine=youtube&search_query={Uri.EscapeDataString(cleanQuery + " review")}&api_key={apiKey}";
+                        // Busca reviews no YouTube priorizando geolocalização e idioma do Brasil
+                        var ytUrl = $"https://serpapi.com/search.json?engine=youtube&search_query={Uri.EscapeDataString(cleanQuery + " review brasil")}&gl=br&hl=pt&api_key={apiKey}";
                         using var ytRes = await _httpClient.GetAsync(ytUrl, cancellationToken);
                         if (ytRes.IsSuccessStatusCode)
                         {
@@ -153,13 +154,27 @@ namespace CasalPlanner.Infrastructure.Services
                 }
             }
 
+            // Prioriza vídeos em Português do Brasil (PT-BR)
+            var ordenados = resultados
+                .OrderByDescending(v =>
+                {
+                    int score = 0;
+                    var t = (v.Title ?? "").ToLowerInvariant();
+                    var a = (v.Author ?? "").ToLowerInvariant();
+                    if (a.Contains("_br") || a.Contains("brasil") || a.Contains("brazil") || a.EndsWith("br")) score += 30;
+                    if (t.Contains("brasil") || t.Contains("resenha") || t.Contains("unboxing") || t.Contains("teste") || t.Contains("vale a pena") || t.Contains("comprinhas") || t.Contains("casa nova") || t.Contains("enxoval")) score += 20;
+                    if (v.Platform == "tiktok") score += 5;
+                    return score;
+                })
+                .ToList();
+
             // Cache por 30 minutos
-            if (resultados.Count > 0)
+            if (ordenados.Count > 0)
             {
-                _cache.Set(cacheKey, resultados, TimeSpan.FromMinutes(30));
+                _cache.Set(cacheKey, ordenados, TimeSpan.FromMinutes(30));
             }
 
-            return resultados;
+            return ordenados;
         }
 
         public async Task<VideoPreviewDto?> ObterPreviewPorUrlAsync(string url, CancellationToken cancellationToken = default)
