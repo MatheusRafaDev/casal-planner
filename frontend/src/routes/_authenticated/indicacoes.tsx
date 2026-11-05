@@ -83,7 +83,7 @@ function IndicacoesPage() {
 
   // Estado para o Feed Imersivo de Vídeos Estilo Reels
   const [reelsAberto, setReelsAberto] = useState(false);
-  const [reelsInitialIndex, setReelsInitialIndex] = useState(0);
+  const [reelsInitialId, setReelsInitialId] = useState<string | null>(null);
 
   // Trava de idempotência no frontend para evitar clique duplo
   const pendingAddRef = useRef<Set<string>>(new Set());
@@ -127,8 +127,8 @@ function IndicacoesPage() {
     return ids;
   }, [itensDoUsuario]);
 
-  const abrirReels = (index = 0) => {
-    setReelsInitialIndex(index);
+  const abrirReels = (itemId?: string) => {
+    setReelsInitialId(itemId ?? null);
     setReelsAberto(true);
   };
 
@@ -362,7 +362,7 @@ function IndicacoesPage() {
           {/* Botão de Destaque Modo Reels com a Paleta CasalPlanner */}
           <Button
             type="button"
-            onClick={() => abrirReels(0)}
+            onClick={() => abrirReels()}
             className="h-10 px-4 rounded-xl font-bold text-xs sm:text-sm gap-2 bg-primary hover:bg-primary-hover text-primary-foreground shadow-sticker active:scale-95 transition-all cursor-pointer shrink-0"
           >
             <Film className="h-4 w-4" />
@@ -575,7 +575,7 @@ function IndicacoesPage() {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        abrirReels(idx);
+                        abrirReels(item.id);
                       }}
                       className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900/85 hover:bg-neutral-900 text-white text-[11px] font-bold backdrop-blur-md border border-white/20 shadow-md transition-transform active:scale-90 select-none cursor-pointer"
                     >
@@ -696,7 +696,7 @@ function IndicacoesPage() {
       {/* Feed Vertical Estilo Reels em Tela Cheia */}
       <AchadinhosReelsFeed
         items={achadinhosFiltrados.length > 0 ? achadinhosFiltrados : ACHADINHOS_DATA}
-        initialIndex={reelsInitialIndex}
+        initialItemId={reelsInitialId}
         isOpen={reelsAberto}
         onClose={() => setReelsAberto(false)}
         onAdicionarAutomatico={handleAdicionarAutomatico}

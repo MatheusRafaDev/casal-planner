@@ -16,6 +16,7 @@ import {
   Sparkles,
   Loader2,
   CheckCircle2,
+  Shuffle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,34 +29,74 @@ import { cn } from "@/lib/utils";
 interface AchadinhosReelsFeedProps {
   items: Achadinho[];
   initialIndex?: number;
+  initialItemId?: string | null;
   isOpen: boolean;
   onClose: () => void;
   onAdicionarAutomatico: (achadinho: Achadinho) => Promise<boolean>;
   addedItemIds?: Set<string>;
 }
 
+// Algoritmo Fisher-Yates para garantir distribuição 100% aleatória e imparcial
+function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 export function AchadinhosReelsFeed({
   items,
   initialIndex = 0,
+  initialItemId = null,
   isOpen,
   onClose,
   onAdicionarAutomatico,
   addedItemIds = new Set(),
 }: AchadinhosReelsFeedProps) {
-  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [feedItems, setFeedItems] = useState<Achadinho[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isAdding, setIsAdding] = useState(false);
   const isAddingRef = useRef(false);
   const [localAddedIds, setLocalAddedIds] = useState<Set<string>>(new Set());
   const [videoLoading, setVideoLoading] = useState(true);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
 
+  // Inicializa o feed 100% aleatório toda vez que o Reels é aberto
   useEffect(() => {
-    if (isOpen) {
-      setCurrentIndex(Math.min(initialIndex, Math.max(0, items.length - 1)));
-    }
-  }, [isOpen, initialIndex, items.length]);
+    if (!isOpen) return;
 
-  const currentItem = items[currentIndex];
+    const baseList = items.length > 0 ? items : [];
+    if (baseList.length === 0) return;
+
+    // Embaralha aleatoriamente todos os achadinhos
+    const shuffled = shuffleArray(baseList);
+
+    // Se o usuário clicou no "Ver Vídeo" de um card específico, coloca ele como primeiro
+    if (initialItemId) {
+      const idx = shuffled.findIndex((it) => it.id === initialItemId);
+      if (idx > -1) {
+        const [target] = shuffled.splice(idx, 1);
+        shuffled.unshift(target);
+      }
+    } else if (typeof initialIndex === "number" && initialIndex > 0 && initialIndex < baseList.length) {
+      const targetItem = baseList[initialIndex];
+      if (targetItem) {
+        const idx = shuffled.findIndex((it) => it.id === targetItem.id);
+        if (idx > -1) {
+          const [target] = shuffled.splice(idx, 1);
+          shuffled.unshift(target);
+        }
+      }
+    }
+
+    setFeedItems(shuffled);
+    setCurrentIndex(0);
+    setVideoLoading(true);
+  }, [isOpen, initialItemId, initialIndex, items]);
+
+  const currentItem = feedItems[currentIndex] || items[0];
 
   // Resetar loading e adicionar timer de segurança para conexões lentas ou adblockers
   useEffect(() => {
@@ -67,13 +108,19 @@ export function AchadinhosReelsFeed({
   }, [currentIndex]);
 
   const handleNext = useCallback(() => {
-    if (currentIndex < items.length - 1) {
+    if (feedItems.length === 0) return;
+
+    if (currentIndex < feedItems.length - 1) {
       setVideoLoading(true);
       setCurrentIndex((prev) => prev + 1);
     } else {
-      toast.info("Você chegou ao final dos achadinhos!");
+      // Chegou ao final da lista: reembaralha e reinicia de forma infinita
+      setVideoLoading(true);
+      setFeedItems((prev) => shuffleArray(prev));
+      setCurrentIndex(0);
+      toast.info("🎲 Novos achadinhos aleatórios carregados!");
     }
-  }, [currentIndex, items.length]);
+  }, [currentIndex, feedItems.length]);
 
   const handlePrev = useCallback(() => {
     if (currentIndex > 0) {
@@ -81,6 +128,15 @@ export function AchadinhosReelsFeed({
       setCurrentIndex((prev) => prev - 1);
     }
   }, [currentIndex]);
+
+  const handleShuffle = () => {
+    if (feedItems.length <= 1) return;
+    const current = feedItems[currentIndex];
+    const rest = feedItems.filter((_, i) => i !== currentIndex);
+    const newOrder = [current, ...shuffleArray(rest)];
+    setFeedItems(newOrder);
+    toast.success("🎲 Próximos vídeos reembaralhados aleatoriamente!", { duration: 2000 });
+  };
 
   // Navegação por teclado (Setas Cima / Baixo e Espaço)
   useEffect(() => {
@@ -211,7 +267,11 @@ export function AchadinhosReelsFeed({
           Reels do Lar
         </span>
         <span className="text-xs font-bold text-white/80 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
-          {currentIndex + 1} / {items.length}
+          {currentIndex + 1} / {feedItems.length}
+        </span>
+        <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-emerald-300 bg-emerald-950/70 border border-emerald-500/30 px-2.5 py-0.5 rounded-full backdrop-blur-md">
+          <Shuffle className="h-3 w-3" />
+          100% Aleatório
         </span>
       </div>
 
@@ -219,8 +279,8 @@ export function AchadinhosReelsFeed({
       <div className="relative w-full max-w-[420px] h-full sm:h-[92vh] max-h-[860px] bg-neutral-950 sm:rounded-3xl overflow-hidden shadow-2xl border-0 sm:border-2 border-white/15 flex flex-col justify-between">
         {/* Barra de Progresso no Topo */}
         <div className="absolute top-2 left-3 right-3 z-30 flex items-center gap-1">
-          {items.length <= 30 ? (
-            items.map((_, i) => (
+          {feedItems.length <= 30 ? (
+            feedItems.map((_, i) => (
               <div
                 key={i}
                 className={cn(
@@ -237,7 +297,7 @@ export function AchadinhosReelsFeed({
             <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
               <div
                 className="h-full bg-white transition-all duration-300 rounded-full shadow-xs"
-                style={{ width: `${((currentIndex + 1) / items.length) * 100}%` }}
+                style={{ width: `${((currentIndex + 1) / feedItems.length) * 100}%` }}
               />
             </div>
           )}
@@ -379,6 +439,19 @@ export function AchadinhosReelsFeed({
             </div>
           )}
 
+          {/* Botão Reembaralhar / Modo 100% Aleatório */}
+          <div className="flex flex-col items-center gap-1">
+            <button
+              type="button"
+              onClick={handleShuffle}
+              className="h-10 w-10 rounded-full bg-black/60 hover:bg-black/80 text-emerald-400 border border-emerald-500/40 flex items-center justify-center backdrop-blur-md shadow-md transition-transform active:scale-90 cursor-pointer"
+              title="Embaralhar vídeos novamente (100% aleatório)"
+            >
+              <Shuffle className="h-4 w-4" />
+            </button>
+            <span className="text-[9px] font-bold text-emerald-300 drop-shadow-md">Mix</span>
+          </div>
+
           {/* Setas de Próximo / Anterior */}
           <div className="pt-2 flex flex-col gap-1.5 border-t border-white/20">
             <button
@@ -394,9 +467,8 @@ export function AchadinhosReelsFeed({
             <button
               type="button"
               onClick={handleNext}
-              disabled={currentIndex === items.length - 1}
-              className="h-8 w-8 rounded-full bg-white/20 hover:bg-white/30 text-white disabled:opacity-30 flex items-center justify-center backdrop-blur-md transition-transform active:scale-90 cursor-pointer"
-              title="Próximo vídeo (Seta Baixo)"
+              className="h-8 w-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-90 cursor-pointer"
+              title="Próximo vídeo aleatório (Seta Baixo)"
             >
               <ChevronDown className="h-4 w-4" />
             </button>
