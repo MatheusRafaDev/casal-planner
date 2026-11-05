@@ -1295,11 +1295,11 @@ function PlanejamentoPage() {
                               itemId: it.id,
                             });
                           }}
-                          className="inline-flex items-center gap-1 text-[10px] py-0 px-2 h-4.5 font-bold rounded-md bg-pink-500/10 text-pink-700 dark:text-pink-400 border border-pink-500/30 hover:bg-pink-500/20 transition-all cursor-pointer shadow-2xs active:scale-95"
-                          title="Assistir demonstração no TikTok"
+                          className="inline-flex items-center gap-1 text-[10px] py-0 px-2 h-4.5 font-bold rounded-md bg-primary/10 text-primary border border-primary/25 hover:bg-primary/20 transition-all cursor-pointer shadow-2xs active:scale-95"
+                          title="Assistir demonstração em vídeo"
                         >
-                          <Film className="h-3 w-3 text-pink-500" />
-                          <span>Ver no TikTok</span>
+                          <Film className="h-3 w-3 text-primary" />
+                          <span>Ver Vídeo</span>
                         </button>
                       )}
                     </div>
@@ -1490,8 +1490,8 @@ function PlanejamentoPage() {
                             })
                           }
                         >
-                          <Film className="h-4 w-4 mr-2 text-pink-500" />
-                          {it.videoUrl ? "Ver demonstração" : "Buscar no TikTok"}
+                          <Film className="h-4 w-4 mr-2 text-primary" />
+                          {it.videoUrl ? "Ver demonstração" : "Buscar vídeo"}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem

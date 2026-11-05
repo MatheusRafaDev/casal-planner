@@ -194,10 +194,10 @@ export function AchadinhosReelsFeed({
 
       {/* Indicador de Reels no Topo Esquerdo */}
       <div className="absolute top-4 left-4 z-50 flex items-center gap-2">
-        <Badge className="bg-gradient-to-r from-pink-600 to-rose-600 text-white border-none font-bold text-xs gap-1.5 px-3 py-1 shadow-md">
-          <Film className="h-3.5 w-3.5" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/20 font-bold text-xs shadow-md">
+          <Film className="h-3.5 w-3.5 text-primary" />
           Reels do Lar
-        </Badge>
+        </span>
         <span className="text-xs font-bold text-white/80 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
           {currentIndex + 1} / {items.length}
         </span>
@@ -235,7 +235,7 @@ export function AchadinhosReelsFeed({
                       className="absolute inset-0 w-full h-full object-cover opacity-20 blur-md"
                     />
                   )}
-                  <Loader2 className="h-8 w-8 animate-spin text-pink-500 relative z-10" />
+                  <Loader2 className="h-8 w-8 animate-spin text-white/90 relative z-10" />
                   <span className="text-xs font-semibold relative z-10 text-white/80">
                     Carregando demonstração...
                   </span>
@@ -264,12 +264,12 @@ export function AchadinhosReelsFeed({
           )}
 
           {/* Gradiente Escuro na Base para Leitura dos Dados do Produto */}
-          <div className="absolute inset-x-0 bottom-0 h-80 bg-gradient-to-t from-black via-black/75 to-transparent pointer-events-none z-10" />
+          <div className="absolute inset-x-0 bottom-0 h-80 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none z-10" />
         </div>
 
         {/* Coluna Flutuante de Ações Laterais (Direita) */}
         <div className="absolute right-3 bottom-32 z-30 flex flex-col items-center gap-3.5">
-          {/* Botão Adicionar ao Planejamento (Ação Primária Redonda com Pulso) */}
+          {/* Botão Adicionar ao Planejamento (Ação Primária Redonda) */}
           <div className="flex flex-col items-center gap-1">
             <button
               type="button"
@@ -278,17 +278,17 @@ export function AchadinhosReelsFeed({
               className={cn(
                 "h-12 w-12 rounded-full flex items-center justify-center shadow-xl border-2 transition-transform active:scale-90 cursor-pointer backdrop-blur-md",
                 isJaAdicionado
-                  ? "bg-emerald-600 text-white border-emerald-400"
-                  : "bg-primary text-primary-foreground border-white/40 hover:scale-105 animate-pulse",
+                  ? "bg-primary text-white border-white/60"
+                  : "bg-primary text-white border-white/40 hover:scale-105",
               )}
               title={isJaAdicionado ? "Já está no seu planejamento" : "Adicionar ao Planejamento"}
             >
               {isAdding ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin text-white" />
               ) : isJaAdicionado ? (
-                <Check className="h-6 w-6 stroke-[3]" />
+                <Check className="h-6 w-6 stroke-[3] text-white" />
               ) : (
-                <Plus className="h-6 w-6 stroke-[3]" />
+                <Plus className="h-6 w-6 stroke-[3] text-white" />
               )}
             </button>
             <span className="text-[10px] font-extrabold text-white drop-shadow-md">
@@ -306,7 +306,7 @@ export function AchadinhosReelsFeed({
                 className="h-10 w-10 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 flex items-center justify-center backdrop-blur-md shadow-md transition-transform active:scale-90"
                 title="Pesquisar ofertas online"
               >
-                <ShoppingBag className="h-4 w-4 text-emerald-400" />
+                <ShoppingBag className="h-4 w-4 text-white" />
               </a>
               <span className="text-[9px] font-bold text-white/90 drop-shadow-md">Ofertas</span>
             </div>
@@ -337,7 +337,7 @@ export function AchadinhosReelsFeed({
               className="h-10 w-10 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 flex items-center justify-center backdrop-blur-md shadow-md transition-transform active:scale-90 cursor-pointer"
               title="Informações de som do vídeo"
             >
-              <Volume2 className="h-4 w-4 text-emerald-400" />
+              <Volume2 className="h-4 w-4 text-white" />
             </button>
             <span className="text-[9px] font-bold text-white/90 drop-shadow-md">Áudio</span>
           </div>
@@ -366,7 +366,7 @@ export function AchadinhosReelsFeed({
           </div>
         </div>
 
-        {/* Card de Informações do Produto Sobreposto na Base (Estilo TikTok Shop / Reels) */}
+        {/* Card de Informações do Produto Sobreposto na Base */}
         <div className="relative z-20 p-4 pb-5 space-y-2.5 mt-auto">
           {/* Tag do Cômodo + Preço */}
           <div className="flex items-center gap-2">
@@ -374,7 +374,7 @@ export function AchadinhosReelsFeed({
               {currentItem.comodoNome}
             </Badge>
 
-            <span className="text-emerald-400 font-display font-black text-lg drop-shadow-md">
+            <span className="text-white font-display font-extrabold text-xl drop-shadow-md">
               {brl(currentItem.precoEstimado)}
             </span>
 
@@ -396,14 +396,13 @@ export function AchadinhosReelsFeed({
               <h2 className="text-sm font-bold text-white line-clamp-2 leading-snug drop-shadow-md">
                 {currentItem.nome}
               </h2>
+              {currentItem.lojaNome && (
+                <p className="text-[11px] text-white/70 font-semibold mt-0.5">
+                  {currentItem.lojaNome} {currentItem.marcaSugerida ? `• ${currentItem.marcaSugerida}` : ""}
+                </p>
+              )}
             </div>
           </div>
-
-          {/* Dica do Casal */}
-          <p className="text-xs text-white/90 line-clamp-2 leading-relaxed bg-black/40 backdrop-blur-md p-2 rounded-xl border border-white/10">
-            <span className="text-amber-400 font-bold">💡 </span>
-            {currentItem.dica}
-          </p>
 
           {/* BOTÃO PRIMÁRIO: Adiciona Automaticamente ao Planejamento */}
           <Button
@@ -414,24 +413,24 @@ export function AchadinhosReelsFeed({
             className={cn(
               "w-full h-11 text-xs sm:text-sm font-extrabold gap-2 rounded-xl shadow-xl transition-all cursor-pointer active:scale-95",
               isJaAdicionado
-                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                : "bg-primary hover:bg-primary-hover text-primary-foreground",
+                ? "bg-primary/90 text-white border border-white/20 cursor-default"
+                : "bg-primary hover:bg-primary-hover text-white shadow-xl",
             )}
           >
             {isAdding ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin text-white" />
                 Adicionando ao planejamento...
               </>
             ) : isJaAdicionado ? (
               <>
-                <CheckCircle2 className="h-4 w-4" />
-                Adicionado ao Cômodo {currentItem.comodoNome}!
+                <CheckCircle2 className="h-4 w-4 text-white" />
+                No Planejamento ({currentItem.comodoNome})
               </>
             ) : (
               <>
                 <Plus className="h-4 w-4 stroke-[3]" />
-                Adicionar ao Planejamento Automático
+                Adicionar ao Planejamento
               </>
             )}
           </Button>

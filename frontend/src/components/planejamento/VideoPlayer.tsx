@@ -142,7 +142,7 @@ export function VideoPlayer({
               />
             ) : null}
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <Loader2 className="h-7 w-7 animate-spin text-pink-500" />
+              <Loader2 className="h-7 w-7 animate-spin text-white" />
               <p className="text-xs font-semibold">Carregando demonstração...</p>
               <p className="text-[10px] text-white/70 max-w-[200px] line-clamp-1">
                 {video.title}
@@ -155,7 +155,7 @@ export function VideoPlayer({
         {showSoundHint && !isLoading && (
           <div className="absolute bottom-3 left-3 right-3 z-20 pointer-events-none transition-opacity duration-500 animate-in fade-in">
             <div className="mx-auto w-fit max-w-full px-2.5 py-1 rounded-full bg-black/80 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold flex items-center gap-1.5 shadow-md">
-              <Volume2 className="h-3 w-3 text-pink-400 shrink-0" />
+              <Volume2 className="h-3 w-3 text-white/90 shrink-0" />
               <span className="truncate">Toque no player para ativar o som</span>
             </div>
           </div>
@@ -187,7 +187,7 @@ export function VideoPlayer({
           <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground flex-wrap">
             {video.author && (
               <span className="font-semibold text-foreground/90 flex items-center gap-1 truncate">
-                <span className="text-pink-500 font-bold">@</span>
+                <span className="text-primary font-bold">@</span>
                 {video.author.replace(/^@/, "")}
               </span>
             )}

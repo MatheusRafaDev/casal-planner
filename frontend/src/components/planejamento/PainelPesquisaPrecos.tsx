@@ -141,10 +141,10 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
               variant="outline"
               size="sm"
               onClick={() => setVideoModalOpen(true)}
-              className="h-8 px-2.5 text-xs font-bold gap-1.5 text-pink-600 dark:text-pink-400 border-pink-500/30 hover:bg-pink-500/10 cursor-pointer shadow-2xs ml-auto"
+              className="h-8 px-2.5 text-xs font-bold gap-1.5 text-primary border-primary/25 hover:bg-primary/10 cursor-pointer shadow-2xs ml-auto"
             >
-              <Film className="h-3.5 w-3.5 text-pink-500" />
-              Ver reviews no TikTok
+              <Film className="h-3.5 w-3.5 text-primary" />
+              Ver reviews em vídeo
             </Button>
           )}
         </div>

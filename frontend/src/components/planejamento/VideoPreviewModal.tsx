@@ -97,14 +97,14 @@ export function VideoPreviewModal({
       <DialogContent className="max-w-4xl max-h-[92vh] flex flex-col p-4 sm:p-6 overflow-hidden">
         <DialogHeader className="shrink-0 pb-2">
           <div className="flex items-center gap-2">
-            <span className="grid place-items-center h-8 w-8 rounded-lg bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/20">
+            <span className="grid place-items-center h-8 w-8 rounded-lg bg-primary/10 text-primary border border-primary/20">
               <Film className="h-4 w-4" />
             </span>
             <div>
               <DialogTitle className="text-base sm:text-lg font-bold flex items-center gap-2">
                 Demonstração em Vídeo
-                <Badge variant="outline" className="text-[10px] bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/30">
-                  TikTok & Reviews
+                <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/25">
+                  Reviews & Vídeos
                 </Badge>
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground truncate max-w-xl">
@@ -122,7 +122,7 @@ export function VideoPreviewModal({
               <VideoPlayer video={activeVideo} className="w-full" />
             ) : isLoading ? (
               <div className="h-full min-h-[320px] flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                <Loader2 className="h-7 w-7 animate-spin text-pink-500" />
+                <Loader2 className="h-7 w-7 animate-spin text-primary" />
                 <span className="text-xs font-medium">Carregando demonstração do produto...</span>
               </div>
             ) : (
@@ -232,7 +232,7 @@ export function VideoPreviewModal({
                       href={`https://www.tiktok.com/search?q=${encodeURIComponent(productName + " brasil")}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-pink-500/10 text-pink-600 dark:text-pink-400 hover:bg-pink-500/20 border border-pink-500/30 transition-colors"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-neutral-900/10 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-900/20 border border-neutral-300 transition-colors"
                     >
                       TikTok Brasil <ExternalLink className="h-3 w-3" />
                     </a>
@@ -242,7 +242,7 @@ export function VideoPreviewModal({
                       )}&gl=BR&hl=pt`}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-colors"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-neutral-900/10 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-900/20 border border-neutral-300 transition-colors"
                     >
                       YouTube Brasil <ExternalLink className="h-3 w-3" />
                     </a>
@@ -252,7 +252,7 @@ export function VideoPreviewModal({
                       )}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/30 transition-colors"
                     >
                       Google Shopping <ExternalLink className="h-3 w-3" />
                     </a>
@@ -272,7 +272,7 @@ export function VideoPreviewModal({
                     href={`https://www.tiktok.com/search?q=${encodeURIComponent(productName + " brasil")}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:underline text-pink-600 dark:text-pink-400 flex items-center gap-0.5"
+                    className="hover:underline text-primary flex items-center gap-0.5"
                   >
                     TikTok (PT-BR) <ExternalLink className="h-2.5 w-2.5" />
                   </a>
@@ -283,7 +283,7 @@ export function VideoPreviewModal({
                     )}&gl=BR&hl=pt`}
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:underline text-red-600 dark:text-red-400 flex items-center gap-0.5"
+                    className="hover:underline text-primary flex items-center gap-0.5"
                   >
                     YouTube (PT-BR) <ExternalLink className="h-2.5 w-2.5" />
                   </a>
@@ -292,7 +292,7 @@ export function VideoPreviewModal({
                     href={`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(productName)}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:underline text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5"
+                    className="hover:underline text-primary flex items-center gap-0.5"
                   >
                     Google Shopping <ExternalLink className="h-2.5 w-2.5" />
                   </a>

@@ -10,17 +10,17 @@ export const DESIGN_TOKENS = {
   colors: {
     primary: {
       light: "#1F5C43", // Verde Lar (fundos, títulos, botões)
-      hover: "#2F8A63", // Verde Folha (hover, sucesso)
+      hover: "#266E51", // Verde Folha (hover, sucesso)
       dark: "#2F8A63",
-      tint: "#E7ECE9", // Névoa (divisores, fundos suaves)
+      tint: "#E7EFEA", // Névoa suave (divisores, fundos suaves)
       tintForeground: "#1F5C43",
     },
     accent: {
-      light: "#EF6F6C", // Coral (acento: ponto, coração, destaques)
-      hover: "#E05A57",
-      dark: "#EF6F6C",
-      tint: "#F6B3B0", // Coral Claro (fundos suaves)
-      tintForeground: "#1B2438", // Tinta (contraste 4,5:1 sobre coral)
+      light: "#DE5D4E", // Coral Terracota (acento: ponto, coração, destaques)
+      hover: "#CB4E40",
+      dark: "#DE5D4E",
+      tint: "#FDF1EE", // Coral Claro suave
+      tintForeground: "#DE5D4E",
     },
     // Sistema de Cores do Casal
     couple: {
@@ -31,10 +31,10 @@ export const DESIGN_TOKENS = {
         label: "Verde Lar",
       },
       p2: {
-        light: "#EF6F6C",
-        dark: "#EF6F6C",
+        light: "#DE5D4E",
+        dark: "#DE5D4E",
         name: "Pessoa 2",
-        label: "Coral (Complementar)",
+        label: "Coral Terracota",
       },
       joint: {
         light: "#2F8A63",
@@ -51,17 +51,17 @@ export const DESIGN_TOKENS = {
     },
     // Cores de Superfície e Neutros
     neutral: {
-      backgroundLight: "#FAF6F1", // Creme (fundo das telas)
-      backgroundDark: "#16382A", // Verde Floresta (modo escuro e contraste)
+      backgroundLight: "#FAF7F2", // Creme Linho suave
+      backgroundDark: "#16382A", // Verde Floresta
       cardLight: "#FFFFFF",
       cardDark: "#1B4433",
-      borderLight: "#EEE3D8", // Borda 2px creme
+      borderLight: "#E8E2D8", // Borda 1px creme suave
       borderDark: "#245440",
-      foregroundLight: "#1B2438", // Tinta (texto principal)
+      foregroundLight: "#18201E", // Tinta profunda (texto principal)
       foregroundDark: "#FAF6F1",
-      mutedLight: "#E7ECE9", // Névoa
+      mutedLight: "#EFECE6", // Névoa
       mutedDark: "#1F4A38",
-      mutedForegroundLight: "#5B6470", // Cinza (texto secundário)
+      mutedForegroundLight: "#606870", // Cinza grafite (texto secundário)
       mutedForegroundDark: "#A4B2AA",
     },
     // Semânticas

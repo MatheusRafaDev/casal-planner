@@ -524,10 +524,10 @@ export function ItemFormModal({
                 <div className="rounded-[var(--radius-lg)] border-2 border-border/80 bg-card p-3.5 space-y-2.5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Film className="w-4 h-4 text-pink-500 shrink-0" />
+                      <Film className="w-4 h-4 text-primary shrink-0" />
                       <div>
                         <Label className="text-xs font-bold text-foreground block">
-                          Demonstração no TikTok
+                          Demonstração em Vídeo
                         </Label>
                         <p className="text-[11px] text-muted-foreground">
                           {resolvedVideo ? "Review em vídeo vinculado" : "Vídeo de review ou teste prático"}
@@ -551,12 +551,12 @@ export function ItemFormModal({
                         variant="outline"
                         size="sm"
                         onClick={() => setVideoModalOpen(true)}
-                        className="h-7 text-[11px] gap-1 font-bold text-pink-600 dark:text-pink-400 border-pink-500/30 hover:bg-pink-500/10 cursor-pointer"
+                        className="h-7 text-[11px] gap-1 font-bold text-primary border-primary/25 hover:bg-primary/10 cursor-pointer"
                         disabled={!form.nome.trim()}
                         title={!form.nome.trim() ? "Digite o nome do produto primeiro" : "Buscar vídeos"}
                       >
                         <Sparkles className="h-3 w-3" />
-                        Buscar no TikTok
+                        Buscar vídeo
                       </Button>
                     )}
                   </div>
@@ -573,7 +573,7 @@ export function ItemFormModal({
                           variant="outline"
                           size="sm"
                           onClick={() => setVideoModalOpen(true)}
-                          className="h-7 text-[11px] gap-1 font-bold text-pink-600 dark:text-pink-400 border-pink-500/30 hover:bg-pink-500/10 cursor-pointer"
+                          className="h-7 text-[11px] gap-1 font-bold text-primary border-primary/25 hover:bg-primary/10 cursor-pointer"
                         >
                           <Sparkles className="h-3 w-3" />
                           Trocar vídeo

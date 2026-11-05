@@ -449,28 +449,28 @@ function InicioPage() {
       <motion.div variants={itemVariants}>
         <Link
           to="/indicacoes"
-          className="card-sticker p-4 sm:p-5 bg-gradient-to-r from-emerald-500/10 via-pink-500/10 to-amber-500/10 border-2 border-primary/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group hover:border-primary transition-all cursor-pointer shadow-xs hover:shadow-md"
+          className="card-sticker p-4 sm:p-5 bg-card border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group hover:border-primary/50 transition-all cursor-pointer shadow-sticker hover:shadow-sticker-lg"
         >
           <div className="flex items-center gap-3">
-            <span className="grid place-items-center h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-primary text-primary-foreground shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+            <span className="grid place-items-center h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-primary/10 text-primary shrink-0 shadow-xs group-hover:scale-105 transition-transform">
               <Sparkles className="h-5 w-5" />
             </span>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors">
-                  Achadinhos & Dicas para a Casa Nova
+                <h3 className="font-display font-bold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors">
+                  Achadinhos para a Casa Nova
                 </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-500 text-white uppercase tracking-wider">
-                  Novo
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider">
+                  Curadoria
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Veja produtos testados no TikTok, unboxings e dicas práticas para economizar no enxoval.
+                Produtos virais testados e reviews em vídeo para inspirar o enxoval do casal.
               </p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1 text-xs font-bold text-primary group-hover:translate-x-1 transition-transform self-end sm:self-center shrink-0">
-            Conferir Achadinhos &rarr;
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-primary text-white group-hover:bg-primary-hover shadow-sticker-sm transition-all self-end sm:self-center shrink-0">
+            Ver Achadinhos &rarr;
           </span>
         </Link>
       </motion.div>

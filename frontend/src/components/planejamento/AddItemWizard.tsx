@@ -983,11 +983,11 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                       </div>
                     </div>
 
-                    {/* Card de Demonstração no TikTok */}
-                    <div className="rounded-[var(--radius-lg)] border-2 border-border/80 bg-card p-3.5 space-y-2.5 shadow-sm">
+                    {/* Card de Demonstração em Vídeo */}
+                    <div className="rounded-[var(--radius-lg)] border border-border bg-card p-3.5 space-y-2.5 shadow-sm">
                       <div className="flex items-center justify-between">
                         <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                          <Film className="w-3.5 h-3.5 text-pink-500" /> Demonstração no TikTok
+                          <Film className="w-3.5 h-3.5 text-primary" /> Demonstração em Vídeo
                         </Label>
                         {videoUrl ? (
                           <button
@@ -1006,7 +1006,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                             variant="outline"
                             size="sm"
                             onClick={() => setVideoModalOpen(true)}
-                            className="h-6 text-[11px] gap-1 text-pink-600 dark:text-pink-400 border-pink-500/30 hover:bg-pink-500/10 font-bold cursor-pointer"
+                            className="h-6 text-[11px] gap-1 text-primary border-primary/25 hover:bg-primary/10 font-bold cursor-pointer"
                             disabled={!nome.trim()}
                           >
                             <Sparkles className="h-3 w-3" />
@@ -1027,7 +1027,7 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                               variant="outline"
                               size="sm"
                               onClick={() => setVideoModalOpen(true)}
-                              className="h-7 text-[11px] gap-1 font-bold text-pink-600 dark:text-pink-400 border-pink-500/30 hover:bg-pink-500/10 cursor-pointer"
+                              className="h-7 text-[11px] gap-1 font-bold text-primary border-primary/25 hover:bg-primary/10 cursor-pointer"
                             >
                               <Sparkles className="h-3 w-3" />
                               Trocar vídeo

@@ -33,8 +33,8 @@ export const BRAND_CONFIG = {
   // Cores do Tema da Marca (usadas em meta tags, manifest, PWA)
   themeColor: "#1F5C43", // Verde Lar
   themeColorDark: "#16382A", // Verde Floresta
-  backgroundColor: "#FAF6F1", // Creme
-  accentColor: "#EF6F6C", // Coral
+  backgroundColor: "#FAF7F2", // Creme Linho Suave
+  accentColor: "#DE5D4E", // Coral Terracota
 } as const;
 
 export type BrandConfig = typeof BRAND_CONFIG;

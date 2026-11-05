@@ -18,7 +18,7 @@ const AddItemWizard = lazy(() =>
 const nav = [
   { to: "/inicio", label: "Dashboard", icon: PieChart },
   { to: "/planejamento", label: "Planejamento", icon: LayoutGrid },
-  { to: "/indicacoes", label: "Achadinhos & Dicas", icon: Sparkles },
+  { to: "/indicacoes", label: "Achadinhos", icon: Sparkles },
   { to: "/perfil", label: "Minha conta", icon: User },
 ] as const;
 
@@ -280,7 +280,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </span>
           </div>
 
-          {/* 4. Achadinhos & Dicas */}
+          {/* 4. Achadinhos */}
           <Link
             to="/indicacoes"
             className={cn(
@@ -301,7 +301,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               <Sparkles className="h-4 w-4" />
             </div>
-            <span className="text-[10px] leading-none tracking-tight">Dicas</span>
+            <span className="text-[10px] leading-none tracking-tight">Achadinhos</span>
           </Link>
 
           {/* 5. Minha Conta */}

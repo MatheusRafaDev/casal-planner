@@ -291,31 +291,36 @@ function IndicacoesPage() {
   }, [busca, filtroAtivo]);
 
   return (
-    <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-12 space-y-4 sm:space-y-5">
-      {/* Cabeçalho Minimalista e Arejado */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-12 space-y-4 sm:space-y-6">
+      {/* Cabeçalho Editorial e Acolhedor no Padrão CasalPlanner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-border/70">
         <div>
-          <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary shrink-0" />
-            Achadinhos do TikTok
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              Curadoria da Casa Nova
+            </span>
+          </div>
+          <h1 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+            Achadinhos para o Lar
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Produtos virais com demonstrações reais em vídeo para inspirar seu enxoval.
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 max-w-xl">
+            Itens virais selecionados com demonstrações reais em vídeo para planejar seu enxoval a dois.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5 w-full sm:w-auto">
-          {/* Botão de Destaque para o Feed em Modo Reels */}
+          {/* Botão de Destaque Modo Reels com a Paleta CasalPlanner */}
           <Button
             type="button"
             onClick={() => abrirReels(0)}
-            className="h-9 px-3.5 rounded-xl font-extrabold text-xs sm:text-sm gap-2 bg-gradient-to-r from-pink-600 via-rose-500 to-amber-500 hover:from-pink-700 hover:to-amber-600 text-white shadow-md active:scale-95 transition-all cursor-pointer shrink-0"
+            className="h-10 px-4 rounded-xl font-bold text-xs sm:text-sm gap-2 bg-primary hover:bg-primary-hover text-white shadow-sticker active:scale-95 transition-all cursor-pointer shrink-0"
           >
             <Film className="h-4 w-4" />
             <span>Assistir no Reels</span>
-            <Badge className="bg-white/20 text-white border-none text-[10px] px-1.5 py-0 font-black">
+            <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-extrabold text-white">
               {achadinhosFiltrados.length}
-            </Badge>
+            </span>
           </Button>
 
           {/* Busca Rápida Integrada */}
@@ -325,13 +330,13 @@ function IndicacoesPage() {
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Buscar produto..."
-              className="pl-9 h-9 text-xs sm:text-sm bg-card"
+              className="pl-9 h-10 text-xs sm:text-sm bg-card border-border rounded-xl shadow-sticker-sm focus-ring"
             />
             {busca && (
               <button
                 type="button"
                 onClick={() => setBusca("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-muted/50"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -340,34 +345,45 @@ function IndicacoesPage() {
         </div>
       </div>
 
-      {/* Barra de Filtros em Pílulas Únicas (Cômodos) */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+      {/* Barra de Filtros Sofisticada e Limpa */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-1">
         {[
-          { id: "todos", label: "🔥 Todos os Achadinhos" },
-          { id: "cozinha", label: "🍳 Cozinha" },
-          { id: "quarto", label: "🛏️ Quarto" },
-          { id: "sala", label: "🛋️ Sala" },
-          { id: "lavanderia", label: "🧺 Lavanderia" },
-          { id: "banheiro", label: "🚿 Banheiro" },
-          { id: "organizacao", label: "💡 Smart Home" },
-        ].map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            onClick={() => {
-              setFiltroAtivo(c.id);
-              setPesquisaWebAtiva(false);
-            }}
-            className={cn(
-              "px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer select-none border",
-              filtroAtivo === c.id
-                ? "bg-primary text-primary-foreground border-primary shadow-2xs font-bold"
-                : "bg-card text-muted-foreground hover:text-foreground border-border/80 hover:bg-muted/40",
-            )}
-          >
-            {c.label}
-          </button>
-        ))}
+          { id: "todos", label: "Todos", count: ACHADINHOS_DATA.length },
+          { id: "cozinha", label: "Cozinha", count: ACHADINHOS_DATA.filter((i) => i.comodo === "cozinha").length },
+          { id: "quarto", label: "Quarto", count: ACHADINHOS_DATA.filter((i) => i.comodo === "quarto").length },
+          { id: "sala", label: "Sala", count: ACHADINHOS_DATA.filter((i) => i.comodo === "sala").length },
+          { id: "lavanderia", label: "Lavanderia", count: ACHADINHOS_DATA.filter((i) => i.comodo === "lavanderia").length },
+          { id: "banheiro", label: "Banheiro", count: ACHADINHOS_DATA.filter((i) => i.comodo === "banheiro").length },
+          { id: "organizacao", label: "Smart & Organização", count: ACHADINHOS_DATA.filter((i) => i.comodo === "organizacao").length },
+        ].map((c) => {
+          const isAtivo = filtroAtivo === c.id;
+          return (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => {
+                setFiltroAtivo(c.id);
+                setPesquisaWebAtiva(false);
+              }}
+              className={cn(
+                "px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer select-none border flex items-center gap-1.5",
+                isAtivo
+                  ? "bg-primary text-white border-primary shadow-sticker"
+                  : "bg-card text-muted-foreground hover:text-foreground border-border hover:border-primary/30 shadow-sticker-sm",
+              )}
+            >
+              <span>{c.label}</span>
+              <span
+                className={cn(
+                  "text-[10px] px-1.5 py-0.2 rounded-full font-bold",
+                  isAtivo ? "bg-white/20 text-white" : "bg-muted text-muted-foreground",
+                )}
+              >
+                {c.count}
+              </span>
+            </button>
+          );
+        })}
 
         {/* Atalho para buscar online se o usuário estiver pesquisando */}
         {busca.trim().length > 1 && (
@@ -376,7 +392,7 @@ function IndicacoesPage() {
             size="sm"
             onClick={handleBuscarNaWeb}
             disabled={buscandoWeb}
-            className="h-7.5 px-3 rounded-full text-xs font-bold gap-1.5 text-primary border-primary/30 hover:bg-primary/10 shrink-0 ml-auto"
+            className="h-8 px-3 rounded-xl text-xs font-bold gap-1.5 text-primary border-primary/30 hover:bg-primary/10 shrink-0 ml-auto"
           >
             {buscandoWeb ? (
               <Loader2 className="h-3 w-3 animate-spin" />
@@ -434,7 +450,7 @@ function IndicacoesPage() {
                         {r.loja}
                       </span>
                       <p className="text-xs font-bold text-foreground line-clamp-1">{r.titulo}</p>
-                      <p className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">
+                      <p className="text-xs font-extrabold text-primary">
                         {r.precoFormatado}
                       </p>
                     </div>
@@ -450,7 +466,7 @@ function IndicacoesPage() {
                           productName: r.titulo,
                         })
                       }
-                      className="h-7 px-2 text-[11px] font-bold gap-1 text-pink-600 border-pink-500/30"
+                      className="h-7 px-2 text-[11px] font-bold gap-1 text-primary border-primary/30 hover:bg-primary/10"
                     >
                       <Film className="h-3 w-3" />
                       Vídeo
@@ -458,7 +474,7 @@ function IndicacoesPage() {
                     <Button
                       size="sm"
                       onClick={() => iniciarAdicaoWeb(r)}
-                      className="h-7 px-2 text-[11px] font-bold gap-1 flex-1 bg-primary text-primary-foreground"
+                      className="h-7 px-2 text-[11px] font-bold gap-1 flex-1 bg-primary text-white"
                     >
                       <Plus className="h-3 w-3" />
                       Adicionar
@@ -471,121 +487,132 @@ function IndicacoesPage() {
         </div>
       )}
 
-      {/* FEED DE ACHADINHOS (VISUAL VIRAL ESTILO TIKTOK / REELS) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* FEED DE ACHADINHOS - CARDS ELEGANTES NO PADRÃO CASALPLANNER */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
         <AnimatePresence mode="popLayout">
-          {achadinhosFiltrados.map((item, idx) => (
-            <motion.div
-              key={item.id}
-              layout
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2, delay: idx * 0.02 }}
-              className="bg-card border border-border/80 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-primary/50 hover:shadow-md transition-all group"
-            >
-              <div>
-                {/* Container da Imagem: clica e abre diretamente para adicionar o produto */}
-                <div
-                  onClick={() => iniciarAdicaoAchadinho(item)}
-                  className="relative w-full h-48 bg-white dark:bg-muted/20 border-b border-border/60 flex items-center justify-center p-4 cursor-pointer overflow-hidden"
-                  title="Clique para adicionar este item"
-                >
-                  <img
-                    src={item.fotoUrl}
-                    alt={item.nome}
-                    className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
-                    loading="lazy"
-                  />
-
-                  {/* Tag do Cômodo Discreta */}
-                  <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-xs text-white text-[10px] font-bold uppercase tracking-wider">
-                    {item.comodoNome}
-                  </span>
-
-                  {/* Botão Flutuante de Vídeo do TikTok -> Abre no Reels no item clicado */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      abrirReels(idx);
-                    }}
-                    className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-600 hover:bg-pink-700 text-white text-[11px] font-bold shadow-md transition-transform active:scale-90 select-none cursor-pointer"
+          {achadinhosFiltrados.map((item, idx) => {
+            const isJaAdicionado = addedItemIds.has(item.id);
+            return (
+              <motion.div
+                key={item.id}
+                layout
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2, delay: idx * 0.02 }}
+                className="card-sticker rounded-2xl overflow-hidden flex flex-col justify-between border border-border bg-card shadow-sticker hover:shadow-sticker-lg hover:-translate-y-0.5 transition-all duration-200 group"
+              >
+                <div>
+                  {/* Container da Imagem: fundo branco puro com vitrine limpa */}
+                  <div
+                    onClick={() => iniciarAdicaoAchadinho(item)}
+                    className="relative w-full h-52 sm:h-56 bg-white border-b border-border/60 flex items-center justify-center p-4 cursor-pointer overflow-hidden"
+                    title="Clique para ver detalhes e personalizar"
                   >
-                    <Play className="h-3 w-3 fill-white" />
-                    <span>Ver Review</span>
-                  </button>
-                </div>
+                    <img
+                      src={item.fotoUrl}
+                      alt={item.nome}
+                      className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
+                    />
 
-                {/* Informações Diretas e Limpas */}
-                <div
-                  onClick={() => iniciarAdicaoAchadinho(item)}
-                  className="p-3.5 space-y-1.5 cursor-pointer"
-                >
-                  {/* Preço em Destaque */}
-                  <div className="flex items-baseline justify-between">
-                    <span className="font-display font-black text-base sm:text-lg text-emerald-700 dark:text-emerald-400">
-                      {brl(item.precoEstimado)}
+                    {/* Tag do Cômodo Discreta em Frosted Glass */}
+                    <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-white/90 backdrop-blur-md text-foreground text-[10px] font-bold border border-black/5 shadow-2xs">
+                      {item.comodoNome}
                     </span>
-                    <span className="text-[10px] text-muted-foreground font-medium">
-                      médio {item.precoFaixa}
-                    </span>
+
+                    {/* Botão de Ver Vídeo / Review em Vidro Escuro Sofisticado */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        abrirReels(idx);
+                      }}
+                      className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900/85 hover:bg-neutral-900 text-white text-[11px] font-bold backdrop-blur-md border border-white/20 shadow-md transition-transform active:scale-90 select-none cursor-pointer"
+                    >
+                      <Play className="h-3 w-3 fill-white" />
+                      <span>Ver Vídeo</span>
+                    </button>
                   </div>
 
-                  {/* Nome do Produto */}
-                  <h3 className="font-bold text-xs sm:text-sm text-foreground line-clamp-1 leading-snug">
-                    {item.nome}
-                  </h3>
-
-                  {/* Dica Rápida */}
-                  <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                    <span className="text-amber-600 dark:text-amber-400 font-bold">💡 </span>
-                    {item.dica}
-                  </p>
-                </div>
-              </div>
-
-              {/* Botão de Ação que adiciona automaticamente com todos os dados ou indica que já foi adicionado */}
-              <div className="p-3.5 pt-0 flex items-center gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => handleAdicionarAutomatico(item)}
-                  disabled={addedItemIds.has(item.id)}
-                  className={cn(
-                    "flex-1 h-8.5 font-bold text-xs gap-1.5 shadow-2xs transition-all cursor-pointer",
-                    addedItemIds.has(item.id)
-                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 cursor-default"
-                      : "bg-primary text-primary-foreground hover:bg-primary-hover active:scale-95",
-                  )}
-                >
-                  {addedItemIds.has(item.id) ? (
-                    <>
-                      <Check className="h-3.5 w-3.5 stroke-[3]" />
-                      Adicionado
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-3.5 w-3.5" />
-                      Adicionar
-                    </>
-                  )}
-                </Button>
-
-                {item.linkLoja && (
-                  <a
-                    href={item.linkLoja}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center h-8.5 w-8.5 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
-                    title={`Pesquisar ofertas online para "${item.nome}"`}
+                  {/* Informações Claras e Tipografia Jakarta Sans */}
+                  <div
+                    onClick={() => iniciarAdicaoAchadinho(item)}
+                    className="p-3.5 space-y-2 cursor-pointer"
                   >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                )}
-              </div>
-            </motion.div>
-          ))}
+                    {/* Preço e Média de Mercado */}
+                    <div className="flex items-baseline justify-between gap-1">
+                      <span className="font-display font-extrabold text-xl text-primary">
+                        {brl(item.precoEstimado)}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground font-semibold">
+                        médio {item.precoFaixa}
+                      </span>
+                    </div>
+
+                    {/* Nome do Produto com peso agradável */}
+                    <h3 className="font-display font-bold text-sm text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                      {item.nome}
+                    </h3>
+
+                    {/* Metadados: Loja e Marca Sugerida */}
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-medium pt-0.5">
+                      <span className="inline-flex items-center gap-1">
+                        <Store className="h-3 w-3 text-primary/70 shrink-0" />
+                        {item.lojaNome || "Amazon / Lojas Online"}
+                      </span>
+                      {item.marcaSugerida && (
+                        <>
+                          <span className="text-border">•</span>
+                          <span className="truncate">{item.marcaSugerida}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rodapé com Ações Claras */}
+                <div className="p-3.5 pt-0 flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => handleAdicionarAutomatico(item)}
+                    disabled={isJaAdicionado}
+                    className={cn(
+                      "flex-1 h-9 rounded-xl font-bold text-xs gap-1.5 transition-all cursor-pointer shadow-sticker-sm",
+                      isJaAdicionado
+                        ? "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15 cursor-default"
+                        : "bg-primary text-white hover:bg-primary-hover active:scale-95",
+                    )}
+                  >
+                    {isJaAdicionado ? (
+                      <>
+                        <Check className="h-3.5 w-3.5 stroke-[3]" />
+                        No Planejamento
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-3.5 w-3.5" />
+                        Adicionar
+                      </>
+                    )}
+                  </Button>
+
+                  {item.linkLoja && (
+                    <a
+                      href={item.linkLoja}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-border bg-card text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors shrink-0 shadow-sticker-sm"
+                      title={`Pesquisar ofertas online para "${item.nome}"`}
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
       </div>
 

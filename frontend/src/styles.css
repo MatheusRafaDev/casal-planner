@@ -3,49 +3,50 @@
 
 @layer base {
   :root {
-    /* Cores do Design System Oficial */
-    --background: #faf6f1; /* Creme: fundo das telas */
-    --foreground: #1b2438; /* Tinta: texto principal */
+    /* Cores do Design System Oficial - CasalPlanner */
+    --background: #faf7f2; /* Creme linho: fundo suave, acolhedor e limpo */
+    --foreground: #18201e; /* Tinta profunda: texto principal com excelente contraste */
     --card: #ffffff;
-    --card-foreground: #1b2438;
+    --card-foreground: #18201e;
     --popover: #ffffff;
-    --popover-foreground: #1b2438;
-    --sidebar: #174a35; /* Verde Lar Floresta: fundo da sidebar */
+    --popover-foreground: #18201e;
+    --sidebar: #174a35; /* Verde Lar Floresta: fundo elegante da sidebar */
     --sidebar-foreground: #ffffff;
     --sidebar-border: #133c2b;
-    --border: #eee3d8; /* Borda de 2px em #EEE3D8 */
-    --input: #faf6f1;
+    --border: #e8e2d8; /* Borda 1px suave, aconchegante e nítida */
+    --input: #ffffff;
     --ring: #1f5c43;
 
-    --muted: #e7ece9; /* Névoa: divisores e fundos de linha */
-    --muted-foreground: #5b6470; /* Cinza: texto secundário */
-    --muted-text: #5b6470;
+    --muted: #efece6; /* Divisores e fundos de chips/tags suaves e neutros */
+    --muted-foreground: #606870; /* Texto secundário com alto contraste e legibilidade */
+    --muted-text: #606870;
 
     /* Toque Creme Suave */
-    --beige: #faf6f1;
+    --beige: #faf7f2;
     --beige-tint: #fdfbf8;
-    --beige-border: #eee3d8;
-    --beige-dark: #5b6470;
+    --beige-border: #e8e2d8;
+    --beige-dark: #606870;
 
-    /* Identidade da Marca: Verde Lar (#1F5C43) & Coral (#EF6F6C) */
+    /* Identidade da Marca: Verde Lar (#1F5C43) & Coral Terracota (#DE5D4E) */
     --primary: #1f5c43;
     --primary-foreground: #ffffff;
-    --primary-hover: #2f8a63;
-    --primary-tint: #e7ece9;
+    --primary-hover: #266e51;
+    --primary-tint: #e7efea;
     --primary-tint-foreground: #1f5c43;
 
-    --gold: #ef6f6c; /* Acento Coral */
-    --gold-foreground: #1b2438;
-    --gold-hover: #e05a57;
-    --gold-tint: #f6b3b0;
-    --gold-tint-foreground: #1b2438;
+    --gold: #de5d4e; /* Acento Coral Sofisticado */
+    --gold-foreground: #ffffff;
+    --gold-hover: #cb4e40;
+    --gold-tint: #fdf1ee;
+    --gold-tint-foreground: #de5d4e;
 
-    --coral: #ef6f6c;
-    --coral-foreground: #1b2438;
-    --coral-tint: #f6b3b0;
-    --coral-tint-foreground: #1b2438;
+    --coral: #de5d4e;
+    --coral-foreground: #ffffff;
+    --coral-hover: #cb4e40;
+    --coral-tint: #fdf1ee;
+    --coral-tint-foreground: #de5d4e;
 
-    --success-tint: #e7ece9;
+    --success-tint: #e7efea;
     --success-tint-foreground: #1f5c43;
 
     --destructive: #dc2626;
@@ -60,10 +61,10 @@
     --radius-2xl: 24px;
     --radius-full: 9999px;
 
-    /* Sombras suaves e naturais */
-    --shadow-sticker: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.03);
-    --shadow-sticker-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
-    --shadow-sticker-lg: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.03);
+    /* Sombras naturais e editoriais */
+    --shadow-sticker: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.02);
+    --shadow-sticker-sm: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+    --shadow-sticker-lg: 0 4px 12px -2px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.03);
     --shadow-sticker-modal: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.04);
   }
 
@@ -79,22 +80,22 @@
   :root {
     --p1-color: #1f5c43;
     --p1-foreground: #ffffff;
-    --p1-hover: #2f8a63;
-    --p1-tint: #e7ece9;
+    --p1-hover: #266e51;
+    --p1-tint: #e7efea;
     --p1-tint-foreground: #1f5c43;
 
-    --p2-color: #ef6f6c;
-    --p2-foreground: #1b2438;
-    --p2-hover: #e05a57;
-    --p2-tint: #f6b3b0;
-    --p2-tint-foreground: #1b2438;
+    --p2-color: #de5d4e;
+    --p2-foreground: #ffffff;
+    --p2-hover: #cb4e40;
+    --p2-tint: #fdf1ee;
+    --p2-tint-foreground: #de5d4e;
 
     /* Divisão Conjunta e Marca */
     --joint-color: #2f8a63;
     --joint-foreground: #ffffff;
     --brand-primary: var(--primary);
-    --brand-accent: #ef6f6c;
-    --brand-dot: #ef6f6c;
+    --brand-accent: #de5d4e;
+    --brand-dot: #de5d4e;
   }
 
   .dark {
