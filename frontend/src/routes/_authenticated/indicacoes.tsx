@@ -15,7 +15,6 @@ import {
   Gift,
   HeartHandshake,
   ShoppingBag,
-  Tag,
   Loader2,
   Lightbulb,
   Copy,
@@ -60,11 +59,11 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/indicacoes")({
   head: () => ({
     meta: [
-      { title: "CasalPlanner | Achadinhos & Dicas para a Casa Nova" },
+      { title: "CasalPlanner | Achadinhos & Dicas para o Lar" },
       {
         name: "description",
         content:
-          "Indicações de produtos, achadinhos virais do TikTok e conselhos de ouro para casais.",
+          "Fotos reais dos melhores achadinhos, vídeos de review do TikTok e conselhos de ouro para sua casa.",
       },
     ],
   }),
@@ -78,7 +77,6 @@ export function IndicacoesPage() {
   const [abaAtiva, setAbaAtiva] = useState<"achadinhos" | "dicas">("achadinhos");
   const [busca, setBusca] = useState("");
   const [comodoFiltro, setComodoFiltro] = useState<string>("todos");
-  const [seloFiltro, setSeloFiltro] = useState<string>("todos");
 
   // Estado para pesquisa ao vivo na web (Google Shopping / Lojas)
   const [pesquisaWebAtiva, setPesquisaWebAtiva] = useState(false);
@@ -118,7 +116,7 @@ export function IndicacoesPage() {
     queryFn: () => categoriasService.listar(),
   });
 
-  // Criar categoria sob demanda se usuário não tiver nenhuma ou quiser uma nova
+  // Criar categoria sob demanda
   const criarCategoriaMutation = useMutation({
     mutationFn: async (nome: string) => {
       return categoriasService.criar({ nome: nome.trim(), cor: "#1F5C43" });
@@ -161,7 +159,7 @@ export function IndicacoesPage() {
       setAdicionandoItem(null);
       setCriandoNovoComodo(false);
       setNovoComodoNome("");
-      toast.success(`"${itemCriado.nome}" foi adicionado à sua lista!`, {
+      toast.success(`"${itemCriado.nome}" adicionado à sua lista!`, {
         action: {
           label: "Ver na lista",
           onClick: () => navigate({ to: "/planejamento" }),
@@ -169,11 +167,10 @@ export function IndicacoesPage() {
       });
     },
     onError: () => {
-      toast.error("Erro ao adicionar produto ao planejamento.");
+      toast.error("Erro ao adicionar produto.");
     },
   });
 
-  // Tentar encontrar uma categoria correspondente no enxoval do usuário
   const iniciarAdicaoAchadinho = (achadinho: Achadinho) => {
     const match = categorias.find(
       (c) =>
@@ -231,14 +228,13 @@ export function IndicacoesPage() {
 
     let targetCatId = categoriaEscolhidaId;
 
-    // Se estiver criando novo cômodo ou não houver categoria selecionada
     if (criandoNovoComodo || !targetCatId) {
       const nomeFinal = novoComodoNome.trim() || adicionandoItem.comodoSugerido || "Geral";
       try {
         const novaCat = await criarCategoriaMutation.mutateAsync(nomeFinal);
         targetCatId = novaCat.id;
       } catch {
-        toast.error("Erro ao criar cômodo. Tente novamente.");
+        toast.error("Erro ao criar cômodo.");
         return;
       }
     }
@@ -251,11 +247,10 @@ export function IndicacoesPage() {
     }
   };
 
-  // Buscar produtos ao vivo na Web via Google Shopping / Mercado Livre
   const handleBuscarNaWeb = async () => {
     const termo = busca.trim();
     if (!termo) {
-      toast.info("Digite o que procura no campo de busca para pesquisar nas lojas.");
+      toast.info("Digite o que procura no campo de busca.");
       return;
     }
 
@@ -265,26 +260,21 @@ export function IndicacoesPage() {
       const resp = await pesquisaPrecosService.buscar(termo);
       setResultadosWeb(resp.resultados ?? []);
       if (!resp.resultados || resp.resultados.length === 0) {
-        toast.info(`Nenhuma oferta encontrada para "${termo}". Tente outro termo.`);
+        toast.info(`Nenhuma oferta encontrada para "${termo}".`);
       }
     } catch {
-      toast.error("Não foi possível buscar na web agora. Tente novamente.");
+      toast.error("Não foi possível buscar na web agora.");
     } finally {
       setBuscandoWeb(false);
     }
   };
 
-  // Copiar dica para a área de transferência
   const handleCopiarDica = (dica: DicaCasaNova) => {
     const texto = `💡 Dica CasalPlanner: ${dica.titulo}\n\n${dica.conteudo}\n\n⚡ ${dica.destaque}`;
     navigator.clipboard
       .writeText(texto)
-      .then(() => {
-        toast.success("Dica copiada para enviar no WhatsApp do parceiro(a)!");
-      })
-      .catch(() => {
-        toast.error("Não foi possível copiar.");
-      });
+      .then(() => toast.success("Dica copiada para enviar no WhatsApp!"))
+      .catch(() => toast.error("Não foi possível copiar."));
   };
 
   // Filtragem dos achadinhos
@@ -299,17 +289,10 @@ export function IndicacoesPage() {
 
       const matchComodo = comodoFiltro === "todos" || item.comodo === comodoFiltro;
 
-      const matchSelo =
-        seloFiltro === "todos" ||
-        item.selos.includes(
-          seloFiltro as "tiktok" | "custo-beneficio" | "indispensavel" | "presente",
-        );
-
-      return matchBusca && matchComodo && matchSelo;
+      return matchBusca && matchComodo;
     });
-  }, [busca, comodoFiltro, seloFiltro]);
+  }, [busca, comodoFiltro]);
 
-  // Ícone dinâmico para dicas
   const getIconeDica = (iconeNome: string) => {
     switch (iconeNome) {
       case "Zap":
@@ -330,195 +313,168 @@ export function IndicacoesPage() {
   };
 
   return (
-    <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-12 space-y-6">
-      {/* Header com Visual Sticker do CasalPlanner */}
-      <div className="card-sticker p-5 sm:p-7 bg-gradient-to-br from-[#1F5C43] via-[#1a4f3a] to-[#154230] text-white flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-[4px_4px_0_rgba(19,60,43,0.7)] border-2 border-[#16382a]">
-        <div className="space-y-1.5 max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-xs font-bold text-emerald-200">
-            <Sparkles className="h-3.5 w-3.5 text-emerald-300" />
-            Curadoria & Reviews Reais
-          </div>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-white">
+    <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-12 space-y-5">
+      {/* Cabeçalho Compacto & Limpo */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/70">
+        <div>
+          <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary shrink-0" />
             Achadinhos & Dicas para o Lar
           </h1>
-          <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed">
-            Produtos testados que realmente valem a pena, demonstrações e reviews do TikTok em vídeo
-            e conselhos de ouro para quem está montando a casa a dois.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Fotos reais de produtos virais testados e conselhos de ouro para a casa nova.
           </p>
         </div>
 
         {/* Abas Alternáveis */}
-        <div className="flex bg-black/25 p-1 rounded-xl border border-white/15 shrink-0 self-start md:self-center">
+        <div className="flex bg-muted/80 p-1 rounded-xl shrink-0 self-start sm:self-center border border-border/60">
           <button
             type="button"
             onClick={() => setAbaAtiva("achadinhos")}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer",
+              "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
               abaAtiva === "achadinhos"
-                ? "bg-white text-emerald-950 shadow-sm"
-                : "text-white/80 hover:text-white hover:bg-white/10",
+                ? "bg-card text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <ShoppingBag className="h-4 w-4" />
-            <span>Achadinhos ({ACHADINHOS_DATA.length})</span>
+            Achadinhos ({ACHADINHOS_DATA.length})
           </button>
           <button
             type="button"
             onClick={() => setAbaAtiva("dicas")}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer",
+              "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
               abaAtiva === "dicas"
-                ? "bg-white text-emerald-950 shadow-sm"
-                : "text-white/80 hover:text-white hover:bg-white/10",
+                ? "bg-card text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <Lightbulb className="h-4 w-4" />
-            <span>Dicas do Casal ({DICAS_CASA_NOVA_DATA.length})</span>
+            Dicas do Casal ({DICAS_CASA_NOVA_DATA.length})
           </button>
         </div>
       </div>
 
       {/* ABA 1: ACHADINHOS */}
       {abaAtiva === "achadinhos" && (
-        <div className="space-y-5">
-          {/* Barra de Filtros e Busca */}
-          <div className="card-sticker p-4 bg-card border-2 border-border/80 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-            {/* Input de Busca */}
-            <div className="relative flex-1 max-w-md">
+        <div className="space-y-4">
+          {/* Barra Única e Limpa de Filtro e Busca */}
+          <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between">
+            {/* Campo de Busca Rápida */}
+            <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
-                placeholder="Buscar por nome, marca ou dica (ex: air fryer, mop, potes)..."
-                className="pl-9 h-9 text-xs sm:text-sm bg-background"
+                placeholder="Buscar produto (ex: air fryer, mop)..."
+                className="pl-9 h-9 text-xs sm:text-sm bg-card border-border/80"
               />
+              {busca && (
+                <button
+                  type="button"
+                  onClick={() => setBusca("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
 
-            {/* Filtros Rápidos de Cômodo */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+            {/* Pílulas Limpas de Cômodo */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
               {[
-                { id: "todos", label: "Todos os Cômodos" },
-                { id: "cozinha", label: "🍳 Cozinha" },
-                { id: "quarto", label: "🛏️ Quarto" },
-                { id: "sala", label: "🛋️ Sala" },
-                { id: "lavanderia", label: "🧺 Lavanderia" },
-                { id: "banheiro", label: "🚿 Banheiro" },
-                { id: "organizacao", label: "💡 Smart Home" },
+                { id: "todos", label: "Todos" },
+                { id: "cozinha", label: "Cozinha" },
+                { id: "quarto", label: "Quarto" },
+                { id: "sala", label: "Sala" },
+                { id: "lavanderia", label: "Lavanderia" },
+                { id: "banheiro", label: "Banheiro" },
+                { id: "organizacao", label: "Smart Home" },
               ].map((c) => (
                 <button
                   key={c.id}
                   type="button"
                   onClick={() => setComodoFiltro(c.id)}
                   className={cn(
-                    "px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 transition-all border cursor-pointer select-none",
+                    "px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer select-none border",
                     comodoFiltro === c.id
-                      ? "bg-primary text-primary-foreground border-primary shadow-2xs"
-                      : "bg-muted/50 hover:bg-muted text-muted-foreground border-border/70",
+                      ? "bg-primary text-primary-foreground border-primary shadow-2xs font-bold"
+                      : "bg-card text-muted-foreground hover:text-foreground border-border/70 hover:bg-muted/40",
                   )}
                 >
                   {c.label}
                 </button>
               ))}
             </div>
-          </div>
 
-          {/* Filtros por Selo + Botão de Busca na Web */}
-          <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-bold text-muted-foreground flex items-center gap-1 text-[11px] uppercase tracking-wider mr-1">
-                <Tag className="h-3 w-3" /> Filtrar por:
-              </span>
-              {[
-                { id: "todos", label: "Ver todos" },
-                { id: "tiktok", label: "🎬 Viral no TikTok" },
-                { id: "custo-beneficio", label: "💰 Super Custo-Benefício" },
-                { id: "indispensavel", label: "🚨 Indispensável" },
-                { id: "presente", label: "🎁 Ideal para Presente" },
-              ].map((s) => (
-                <Badge
-                  key={s.id}
-                  variant={seloFiltro === s.id ? "default" : "outline"}
-                  onClick={() => setSeloFiltro(s.id)}
-                  className={cn(
-                    "cursor-pointer px-2.5 py-1 text-xs transition-all font-semibold",
-                    seloFiltro === s.id ? "shadow-2xs" : "hover:bg-muted",
-                  )}
-                >
-                  {s.label}
-                </Badge>
-              ))}
-            </div>
-
-            {/* Ação rápida para buscar online */}
+            {/* Busca ao Vivo na Web (opcional se usuário digitou algo) */}
             {busca.trim().length > 1 && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleBuscarNaWeb}
                 disabled={buscandoWeb}
-                className="h-8 text-xs font-bold gap-1.5 text-primary border-primary/40 hover:bg-primary/10 ml-auto"
+                className="h-8.5 px-3 text-xs font-bold gap-1.5 text-primary border-primary/30 hover:bg-primary/10 shrink-0"
               >
                 {buscandoWeb ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 ) : (
                   <Globe className="h-3.5 w-3.5" />
                 )}
-                Buscar "{busca.trim()}" na Web
+                Buscar lojas na Web
               </Button>
             )}
           </div>
 
           {/* PAINEL DE RESULTADOS DA WEB (QUANDO O USUÁRIO PESQUISA PRODUTOS ONLINE) */}
           {pesquisaWebAtiva && (
-            <div className="p-4 rounded-2xl bg-primary/5 border-2 border-primary/30 space-y-3">
+            <div className="p-3.5 rounded-2xl bg-primary/5 border border-primary/25 space-y-2.5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-primary" />
-                  <span className="text-xs sm:text-sm font-bold text-foreground">
-                    Resultados ao vivo na Web para "{busca.trim()}" ({resultadosWeb.length})
-                  </span>
-                </div>
+                <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <Globe className="h-3.5 w-3.5 text-primary" />
+                  Resultados em lojas online para "{busca.trim()}" ({resultadosWeb.length})
+                </span>
                 <button
                   type="button"
                   onClick={() => setPesquisaWebAtiva(false)}
-                  className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                  className="p-1 rounded-md text-muted-foreground hover:text-foreground"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
               {buscandoWeb ? (
-                <div className="py-8 flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                  <span className="text-xs font-semibold">Pesquisando nas principais lojas...</span>
+                <div className="py-6 flex flex-col items-center justify-center gap-1.5 text-muted-foreground">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  <span className="text-xs font-medium">Buscando melhores preços...</span>
                 </div>
               ) : resultadosWeb.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
                   {resultadosWeb.slice(0, 8).map((r, i) => (
                     <div
                       key={i}
-                      className="p-3 rounded-xl bg-card border border-border flex flex-col justify-between gap-2 shadow-xs hover:border-primary/40 transition-all"
+                      className="p-2.5 rounded-xl bg-card border border-border flex flex-col justify-between gap-2 shadow-2xs"
                     >
-                      <div className="flex gap-2.5">
+                      <div className="flex gap-2">
                         {r.thumbnail ? (
                           <img
                             src={r.thumbnail}
                             alt=""
-                            className="w-14 h-14 rounded-lg object-contain bg-white p-1 border shrink-0"
+                            className="w-12 h-12 rounded-lg object-contain bg-white p-1 border shrink-0"
                           />
                         ) : (
-                          <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                            <Store className="h-5 w-5 text-muted-foreground" />
+                          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                            <Store className="h-4 w-4 text-muted-foreground" />
                           </div>
                         )}
                         <div className="min-w-0 flex-1">
-                          <span className="text-[10px] font-bold text-muted-foreground block truncate">
+                          <span className="text-[10px] text-muted-foreground block truncate">
                             {r.loja}
                           </span>
-                          <p className="text-xs font-bold text-foreground line-clamp-2 leading-tight">
+                          <p className="text-xs font-bold text-foreground line-clamp-1">
                             {r.titulo}
                           </p>
-                          <p className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
+                          <p className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">
                             {r.precoFormatado}
                           </p>
                         </div>
@@ -534,10 +490,10 @@ export function IndicacoesPage() {
                               productName: r.titulo,
                             })
                           }
-                          className="h-7 px-2 text-[11px] font-bold gap-1 text-pink-600 border-pink-500/30 hover:bg-pink-500/10"
+                          className="h-7 px-2 text-[11px] font-bold gap-1 text-pink-600 border-pink-500/30"
                         >
                           <Film className="h-3 w-3" />
-                          Ver vídeo
+                          Vídeo
                         </Button>
                         <Button
                           size="sm"
@@ -551,150 +507,104 @@ export function IndicacoesPage() {
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="text-xs text-muted-foreground py-2 text-center">
-                  Nenhum produto ao vivo encontrado. Tente pesquisar com um nome mais genérico.
-                </p>
-              )}
+              ) : null}
             </div>
           )}
 
-          {/* Grid de Cards de Achadinhos */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {/* Grid de Cards de Achadinhos - VISUAL CLEAN & FOTOS REAIS */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <AnimatePresence mode="popLayout">
               {achadinhosFiltrados.map((item, idx) => (
                 <motion.div
                   key={item.id}
                   layout
-                  initial={{ opacity: 0, y: 16 }}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.25, delay: idx * 0.03 }}
-                  className="card-sticker bg-card border-2 border-border/80 flex flex-col justify-between overflow-hidden hover:border-primary/50 hover:shadow-md transition-all group"
+                  transition={{ duration: 0.2, delay: idx * 0.02 }}
+                  className="card-sticker bg-card border border-border/80 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-primary/50 hover:shadow-md transition-all group"
                 >
                   <div>
-                    {/* Imagem do Produto + Tags de Destaque */}
-                    <div className="relative w-full h-48 bg-muted/40 overflow-hidden border-b border-border/60">
+                    {/* Imagem Real do Produto */}
+                    <div className="relative w-full h-48 sm:h-52 bg-white dark:bg-muted/30 border-b border-border/60 flex items-center justify-center p-4 overflow-hidden">
                       <img
                         src={item.fotoUrl}
                         alt={item.nome}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
                         loading="lazy"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
-                      {/* Selo do Cômodo */}
-                      <Badge className="absolute top-2.5 left-2.5 bg-black/75 backdrop-blur-xs text-white border-white/20 text-[10px] font-bold uppercase">
+                      {/* Selo do Cômodo Discreto */}
+                      <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-xs text-white text-[10px] font-bold uppercase tracking-wider">
                         {item.comodoNome}
-                      </Badge>
+                      </span>
 
-                      {/* Preço Estimado */}
-                      <div className="absolute bottom-2.5 left-2.5 text-white">
-                        <span className="text-[10px] uppercase font-bold text-emerald-300 block leading-tight">
-                          Preço médio
-                        </span>
-                        <span className="font-display font-bold text-base sm:text-lg tabular-nums drop-shadow-md">
-                          {item.precoFaixa}
-                        </span>
-                      </div>
-
-                      {/* Botão Ver no TikTok 100% Funcional */}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setVideoModal({
-                            isOpen: true,
-                            productName: item.nome,
-                            videoUrl: item.videoUrl,
-                          })
-                        }
-                        className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-pink-600 hover:bg-pink-700 text-white text-[11px] font-bold shadow-md backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
-                        title="Ver review e demonstração em vídeo"
-                      >
-                        <Film className="h-3.5 w-3.5" />
-                        <span>Ver no TikTok</span>
-                      </button>
+                      {/* Botão Ver no TikTok */}
+                      {item.videoUrl && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setVideoModal({
+                              isOpen: true,
+                              productName: item.nome,
+                              videoUrl: item.videoUrl,
+                            })
+                          }
+                          className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-pink-600/90 hover:bg-pink-600 text-white text-[11px] font-bold shadow-xs backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
+                          title="Ver demonstração real em vídeo"
+                        >
+                          <Film className="h-3 w-3" />
+                          <span>Vídeo</span>
+                        </button>
+                      )}
                     </div>
 
-                    {/* Conteúdo do Card */}
-                    <div className="p-4 space-y-3">
-                      {/* Selos extras */}
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        {item.selos.includes("tiktok") && (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/25"
-                          >
-                            🎬 Viral TikTok
-                          </Badge>
-                        )}
-                        {item.selos.includes("indispensavel") && (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25 font-bold"
-                          >
-                            🚨 Indispensável
-                          </Badge>
-                        )}
-                        {item.selos.includes("custo-beneficio") && (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25"
-                          >
-                            💰 Custo-Benefício
-                          </Badge>
-                        )}
-                        {item.selos.includes("presente") && (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/25"
-                          >
-                            🎁 Presente Ideal
-                          </Badge>
-                        )}
+                    {/* Conteúdo Limpo do Card */}
+                    <div className="p-3.5 sm:p-4 space-y-2">
+                      {/* Preço Estimado e Faixa */}
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="font-display font-extrabold text-base sm:text-lg text-emerald-700 dark:text-emerald-400">
+                          {brl(item.precoEstimado)}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground font-medium">
+                          média {item.precoFaixa}
+                        </span>
                       </div>
 
                       {/* Nome do Produto */}
-                      <h3 className="font-bold text-sm sm:text-base text-foreground line-clamp-2 leading-snug">
+                      <h3 className="font-bold text-xs sm:text-sm text-foreground line-clamp-1 leading-snug">
                         {item.nome}
                       </h3>
 
-                      {/* Dica de Ouro do Casal */}
-                      <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-200 text-xs space-y-1">
-                        <span className="font-bold flex items-center gap-1 text-[11px] text-amber-800 dark:text-amber-300">
-                          <Lightbulb className="h-3 w-3" /> Dica de Casal:
-                        </span>
-                        <p className="leading-relaxed opacity-95">{item.dica}</p>
-                      </div>
-
-                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
-                        {item.porQueValeAPena}
+                      {/* Dica de Ouro Única e Direta */}
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                        <span className="text-amber-600 dark:text-amber-400 font-bold">💡 </span>
+                        {item.dica}
                       </p>
                     </div>
                   </div>
 
                   {/* Ações do Rodapé */}
-                  <div className="p-4 pt-2 border-t border-border/60 flex items-center gap-2">
-                    {/* Botão Adicionar ao Planejamento */}
+                  <div className="p-3.5 pt-0 flex items-center gap-2">
                     <Button
                       type="button"
+                      size="sm"
                       onClick={() => iniciarAdicaoAchadinho(item)}
-                      className="flex-1 bg-primary text-primary-foreground font-bold text-xs h-9 gap-1.5 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                      className="flex-1 h-8.5 bg-primary text-primary-foreground font-bold text-xs gap-1.5 shadow-2xs hover:bg-primary-hover active:scale-95 transition-all cursor-pointer"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       Adicionar à Lista
                     </Button>
 
-                    {/* Botão Link da Loja */}
                     {item.linkLoja && (
                       <a
                         href={item.linkLoja}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                        className="inline-flex items-center justify-center h-8.5 w-8.5 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
                         title={`Pesquisar na ${item.lojaNome || "loja"}`}
                       >
-                        <ExternalLink className="h-4 w-4" />
+                        <ExternalLink className="h-3.5 w-3.5" />
                       </a>
                     )}
                   </div>
@@ -704,39 +614,31 @@ export function IndicacoesPage() {
           </div>
 
           {achadinhosFiltrados.length === 0 && (
-            <div className="text-center py-16 p-6 rounded-2xl border-2 border-dashed border-border bg-card/50 space-y-3">
-              <ShoppingBag className="h-10 w-10 text-muted-foreground/50 mx-auto" />
-              <h3 className="font-bold text-base text-foreground">
-                Nenhum achadinho da curadoria encontrado para "{busca}"
+            <div className="text-center py-12 p-6 rounded-2xl border border-dashed border-border bg-card/40 space-y-2.5">
+              <ShoppingBag className="h-8 w-8 text-muted-foreground/60 mx-auto" />
+              <h3 className="font-bold text-sm text-foreground">
+                Nenhum achadinho encontrado para "{busca}"
               </h3>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                Você pode buscar este produto ao vivo no Google Shopping ou limpar os filtros.
-              </p>
-              <div className="flex items-center justify-center gap-2 pt-2">
+              <div className="flex items-center justify-center gap-2 pt-1">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
                     setBusca("");
                     setComodoFiltro("todos");
-                    setSeloFiltro("todos");
                   }}
-                  className="text-xs font-bold"
+                  className="text-xs font-bold h-8"
                 >
-                  Limpar filtros
+                  Limpar busca
                 </Button>
                 {busca.trim() && (
                   <Button
                     size="sm"
                     onClick={handleBuscarNaWeb}
                     disabled={buscandoWeb}
-                    className="text-xs font-bold gap-1.5 bg-primary text-primary-foreground"
+                    className="text-xs font-bold gap-1.5 h-8 bg-primary text-primary-foreground"
                   >
-                    {buscandoWeb ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Globe className="h-3.5 w-3.5" />
-                    )}
+                    <Globe className="h-3.5 w-3.5" />
                     Pesquisar na Web
                   </Button>
                 )}
@@ -748,18 +650,18 @@ export function IndicacoesPage() {
 
       {/* ABA 2: DICAS DE OURO PARA A CASA NOVA */}
       {abaAtiva === "dicas" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {DICAS_CASA_NOVA_DATA.map((dica, idx) => (
             <motion.div
               key={dica.id}
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25, delay: idx * 0.05 }}
-              className="card-sticker bg-card border-2 border-border/80 p-5 flex flex-col justify-between space-y-4 shadow-sm hover:border-primary/50 transition-all"
+              transition={{ duration: 0.2, delay: idx * 0.03 }}
+              className="card-sticker bg-card border border-border/80 rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-3.5 shadow-2xs hover:border-primary/50 transition-all"
             >
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <div className="h-10 w-10 rounded-xl bg-muted/80 border border-border flex items-center justify-center">
+                  <div className="h-9 w-9 rounded-xl bg-muted/80 border border-border flex items-center justify-center">
                     {getIconeDica(dica.icone)}
                   </div>
                   <Badge variant="outline" className="text-[10px] font-bold uppercase">
@@ -767,21 +669,23 @@ export function IndicacoesPage() {
                   </Badge>
                 </div>
 
-                <h3 className="font-bold text-base text-foreground leading-snug">{dica.titulo}</h3>
+                <h3 className="font-bold text-sm sm:text-base text-foreground leading-snug">
+                  {dica.titulo}
+                </h3>
 
                 <p className="text-xs text-muted-foreground leading-relaxed">{dica.conteudo}</p>
               </div>
 
               {/* Destaque + Ações da Dica */}
-              <div className="space-y-3 pt-2">
-                <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 text-xs">
-                  <span className="font-bold text-primary block text-[11px] uppercase tracking-wider mb-0.5">
-                    ⚡ O que você ganha:
+              <div className="space-y-2.5 pt-1">
+                <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-xs">
+                  <span className="font-bold text-primary block text-[10px] uppercase tracking-wider mb-0.5">
+                    ⚡ Benefício:
                   </span>
                   <p className="text-foreground/90 font-medium leading-relaxed">{dica.destaque}</p>
                 </div>
 
-                <div className="flex items-center gap-2 pt-1">
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -795,7 +699,7 @@ export function IndicacoesPage() {
                     size="sm"
                     onClick={() => navigate({ to: "/planejamento" })}
                     className="h-8 px-3 text-xs font-bold gap-1 bg-primary text-primary-foreground"
-                    title="Aplicar no Planejamento"
+                    title="Planejar no CasalPlanner"
                   >
                     <span>Planejar</span>
                     <ArrowRight className="h-3 w-3" />
@@ -807,7 +711,7 @@ export function IndicacoesPage() {
         </div>
       )}
 
-      {/* Dialog para Escolher o Cômodo antes de Adicionar (com criação sob demanda) */}
+      {/* Dialog para Escolher o Cômodo antes de Adicionar */}
       <Dialog
         open={!!adicionandoItem}
         onOpenChange={(open) => {
@@ -835,7 +739,7 @@ export function IndicacoesPage() {
                   <img
                     src={adicionandoItem.fotoUrl}
                     alt=""
-                    className="w-14 h-14 rounded-lg object-cover shrink-0 border border-border"
+                    className="w-14 h-14 rounded-lg object-contain bg-white p-1 shrink-0 border border-border"
                   />
                 ) : (
                   <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0 border">
