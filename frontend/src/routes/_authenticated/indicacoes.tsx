@@ -563,6 +563,15 @@ function IndicacoesPage() {
                       alt={item.nome}
                       className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (item.videoUrl) {
+                          const match = item.videoUrl.match(/(?:embed\/|v=|youtu\.be\/|\/v\/)([a-zA-Z0-9_-]{11})/);
+                          if (match && !target.src.includes(match[1])) {
+                            target.src = `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
+                          }
+                        }
+                      }}
                     />
 
                     {/* Tag do Cômodo Discreta e Elegante */}

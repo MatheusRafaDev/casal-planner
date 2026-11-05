@@ -314,6 +314,15 @@ export function AchadinhosReelsFeed({
                       src={currentItem.fotoUrl}
                       alt=""
                       className="absolute inset-0 w-full h-full object-cover opacity-20 blur-md"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (currentItem.videoUrl) {
+                          const match = currentItem.videoUrl.match(/(?:embed\/|v=|youtu\.be\/|\/v\/)([a-zA-Z0-9_-]{11})/);
+                          if (match && !target.src.includes(match[1])) {
+                            target.src = `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
+                          }
+                        }
+                      }}
                     />
                   )}
                   <Loader2 className="h-8 w-8 animate-spin text-white/90 relative z-10" />
@@ -499,6 +508,15 @@ export function AchadinhosReelsFeed({
                 src={currentItem.fotoUrl}
                 alt={currentItem.nome}
                 className="w-full h-full object-contain"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (currentItem.videoUrl) {
+                    const match = currentItem.videoUrl.match(/(?:embed\/|v=|youtu\.be\/|\/v\/)([a-zA-Z0-9_-]{11})/);
+                    if (match && !target.src.includes(match[1])) {
+                      target.src = `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
+                    }
+                  }
+                }}
               />
             </div>
             <div className="min-w-0 flex-1">
