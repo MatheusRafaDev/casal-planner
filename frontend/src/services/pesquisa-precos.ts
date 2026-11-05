@@ -195,48 +195,30 @@ export const pesquisaPrecosService = {
 
     // 2. Fallback inteligente com a curadoria de achadinhos
     const termo = queryLimpa.toLowerCase();
-    const palavras = termo.split(/\s+/).filter((w) => w.length > 2);
+    const stopwords = ["com", "para", "kit", "dos", "das", "uma", "sem", "inox", "pro", "plus", "mini"];
+    const palavras = termo
+      .split(/\s+/)
+      .map((w) => w.replace(/[^\w]/g, ""))
+      .filter((w) => w.length > 2 && !stopwords.includes(w));
     const matches: VideoPreview[] = [];
 
     for (const item of ACHADINHOS_DATA) {
       if (!item.videoUrl) continue;
 
       const nomeLower = item.nome.toLowerCase();
-      const dicaLower = item.dica.toLowerCase();
-      const comodoLower = item.comodoNome.toLowerCase();
-      const marcaLower = (item.marcaSugerida ?? "").toLowerCase();
 
-      const matched =
-        nomeLower.includes(termo) ||
-        palavras.some(
-          (w) =>
-            nomeLower.includes(w) ||
-            dicaLower.includes(w) ||
-            marcaLower.includes(w) ||
-            comodoLower.includes(w),
-        );
+      // Procura exatamente como está no texto do item e como o vídeo apresenta
+      const matchExato = nomeLower.includes(termo) || termo.includes(nomeLower);
+      const matchPalavras =
+        palavras.length >= 2 &&
+        palavras.filter((w) => nomeLower.includes(w)).length >= Math.min(2, palavras.length);
 
-      if (matched) {
+      if (matchExato || matchPalavras) {
         const prev = resolverVideoUrlLocal(item.videoUrl, item.nome);
         if (prev && !matches.some((m) => m.id === prev.id)) {
           matches.push({
             ...prev,
-            title: `${item.nome} - Review no TikTok`,
-            thumbnailUrl: item.fotoUrl,
-          });
-        }
-      }
-    }
-
-    // Se nenhum match específico foi encontrado, retorna os virais mais populares
-    if (matches.length === 0) {
-      for (const item of ACHADINHOS_DATA.slice(0, 6)) {
-        if (!item.videoUrl) continue;
-        const prev = resolverVideoUrlLocal(item.videoUrl, item.nome);
-        if (prev && !matches.some((m) => m.id === prev.id)) {
-          matches.push({
-            ...prev,
-            title: `${item.nome} - Destaque TikTok`,
+            title: `${item.nome} - Demonstração Real`,
             thumbnailUrl: item.fotoUrl,
           });
         }

@@ -58,8 +58,8 @@ namespace CasalPlanner.Infrastructure.Services
             {
                 try
                 {
-                    // 1. Busca vídeos no TikTok via SerpApi (DuckDuckGo engine para queries com site:tiktok.com)
-                    var tiktokQuery = $"site:tiktok.com {cleanQuery} review unboxing";
+                    // 1. Busca vídeos no TikTok via SerpApi com o texto exato do item
+                    var tiktokQuery = $"site:tiktok.com {cleanQuery}";
                     var url = $"https://serpapi.com/search.json?engine=duckduckgo&q={Uri.EscapeDataString(tiktokQuery)}&api_key={apiKey}";
 
                     using var res = await _httpClient.GetAsync(url, cancellationToken);
@@ -105,7 +105,7 @@ namespace CasalPlanner.Infrastructure.Services
                 {
                     try
                     {
-                        var ytUrl = $"https://serpapi.com/search.json?engine=youtube&search_query={Uri.EscapeDataString(cleanQuery + " review shorts")}&api_key={apiKey}";
+                        var ytUrl = $"https://serpapi.com/search.json?engine=youtube&search_query={Uri.EscapeDataString(cleanQuery + " review")}&api_key={apiKey}";
                         using var ytRes = await _httpClient.GetAsync(ytUrl, cancellationToken);
                         if (ytRes.IsSuccessStatusCode)
                         {

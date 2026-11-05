@@ -8,6 +8,7 @@ import {
   Check,
   Plus,
   Video,
+  Search,
 } from "lucide-react";
 import {
   Dialog,
@@ -248,15 +249,88 @@ export function VideoPreviewModal({
                   );
                 })
               ) : (
-                <div className="text-center py-8 px-4 rounded-xl border border-dashed border-border bg-muted/20">
-                  <Film className="h-6 w-6 text-muted-foreground/60 mx-auto mb-2" />
-                  <p className="text-xs font-semibold text-foreground">Demonstração carregada</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    Assista à prévia ao lado antes de adicionar o produto à sua lista.
-                  </p>
+                <div className="text-center py-6 px-4 rounded-xl border border-dashed border-border bg-muted/20 space-y-3">
+                  <Film className="h-6 w-6 text-muted-foreground/60 mx-auto" />
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">
+                      Buscar demonstração exata
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Pesquise vídeos exatamente como está no texto do produto:
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                    <a
+                      href={`https://www.tiktok.com/search?q=${encodeURIComponent(productName)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-pink-500/10 text-pink-600 dark:text-pink-400 hover:bg-pink-500/20 border border-pink-500/30 transition-colors"
+                    >
+                      TikTok <ExternalLink className="h-3 w-3" />
+                    </a>
+                    <a
+                      href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
+                        productName + " review unboxing",
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-colors"
+                    >
+                      YouTube <ExternalLink className="h-3 w-3" />
+                    </a>
+                    <a
+                      href={`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(
+                        productName,
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors"
+                    >
+                      Google Shopping <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
                 </div>
               )}
             </div>
+
+            {/* Atalhos para pesquisar exatamente o item nas plataformas */}
+            {productName && (
+              <div className="p-2 rounded-xl bg-muted/30 border border-border/60 flex items-center justify-between gap-2 flex-wrap text-[11px]">
+                <span className="text-muted-foreground font-medium flex items-center gap-1">
+                  <Search className="h-3 w-3 text-primary" /> Pesquisar texto exato:
+                </span>
+                <div className="flex items-center gap-2 font-semibold">
+                  <a
+                    href={`https://www.tiktok.com/search?q=${encodeURIComponent(productName)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:underline text-pink-600 dark:text-pink-400 flex items-center gap-0.5"
+                  >
+                    TikTok <ExternalLink className="h-2.5 w-2.5" />
+                  </a>
+                  <span className="text-muted-foreground/40">•</span>
+                  <a
+                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
+                      productName + " review",
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:underline text-red-600 dark:text-red-400 flex items-center gap-0.5"
+                  >
+                    YouTube <ExternalLink className="h-2.5 w-2.5" />
+                  </a>
+                  <span className="text-muted-foreground/40">•</span>
+                  <a
+                    href={`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(productName)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:underline text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5"
+                  >
+                    Google Shopping <ExternalLink className="h-2.5 w-2.5" />
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

@@ -1461,10 +1461,22 @@ function PlanejamentoPage() {
                               ? "Marcar como ganhado"
                               : "Marcar comprado"}
                         </DropdownMenuItem>
-                        {it.linkProduto && (
+                        {it.linkProduto ? (
                           <DropdownMenuItem asChild>
                             <a href={it.linkProduto} target="_blank" rel="noreferrer">
                               <ExternalLink className="h-4 w-4 mr-2" /> Abrir no site
+                            </a>
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem asChild>
+                            <a
+                              href={`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(
+                                it.nome + (it.marca ? " " + it.marca : ""),
+                              )}`}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              <ExternalLink className="h-4 w-4 mr-2" /> Pesquisar preços online
                             </a>
                           </DropdownMenuItem>
                         )}

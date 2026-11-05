@@ -453,7 +453,7 @@ export function IndicacoesPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center h-8.5 w-8.5 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
-                    title={`Ver na loja oficial`}
+                    title={`Pesquisar ofertas online para "${item.nome}"`}
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                   </a>

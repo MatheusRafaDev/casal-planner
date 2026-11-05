@@ -469,7 +469,7 @@ export function ItemFormModal({
                             className="bg-background text-xs sm:text-sm flex-1 h-9"
                             placeholder="https://..."
                           />
-                          {form.linkProduto && form.linkProduto.trim().length > 0 && (
+                          {form.linkProduto && form.linkProduto.trim().length > 0 ? (
                             <Button
                               type="button"
                               variant="outline"
@@ -492,7 +492,27 @@ export function ItemFormModal({
                                 <span>Ir para link</span>
                               </a>
                             </Button>
-                          )}
+                          ) : form.nome.trim().length > 1 ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="btn-sticker shrink-0 h-9 px-2.5 flex items-center gap-1.5 font-bold text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40 cursor-pointer"
+                              asChild
+                            >
+                              <a
+                                href={`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(
+                                  form.nome + (form.marca ? " " + form.marca : ""),
+                                )}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                title="Pesquisar ofertas online para este produto"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                <span>Pesquisar</span>
+                              </a>
+                            </Button>
+                          ) : null}
                         </div>
                       </motion.div>
                     )}

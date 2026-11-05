@@ -335,10 +335,42 @@ export function PainelPesquisaPrecos({ initialQuery = "", onEscolher }: Props) {
               <Search className="h-6 w-6" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-bold">Nenhum resultado encontrado</p>
+              <p className="text-sm font-bold">Nenhum resultado online encontrado</p>
               <p className="text-xs text-muted-foreground">
-                Não encontramos ofertas para "{ativa}". Tente outros termos.
+                Pesquise diretamente com o texto exato do item nas lojas:
               </p>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+              <Button size="sm" variant="outline" asChild className="gap-1 text-xs font-bold">
+                <a
+                  href={`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(ativa)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Google Shopping
+                </a>
+              </Button>
+              <Button size="sm" variant="outline" asChild className="gap-1 text-xs font-bold">
+                <a
+                  href={`https://www.amazon.com.br/s?k=${encodeURIComponent(ativa)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Amazon
+                </a>
+              </Button>
+              <Button size="sm" variant="outline" asChild className="gap-1 text-xs font-bold">
+                <a
+                  href={`https://lista.mercadolivre.com.br/${encodeURIComponent(ativa)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Mercado Livre
+                </a>
+              </Button>
             </div>
           </div>
         )}
