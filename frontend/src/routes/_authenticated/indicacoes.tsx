@@ -1,24 +1,15 @@
 import { useState, useMemo } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
-  Film,
   Plus,
   ExternalLink,
   Search,
-  Zap,
-  Ruler,
-  Flame,
-  Gift,
-  HeartHandshake,
   ShoppingBag,
   Loader2,
-  Lightbulb,
-  Copy,
   Globe,
-  ArrowRight,
   Store,
   X,
   Play,
@@ -30,9 +21,7 @@ import { VideoPreviewModal } from "@/components/planejamento/VideoPreviewModal";
 import { ItemFormModal } from "@/components/planejamento/ItemFormModal";
 import {
   ACHADINHOS_DATA,
-  DICAS_CASA_NOVA_DATA,
   type Achadinho,
-  type DicaCasaNova,
 } from "@/services/indicacoes";
 import { categoriasService } from "@/services/categorias";
 import { pesquisaPrecosService } from "@/services/pesquisa-precos";
@@ -57,7 +46,6 @@ export const Route = createFileRoute("/_authenticated/indicacoes")({
 
 export function IndicacoesPage() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const [busca, setBusca] = useState("");
   const [filtroAtivo, setFiltroAtivo] = useState<string>("todos");
@@ -187,14 +175,6 @@ export function IndicacoesPage() {
     }
   };
 
-  const handleCopiarDica = (dica: DicaCasaNova) => {
-    const texto = `💡 Dica CasalPlanner: ${dica.titulo}\n\n${dica.conteudo}\n\n⚡ ${dica.destaque}`;
-    navigator.clipboard
-      .writeText(texto)
-      .then(() => toast.success("Dica copiada para enviar no WhatsApp!"))
-      .catch(() => toast.error("Não foi possível copiar."));
-  };
-
   // Filtragem dos achadinhos
   const achadinhosFiltrados = useMemo(() => {
     return ACHADINHOS_DATA.filter((item) => {
@@ -209,37 +189,6 @@ export function IndicacoesPage() {
       return matchBusca && matchComodo;
     });
   }, [busca, filtroAtivo]);
-
-  const dicasFiltradas = useMemo(() => {
-    if (!busca.trim()) return DICAS_CASA_NOVA_DATA;
-    return DICAS_CASA_NOVA_DATA.filter(
-      (d) =>
-        d.titulo.toLowerCase().includes(busca.toLowerCase()) ||
-        d.conteudo.toLowerCase().includes(busca.toLowerCase()) ||
-        d.destaque.toLowerCase().includes(busca.toLowerCase()),
-    );
-  }, [busca]);
-
-  const getIconeDica = (iconeNome: string) => {
-    switch (iconeNome) {
-      case "Zap":
-        return <Zap className="h-5 w-5 text-amber-500" />;
-      case "Ruler":
-        return <Ruler className="h-5 w-5 text-sky-500" />;
-      case "Flame":
-        return <Flame className="h-5 w-5 text-rose-500" />;
-      case "Sparkles":
-        return <Sparkles className="h-5 w-5 text-emerald-500" />;
-      case "HeartHandshake":
-        return <HeartHandshake className="h-5 w-5 text-pink-500" />;
-      case "Gift":
-        return <Gift className="h-5 w-5 text-purple-500" />;
-      default:
-        return <Lightbulb className="h-5 w-5 text-primary" />;
-    }
-  };
-
-  const exibeDicas = filtroAtivo === "dicas";
 
   return (
     <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-12 space-y-4 sm:space-y-5">
@@ -276,7 +225,7 @@ export function IndicacoesPage() {
         </div>
       </div>
 
-      {/* Barra de Filtros em Pílulas Únicas (Cômodos + Dicas) */}
+      {/* Barra de Filtros em Pílulas Únicas (Cômodos) */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         {[
           { id: "todos", label: "🔥 Todos os Achadinhos" },
@@ -286,7 +235,6 @@ export function IndicacoesPage() {
           { id: "lavanderia", label: "🧺 Lavanderia" },
           { id: "banheiro", label: "🚿 Banheiro" },
           { id: "organizacao", label: "💡 Smart Home" },
-          { id: "dicas", label: "✨ Dicas de Ouro" },
         ].map((c) => (
           <button
             key={c.id}
@@ -409,177 +357,112 @@ export function IndicacoesPage() {
       )}
 
       {/* FEED DE ACHADINHOS (VISUAL VIRAL ESTILO TIKTOK / REELS) */}
-      {!exibeDicas && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <AnimatePresence mode="popLayout">
-            {achadinhosFiltrados.map((item, idx) => (
-              <motion.div
-                key={item.id}
-                layout
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2, delay: idx * 0.02 }}
-                className="bg-card border border-border/80 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-primary/50 hover:shadow-md transition-all group"
-              >
-                <div>
-                  {/* Container da Imagem: clica e abre diretamente para adicionar o produto */}
-                  <div
-                    onClick={() => iniciarAdicaoAchadinho(item)}
-                    className="relative w-full h-48 bg-white dark:bg-muted/20 border-b border-border/60 flex items-center justify-center p-4 cursor-pointer overflow-hidden"
-                    title="Clique para adicionar este item"
-                  >
-                    <img
-                      src={item.fotoUrl}
-                      alt={item.nome}
-                      className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
-                      loading="lazy"
-                    />
-
-                    {/* Tag do Cômodo Discreta */}
-                    <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-xs text-white text-[10px] font-bold uppercase tracking-wider">
-                      {item.comodoNome}
-                    </span>
-
-                    {/* Botão Flutuante de Vídeo do TikTok */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setVideoModal({
-                          isOpen: true,
-                          productName: item.nome,
-                          videoUrl: item.videoUrl,
-                          achadinho: item,
-                        });
-                      }}
-                      className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-600 hover:bg-pink-700 text-white text-[11px] font-bold shadow-md transition-transform active:scale-90 select-none cursor-pointer"
-                    >
-                      <Play className="h-3 w-3 fill-white" />
-                      <span>Ver Review</span>
-                    </button>
-                  </div>
-
-                  {/* Informações Diretas e Limpas */}
-                  <div
-                    onClick={() => iniciarAdicaoAchadinho(item)}
-                    className="p-3.5 space-y-1.5 cursor-pointer"
-                  >
-                    {/* Preço em Destaque */}
-                    <div className="flex items-baseline justify-between">
-                      <span className="font-display font-black text-base sm:text-lg text-emerald-700 dark:text-emerald-400">
-                        {brl(item.precoEstimado)}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground font-medium">
-                        médio {item.precoFaixa}
-                      </span>
-                    </div>
-
-                    {/* Nome do Produto */}
-                    <h3 className="font-bold text-xs sm:text-sm text-foreground line-clamp-1 leading-snug">
-                      {item.nome}
-                    </h3>
-
-                    {/* Dica Rápida */}
-                    <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                      <span className="text-amber-600 dark:text-amber-400 font-bold">💡 </span>
-                      {item.dica}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Botão de Ação que abre o modal padrão do sistema */}
-                <div className="p-3.5 pt-0 flex items-center gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => iniciarAdicaoAchadinho(item)}
-                    className="flex-1 h-8.5 bg-primary text-primary-foreground font-bold text-xs gap-1.5 shadow-2xs hover:bg-primary-hover active:scale-95 transition-all cursor-pointer"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    Adicionar
-                  </Button>
-
-                  {item.linkLoja && (
-                    <a
-                      href={item.linkLoja}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center h-8.5 w-8.5 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
-                      title={`Ver na loja oficial`}
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  )}
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      )}
-
-      {/* ABA DE DICAS DE OURO (QUANDO SELECIONADA NA PÍLULA) */}
-      {exibeDicas && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {dicasFiltradas.map((dica, idx) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <AnimatePresence mode="popLayout">
+          {achadinhosFiltrados.map((item, idx) => (
             <motion.div
-              key={dica.id}
+              key={item.id}
+              layout
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2, delay: idx * 0.03 }}
-              className="bg-card border border-border/80 rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-3 shadow-2xs hover:border-primary/50 transition-all"
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2, delay: idx * 0.02 }}
+              className="bg-card border border-border/80 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-primary/50 hover:shadow-md transition-all group"
             >
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <div className="h-9 w-9 rounded-xl bg-muted/80 border border-border flex items-center justify-center">
-                    {getIconeDica(dica.icone)}
-                  </div>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase px-2 py-0.5 rounded-md bg-muted">
-                    {dica.categoriaNome}
+              <div>
+                {/* Container da Imagem: clica e abre diretamente para adicionar o produto */}
+                <div
+                  onClick={() => iniciarAdicaoAchadinho(item)}
+                  className="relative w-full h-48 bg-white dark:bg-muted/20 border-b border-border/60 flex items-center justify-center p-4 cursor-pointer overflow-hidden"
+                  title="Clique para adicionar este item"
+                >
+                  <img
+                    src={item.fotoUrl}
+                    alt={item.nome}
+                    className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
+                  />
+
+                  {/* Tag do Cômodo Discreta */}
+                  <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-xs text-white text-[10px] font-bold uppercase tracking-wider">
+                    {item.comodoNome}
                   </span>
+
+                  {/* Botão Flutuante de Vídeo do TikTok */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setVideoModal({
+                        isOpen: true,
+                        productName: item.nome,
+                        videoUrl: item.videoUrl,
+                        achadinho: item,
+                      });
+                    }}
+                    className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-600 hover:bg-pink-700 text-white text-[11px] font-bold shadow-md transition-transform active:scale-90 select-none cursor-pointer"
+                  >
+                    <Play className="h-3 w-3 fill-white" />
+                    <span>Ver Review</span>
+                  </button>
                 </div>
 
-                <h3 className="font-bold text-sm sm:text-base text-foreground leading-snug">
-                  {dica.titulo}
-                </h3>
+                {/* Informações Diretas e Limpas */}
+                <div
+                  onClick={() => iniciarAdicaoAchadinho(item)}
+                  className="p-3.5 space-y-1.5 cursor-pointer"
+                >
+                  {/* Preço em Destaque */}
+                  <div className="flex items-baseline justify-between">
+                    <span className="font-display font-black text-base sm:text-lg text-emerald-700 dark:text-emerald-400">
+                      {brl(item.precoEstimado)}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground font-medium">
+                      médio {item.precoFaixa}
+                    </span>
+                  </div>
 
-                <p className="text-xs text-muted-foreground leading-relaxed">{dica.conteudo}</p>
+                  {/* Nome do Produto */}
+                  <h3 className="font-bold text-xs sm:text-sm text-foreground line-clamp-1 leading-snug">
+                    {item.nome}
+                  </h3>
+
+                  {/* Dica Rápida */}
+                  <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                    <span className="text-amber-600 dark:text-amber-400 font-bold">💡 </span>
+                    {item.dica}
+                  </p>
+                </div>
               </div>
 
-              {/* Destaque + Ações da Dica */}
-              <div className="space-y-2.5 pt-1">
-                <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-xs">
-                  <span className="font-bold text-primary block text-[10px] uppercase tracking-wider mb-0.5">
-                    ⚡ Benefício:
-                  </span>
-                  <p className="text-foreground/90 font-medium leading-relaxed">{dica.destaque}</p>
-                </div>
+              {/* Botão de Ação que abre o modal padrão do sistema */}
+              <div className="p-3.5 pt-0 flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => iniciarAdicaoAchadinho(item)}
+                  className="flex-1 h-8.5 bg-primary text-primary-foreground font-bold text-xs gap-1.5 shadow-2xs hover:bg-primary-hover active:scale-95 transition-all cursor-pointer"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Adicionar
+                </Button>
 
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleCopiarDica(dica)}
-                    className="flex-1 h-8 text-xs font-bold gap-1.5"
+                {item.linkLoja && (
+                  <a
+                    href={item.linkLoja}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center h-8.5 w-8.5 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
+                    title={`Ver na loja oficial`}
                   >
-                    <Copy className="h-3 w-3" />
-                    Copiar Dica
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => navigate({ to: "/planejamento" })}
-                    className="h-8 px-3 text-xs font-bold gap-1 bg-primary text-primary-foreground"
-                    title="Planejar no CasalPlanner"
-                  >
-                    <span>Planejar</span>
-                    <ArrowRight className="h-3 w-3" />
-                  </Button>
-                </div>
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                )}
               </div>
             </motion.div>
           ))}
-        </div>
-      )}
+        </AnimatePresence>
+      </div>
 
       {/* Modal Padrão do Sistema para Adicionar Item (ItemFormModal) */}
       <ItemFormModal
