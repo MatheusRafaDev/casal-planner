@@ -31,6 +31,7 @@ import {
   Search,
 } from "lucide-react";
 import { VideoPreviewModal } from "./VideoPreviewModal";
+import { VideoPlayer } from "./VideoPlayer";
 import { BarcodeScannerModal } from "./BarcodeScannerModal";
 import {
   Dialog,
@@ -562,17 +563,8 @@ export function ItemFormModal({
 
                   {resolvedVideo ? (
                     <div className="space-y-2.5">
-                      {/* Player de Vídeo Embutido (Zero Latência) */}
-                      <div className="relative w-full aspect-[9/16] max-h-[320px] rounded-xl overflow-hidden bg-black border border-border/80 shadow-md mx-auto">
-                        <iframe
-                          src={resolvedVideo.playerUrl}
-                          title={resolvedVideo.title || "Demonstração do produto"}
-                          className="w-full h-full border-0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                          allowFullScreen
-                          loading="lazy"
-                        />
-                      </div>
+                      {/* Player de Vídeo Aprimorado com Controles e Carregamento Fluido */}
+                      <VideoPlayer video={resolvedVideo} showDetails={false} />
 
                       {/* Ações do Vídeo */}
                       <div className="flex items-center justify-between gap-2 pt-0.5">

@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { pesquisaPrecosService, resolverVideoUrlLocal } from "@/services/pesquisa-precos";
+import { VideoPlayer } from "./VideoPlayer";
 import type { VideoPreview } from "@/services/types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -115,50 +116,17 @@ export function VideoPreviewModal({
 
         {/* Conteúdo Principal: Player + Lista de Vídeos */}
         <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-12 gap-4 min-h-[360px] max-h-[64vh] pr-1 pt-1">
-          {/* Coluna Esquerda: Player do Vídeo (5 cols) */}
-          <div className="md:col-span-5 flex flex-col items-center justify-start bg-muted/40 rounded-2xl p-3 border border-border/60">
+          {/* Coluna Esquerda: Player do Vídeo Avançado */}
+          <div className="md:col-span-5 flex flex-col items-center justify-start bg-muted/30 rounded-2xl p-3 border border-border/60">
             {activeVideo ? (
-              <div className="w-full flex flex-col items-center gap-2.5">
-                {/* Player Responsivo */}
-                <div className="relative w-full max-w-[280px] sm:max-w-[310px] aspect-[9/16] max-h-[460px] bg-black rounded-xl overflow-hidden shadow-lg border border-border/80">
-                  <iframe
-                    src={activeVideo.playerUrl}
-                    title={activeVideo.title}
-                    className="w-full h-full border-0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                    loading="lazy"
-                  />
-                </div>
-
-                {/* Info do Vídeo Ativo */}
-                <div className="w-full text-left px-1">
-                  <p className="text-xs font-bold line-clamp-2 leading-snug">{activeVideo.title}</p>
-                  <div className="flex items-center justify-between gap-2 mt-1.5 text-[11px] text-muted-foreground">
-                    {activeVideo.author && (
-                      <span className="font-semibold text-foreground/80 truncate">
-                        @{activeVideo.author}
-                      </span>
-                    )}
-                    <a
-                      href={activeVideo.videoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-primary hover:underline font-bold shrink-0 ml-auto"
-                    >
-                      Abrir no {activeVideo.platform === "tiktok" ? "TikTok" : "YouTube"}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
-                </div>
-              </div>
+              <VideoPlayer video={activeVideo} className="w-full" />
             ) : isLoading ? (
-              <div className="h-full min-h-[300px] flex flex-col items-center justify-center gap-2 text-muted-foreground">
+              <div className="h-full min-h-[320px] flex flex-col items-center justify-center gap-2 text-muted-foreground">
                 <Loader2 className="h-7 w-7 animate-spin text-pink-500" />
                 <span className="text-xs font-medium">Carregando demonstração do produto...</span>
               </div>
             ) : (
-              <div className="h-full min-h-[300px] flex flex-col items-center justify-center gap-2 text-center text-muted-foreground p-4">
+              <div className="h-full min-h-[320px] flex flex-col items-center justify-center gap-2 text-center text-muted-foreground p-4">
                 <Video className="h-8 w-8 opacity-40" />
                 <span className="text-xs font-semibold">Nenhum vídeo selecionado</span>
                 <span className="text-[11px] opacity-80">Escolha uma demonstração ao lado</span>
