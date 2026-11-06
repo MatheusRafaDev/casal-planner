@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using CasalPlanner.Application.DTOs;
 using CasalPlanner.Application.Interfaces;
 using CasalPlanner.Infrastructure.Helpers;
@@ -49,9 +49,13 @@ public class MercadoLivreProvider : IPriceProvider
                 var link = item.TryGetProperty("permalink", out var l) ? l.GetString() ?? "" : "";
                 var thumbnail = item.TryGetProperty("thumbnail", out var th) ? th.GetString() ?? "" : "";
                 
-                // Melhora qualidade da imagem do ML substituindo -I por -O (ou -F) se poss├¡vel
+                // Melhora qualidade da imagem do ML substituindo -I por -O (ou -F) e garante HTTPS
                 if (!string.IsNullOrEmpty(thumbnail))
+                {
+                    if (thumbnail.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+                        thumbnail = "https://" + thumbnail.Substring(7);
                     thumbnail = thumbnail.Replace("-I.jpg", "-O.jpg");
+                }
 
                 decimal originalPrice = item.TryGetProperty("original_price", out var op) && op.ValueKind == JsonValueKind.Number ? op.GetDecimal() : 0;
 

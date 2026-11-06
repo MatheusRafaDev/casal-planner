@@ -6,7 +6,7 @@ import { resumoService } from "@/services/resumo";
 import { categoriasService } from "@/services/categorias";
 import { itensService } from "@/services/itens";
 import { clearAppData } from "@/lib/clear-app-data";
-import { ApiError } from "@/lib/api";
+import { ApiError, resetSessionExpired } from "@/lib/api";
 import type { Usuario } from "@/services/types";
 
 interface AuthState {
@@ -132,11 +132,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       preaquecerQueries();
     } catch (err: unknown) {
       // Se for 401 ou 403 explícito (token e refresh token expirados ou inválidos):
-      const isAuthError = err instanceof ApiError && (err.status === 401 || err.status === 403);
+      const status = (err as { status?: number })?.status;
+      const isAuthError =
+        (err instanceof ApiError && (err.status === 401 || err.status === 403)) ||
+        status === 401 ||
+        status === 403;
 
       if (isAuthError) {
         setUsuarioState(null);
         setCachedUser(null);
+        qc.clear();
       } else {
         // Erro de conexão, offline ou instabilidade temporária:
         // Mantém o usuário autenticado com cache para não derrubar a sessão no mobile!
@@ -146,7 +151,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [preaquecerQueries]);
+  }, [preaquecerQueries, qc]);
+
+  // Escuta o evento global de sessão expirada disparado pelo cliente HTTP central (api.ts)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleSessionExpired = () => {
+      setUsuarioState(null);
+      setCachedUser(null);
+      qc.clear();
+      setLoading(false);
+    };
+
+    window.addEventListener("casal:session-expired", handleSessionExpired);
+    return () => window.removeEventListener("casal:session-expired", handleSessionExpired);
+  }, [qc]);
 
   useEffect(() => {
     refresh();
@@ -159,6 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (email: string, senha: string) => {
+      resetSessionExpired();
       const res = await authService.login(email, senha);
       const u = normalizarUsuario(res.usuario);
       setUsuarioState(u);
@@ -171,6 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginComGoogle = useCallback(
     async (token: string) => {
+      resetSessionExpired();
       const res = await authService.loginComGoogle(token);
       const u = normalizarUsuario(res.usuario);
       setUsuarioState(u);

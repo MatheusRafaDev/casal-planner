@@ -109,9 +109,11 @@ function IndicacoesPage() {
   // Mapeia quais achadinhos já estão adicionados ao planejamento do casal
   const addedItemIds = useMemo(() => {
     const ids = new Set<string>();
-    const nomesCadastrados = itensDoUsuario.map((item) =>
-      item.nome.trim().toLowerCase(),
-    );
+    const listaItens = Array.isArray(itensDoUsuario) ? itensDoUsuario : [];
+    const nomesCadastrados = listaItens
+      .filter((item): item is Item => !!item && typeof item.nome === "string")
+      .map((item) => item.nome.trim().toLowerCase());
+
     for (const ach of ACHADINHOS_DATA) {
       const achNome = ach.nome.trim().toLowerCase();
       if (

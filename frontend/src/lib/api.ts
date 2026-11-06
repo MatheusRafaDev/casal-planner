@@ -41,8 +41,27 @@ function isMobileClient(): boolean {
 }
 
 let refreshInFlight: Promise<boolean> | null = null;
+let sessionExpired = false;
+
+export function resetSessionExpired(): void {
+  sessionExpired = false;
+}
+
+function notifySessionExpired(): void {
+  sessionExpired = true;
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.removeItem("cp_cached_user");
+    } catch {
+      // ignorar possíveis erros de storage
+    }
+    window.dispatchEvent(new CustomEvent("casal:session-expired"));
+  }
+}
 
 async function refreshSession(): Promise<boolean> {
+  if (sessionExpired) return false;
+
   if (!refreshInFlight) {
     const refreshUrl = new URL(`${resolveBaseUrl()}/api/auth/refresh`, currentOrigin()).toString();
     refreshInFlight = fetch(refreshUrl, {
@@ -53,7 +72,14 @@ async function refreshSession(): Promise<boolean> {
         ...(isMobileClient() ? { "X-Client-Type": "mobile" } : {}),
       },
     })
-      .then((response) => response.ok)
+      .then((response) => {
+        if (!response.ok) {
+          notifySessionExpired();
+          return false;
+        }
+        sessionExpired = false;
+        return true;
+      })
       .catch(() => false)
       .finally(() => {
         refreshInFlight = null;
@@ -89,6 +115,10 @@ export async function api<T = unknown>(path: string, opts: ApiOptions = {}): Pro
     finalHeaders["Content-Type"] = finalHeaders["Content-Type"] ?? "application/json";
   }
 
+  if (path.includes("/auth/login")) {
+    resetSessionExpired();
+  }
+
   let response: Response;
   try {
     response = await fetch(url.toString(), {
@@ -116,14 +146,22 @@ export async function api<T = unknown>(path: string, opts: ApiOptions = {}): Pro
     !url.pathname.includes("/auth/refresh") &&
     !url.pathname.includes("/auth/login")
   ) {
-    if (await refreshSession()) {
-      response = await fetch(url.toString(), {
-        ...rest,
-        credentials: "include",
-        headers: finalHeaders,
-        body:
-          body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
-      });
+    if (!sessionExpired) {
+      const refreshed = await refreshSession();
+      if (refreshed) {
+        response = await fetch(url.toString(), {
+          ...rest,
+          credentials: "include",
+          headers: finalHeaders,
+          body:
+            body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
+        });
+      }
+    }
+
+    if (response.status === 401) {
+      notifySessionExpired();
+      throw new ApiError("Sessão expirada. Faça login novamente.", 401, null);
     }
   }
 

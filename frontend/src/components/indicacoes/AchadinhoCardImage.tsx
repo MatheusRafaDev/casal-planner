@@ -38,7 +38,7 @@ export function AchadinhoCardImage({
 
   const handleError = () => {
     if (!triedFallback && videoUrl) {
-      const match = videoUrl.match(/(?:embed\/|v=|youtu\.be\/|\/v\/)([a-zA-Z0-9_-]{11})/);
+      const match = videoUrl.match(/(?:embed\/|v=|youtu\.be\/|\/v\/|shorts\/)([a-zA-Z0-9_-]{11})/);
       if (match && match[1]) {
         setTriedFallback(true);
         setCurrentSrc(`https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`);

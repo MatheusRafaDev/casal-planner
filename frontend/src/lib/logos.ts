@@ -137,9 +137,9 @@ export const getFaviconUrls = (domain: string, name?: string | null) => {
   }
 
   return [
+    `https://www.google.com/s2/favicons?domain=${cleanDomain}&sz=128`,
     `https://icons.duckduckgo.com/ip3/${cleanDomain}.ico`,
     `https://logo.clearbit.com/${cleanDomain}`,
-    `https://www.google.com/s2/favicons?domain=${cleanDomain}&sz=128`,
     `https://icon.horse/icon/${cleanDomain}`,
     `https://ui-avatars.com/api/?name=${encodeURIComponent(brandName)}&background=5E6AD2&color=fff&size=128&bold=true`,
   ];

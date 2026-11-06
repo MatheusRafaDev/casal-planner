@@ -188,7 +188,6 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
   const [videoUrl, setVideoUrl] = useState("");
   const [videoThumbnail, setVideoThumbnail] = useState("");
   const [videoModalOpen, setVideoModalOpen] = useState(false);
-  const [showManualVideoInput, setShowManualVideoInput] = useState(false);
   const [buscandoVideoAuto, setBuscandoVideoAuto] = useState(false);
   const userRemovedVideoRef = useRef(false);
   const ultimaBuscaVideoNomeRef = useRef("");
@@ -292,7 +291,6 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
       setVideoUrl("");
       setVideoThumbnail("");
       userRemovedVideoRef.current = false;
-      setShowManualVideoInput(false);
       nomeOriginalDoVideoRef.current = nomeAtual;
       ultimaBuscaVideoNomeRef.current = "";
     } else if (!nomeOriginalDoVideoRef.current) {
@@ -1134,7 +1132,6 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                                 userRemovedVideoRef.current = true;
                                 setVideoUrl("");
                                 setVideoThumbnail("");
-                                setShowManualVideoInput(false);
                                 toast.info("Vídeo removido.");
                               }}
                               className="h-7 text-[11px] font-bold text-destructive hover:bg-destructive/10 gap-1 cursor-pointer"
@@ -1157,43 +1154,13 @@ export function AddItemWizard({ open, onOpenChange, categorias, categoriaInicial
                           </div>
                         </div>
                       ) : (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/70 text-xs text-muted-foreground gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <Film className="w-4 h-4 text-muted-foreground/60 shrink-0" />
-                              <span className="truncate">Nenhuma demonstração encontrada automaticamente.</span>
-                            </div>
-                            {!showManualVideoInput && (
-                              <button
-                                type="button"
-                                onClick={() => setShowManualVideoInput(true)}
-                                className="text-[11px] font-semibold text-primary hover:underline cursor-pointer shrink-0"
-                              >
-                                Colar link manual
-                              </button>
-                            )}
-                          </div>
-
-                          {showManualVideoInput && (
-                            <div className="space-y-1.5 pt-1">
-                              <Input
-                                value={videoUrl}
-                                onChange={(e) => setVideoUrl(e.target.value)}
-                                placeholder="Cole o link do YouTube ou TikTok: https://..."
-                                className="h-8 bg-background text-xs"
-                              />
-                              <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                                <span>Opcional: cole uma URL direta caso tenha</span>
-                                <button
-                                  type="button"
-                                  onClick={() => setShowManualVideoInput(false)}
-                                  className="text-destructive hover:underline"
-                                >
-                                  Cancelar
-                                </button>
-                              </div>
-                            </div>
-                          )}
+                        <div className="flex items-center gap-2 p-2.5 rounded-xl bg-muted/40 border border-border/70 text-xs text-muted-foreground">
+                          <Film className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
+                          <span className="text-[11px]">
+                            {nome.trim().length >= 3
+                              ? "Nenhuma demonstração em vídeo encontrada automaticamente para este produto."
+                              : "Digite o nome do produto para buscar o vídeo de demonstração automaticamente."}
+                          </span>
                         </div>
                       )}
                     </div>

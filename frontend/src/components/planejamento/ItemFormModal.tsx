@@ -106,7 +106,6 @@ export function ItemFormModal({
   const [dividir, setDividir] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
-  const [showManualVideoInput, setShowManualVideoInput] = useState(false);
   const [buscandoVideoAuto, setBuscandoVideoAuto] = useState(false);
   const userRemovedVideoRef = useRef(false);
   const ultimaBuscaVideoNomeRef = useRef("");
@@ -678,7 +677,7 @@ export function ItemFormModal({
                   {buscandoVideoAuto ? (
                     <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-center gap-2.5 text-xs text-primary font-medium animate-pulse">
                       <Loader2 className="w-4 h-4 animate-spin text-primary shrink-0" />
-                      <span>Buscando vídeo de demonstração automaticamente...</span>
+                      <span>Buscando demonstração em vídeo automaticamente...</span>
                     </div>
                   ) : resolvedVideo ? (
                     <div className="space-y-2.5">
@@ -706,7 +705,6 @@ export function ItemFormModal({
                             userRemovedVideoRef.current = true;
                             set("videoUrl", "");
                             set("videoThumbnail", "");
-                            setShowManualVideoInput(false);
                             toast.info("Vídeo removido.");
                           }}
                           className="h-7 text-[11px] font-bold text-destructive hover:bg-destructive/10 gap-1 cursor-pointer"
@@ -729,47 +727,13 @@ export function ItemFormModal({
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/70 text-xs text-muted-foreground gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <Film className="w-4 h-4 text-muted-foreground/60 shrink-0" />
-                          <span className="truncate">Nenhuma demonstração encontrada automaticamente.</span>
-                        </div>
-                        {!showManualVideoInput && (
-                          <button
-                            type="button"
-                            onClick={() => setShowManualVideoInput(true)}
-                            className="text-[11px] font-semibold text-primary hover:underline cursor-pointer shrink-0"
-                          >
-                            Colar link manual
-                          </button>
-                        )}
-                      </div>
-
-                      {showManualVideoInput && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          className="space-y-1.5 pt-1"
-                        >
-                          <Input
-                            value={form.videoUrl ?? ""}
-                            onChange={(e) => set("videoUrl", e.target.value)}
-                            placeholder="Cole o link do YouTube ou TikTok: https://..."
-                            className="bg-background text-xs h-8"
-                          />
-                          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                            <span>Opcional: cole uma URL direta caso tenha</span>
-                            <button
-                              type="button"
-                              onClick={() => setShowManualVideoInput(false)}
-                              className="text-destructive hover:underline"
-                            >
-                              Cancelar
-                            </button>
-                          </div>
-                        </motion.div>
-                      )}
+                    <div className="flex items-center gap-2 p-2.5 rounded-xl bg-muted/40 border border-border/70 text-xs text-muted-foreground">
+                      <Film className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
+                      <span className="text-[11px]">
+                        {form.nome.trim().length >= 3
+                          ? "Nenhuma demonstração em vídeo encontrada automaticamente para este produto."
+                          : "Digite o nome do produto para buscar o vídeo de demonstração automaticamente."}
+                      </span>
                     </div>
                   )}
                 </div>
