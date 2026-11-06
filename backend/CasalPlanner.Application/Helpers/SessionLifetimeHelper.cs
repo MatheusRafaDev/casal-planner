@@ -20,3 +20,4 @@ public static class SessionLifetimeHelper
         return isMobile ? MobileLifetime : DesktopLifetime;
     }
 }
+
