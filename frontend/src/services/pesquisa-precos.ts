@@ -104,7 +104,8 @@ export function resolverVideoUrlLocal(url: string, fallbackTitle?: string): Vide
       author: "YouTube",
       platform: "youtube",
       videoUrl: cleanUrl,
-      playerUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1`,
+      // Usar youtube-nocookie sem enablejsapi=1 para suprimir requisições de telemetria bloqueadas por adblockers
+      playerUrl: `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`,
       thumbnailUrl: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
     };
   }
@@ -114,13 +115,22 @@ export function resolverVideoUrlLocal(url: string, fallbackTitle?: string): Vide
     (cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://")) &&
     (cleanUrl.includes("/embed/") || cleanUrl.includes("/player/"))
   ) {
+    let sanitizedPlayerUrl = cleanUrl;
+    if (sanitizedPlayerUrl.includes("youtube.com/embed/")) {
+      sanitizedPlayerUrl = sanitizedPlayerUrl
+        .replace("youtube.com/embed/", "youtube-nocookie.com/embed/")
+        .replace("&enablejsapi=1", "")
+        .replace("?enablejsapi=1&", "?")
+        .replace("?enablejsapi=1", "");
+    }
+
     return {
       id: `embed-${Date.now()}`,
       title: fallbackTitle || "Demonstração em Vídeo",
       author: cleanUrl.includes("tiktok") ? "TikTok" : "Vídeo",
       platform: cleanUrl.includes("tiktok") ? "tiktok" : "youtube",
       videoUrl: cleanUrl,
-      playerUrl: cleanUrl,
+      playerUrl: sanitizedPlayerUrl,
       thumbnailUrl: "",
     };
   }

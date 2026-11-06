@@ -243,6 +243,13 @@ export function AchadinhosReelsFeed({
     ? resolverVideoUrlLocal(currentItem.videoUrl, currentItem.nome)
     : null;
 
+  const sanitizedPlayerUrl = (resolvedVideo?.playerUrl || "")
+    .replace("www.youtube.com/embed/", "www.youtube-nocookie.com/embed/")
+    .replace("youtube.com/embed/", "youtube-nocookie.com/embed/")
+    .replace("&enablejsapi=1", "")
+    .replace("?enablejsapi=1&", "?")
+    .replace("?enablejsapi=1", "");
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md overflow-hidden select-none animate-in fade-in duration-200"
@@ -334,7 +341,7 @@ export function AchadinhosReelsFeed({
               )}
               <iframe
                 key={currentItem.id}
-                src={resolvedVideo.playerUrl}
+                src={sanitizedPlayerUrl}
                 title={currentItem.nome}
                 className="w-full h-full border-0 object-cover"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -349,6 +356,15 @@ export function AchadinhosReelsFeed({
                 src={currentItem.fotoUrl}
                 alt=""
                 referrerPolicy="no-referrer"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (currentItem.videoUrl) {
+                    const match = currentItem.videoUrl.match(/(?:embed\/|v=|youtu\.be\/|\/v\/|shorts\/)([a-zA-Z0-9_-]{11})/);
+                    if (match && !target.src.includes(match[1])) {
+                      target.src = `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
+                    }
+                  }
+                }}
                 className="w-56 h-56 object-contain p-2 bg-white/10 rounded-2xl border border-white/20 mb-4"
               />
               <p className="text-sm font-bold text-white max-w-xs">{currentItem.nome}</p>

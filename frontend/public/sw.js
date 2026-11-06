@@ -8,7 +8,7 @@
  *  - Chamadas de API (/api/**) → Ignoradas pelo SW (rede nativa com credenciais HttpOnly).
  */
 
-const CACHE_NAME = "casal-planner-v10";
+const CACHE_NAME = "casal-planner-v11";
 
 // Assets estáticos imutáveis que são pré-cacheados na instalação
 const PRECACHE_URLS = [
@@ -44,12 +44,17 @@ self.addEventListener("install", (event) => {
 // ─── Activate ────────────────────────────────────────────────────────────────
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        // Deletar caches de versões anteriores (v8, v9, etc.) para garantir frescor dos bundles
-        Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))),
-      ),
+    (async () => {
+      // Deletar caches de versões anteriores (v8, v9, v10, etc.) para garantir frescor dos bundles
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)));
+
+      // Desabilitar navigationPreload caso esteja habilitado para evitar o aviso do Chromium:
+      // "The service worker navigation preload request was cancelled before 'preloadResponse' settled."
+      if ("navigationPreload" in self.registration) {
+        await self.registration.navigationPreload.disable().catch(() => {});
+      }
+    })(),
   );
   self.clients.claim();
 });

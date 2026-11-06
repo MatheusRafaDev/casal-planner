@@ -35,6 +35,14 @@ export function VideoPlayer({
   const [key, setKey] = useState(0); // Para forçar reload se o usuário desejar
   const [showSoundHint, setShowSoundHint] = useState(true);
 
+  // Sanitizar URL do player para privacidade e compatibilidade com adblockers
+  const sanitizedPlayerUrl = (video.playerUrl || "")
+    .replace("www.youtube.com/embed/", "www.youtube-nocookie.com/embed/")
+    .replace("youtube.com/embed/", "youtube-nocookie.com/embed/")
+    .replace("&enablejsapi=1", "")
+    .replace("?enablejsapi=1&", "?")
+    .replace("?enablejsapi=1", "");
+
   // Detecta se o vídeo é vertical (TikTok ou Shorts) ou horizontal (YouTube tradicional)
   const isVertical =
     video.platform === "tiktok" ||
@@ -165,7 +173,7 @@ export function VideoPlayer({
         <iframe
           key={key}
           ref={iframeRef}
-          src={video.playerUrl}
+          src={sanitizedPlayerUrl}
           title={video.title || "Demonstração do produto"}
           className="w-full h-full border-0 relative z-0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
