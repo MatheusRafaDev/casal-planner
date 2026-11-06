@@ -10,12 +10,21 @@ interface AchadinhoCardImageProps {
   className?: string;
 }
 
+const CATEGORY_FALLBACKS: Record<string, string> = {
+  cozinha: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=600&q=80",
+  quarto: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80",
+  sala: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80",
+  lavanderia: "https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=600&q=80",
+  banheiro: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=80",
+  organizacao: "https://images.unsplash.com/photo-1543512214-318c7553f230?auto=format&fit=crop&w=600&q=80",
+};
+
 /**
  * Componente resiliente para exibição de fotos de achadinhos.
  * - Esconde o ícone nativo quebrado do navegador usando alt="" e fallback gracioso.
  * - Suporta carregamento assíncrono com skeleton pulse suave.
  * - Utiliza política referrerPolicy="no-referrer" para evitar bloqueios de CDNs e Google Shopping.
- * - Fallback em cascata: Imagem do Produto -> Thumbnail do Vídeo -> Placeholder Elegante.
+ * - Fallback em cascata: Imagem do Produto -> Thumbnail do Vídeo -> Foto Curada do Cômodo -> Placeholder Elegante.
  */
 export function AchadinhoCardImage({
   src,
@@ -27,24 +36,47 @@ export function AchadinhoCardImage({
   const [currentSrc, setCurrentSrc] = useState(src);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [triedFallback, setTriedFallback] = useState(false);
+  const [triedVideoFallback, setTriedVideoFallback] = useState(false);
+  const [triedCategoryFallback, setTriedCategoryFallback] = useState(false);
 
   useEffect(() => {
     setCurrentSrc(src);
     setIsLoading(true);
     setHasError(false);
-    setTriedFallback(false);
+    setTriedVideoFallback(false);
+    setTriedCategoryFallback(false);
   }, [src]);
 
   const handleError = () => {
-    if (!triedFallback && videoUrl) {
+    // 1. Tenta thumbnail do vídeo (se houver vídeo válido)
+    if (!triedVideoFallback && videoUrl) {
       const match = videoUrl.match(/(?:embed\/|v=|youtu\.be\/|\/v\/|shorts\/)([a-zA-Z0-9_-]{11})/);
       if (match && match[1]) {
-        setTriedFallback(true);
+        setTriedVideoFallback(true);
         setCurrentSrc(`https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`);
         return;
       }
     }
+
+    // 2. Tenta foto curada temática do cômodo
+    if (!triedCategoryFallback && comodoNome) {
+      const norm = comodoNome.toLowerCase();
+      let key = "cozinha";
+      if (norm.includes("quarto")) key = "quarto";
+      else if (norm.includes("sala")) key = "sala";
+      else if (norm.includes("lavanderia")) key = "lavanderia";
+      else if (norm.includes("banheiro")) key = "banheiro";
+      else if (norm.includes("smart") || norm.includes("organiza")) key = "organizacao";
+
+      const fallbackUrl = CATEGORY_FALLBACKS[key];
+      if (fallbackUrl && currentSrc !== fallbackUrl) {
+        setTriedCategoryFallback(true);
+        setCurrentSrc(fallbackUrl);
+        return;
+      }
+    }
+
+    // 3. Fallback final: placeholder elegante
     setHasError(true);
     setIsLoading(false);
   };
@@ -87,4 +119,3 @@ export function AchadinhoCardImage({
     </div>
   );
 }
-

@@ -89,6 +89,13 @@ export function AchadinhosReelsFeed({
           shuffled.unshift(target);
         }
       }
+    } else {
+      // Prioriza achadinhos com demonstração em vídeo no topo do Reels
+      shuffled.sort((a, b) => {
+        if (a.videoUrl && !b.videoUrl) return -1;
+        if (!a.videoUrl && b.videoUrl) return 1;
+        return 0;
+      });
     }
 
     setFeedItems(shuffled);

@@ -15,6 +15,8 @@ import {
   Play,
   Film,
   Check,
+  Shuffle,
+  RotateCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -52,12 +54,65 @@ export const Route = createFileRoute("/_authenticated/indicacoes")({
   component: IndicacoesPage,
 });
 
+const ITENS_POR_PAGINA = 24;
+
+// Função determinística com base em seed para rotacionar o catálogo mantendo variedade
+function rotateCatalog(items: Achadinho[], seed: number): Achadinho[] {
+  if (items.length === 0) return items;
+  const result = [...items];
+  let s = seed % 2147483647;
+  if (s <= 0) s += 2147483646;
+
+  function nextRandom() {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  }
+
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(nextRandom() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+
+  return result;
+}
+
 function IndicacoesPage() {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
 
   const [busca, setBusca] = useState("");
   const [filtroAtivo, setFiltroAtivo] = useState<string>("todos");
+  const [visiveis, setVisiveis] = useState(ITENS_POR_PAGINA);
+  const [seed, setSeed] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem("cp_achadinhos_seed");
+      if (saved) return Number(saved);
+      const hourSeed = Math.floor(Date.now() / (1000 * 60 * 60)) * 7919 + Math.floor(Math.random() * 1000);
+      sessionStorage.setItem("cp_achadinhos_seed", String(hourSeed));
+      return hourSeed;
+    }
+    return 42;
+  });
+  const [girando, setGirando] = useState(false);
+
+  const girarVitrine = () => {
+    setGirando(true);
+    const nextSeed = Date.now() + Math.floor(Math.random() * 100000);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("cp_achadinhos_seed", String(nextSeed));
+    }
+    setSeed(nextSeed);
+    setVisiveis(ITENS_POR_PAGINA);
+    toast.success("Vitrine renovada com novos achadinhos!", {
+      icon: "🎲",
+    });
+    setTimeout(() => setGirando(false), 500);
+  };
+
+  // Resetar paginação ao trocar de filtro ou busca
+  useEffect(() => {
+    setVisiveis(ITENS_POR_PAGINA);
+  }, [busca, filtroAtivo]);
 
   // Estado para pesquisa ao vivo na web (Google Shopping / Lojas)
   const [pesquisaWebAtiva, setPesquisaWebAtiva] = useState(false);
@@ -339,20 +394,31 @@ function IndicacoesPage() {
     return () => clearTimeout(timer);
   }, [busca, pesquisaWebAtiva]);
 
-  // Filtragem dos achadinhos
+  // 1. Catálogo com rotação dinâmica com base no seed
+  const achadinhosRotativos = useMemo(() => {
+    return rotateCatalog(ACHADINHOS_DATA, seed);
+  }, [seed]);
+
+  // 2. Filtragem dos achadinhos
   const achadinhosFiltrados = useMemo(() => {
-    return ACHADINHOS_DATA.filter((item) => {
+    return achadinhosRotativos.filter((item) => {
       const matchBusca =
         !busca.trim() ||
         item.nome.toLowerCase().includes(busca.toLowerCase()) ||
         item.dica.toLowerCase().includes(busca.toLowerCase()) ||
-        item.comodoNome.toLowerCase().includes(busca.toLowerCase());
+        item.comodoNome.toLowerCase().includes(busca.toLowerCase()) ||
+        (item.marcaSugerida && item.marcaSugerida.toLowerCase().includes(busca.toLowerCase()));
 
       const matchComodo = filtroAtivo === "todos" || item.comodo === filtroAtivo;
 
       return matchBusca && matchComodo;
     });
-  }, [busca, filtroAtivo]);
+  }, [achadinhosRotativos, busca, filtroAtivo]);
+
+  // 3. Paginação progressiva para performance suave
+  const itensExibidos = useMemo(() => {
+    return achadinhosFiltrados.slice(0, visiveis);
+  }, [achadinhosFiltrados, visiveis]);
 
   return (
     <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-12 space-y-4 sm:space-y-5">
@@ -385,6 +451,18 @@ function IndicacoesPage() {
             <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-extrabold text-white">
               {achadinhosFiltrados.length}
             </span>
+          </Button>
+
+          {/* Botão de Girar Vitrine */}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={girarVitrine}
+            className="h-10 px-3 sm:px-3.5 rounded-xl font-bold text-xs gap-1.5 border-border shadow-sticker-sm hover:border-primary/40 active:scale-95 transition-all cursor-pointer bg-card text-foreground shrink-0"
+            title="Girar vitrine e descobrir novos achadinhos"
+          >
+            <Shuffle className={cn("h-3.5 w-3.5 text-primary", girando && "animate-spin")} />
+            <span className="hidden sm:inline">Girar Vitrine</span>
           </Button>
 
           {/* Busca Rápida Integrada */}
@@ -569,7 +647,7 @@ function IndicacoesPage() {
       {/* FEED DE ACHADINHOS - CARDS ELEGANTES NO PADRÃO CASALPLANNER */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
         <AnimatePresence mode="popLayout">
-          {achadinhosFiltrados.map((item, idx) => {
+          {itensExibidos.map((item, idx) => {
             const isJaAdicionado = addedItemIds.has(item.id);
             return (
               <motion.div
@@ -601,17 +679,19 @@ function IndicacoesPage() {
                     </span>
 
                     {/* Botão de Ver Vídeo / Review em Vidro Escuro Sofisticado */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        abrirReels(item.id);
-                      }}
-                      className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900/85 hover:bg-neutral-900 text-white text-[11px] font-bold backdrop-blur-md border border-white/20 shadow-md transition-transform active:scale-90 select-none cursor-pointer"
-                    >
-                      <Play className="h-3 w-3 fill-white" />
-                      <span>Ver Vídeo</span>
-                    </button>
+                    {item.videoUrl && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          abrirReels(item.id);
+                        }}
+                        className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900/85 hover:bg-neutral-900 text-white text-[11px] font-bold backdrop-blur-md border border-white/20 shadow-md transition-transform active:scale-90 select-none cursor-pointer"
+                      >
+                        <Play className="h-3 w-3 fill-white" />
+                        <span>Ver Vídeo</span>
+                      </button>
+                    )}
                   </div>
 
                   {/* Informações Claras e Tipografia Jakarta Sans */}
@@ -693,6 +773,42 @@ function IndicacoesPage() {
           })}
         </AnimatePresence>
       </div>
+
+      {/* Paginação / Carregamento Progressivo para os 500+ Achadinhos */}
+      {visiveis < achadinhosFiltrados.length && (
+        <div className="flex flex-col items-center justify-center pt-8 pb-4 gap-3">
+          <p className="text-xs text-muted-foreground font-medium">
+            Exibindo <span className="font-bold text-foreground">{itensExibidos.length}</span> de{" "}
+            <span className="font-bold text-foreground">{achadinhosFiltrados.length}</span> achadinhos rotativos
+          </p>
+          <div className="w-56 h-1.5 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full bg-primary transition-all duration-300 rounded-full"
+              style={{
+                width: `${Math.min(100, (itensExibidos.length / achadinhosFiltrados.length) * 100)}%`,
+              }}
+            />
+          </div>
+          <div className="flex items-center gap-2 pt-1">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setVisiveis((v) => v + ITENS_POR_PAGINA)}
+              className="rounded-xl font-bold text-xs px-5 h-10 border-primary/30 hover:bg-primary/10 text-primary shadow-sticker-sm cursor-pointer"
+            >
+              Carregar mais 24 achadinhos
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setVisiveis(achadinhosFiltrados.length)}
+              className="text-xs text-muted-foreground hover:text-foreground h-10 px-3 cursor-pointer"
+            >
+              Ver todos ({achadinhosFiltrados.length})
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Modal Padrão do Sistema para Adicionar Item (ItemFormModal) */}
       <ItemFormModal
