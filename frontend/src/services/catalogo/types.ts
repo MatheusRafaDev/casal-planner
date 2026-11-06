@@ -21,3 +21,4 @@ export function criarLinkPesquisa(nome: string, marca?: string): string {
     : nome;
   return `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(busca)}`;
 }
+

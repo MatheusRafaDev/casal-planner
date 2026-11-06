@@ -20,3 +20,4 @@ export const ACHADINHOS_CATALOGO: Achadinho[] = [
   ...BANHEIRO_ACHADINHOS,
   ...ORGANIZACAO_ACHADINHOS,
 ];
+
