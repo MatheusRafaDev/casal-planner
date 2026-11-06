@@ -1,9 +1,11 @@
+using CasalPlanner.Application.Helpers;
+
 namespace CasalPlanner.API.Helpers;
 
 public static class SessionLifetimePolicy
 {
-    public static readonly TimeSpan DesktopLifetime = TimeSpan.FromDays(30);
-    public static readonly TimeSpan MobileLifetime = TimeSpan.FromDays(3650);
+    public static readonly TimeSpan DesktopLifetime = SessionLifetimeHelper.DesktopLifetime;
+    public static readonly TimeSpan MobileLifetime = SessionLifetimeHelper.MobileLifetime;
 
     public static bool IsMobileClient(HttpRequest request)
     {
@@ -23,9 +25,9 @@ public static class SessionLifetimePolicy
     }
 
     public static TimeSpan GetLifetime(HttpRequest request) =>
-        IsMobileClient(request) ? MobileLifetime : DesktopLifetime;
+        GetLifetime(IsMobileClient(request));
 
     public static TimeSpan GetLifetime(bool isMobile) =>
-        isMobile ? MobileLifetime : DesktopLifetime;
+        SessionLifetimeHelper.GetLifetime(isMobile);
 }
 

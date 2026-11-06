@@ -71,6 +71,18 @@ export function normalizarUsuario(raw: unknown): Usuario {
 
 const CACHED_USER_KEY = "cp_cached_user";
 
+export function hasSessionHint(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return (
+      Boolean(localStorage.getItem(CACHED_USER_KEY)) ||
+      document.cookie.includes("cp_has_session=1")
+    );
+  } catch {
+    return false;
+  }
+}
+
 function getCachedUser(): Usuario | null {
   if (typeof window === "undefined") return null;
   try {
@@ -86,8 +98,10 @@ function setCachedUser(u: Usuario | null) {
   try {
     if (u) {
       localStorage.setItem(CACHED_USER_KEY, JSON.stringify(u));
+      document.cookie = `cp_has_session=1; path=/; max-age=${180 * 86400}; SameSite=Lax`;
     } else {
       localStorage.removeItem(CACHED_USER_KEY);
+      document.cookie = "cp_has_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0";
     }
   } catch {
     // ignorar possíveis erros de quota
@@ -115,13 +129,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     if (typeof window === "undefined") return;
 
-    // Se não há usuário no cache local, o visitante não está autenticado.
+    // Se não há indício de sessão (nem no cache local, nem cookie cp_has_session), o visitante não está autenticado.
     // Evita chamar /api/auth/me e disparar 401s desnecessários no console para usuários deslogados.
     const cached = getCachedUser();
-    if (!cached) {
+    const hasHint = hasSessionHint();
+
+    if (!cached && !hasHint) {
       setUsuarioState(null);
       setLoading(false);
       return;
+    }
+
+    if (cached) {
+      // Exibe imediatamente o usuário do cache local para resposta instantânea da UI
+      setUsuarioState(cached);
     }
 
     try {

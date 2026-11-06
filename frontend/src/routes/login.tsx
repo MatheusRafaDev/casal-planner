@@ -1,16 +1,31 @@
 import { useState, useEffect } from "react";
-import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter, redirect } from "@tanstack/react-router";
 import { ArrowRight, Heart, User as UserIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { RegistroIndividual } from "@/components/auth/RegistroIndividual";
 import { RegistroCasal } from "@/components/auth/RegistroCasal";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth, hasSessionHint } from "@/lib/auth-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BrandLogoText, BrandLogoIcon } from "@/components/ui/BrandLogo";
 import { BRAND_CONFIG } from "@/design-system";
 
 export const Route = createFileRoute("/login")({
+  ssr: false,
+  beforeLoad: ({ search }) => {
+    if (typeof window !== "undefined") {
+      try {
+        if (hasSessionHint()) {
+          const target = (search as { returnUrl?: string })?.returnUrl;
+          const destination =
+            target && target.startsWith("/") && !target.startsWith("//") ? target : "/inicio";
+          throw redirect({ to: destination, replace: true });
+        }
+      } catch (err) {
+        throw err;
+      }
+    }
+  },
   validateSearch: (
     search: Record<string, unknown>,
   ): { registrar?: number; returnUrl?: string; tipo?: "casal" | "individual" } => {
@@ -42,6 +57,8 @@ function LoginPage() {
   const navigate = useNavigate();
   const router = useRouter();
 
+  const shouldRedirect = isAuthenticated || hasSessionHint();
+
   useEffect(() => {
     if (registrar === 1) {
       setModo("cadastrar");
@@ -49,14 +66,30 @@ function LoginPage() {
   }, [registrar]);
 
   useEffect(() => {
-    if (!loading && isAuthenticated) {
+    if (shouldRedirect) {
       if (returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")) {
         router.history.push(returnUrl);
       } else {
-        navigate({ to: "/inicio" });
+        navigate({ to: "/inicio", replace: true });
       }
     }
-  }, [loading, isAuthenticated, navigate, router.history, returnUrl]);
+  }, [shouldRedirect, navigate, router.history, returnUrl]);
+
+  if (shouldRedirect) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-background px-4 font-sans select-none">
+        <div className="flex flex-col items-center gap-3.5">
+          <div className="relative flex items-center justify-center">
+            <BrandLogoIcon size="sm" className="h-8 w-8" />
+            <div className="absolute -inset-2.5 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+          </div>
+          <span className="text-xs text-muted-foreground font-medium">
+            Entrando na sua conta...
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div

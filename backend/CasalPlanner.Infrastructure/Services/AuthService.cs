@@ -1,5 +1,6 @@
 using CasalPlanner.Domain.Entities;
 using CasalPlanner.Application.DTOs;
+using CasalPlanner.Application.Helpers;
 using CasalPlanner.Infrastructure.Persistence;
 using MongoDB.Driver;
 using Microsoft.IdentityModel.Tokens;
@@ -223,9 +224,7 @@ namespace CasalPlanner.Infrastructure.Services
             var key = Encoding.UTF8.GetBytes(jwtKey);
             var handler = new JwtSecurityTokenHandler();
 
-            var tokenLifetime = int.TryParse(Environment.GetEnvironmentVariable("JWT_EXPIRES_IN"), out var expMin) && expMin > 0
-                ? TimeSpan.FromMinutes(expMin)
-                : (isMobile ? TimeSpan.FromDays(3650) : TimeSpan.FromDays(30));
+            var tokenLifetime = SessionLifetimeHelper.GetLifetime(isMobile);
 
             var descriptor = new SecurityTokenDescriptor
             {
@@ -251,7 +250,7 @@ namespace CasalPlanner.Infrastructure.Services
             rng.GetBytes(tokenBytes);
             var token = Convert.ToBase64String(tokenBytes);
             var tokenHash = HashRefreshToken(token);
-            var expiraEm = isMobile ? DateTime.UtcNow.AddDays(3650) : DateTime.UtcNow.AddDays(30);
+            var expiraEm = DateTime.UtcNow.Add(SessionLifetimeHelper.GetLifetime(isMobile));
 
             var update = Builders<Usuario>.Update;
             UpdateDefinition<Usuario> updateDef;

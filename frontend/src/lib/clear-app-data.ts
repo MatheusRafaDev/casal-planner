@@ -5,6 +5,7 @@ export function clearAppData() {
     // 1. Limpar localStorage e sessionStorage
     window.localStorage.clear();
     window.sessionStorage.clear();
+    document.cookie = "cp_has_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0";
 
     // 2. Limpar caches do Cache API
     if ("caches" in window) {

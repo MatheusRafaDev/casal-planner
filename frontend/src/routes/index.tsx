@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth, hasSessionHint } from "@/lib/auth-context";
 import { BrandLogoText, BrandLogoIcon } from "@/components/ui/BrandLogo";
 import { Check, ChevronRight, ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
+  ssr: false,
   beforeLoad: () => {
     if (typeof window !== "undefined") {
       try {
-        if (localStorage.getItem("cp_cached_user")) {
+        if (hasSessionHint()) {
           throw redirect({ to: "/inicio", replace: true });
         }
       } catch (err) {
@@ -34,11 +35,29 @@ function HomePage() {
   const navigate = useNavigate();
   const [highlightedSection, setHighlightedSection] = useState<string | null>(null);
 
+  const shouldRedirect = isAuthenticated || hasSessionHint();
+
   useEffect(() => {
-    if (!loading && isAuthenticated) {
+    if (shouldRedirect) {
       navigate({ to: "/inicio", replace: true });
     }
-  }, [loading, isAuthenticated, navigate]);
+  }, [shouldRedirect, navigate]);
+
+  if (shouldRedirect) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-background px-4 font-sans select-none">
+        <div className="flex flex-col items-center gap-3.5">
+          <div className="relative flex items-center justify-center">
+            <BrandLogoIcon size="sm" className="h-8 w-8" />
+            <div className="absolute -inset-2.5 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+          </div>
+          <span className="text-xs text-muted-foreground font-medium">
+            Entrando no seu planejamento...
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     const observer = new IntersectionObserver(

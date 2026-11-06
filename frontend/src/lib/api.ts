@@ -52,6 +52,7 @@ function notifySessionExpired(): void {
   if (typeof window !== "undefined") {
     try {
       localStorage.removeItem("cp_cached_user");
+      document.cookie = "cp_has_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0";
     } catch {
       // ignorar possíveis erros de storage
     }

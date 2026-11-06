@@ -43,8 +43,10 @@ public class UsuarioController : ControllerBase
     {
         var sameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None;
         var secure = !_environment.IsDevelopment();
-        var expires = isMobile ? DateTime.UtcNow.AddDays(3650) : DateTime.UtcNow.AddDays(30);
-        Response.Cookies.Append("cp_token", token, new CookieOptions { HttpOnly = true, Secure = secure, SameSite = sameSite, Expires = expires });
+        var lifetime = SessionLifetimePolicy.GetLifetime(isMobile);
+        var expires = DateTime.UtcNow.Add(lifetime);
+        Response.Cookies.Append("cp_token", token, new CookieOptions { HttpOnly = true, Secure = secure, SameSite = sameSite, Path = "/", Expires = expires });
+        Response.Cookies.Append("cp_has_session", "1", new CookieOptions { HttpOnly = false, Secure = secure, SameSite = sameSite, Path = "/", Expires = expires });
         Response.Cookies.Append("cp_refresh_token", refreshToken, new CookieOptions { HttpOnly = true, Secure = secure, SameSite = sameSite, Path = "/api/auth", Expires = expires });
     }
 

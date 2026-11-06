@@ -51,9 +51,7 @@ namespace CasalPlanner.API.Controllers
         private const string DummyHash = "$2a$12$usesomesillystringfore7hnbRJHxXVLeakoG8K30oukPsA.ztMG";
 
         private static TimeSpan GetTokenLifetime(bool isMobile) =>
-            int.TryParse(Environment.GetEnvironmentVariable("JWT_EXPIRES_IN"), out var m) && m > 0
-                ? TimeSpan.FromMinutes(m)
-                : SessionLifetimePolicy.GetLifetime(isMobile);
+            SessionLifetimePolicy.GetLifetime(isMobile);
 
         private bool IsMobileDevice()
         {
@@ -63,24 +61,40 @@ namespace CasalPlanner.API.Controllers
         private void SetTokenCookie(string token, string? refreshToken = null, bool isMobile = false)
         {
             var lifetime = GetTokenLifetime(isMobile);
+            var secure = !_environment.IsDevelopment();
+            var sameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None;
+            var expires = DateTime.UtcNow.Add(lifetime);
+
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = !_environment.IsDevelopment(),
-                SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
-                Expires = DateTime.UtcNow.Add(lifetime)
+                Secure = secure,
+                SameSite = sameSite,
+                Path = "/",
+                Expires = expires
             };
             Response.Cookies.Append("cp_token", token, cookieOptions);
+
+            // Cookie leve e não-HttpOnly para que o frontend verifique a existência da sessão sem 401s
+            var sessionHintOptions = new CookieOptions
+            {
+                HttpOnly = false,
+                Secure = secure,
+                SameSite = sameSite,
+                Path = "/",
+                Expires = expires
+            };
+            Response.Cookies.Append("cp_has_session", "1", sessionHintOptions);
 
             if (!string.IsNullOrEmpty(refreshToken))
             {
                 var refreshCookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = !_environment.IsDevelopment(),
-                    SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
+                    Secure = secure,
+                    SameSite = sameSite,
                     Path = "/api/auth",
-                    Expires = isMobile ? DateTime.UtcNow.AddDays(3650) : DateTime.UtcNow.AddDays(30)
+                    Expires = expires
                 };
                 Response.Cookies.Append("cp_refresh_token", refreshToken, refreshCookieOptions);
             }
@@ -294,9 +308,17 @@ namespace CasalPlanner.API.Controllers
             {
                 HttpOnly = true,
                 Secure   = !_environment.IsDevelopment(),
-                SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None
+                SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
+                Path     = "/"
             };
             Response.Cookies.Delete("cp_token", deleteOptions);
+            Response.Cookies.Delete("cp_has_session", new CookieOptions
+            {
+                HttpOnly = false,
+                Secure   = !_environment.IsDevelopment(),
+                SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
+                Path     = "/"
+            });
             Response.Cookies.Delete("cp_refresh_token", new CookieOptions
             {
                 HttpOnly = true,
