@@ -17,11 +17,25 @@ import {
   Check,
   Shuffle,
   RotateCw,
+  SlidersHorizontal,
+  ArrowUpDown,
+  Flame,
+  Tag,
+  Filter,
+  RotateCcw,
+  DollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { VideoPreviewModal } from "@/components/planejamento/VideoPreviewModal";
 import { ItemFormModal } from "@/components/planejamento/ItemFormModal";
 import { AchadinhosReelsFeed } from "@/components/planejamento/AchadinhosReelsFeed";
@@ -76,12 +90,32 @@ function rotateCatalog(items: Achadinho[], seed: number): Achadinho[] {
   return result;
 }
 
+// Normalização de texto para busca tolerante a acentos e maiúsculas
+function normalizarTexto(str: string): string {
+  return (str || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 function IndicacoesPage() {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
 
   const [busca, setBusca] = useState("");
   const [filtroAtivo, setFiltroAtivo] = useState<string>("todos");
+  const [faixaPreco, setFaixaPreco] = useState<
+    "todos" | "ate-50" | "50-150" | "150-300" | "acima-300"
+  >("todos");
+  const [seloAtivo, setSeloAtivo] = useState<
+    "todos" | "tiktok" | "custo-beneficio" | "indispensavel" | "presente" | "com-video"
+  >("todos");
+  const [ordenacao, setOrdenacao] = useState<
+    "relevancia" | "menor-preco" | "maior-preco" | "custo-beneficio" | "virais" | "nome-az"
+  >("relevancia");
+  const [filtrosAbertos, setFiltrosAbertos] = useState(false);
+
   const [visiveis, setVisiveis] = useState(ITENS_POR_PAGINA);
   const [seed, setSeed] = useState(() => {
     if (typeof window !== "undefined") {
@@ -102,6 +136,7 @@ function IndicacoesPage() {
       sessionStorage.setItem("cp_achadinhos_seed", String(nextSeed));
     }
     setSeed(nextSeed);
+    setOrdenacao("relevancia");
     setVisiveis(ITENS_POR_PAGINA);
     toast.success("Vitrine renovada com novos achadinhos!", {
       icon: "🎲",
@@ -109,10 +144,31 @@ function IndicacoesPage() {
     setTimeout(() => setGirando(false), 500);
   };
 
-  // Resetar paginação ao trocar de filtro ou busca
+  // Resetar paginação ao trocar de filtro, busca ou ordenação
   useEffect(() => {
     setVisiveis(ITENS_POR_PAGINA);
-  }, [busca, filtroAtivo]);
+  }, [busca, filtroAtivo, faixaPreco, seloAtivo, ordenacao]);
+
+  // Contagem de filtros ativos
+  const totalFiltrosAtivos = useMemo(() => {
+    let count = 0;
+    if (busca.trim()) count++;
+    if (filtroAtivo !== "todos") count++;
+    if (faixaPreco !== "todos") count++;
+    if (seloAtivo !== "todos") count++;
+    if (ordenacao !== "relevancia") count++;
+    return count;
+  }, [busca, filtroAtivo, faixaPreco, seloAtivo, ordenacao]);
+
+  const limparFiltros = () => {
+    setBusca("");
+    setFiltroAtivo("todos");
+    setFaixaPreco("todos");
+    setSeloAtivo("todos");
+    setOrdenacao("relevancia");
+    setPesquisaWebAtiva(false);
+    toast.info("Filtros resetados!");
+  };
 
   // Estado para pesquisa ao vivo na web (Google Shopping / Lojas)
   const [pesquisaWebAtiva, setPesquisaWebAtiva] = useState(false);
@@ -394,31 +450,94 @@ function IndicacoesPage() {
     return () => clearTimeout(timer);
   }, [busca, pesquisaWebAtiva]);
 
-  // 1. Catálogo com rotação dinâmica com base no seed
-  const achadinhosRotativos = useMemo(() => {
-    return rotateCatalog(ACHADINHOS_DATA, seed);
-  }, [seed]);
-
-  // 2. Filtragem dos achadinhos
+  // 1. Filtragem e Ranqueamento dos achadinhos
   const achadinhosFiltrados = useMemo(() => {
-    return achadinhosRotativos.filter((item) => {
-      const matchBusca =
-        !busca.trim() ||
-        item.nome.toLowerCase().includes(busca.toLowerCase()) ||
-        item.dica.toLowerCase().includes(busca.toLowerCase()) ||
-        item.comodoNome.toLowerCase().includes(busca.toLowerCase()) ||
-        (item.marcaSugerida && item.marcaSugerida.toLowerCase().includes(busca.toLowerCase()));
+    const buscaNorm = normalizarTexto(busca);
+    const tokens = buscaNorm ? buscaNorm.split(/\s+/).filter(Boolean) : [];
 
-      const matchComodo = filtroAtivo === "todos" || item.comodo === filtroAtivo;
+    // 1. Filtrar catálogo
+    const filtrados = ACHADINHOS_DATA.filter((item) => {
+      // Filtro de cômodo
+      if (filtroAtivo !== "todos" && item.comodo !== filtroAtivo) {
+        return false;
+      }
 
-      return matchBusca && matchComodo;
+      // Filtro de faixa de preço
+      if (faixaPreco === "ate-50" && item.precoEstimado > 50) return false;
+      if (faixaPreco === "50-150" && (item.precoEstimado < 50 || item.precoEstimado > 150)) return false;
+      if (faixaPreco === "150-300" && (item.precoEstimado < 150 || item.precoEstimado > 300)) return false;
+      if (faixaPreco === "acima-300" && item.precoEstimado <= 300) return false;
+
+      // Filtro de selo / vídeo
+      if (seloAtivo === "com-video" && !item.videoUrl) return false;
+      if (
+        seloAtivo !== "todos" &&
+        seloAtivo !== "com-video" &&
+        (!item.selos || !item.selos.includes(seloAtivo as any))
+      ) {
+        return false;
+      }
+
+      // Busca por texto (com normalização de acentos e multi-tokens)
+      if (tokens.length > 0) {
+        const pool = normalizarTexto(
+          `${item.nome} ${item.dica} ${item.porQueValeAPena} ${item.comodoNome} ${item.marcaSugerida || ""} ${item.selos?.join(" ") || ""}`
+        );
+        const matchesAll = tokens.every((token) => pool.includes(token));
+        if (!matchesAll) return false;
+      }
+
+      return true;
     });
-  }, [achadinhosRotativos, busca, filtroAtivo]);
 
-  // 3. Paginação progressiva para performance suave
+    // 2. Ordenação e Rankeamento
+    if (ordenacao === "menor-preco") {
+      return filtrados.slice().sort((a, b) => a.precoEstimado - b.precoEstimado);
+    }
+    if (ordenacao === "maior-preco") {
+      return filtrados.slice().sort((a, b) => b.precoEstimado - a.precoEstimado);
+    }
+    if (ordenacao === "virais") {
+      return filtrados.slice().sort((a, b) => {
+        const scoreA = (a.videoUrl ? 10 : 0) + (a.selos?.includes("tiktok") ? 5 : 0);
+        const scoreB = (b.videoUrl ? 10 : 0) + (b.selos?.includes("tiktok") ? 5 : 0);
+        if (scoreA !== scoreB) return scoreB - scoreA;
+        return a.precoEstimado - b.precoEstimado;
+      });
+    }
+    if (ordenacao === "custo-beneficio") {
+      return filtrados.slice().sort((a, b) => {
+        const cbA = a.selos?.includes("custo-beneficio") ? 1 : 0;
+        const cbB = b.selos?.includes("custo-beneficio") ? 1 : 0;
+        if (cbA !== cbB) return cbB - cbA;
+        return a.precoEstimado - b.precoEstimado;
+      });
+    }
+    if (ordenacao === "nome-az") {
+      return filtrados.slice().sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+    }
+
+    // "relevancia": rotação determinística pelo seed da vitrine
+    return rotateCatalog(filtrados, seed);
+  }, [busca, filtroAtivo, faixaPreco, seloAtivo, ordenacao, seed]);
+
+  // 2. Paginação progressiva para performance suave
   const itensExibidos = useMemo(() => {
     return achadinhosFiltrados.slice(0, visiveis);
   }, [achadinhosFiltrados, visiveis]);
+
+  // Sugestões de descoberta rápida
+  const sugestoesRapidas = [
+    { label: "💰 Mais Baratos", action: () => { setOrdenacao("menor-preco"); toast.success("Ordenado pelos mais baratos primeiro!"); } },
+    { label: "🔥 Virais no TikTok", action: () => { setSeloAtivo("tiktok"); toast.success("Filtrado por virais do TikTok!"); } },
+    { label: "⭐ Custo-Benefício", action: () => { setSeloAtivo("custo-beneficio"); toast.success("Filtrado por melhor custo-benefício!"); } },
+    { label: "✨ Indispensáveis", action: () => { setSeloAtivo("indispensavel"); toast.success("Filtrado por itens indispensáveis!"); } },
+    { label: "📹 Com Vídeo Review", action: () => { setSeloAtivo("com-video"); toast.success("Filtrado por itens com demonstração em vídeo!"); } },
+    { label: "🍳 Air Fryer", action: () => setBusca("Air Fryer") },
+    { label: "🤖 Robô Aspirador", action: () => setBusca("Robô Aspirador") },
+    { label: "🧺 Organizador", action: () => setBusca("Organizador") },
+    { label: "🛏️ Lençol", action: () => setBusca("Lençol") },
+  ];
 
   return (
     <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-12 space-y-4 sm:space-y-5">
@@ -493,7 +612,25 @@ function IndicacoesPage() {
         </div>
       </div>
 
-      {/* Barra de Filtros com Estilo Sticker do CasalPlanner */}
+      {/* Sugestões de Descoberta Rápida */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-0.5">
+        <span className="text-[11px] font-bold text-muted-foreground shrink-0 uppercase tracking-wider pl-0.5 pr-1 flex items-center gap-1">
+          <Sparkles className="h-3 w-3 text-primary" />
+          Sugestões:
+        </span>
+        {sugestoesRapidas.map((sug, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={sug.action}
+            className="px-2.5 py-1 rounded-full text-xs font-semibold bg-background hover:bg-muted text-muted-foreground hover:text-foreground border border-border hover:border-primary/40 shrink-0 transition-all cursor-pointer shadow-2xs active:scale-95"
+          >
+            {sug.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Barra de Categorias por Cômodo com Estilo Sticker do CasalPlanner */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-1">
         {[
           { id: "todos", label: "Todos", count: ACHADINHOS_DATA.length },
@@ -551,6 +688,156 @@ function IndicacoesPage() {
           </Button>
         )}
       </div>
+
+      {/* Barra de Controles: Ordenação / Ranks e Filtros Avançados */}
+      <div className="flex flex-wrap items-center justify-between gap-2.5 pt-0.5">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Seletor de Ordenação / Ranking */}
+          <div className="flex items-center gap-1.5 bg-card border border-border rounded-xl px-2.5 py-1 shadow-sticker-sm">
+            <ArrowUpDown className="h-3.5 w-3.5 text-primary shrink-0" />
+            <span className="text-[11px] font-semibold text-muted-foreground shrink-0 hidden sm:inline">
+              Ordenar:
+            </span>
+            <Select
+              value={ordenacao}
+              onValueChange={(val: any) => setOrdenacao(val)}
+            >
+              <SelectTrigger className="h-7 border-0 bg-transparent p-0 text-xs font-bold text-foreground focus:ring-0 w-auto gap-1 shadow-none cursor-pointer">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-border shadow-sticker bg-card">
+                <SelectItem value="relevancia" className="text-xs font-medium cursor-pointer">
+                  ⚡ Relevância (Rotativo)
+                </SelectItem>
+                <SelectItem value="menor-preco" className="text-xs font-medium cursor-pointer">
+                  💰 Menor Preço (Mais Baratos)
+                </SelectItem>
+                <SelectItem value="maior-preco" className="text-xs font-medium cursor-pointer">
+                  💎 Maior Preço (Investimentos)
+                </SelectItem>
+                <SelectItem value="custo-beneficio" className="text-xs font-medium cursor-pointer">
+                  ⭐ Melhor Custo-Benefício
+                </SelectItem>
+                <SelectItem value="virais" className="text-xs font-medium cursor-pointer">
+                  🔥 Mais Virais & Populares
+                </SelectItem>
+                <SelectItem value="nome-az" className="text-xs font-medium cursor-pointer">
+                  🔤 Nome (A a Z)
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Botão de Expansão dos Filtros Avançados */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setFiltrosAbertos((prev) => !prev)}
+            className={cn(
+              "h-9 px-3 rounded-xl text-xs font-bold gap-1.5 transition-all cursor-pointer shadow-sticker-sm border",
+              filtrosAbertos || faixaPreco !== "todos" || seloAtivo !== "todos"
+                ? "border-primary/50 bg-primary/10 text-primary"
+                : "border-border bg-card text-foreground hover:border-primary/30",
+            )}
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
+            <span>Filtros</span>
+            {(faixaPreco !== "todos" || seloAtivo !== "todos") && (
+              <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+            )}
+          </Button>
+
+          {/* Botão de Limpar Filtros */}
+          {totalFiltrosAtivos > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={limparFiltros}
+              className="h-9 px-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground gap-1 hover:bg-muted/60 cursor-pointer"
+              title="Resetar todos os filtros"
+            >
+              <RotateCcw className="h-3 w-3" />
+              <span>Limpar ({totalFiltrosAtivos})</span>
+            </Button>
+          )}
+        </div>
+
+        {/* Resumo da Contagem */}
+        <div className="text-[11px] sm:text-xs text-muted-foreground font-medium shrink-0 ml-auto">
+          Exibindo <b className="text-foreground">{itensExibidos.length}</b> de{" "}
+          <b className="text-foreground">{achadinhosFiltrados.length}</b> achadinhos
+        </div>
+      </div>
+
+      {/* Painel Expansível de Filtros Avançados */}
+      {filtrosAbertos && (
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-card border border-border shadow-sticker space-y-3">
+          {/* Filtro por Faixa de Preço */}
+          <div>
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+              <DollarSign className="h-3 w-3 text-primary" />
+              Faixa de Preço
+            </span>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[
+                { id: "todos", label: "Todos os Valores" },
+                { id: "ate-50", label: "Até R$ 50" },
+                { id: "50-150", label: "R$ 50 ~ R$ 150" },
+                { id: "150-300", label: "R$ 150 ~ R$ 300" },
+                { id: "acima-300", label: "Acima de R$ 300" },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setFaixaPreco(f.id as any)}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer",
+                    faixaPreco === f.id
+                      ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                      : "bg-background text-muted-foreground hover:text-foreground border-border hover:border-primary/30",
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Filtro por Selos & Destaques */}
+          <div>
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+              <Tag className="h-3 w-3 text-primary" />
+              Selos & Destaques
+            </span>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[
+                { id: "todos", label: "Todos os Selos" },
+                { id: "tiktok", label: "🔥 TikTok Viral" },
+                { id: "custo-beneficio", label: "⭐ Melhor Custo-Benefício" },
+                { id: "indispensavel", label: "✨ Indispensáveis" },
+                { id: "presente", label: "🎁 Para Presentear" },
+                { id: "com-video", label: "📹 Com Vídeo Review" },
+              ].map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setSeloAtivo(s.id as any)}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer",
+                    seloAtivo === s.id
+                      ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                      : "bg-background text-muted-foreground hover:text-foreground border-border hover:border-primary/30",
+                  )}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Painel de Resultados da Web (Quando pesquisado sob demanda) */}
       {pesquisaWebAtiva && (
@@ -644,135 +931,221 @@ function IndicacoesPage() {
         </div>
       )}
 
-      {/* FEED DE ACHADINHOS - CARDS ELEGANTES NO PADRÃO CASALPLANNER */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
-        <AnimatePresence mode="popLayout">
-          {itensExibidos.map((item, idx) => {
-            const isJaAdicionado = addedItemIds.has(item.id);
-            return (
-              <motion.div
-                key={item.id}
-                layout
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2, delay: idx * 0.02 }}
-                className="card-sticker rounded-2xl overflow-hidden flex flex-col justify-between border border-border bg-card shadow-sticker hover:shadow-sticker-lg hover:-translate-y-0.5 transition-all duration-200 group"
+      {/* FEED DE ACHADINHOS OU EMPTY STATE */}
+      {achadinhosFiltrados.length === 0 ? (
+        <div className="py-16 text-center flex flex-col items-center justify-center p-6 sm:p-8 rounded-2xl bg-card border border-border space-y-3 shadow-sticker">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary text-2xl mb-1 shadow-sticker-sm">
+            🔍
+          </div>
+          <h3 className="font-display font-bold text-base sm:text-lg text-foreground">
+            Nenhum achadinho encontrado
+          </h3>
+          <p className="text-xs sm:text-sm text-muted-foreground max-w-md">
+            {busca
+              ? `Não encontramos nenhum produto com o termo "${busca}" para os filtros selecionados.`
+              : "Nenhum produto corresponde a essa combinação de filtros e cômodo."}
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={limparFiltros}
+              className="rounded-xl text-xs font-bold gap-1.5 cursor-pointer shadow-sticker-sm"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              Limpar Filtros
+            </Button>
+            {busca && (
+              <Button
+                size="sm"
+                onClick={handleBuscarNaWeb}
+                className="rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground hover:bg-primary-hover cursor-pointer shadow-sticker-sm"
               >
-                <div>
-                  {/* Container da Imagem: fundo branco puro de vitrine */}
-                  <div
-                    onClick={() => iniciarAdicaoAchadinho(item)}
-                    className="relative w-full h-48 bg-white dark:bg-muted/30 border-b border-border/60 flex items-center justify-center p-4 cursor-pointer overflow-hidden"
-                    title="Clique para ver detalhes e personalizar"
-                  >
-                    <AchadinhoCardImage
-                      src={item.fotoUrl}
-                      alt={item.nome}
-                      videoUrl={item.videoUrl}
-                      comodoNome={item.comodoNome}
-                    />
-
-                    {/* Tag do Cômodo Discreta e Elegante */}
-                    <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-card/90 dark:bg-card/90 backdrop-blur-md text-foreground text-[10px] font-bold border border-border shadow-2xs">
-                      {item.comodoNome}
-                    </span>
-
-                    {/* Botão de Ver Vídeo / Review em Vidro Escuro Sofisticado */}
-                    {item.videoUrl && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          abrirReels(item.id);
-                        }}
-                        className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900/85 hover:bg-neutral-900 text-white text-[11px] font-bold backdrop-blur-md border border-white/20 shadow-md transition-transform active:scale-90 select-none cursor-pointer"
-                      >
-                        <Play className="h-3 w-3 fill-white" />
-                        <span>Ver Vídeo</span>
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Informações Claras e Tipografia Jakarta Sans */}
-                  <div
-                    onClick={() => iniciarAdicaoAchadinho(item)}
-                    className="p-3.5 space-y-2 cursor-pointer"
-                  >
-                    {/* Preço e Média de Mercado */}
-                    <div className="flex items-baseline justify-between gap-1">
-                      <span className="font-display font-black text-lg sm:text-xl text-primary">
-                        {brl(item.precoEstimado)}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground font-semibold">
-                        médio {item.precoFaixa}
-                      </span>
-                    </div>
-
-                    {/* Nome do Produto com peso agradável */}
-                    <h3 className="font-display font-bold text-xs sm:text-sm text-foreground line-clamp-2 leading-snug">
-                      {item.nome}
-                    </h3>
-
-                    {/* Dica do Casal em card creme suave */}
-                    <div className="p-2 rounded-xl bg-background border border-border/80 flex items-start gap-1.5 text-[11px] text-muted-foreground leading-relaxed">
-                      <span className="text-amber-500 font-bold shrink-0">💡</span>
-                      <span className="line-clamp-2">{item.dica}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Rodapé com Ações Claras */}
-                <div className="p-3.5 pt-0 flex items-center gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => handleAdicionarAutomatico(item)}
-                    disabled={isJaAdicionado || addingIds.has(item.id)}
-                    className={cn(
-                      "flex-1 h-9 rounded-xl font-bold text-xs gap-1.5 transition-all cursor-pointer shadow-sticker-sm",
-                      isJaAdicionado
-                        ? "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15 cursor-default"
-                        : addingIds.has(item.id)
-                          ? "opacity-80 cursor-wait bg-primary text-primary-foreground"
-                          : "bg-primary text-primary-foreground hover:bg-primary-hover active:scale-95",
-                    )}
-                  >
-                    {isJaAdicionado ? (
-                      <>
-                        <Check className="h-3.5 w-3.5 stroke-[3]" />
-                        Adicionado
-                      </>
-                    ) : addingIds.has(item.id) ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        Adicionando...
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="h-3.5 w-3.5" />
-                        Adicionar
-                      </>
-                    )}
-                  </Button>
-
-                  {item.linkLoja && (
-                    <a
-                      href={item.linkLoja}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-border bg-card text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors shrink-0 shadow-sticker-sm"
-                      title={`Pesquisar ofertas online para "${item.nome}"`}
+                <Globe className="h-3.5 w-3.5" />
+                Buscar "{busca}" no Google Shopping
+              </Button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+          <AnimatePresence mode="popLayout">
+            {itensExibidos.map((item, idx) => {
+              const isJaAdicionado = addedItemIds.has(item.id);
+              return (
+                <motion.div
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2, delay: idx * 0.02 }}
+                  className="card-sticker rounded-2xl overflow-hidden flex flex-col justify-between border border-border bg-card shadow-sticker hover:shadow-sticker-lg hover:-translate-y-0.5 transition-all duration-200 group"
+                >
+                  <div>
+                    {/* Container da Imagem: fundo branco puro de vitrine */}
+                    <div
+                      onClick={() => iniciarAdicaoAchadinho(item)}
+                      className="relative w-full h-48 bg-white dark:bg-muted/30 border-b border-border/60 flex items-center justify-center p-4 cursor-pointer overflow-hidden"
+                      title="Clique para ver detalhes e personalizar"
                     >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </div>
+                      <AchadinhoCardImage
+                        src={item.fotoUrl}
+                        alt={item.nome}
+                        videoUrl={item.videoUrl}
+                        comodoNome={item.comodoNome}
+                      />
+
+                      {/* Tag do Cômodo Discreta e Elegante */}
+                      <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-card/90 dark:bg-card/90 backdrop-blur-md text-foreground text-[10px] font-bold border border-border shadow-2xs">
+                        {item.comodoNome}
+                      </span>
+
+                      {/* Botão de Ver Vídeo / Review em Vidro Escuro Sofisticado */}
+                      {item.videoUrl && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            abrirReels(item.id);
+                          }}
+                          className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900/85 hover:bg-neutral-900 text-white text-[11px] font-bold backdrop-blur-md border border-white/20 shadow-md transition-transform active:scale-90 select-none cursor-pointer"
+                        >
+                          <Play className="h-3 w-3 fill-white" />
+                          <span>Ver Vídeo</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Informações Claras e Tipografia Jakarta Sans */}
+                    <div
+                      onClick={() => iniciarAdicaoAchadinho(item)}
+                      className="p-3.5 space-y-2 cursor-pointer"
+                    >
+                      {/* Preço e Média de Mercado */}
+                      <div className="flex items-baseline justify-between gap-1">
+                        <span className="font-display font-black text-lg sm:text-xl text-primary">
+                          {brl(item.precoEstimado)}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground font-semibold">
+                          médio {item.precoFaixa}
+                        </span>
+                      </div>
+
+                      {/* Badges de Selos do Produto */}
+                      {item.selos && item.selos.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1 pt-0.5">
+                          {item.selos.map((s) => {
+                            if (s === "tiktok") {
+                              return (
+                                <span
+                                  key={s}
+                                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-pink-500/10 text-pink-700 dark:text-pink-300 border border-pink-500/20"
+                                >
+                                  🔥 Viral TikTok
+                                </span>
+                              );
+                            }
+                            if (s === "custo-beneficio") {
+                              return (
+                                <span
+                                  key={s}
+                                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20"
+                                >
+                                  ⭐ Custo-Benefício
+                                </span>
+                              );
+                            }
+                            if (s === "indispensavel") {
+                              return (
+                                <span
+                                  key={s}
+                                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20"
+                                >
+                                  ✨ Indispensável
+                                </span>
+                              );
+                            }
+                            if (s === "presente") {
+                              return (
+                                <span
+                                  key={s}
+                                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20"
+                                >
+                                  🎁 Presente
+                                </span>
+                              );
+                            }
+                            return null;
+                          })}
+                        </div>
+                      )}
+
+                      {/* Nome do Produto com peso agradável */}
+                      <h3 className="font-display font-bold text-xs sm:text-sm text-foreground line-clamp-2 leading-snug">
+                        {item.nome}
+                      </h3>
+
+                      {/* Dica do Casal em card creme suave */}
+                      <div className="p-2 rounded-xl bg-background border border-border/80 flex items-start gap-1.5 text-[11px] text-muted-foreground leading-relaxed">
+                        <span className="text-amber-500 font-bold shrink-0">💡</span>
+                        <span className="line-clamp-2">{item.dica}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rodapé com Ações Claras */}
+                  <div className="p-3.5 pt-0 flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => handleAdicionarAutomatico(item)}
+                      disabled={isJaAdicionado || addingIds.has(item.id)}
+                      className={cn(
+                        "flex-1 h-9 rounded-xl font-bold text-xs gap-1.5 transition-all cursor-pointer shadow-sticker-sm",
+                        isJaAdicionado
+                          ? "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15 cursor-default"
+                          : addingIds.has(item.id)
+                            ? "opacity-80 cursor-wait bg-primary text-primary-foreground"
+                            : "bg-primary text-primary-foreground hover:bg-primary-hover active:scale-95",
+                      )}
+                    >
+                      {isJaAdicionado ? (
+                        <>
+                          <Check className="h-3.5 w-3.5 stroke-[3]" />
+                          Adicionado
+                        </>
+                      ) : addingIds.has(item.id) ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          Adicionando...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-3.5 w-3.5" />
+                          Adicionar
+                        </>
+                      )}
+                    </Button>
+
+                    {item.linkLoja && (
+                      <a
+                        href={item.linkLoja}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-border bg-card text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors shrink-0 shadow-sticker-sm"
+                        title={`Pesquisar ofertas online para "${item.nome}"`}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* Paginação / Carregamento Progressivo para os 500+ Achadinhos */}
       {visiveis < achadinhosFiltrados.length && (
