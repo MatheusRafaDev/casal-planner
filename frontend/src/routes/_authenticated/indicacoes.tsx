@@ -521,6 +521,13 @@ function IndicacoesPage() {
     return rotateCatalog(filtrados, seed);
   }, [busca, filtroAtivo, faixaPreco, seloAtivo, ordenacao, seed]);
 
+  // Achadinhos que possuem vídeo demonstrativo real verificado
+  const achadinhosComVideo = useMemo(() => {
+    const comVideo = achadinhosFiltrados.filter((i) => Boolean(i.videoUrl));
+    if (comVideo.length > 0) return comVideo;
+    return ACHADINHOS_DATA.filter((i) => Boolean(i.videoUrl));
+  }, [achadinhosFiltrados]);
+
   // 2. Paginação progressiva para performance suave
   const itensExibidos = useMemo(() => {
     return achadinhosFiltrados.slice(0, visiveis);
@@ -568,7 +575,7 @@ function IndicacoesPage() {
             <Film className="h-4 w-4" />
             <span>Assistir no Reels</span>
             <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-extrabold text-white">
-              {achadinhosFiltrados.length}
+              {achadinhosComVideo.length}
             </span>
           </Button>
 
@@ -1214,7 +1221,11 @@ function IndicacoesPage() {
 
       {/* Feed Vertical Estilo Reels em Tela Cheia */}
       <AchadinhosReelsFeed
-        items={achadinhosFiltrados.length > 0 ? achadinhosFiltrados : ACHADINHOS_DATA}
+        items={
+          reelsInitialId
+            ? ACHADINHOS_DATA.filter((i) => Boolean(i.videoUrl))
+            : achadinhosComVideo
+        }
         initialItemId={reelsInitialId}
         isOpen={reelsAberto}
         onClose={() => setReelsAberto(false)}
